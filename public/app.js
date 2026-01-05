@@ -2,7 +2,7 @@
 const storage = new PasteStorage();
 
 // DOM Elements
-const loadingState = document.getElementById('loadingState');
+const loadingState = document.getElementById('loadingState') || document.getElementById('loading-screen');
 const notFoundState = document.getElementById('notFoundState');
 const burnedState = document.getElementById('burnedState');
 const pasteView = document.getElementById('pasteView');
