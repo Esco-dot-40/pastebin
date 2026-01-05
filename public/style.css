@@ -57,13 +57,14 @@
 
 html {
     font-size: 16px;
-    background: #000;
-    /* Fix white background issue */
+    background-color: #050505 !important;
+    /* Force dark background always */
 }
 
 body {
     font-family: var(--font-sans);
-    background: transparent;
+    background: transparent !important;
+    /* Allow video/image to show through */
     /* Allow video to show through */
     color: var(--text-primary);
     line-height: 1.6;
