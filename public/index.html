@@ -556,8 +556,7 @@
 
     <!-- Audio -->
     <audio id="bgAudio" loop preload="auto">
-        <source src="/public/audio.flac" type="audio/flac">
-        <source src="/public/song.flac" type="audio/flac">
+        <source src="/public/audio.mp3" type="audio/mp3">
     </audio>
 
     <div id="volumeControl" class="volume-control">
@@ -991,12 +990,14 @@
                 document.getElementById('view-entry').style.display = 'flex';
                 document.getElementById('view-viewer').style.display = 'none';
                 document.body.style.overflow = 'hidden'; // Lock scroll on entry
+                if (window.setBackgroundVideo) window.setBackgroundVideo('main');
             }
             // Public Viewer
             else if (path.startsWith('/public') || path.startsWith('/v/')) {
                 document.getElementById('view-entry').style.display = 'none';
                 document.getElementById('view-viewer').style.display = 'block';
                 document.body.style.overflow = 'auto'; // Allow scroll
+                if (window.setBackgroundVideo) window.setBackgroundVideo('pastes');
 
                 if (path.startsWith('/v/')) {
                     const id = path.split('/')[2];
