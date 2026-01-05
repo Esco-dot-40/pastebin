@@ -310,11 +310,14 @@ body {
     margin-bottom: var(--spacing-xl);
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+#view-viewer {
+    background: transparent !important;
 }
+
+#view-entry {
+    background: transparent !important;
+}
+
 
 .error-icon,
 .warning-icon {
