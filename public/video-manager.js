@@ -1,4 +1,3 @@
-```javascript
 const VIDEO_SOURCES = {
     main: "/public/uploads/main_bg.mp4",
     pastes: "/public/uploads/pastes_bg.mp4"
@@ -42,7 +41,7 @@ window.setBackgroundVideo = function (key) {
     // We check against the attribute value we set
     if (video.getAttribute('src') === newSrc) {
         // Ensure playing just in case
-        video.play().catch(() => {});
+        video.play().catch(() => { });
         return;
     }
 
