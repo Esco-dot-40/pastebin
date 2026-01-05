@@ -117,9 +117,9 @@ app.get('/v/:id', (req, res) => {
 
     // 3. Construct Meta Data
     // Default values if paste not found (SPA will handle 404 UI)
-    let title = 'PasteBin Pro';
+    let title = 'QuietBin.space';
     let description = 'Share code and text content securely.';
-    const siteName = 'PasteBin Pro';
+    const siteName = 'QuietBin.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
     let imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.jpg`; // Default to the uploaded "sus" image
 
