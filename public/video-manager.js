@@ -1,6 +1,6 @@
 const VIDEO_SOURCES = {
     main: "/public/uploads/main_bg.mp4",
-    pastes: "/public/uploads/pastes_bg.mp4"
+    pastes: "/public/uploads/main_bg.mp4" // DEBUG: Use known good video
 };
 
 let currentVideoKey = null;
@@ -30,9 +30,7 @@ window.setBackgroundVideo = function (key) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            zIndex: '9999', // DEBUG: Force on top
-            pointerEvents: 'none', // Allow clicking through
-            opacity: '0.5' // See-through
+            zIndex: '0'
         });
 
         container.appendChild(video);
