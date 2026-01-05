@@ -567,28 +567,31 @@
                     stroke-linejoin="round" />
             </svg>
         </div>
-        <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume">
-            <svg id="iconMuted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            <svg id="iconSound" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" style="display: none;">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
-                <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
-            </svg>
-        </button>
+        <div class="volume-control-inner">
+            <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume"
+                style="background: none; border: none; padding: 0;">
+                <svg id="iconMuted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+                <svg id="iconSound" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" style="display: none;">
+                    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                    <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
+                    <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
+                </svg>
+            </button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.2">
+        </div>
     </div>
 
-    <!-- Background Media -->
     <!-- Background Media -->
     <div id="video-background-container"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; background: #000;">
     </div>
-    <script src="/public/video-slideshow.js"></script>
+    <script src="/public/video-manager.js?v=3"></script>
 
     <!-- View: ENTRY -->
     <div id="view-entry">
@@ -641,6 +644,41 @@
                 .discord-promo a:hover div {
                     background: #4752C4 !important;
                     transform: scale(1.1);
+                }
+
+                /* Volume Slider Styles */
+                .volume-control-inner {
+                    display: flex;
+                    align-items: center;
+                    background: rgba(0, 0, 0, 0.6);
+                    padding: 8px 16px;
+                    border-radius: 30px;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                }
+
+                input[type=range] {
+                    width: 100px;
+                    margin-left: 10px;
+                    height: 4px;
+                    border-radius: 2px;
+                    background: rgba(255, 255, 255, 0.2);
+                    outline: none;
+                    appearance: none;
+                }
+
+                input[type=range]::-webkit-slider-thumb {
+                    appearance: none;
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    background: #fff;
+                    cursor: pointer;
+                    transition: transform 0.1s;
+                }
+
+                input[type=range]::-webkit-slider-thumb:hover {
+                    transform: scale(1.2);
                 }
             </style>
 
@@ -903,9 +941,14 @@
         const iconMuted = document.getElementById('iconMuted');
         const iconSound = document.getElementById('iconSound');
         const arrow = document.getElementById('volumeArrow');
+        const slider = document.getElementById('volumeSlider');
 
         let hasInteracted = false;
-        audio.volume = 0.2; // Increase start volume
+        let lastVolume = 0.2; // Store last volume for unmuting
+
+        // Initialize audio
+        audio.volume = lastVolume;
+        slider.value = lastVolume;
 
         function tryPlayAudio() {
             if (hasInteracted) return;
@@ -930,14 +973,32 @@
             if (audio.paused) {
                 audio.play();
                 hasInteracted = true;
+                // If previously muted (vol 0), restore
+                if (audio.volume === 0) {
+                    audio.volume = lastVolume || 0.2;
+                    slider.value = audio.volume;
+                }
             } else {
-                audio.pause();
+                // If it is playing and we click toggle, we act as mute/unmute or play/pause
+                // Actually, let's strictly pause/play for the button, 
+                // OR duplicate the request to mute.
+                // Standard behavior: Toggle mute usually just mutes, but play/pause button stops it.
+                // Given the visual is a Speaker, let's treat it as Mute Toggle if playing.
+
+                if (audio.volume > 0) {
+                    lastVolume = audio.volume;
+                    audio.volume = 0;
+                    slider.value = 0;
+                } else {
+                    audio.volume = lastVolume || 0.2;
+                    slider.value = audio.volume;
+                }
             }
             updateAudioIcon();
         }
 
         function updateAudioIcon() {
-            if (!audio.paused) {
+            if (!audio.paused && audio.volume > 0) {
                 iconMuted.style.display = 'none';
                 iconSound.style.display = 'block';
                 volBtn.classList.add('active-volume');
@@ -947,6 +1008,20 @@
                 volBtn.classList.remove('active-volume');
             }
         }
+
+        // Slider Logic
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            audio.volume = val;
+
+            if (val > 0 && audio.paused) {
+                audio.play();
+                hasInteracted = true;
+            }
+            updateAudioIcon();
+        });
+
+        slider.addEventListener('click', (e) => e.stopPropagation()); // Prevent document click
 
         volBtn.addEventListener('click', (e) => {
             e.stopPropagation();
