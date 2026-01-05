@@ -20,7 +20,8 @@ class PasteAPI {
                     isPublic: config.isPublic !== false,
                     burnAfterRead: config.burnAfterRead || false,
                     folderId: config.folderId || null,
-                    password: config.password || null
+                    password: config.password || null,
+                    embedUrl: config.embedUrl || null
                 })
             });
 
@@ -58,7 +59,8 @@ class PasteAPI {
                     isPublic: config.isPublic !== false,
                     burnAfterRead: config.burnAfterRead || false,
                     folderId: config.folderId || null,
-                    password: config.password || null
+                    password: config.password || null,
+                    embedUrl: config.embedUrl || null
                 })
             });
 

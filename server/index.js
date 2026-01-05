@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import session from 'express-session';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import pastesRouter from './routes/pastes.js';
 import authRouter from './routes/auth.js';
@@ -89,8 +90,103 @@ app.get('/public', (req, res) => {
 
 // Short URL for viewing pastes: /v/ID
 app.get('/v/:id', (req, res) => {
-    // Serve index.html for SPA routing
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    const pasteId = req.params.id;
+    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+
+    // 1. Read the template
+    let html = '';
+    try {
+        html = fs.readFileSync(indexPath, 'utf-8');
+    } catch (err) {
+        console.error('Error reading index.html:', err);
+        return res.status(500).send('Error loading frontend.');
+    }
+
+    // 2. Fetch Paste Metadata (Synchronously for simplicity/speed in this context or use async)
+    // Since we are in an async handler, better to be safe. But `better-sqlite3` is synchronous! 
+    // `db` in `index.js` comes from `./db/index.js`. Check if it's better-sqlite3.
+    // server/index.js line 12: `import sqlite3SessionStore from 'better-sqlite3-session-store';`
+    // It's likely better-sqlite3.
+
+    let paste = null;
+    try {
+        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ?').get(pasteId);
+    } catch (e) {
+        console.error('DB Error fetching paste for embed:', e);
+    }
+
+    // 3. Construct Meta Data
+    // Default values if paste not found (SPA will handle 404 UI)
+    let title = 'PasteBin Pro';
+    let description = 'Share code and text content securely.';
+    const siteName = 'PasteBin Pro';
+    const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
+    let imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.jpg`; // Default to the uploaded "sus" image
+
+    if (paste) {
+        title = paste.title || 'Untitled Paste';
+        if (paste.embedUrl) {
+            if (paste.embedUrl.startsWith('http')) {
+                imageUrl = paste.embedUrl;
+            } else {
+                imageUrl = `${req.protocol}://${req.get('host')}${paste.embedUrl.startsWith('/') ? '' : '/'}${paste.embedUrl}`;
+            }
+        }
+
+        if (paste.password) {
+            description = '🔒 This paste is password protected.';
+        } else if (paste.isPublic === 0) {
+            description = '🔒 Private Paste.';
+        } else {
+            // Truncate content for description
+            const maxDesc = 150;
+            const content = paste.content || '';
+            description = content.length > maxDesc
+                ? content.substring(0, maxDesc) + '...'
+                : content;
+        }
+    }
+
+    // 4. Escape HTML Helpers
+    const escape = (str) => String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const safeTitle = escape(title);
+    const safeDesc = escape(description);
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+    // 5. Inject Meta Tags
+    // We replace the existing <title> and append meta tags to <head>
+
+    let metaTags = `
+    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDesc}">
+    <meta property="og:url" content="${fullUrl}">
+    <meta name="theme-color" content="${themeColor}">
+    <meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDesc}">
+    `;
+
+    if (imageUrl) {
+        metaTags += `
+    <meta property="og:image" content="${imageUrl}">
+    <meta name="twitter:image" content="${imageUrl}">
+        `;
+    }
+
+    // Replace title
+    html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
+
+    // Inject before closing head
+    html = html.replace('</head>', `${metaTags}\n</head>`);
+
+    res.send(html);
 });
 
 // Error handling

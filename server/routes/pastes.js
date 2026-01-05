@@ -46,14 +46,14 @@ async function fetchGeolocation(ip) {
 // CREATE
 router.post('/', requireAuth, async (req, res) => {
     try {
-        const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password } = req.body;
+        const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
         const id = generateId();
         const cleanPassword = password ? password.trim() : null;
 
         db.prepare(`
-            INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, cleanPassword);
+            INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, cleanPassword, embedUrl || null);
 
         res.status(201).json({ id, success: true });
     } catch (e) {
@@ -64,13 +64,13 @@ router.post('/', requireAuth, async (req, res) => {
 // UPDATE
 router.put('/:id', requireAuth, async (req, res) => {
     try {
-        const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password } = req.body;
+        const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
         const { id } = req.params;
         const cleanPassword = password ? password.trim() : null;
 
         db.prepare(`
             UPDATE pastes 
-            SET title = ?, content = ?, language = ?, expiresAt = ?, isPublic = ?, burnAfterRead = ?, folderId = ?, password = ?
+            SET title = ?, content = ?, language = ?, expiresAt = ?, isPublic = ?, burnAfterRead = ?, folderId = ?, password = ?, embedUrl = ?
             WHERE id = ?
         `).run(
             title || 'Untitled',
@@ -81,6 +81,7 @@ router.put('/:id', requireAuth, async (req, res) => {
             burnAfterRead ? 1 : 0,
             folderId || null,
             cleanPassword,
+            embedUrl || null,
             id
         );
 

@@ -46,6 +46,11 @@ const generatedKey = document.getElementById('generatedKey');
 const copyKeyBtn = document.getElementById('copyKeyBtn');
 const generateKeyBtn = document.getElementById('generateKeyBtn');
 
+// Embed Elements
+const embedUrl = document.getElementById('embedUrl');
+const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
+const embedInput = document.getElementById('embedInput');
+
 // Initialize
 window.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([
@@ -150,6 +155,10 @@ if (folderModal) {
 if (uploadImageBtn) uploadImageBtn.addEventListener('click', () => imageInput.click());
 if (imageInput) imageInput.addEventListener('change', handleImageUpload);
 
+// Embed Upload Events
+if (uploadEmbedBtn) uploadEmbedBtn.addEventListener('click', () => embedInput.click());
+if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
+
 // Close modals on background click
 if (successModal) {
     successModal.addEventListener('click', (e) => {
@@ -201,7 +210,8 @@ async function createPaste() {
         burnAfterRead: burnAfterRead.checked,
         expiresAt: calculateExpiration(pasteExpiration.value),
         folderId: pasteFolder.value || null,
-        password: pastePassword.value ? pastePassword.value.trim() : null
+        password: pastePassword.value ? pastePassword.value.trim() : null,
+        embedUrl: embedUrl.value ? embedUrl.value.trim() : null
     };
 
     try {
@@ -256,6 +266,7 @@ function clearForm() {
     pasteExpiration.value = 'never';
     pasteFolder.value = '';
     if (pastePassword) pastePassword.value = '';
+    if (embedUrl) embedUrl.value = '';
     burnAfterRead.checked = false;
     isPublic.checked = true;
 
@@ -619,6 +630,7 @@ async function loadPasteForEdit(id) {
         isPublic.checked = paste.isPublic !== 0; // 0 is false
         burnAfterRead.checked = paste.burnAfterRead !== 0;
         if (pastePassword) pastePassword.value = paste.password || '';
+        if (embedUrl) embedUrl.value = paste.embedUrl || '';
 
         // Reset expiration to never for editing as default, unless we want to parse logic
         pasteExpiration.value = 'never';
@@ -799,42 +811,68 @@ async function handleImageUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const originalText = uploadImageBtn.childNodes[0].textContent;
-    uploadImageBtn.childNodes[0].textContent = '⏳ Uploading...';
+    // Show loading state on button
+    const originalText = uploadImageBtn.innerHTML;
+    uploadImageBtn.innerHTML = '⏳ Uploading...';
     uploadImageBtn.disabled = true;
 
     try {
-        const result = await storage.uploadImage(file);
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            // Append markdown to content
+            const isVideo = file.type.startsWith('video/');
+            const markdown = isVideo ?
+                `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px;"></video>\n` :
+                `\n![${file.name}](${res.url})\n`;
 
-        // Insert Markdown/HTML into content
-        let markdown;
-        if (file.type.startsWith('video/')) {
-            markdown = `<video controls width="100%" src="${window.location.origin}${result.url}"></video>`;
+            pasteContent.value += markdown;
+
+            // Visual feedback
+            uploadImageBtn.innerHTML = '✅ Added!';
+            setTimeout(() => {
+                uploadImageBtn.innerHTML = originalText;
+                uploadImageBtn.disabled = false;
+            }, 1000);
         } else {
-            markdown = `![${file.name}](${window.location.origin}${result.url})`;
+            alert('Upload failed: ' + res.error);
+            uploadImageBtn.innerHTML = originalText;
+            uploadImageBtn.disabled = false;
         }
-        const start = pasteContent.selectionStart;
-        const end = pasteContent.selectionEnd;
-        const text = pasteContent.value;
-        pasteContent.value = text.substring(0, start) + markdown + text.substring(end);
-
-        // Auto-switch to Markdown
-        pasteLanguage.value = 'markdown';
-
-        // Trigger input event to update any preview (if exists)
-        pasteContent.dispatchEvent(new Event('input'));
-    } catch (error) {
-        if (error.message.includes('JSON.parse') || error.message.includes('non-JSON')) {
-            alert('Upload failed: The file is likely too large (Limit: 100MB on Railway). Try a smaller file.');
-        } else {
-            alert('Upload failed: ' + error.message);
-        }
-    } finally {
-        uploadImageBtn.childNodes[0].textContent = originalText;
+    } catch (e) {
+        console.error(e);
+        alert('Upload Error: ' + e.message);
+        uploadImageBtn.innerHTML = originalText;
         uploadImageBtn.disabled = false;
-        imageInput.value = ''; // Reset input
     }
 }
+
+async function handleEmbedUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const originalText = uploadEmbedBtn.innerHTML;
+    uploadEmbedBtn.innerHTML = '⏳';
+    uploadEmbedBtn.disabled = true;
+
+    try {
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            embedUrl.value = window.location.origin + res.url;
+            uploadEmbedBtn.innerHTML = '✅';
+        } else {
+            alert('Upload failed');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        setTimeout(() => {
+            uploadEmbedBtn.innerHTML = originalText;
+            uploadEmbedBtn.disabled = false;
+        }, 1500);
+    }
+}
+
+
 
 async function toggleVisibility(id, e) {
     if (e) e.stopPropagation();

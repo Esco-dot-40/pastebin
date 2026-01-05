@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
+    <link rel="icon" type="image/png" href="/public/favicon.png">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
 
@@ -1584,6 +1585,18 @@
                 }
             }, 100);
         }
+
+        // --- Animated Title ---
+        (function () {
+            const originalTitle = document.title;
+            const altTitle = "ERROR // CORRUPTION";
+            let isOriginal = true;
+
+            setInterval(() => {
+                document.title = isOriginal ? originalTitle : altTitle;
+                isOriginal = !isOriginal;
+            }, 2000); // Toggle every 2 seconds
+        })();
     </script>
     <script>
         window.submitKey = async function () {

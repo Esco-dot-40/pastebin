@@ -127,7 +127,8 @@ migrateTable('pastes', [
     { name: 'isPublic', type: 'INTEGER DEFAULT 1' },
     { name: 'expiresAt', type: 'DATETIME' },
     { name: 'folderId', type: 'TEXT' },
-    { name: 'password', type: 'TEXT' }
+    { name: 'password', type: 'TEXT' },
+    { name: 'embedUrl', type: 'TEXT' }
 ]);
 
 // Access Keys Table
