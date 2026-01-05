@@ -57,11 +57,14 @@
 
 html {
     font-size: 16px;
+    background: #000;
+    /* Fix white background issue */
 }
 
 body {
     font-family: var(--font-sans);
     background: transparent;
+    /* Allow video to show through */
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
