@@ -1093,6 +1093,9 @@
 
             // Entry Page
             if (path === '/' || path === '/index.html') {
+                const ls = document.getElementById('loadingState');
+                if (ls) ls.style.display = 'none'; // Hide loading screen
+
                 document.getElementById('view-entry').style.display = 'flex';
                 document.getElementById('view-viewer').style.display = 'none';
                 document.body.style.overflow = 'hidden'; // Lock scroll on entry
