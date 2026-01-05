@@ -1,98 +1,44 @@
 const VIDEO_SOURCES = {
-    main: "/public/uploads/main_bg.mp4?v=" + Date.now(),
-    pastes: "/public/uploads/pastes_bg.mp4?v=" + Date.now()
+    main: "/public/uploads/main_bg.mp4",
+    pastes: "/public/uploads/pastes_bg.mp4"
 };
 
 let currentVideoKey = null;
 
 // Initialize Global Controls
 window.setBackgroundVideo = function (key) {
-    console.log(`[VideoManager] Requesting background: ${key}`);
-
-    // Force reload for debugging (commented out check)
-    if (currentVideoKey === key) {
-        console.log(`[VideoManager] Already on ${key}, ignoring.`);
-        return;
-    }
+    if (currentVideoKey === key) return;
     currentVideoKey = key;
 
     const container = document.getElementById('video-background-container');
-    if (!container) {
-        console.error("[VideoManager] Container not found!");
-        return;
-    }
+    if (!container) return;
 
-    const src = VIDEO_SOURCES[key];
-    if (!src) {
-        console.error(`[VideoManager] No source for key ${key}`);
-        return;
-    }
+    let video = container.querySelector('video');
 
-    // Create new video for cross-fade
-    const newVideo = document.createElement('video');
-    newVideo.autoplay = true;
-    newVideo.muted = true;
-    newVideo.playsInline = true;
-    newVideo.loop = true;
-    newVideo.src = src;
+    if (!video) {
+        // Create only once
+        video = document.createElement('video');
+        video.autoplay = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.loop = true;
 
-    // Debug loading
-    newVideo.addEventListener('custom_log', (e) => console.log(e.detail));
-    newVideo.addEventListener('loadeddata', () => console.log(`[VideoManager] ${key} loaded successfully.`));
-    newVideo.addEventListener('error', (e) => console.error(`[VideoManager] Error loading ${key}:`, newVideo.error));
-
-    // Style
-    Object.assign(newVideo.style, {
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-        opacity: '0', // Start hidden
-        transition: 'opacity 1.5s ease',
-        zIndex: '1', // Ensure it's on top of previous (which effectively defaults to 0 or auto)
-    });
-
-    container.appendChild(newVideo);
-
-    newVideo.play().then(() => {
-        console.log(`[VideoManager] ${key} started playing.`);
-
-        // Fade in new
-        // Small delay to ensure render
-        requestAnimationFrame(() => {
-            newVideo.style.opacity = '1';
+        Object.assign(video.style, {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: '0'
         });
 
-        // Remove old video(s) after transition
-        const oldVideos = Array.from(container.querySelectorAll('video')).filter(v => v !== newVideo);
+        container.appendChild(video);
+    }
 
-        // Lower z-index of old videos just in case
-        oldVideos.forEach(v => v.style.zIndex = '0');
-
-        if (oldVideos.length > 0) {
-            console.log(`[VideoManager] Scheduling removal of ${oldVideos.length} old videos.`);
-            setTimeout(() => {
-                oldVideos.forEach(v => {
-                    v.remove();
-                    console.log("[VideoManager] Removed an old video.");
-                });
-            }, 1500); // Match transition duration
-        }
-    }).catch(e => {
-        console.error("[VideoManager] Video play failed:", e);
-        // Fallback: just show it if play fails (interaction might be needed, but muted should work)
-        newVideo.style.opacity = '1';
-
-        // Force cleanup of old videos immediately if play fails, to avoid "stuck" old video
-        // (Though if new video is black/broken, we might prefer old video? 
-        //  But user problem is "old video stays", so let's try to remove it to see if we at least get a black screen = progress)
-        /* 
-        const oldVideos = Array.from(container.querySelectorAll('video')).filter(v => v !== newVideo);
-        oldVideos.forEach(v => v.remove()); 
-        */
-    });
+    // Just swap the source
+    video.src = VIDEO_SOURCES[key];
+    video.play().catch(e => console.error("Play failed", e));
 };
 
 // Initial Load
