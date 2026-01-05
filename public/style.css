@@ -61,7 +61,7 @@ html {
 
 body {
     font-family: var(--font-sans);
-    background: var(--bg-dark);
+    background: transparent;
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
