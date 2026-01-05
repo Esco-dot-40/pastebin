@@ -1,7 +1,6 @@
 const VIDEO_SOURCES = {
     main: "/public/uploads/main_bg.mp4?v=" + Date.now(),
-    // Temporary test: Use rocky shore to see if logic works
-    pastes: "/public/uploads/rocky-shore-coast.mp4?v=" + Date.now()
+    pastes: "/public/uploads/pastes_bg.mp4?v=" + Date.now()
 };
 
 let currentVideoKey = null;
@@ -11,10 +10,10 @@ window.setBackgroundVideo = function (key) {
     console.log(`[VideoManager] Requesting background: ${key}`);
 
     // Force reload for debugging (commented out check)
-    // if (currentVideoKey === key) {
-    //     console.log(`[VideoManager] Already on ${key}, ignoring.`);
-    //     return;
-    // }
+    if (currentVideoKey === key) {
+        console.log(`[VideoManager] Already on ${key}, ignoring.`);
+        return;
+    }
     currentVideoKey = key;
 
     const container = document.getElementById('video-background-container');
