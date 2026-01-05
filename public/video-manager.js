@@ -1,6 +1,7 @@
+```javascript
 const VIDEO_SOURCES = {
     main: "/public/uploads/main_bg.mp4",
-    pastes: "/public/uploads/main_bg.mp4" // DEBUG: Use known good video
+    pastes: "/public/uploads/pastes_bg.mp4"
 };
 
 let currentVideoKey = null;
@@ -36,8 +37,17 @@ window.setBackgroundVideo = function (key) {
         container.appendChild(video);
     }
 
+    const newSrc = VIDEO_SOURCES[key];
+    // Prevent reloading the same video file (flashes black)
+    // We check against the attribute value we set
+    if (video.getAttribute('src') === newSrc) {
+        // Ensure playing just in case
+        video.play().catch(() => {});
+        return;
+    }
+
     // Just swap the source
-    video.src = VIDEO_SOURCES[key];
+    video.src = newSrc;
     video.play().catch(e => console.error("Play failed", e));
 };
 
