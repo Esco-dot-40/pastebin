@@ -1103,6 +1103,9 @@
             }
             // Public Viewer
             else if (path.startsWith('/public') || path.startsWith('/v/')) {
+                const ls = document.getElementById('loadingState');
+                if (ls) ls.style.display = 'none'; // Hide loading screen
+
                 document.getElementById('view-entry').style.display = 'none';
                 document.getElementById('view-viewer').style.display = 'block';
                 document.body.style.overflow = 'auto'; // Allow scroll
