@@ -713,7 +713,7 @@
     <!-- View: VIEWER (Merged) -->
     <!-- View: VIEWER (Carousel) -->
     <div id="view-viewer"
-        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: #050505;">
+        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent;">
 
         <!-- Gallery List -->
         <div id="listView" class="gallery">
@@ -944,14 +944,37 @@
         const slider = document.getElementById('volumeSlider');
 
         let hasInteracted = false;
-        let lastVolume = 0.2; // Store last volume for unmuting
 
-        // Initialize audio
+        // Restore Volume
+        let storedVolume = localStorage.getItem('audioVolume');
+        let lastVolume = storedVolume ? parseFloat(storedVolume) : 0.2; // Default 0.2
+
+        // Restore Time
+        let storedTime = localStorage.getItem('audioCurrentTime');
+        if (storedTime) {
+            audio.currentTime = parseFloat(storedTime);
+        }
+
+        // Initialize state
         audio.volume = lastVolume;
         slider.value = lastVolume;
 
+        // Persist Time Update (Throttled by browser event loop naturally)
+        audio.addEventListener('timeupdate', () => {
+            localStorage.setItem('audioCurrentTime', audio.currentTime);
+        });
+
+        // Persist Volume
+        function setVolume(val) {
+            audio.volume = val;
+            localStorage.setItem('audioVolume', val);
+        }
+
         function tryPlayAudio() {
-            if (hasInteracted) return;
+            // We can try to play if we think we have interaction, 
+            // but usually we need a fresh interaction on a new load unless the browser allows it.
+            // We will respect the "hasInteracted" flag if we are in an SPA,
+            // but for reloads, we blindly try.
 
             const playPromise = audio.play();
 
@@ -960,9 +983,11 @@
                     hasInteracted = true;
                     updateAudioIcon();
                     console.log("Audio playing");
-                    // Show arrow hint
-                    arrow.classList.add('visible');
-                    setTimeout(() => arrow.classList.remove('visible'), 4000);
+                    // Show arrow hint only if we are at the very start (first 5 seconds)
+                    if (audio.currentTime < 5) {
+                        arrow.classList.add('visible');
+                        setTimeout(() => arrow.classList.remove('visible'), 4000);
+                    }
                 }).catch(error => {
                     console.log("Autoplay prevented. Waiting for interaction.", error);
                 });
@@ -975,23 +1000,20 @@
                 hasInteracted = true;
                 // If previously muted (vol 0), restore
                 if (audio.volume === 0) {
-                    audio.volume = lastVolume || 0.2;
-                    slider.value = audio.volume;
+                    let vol = lastVolume || 0.2;
+                    if (vol === 0) vol = 0.2; // safety
+                    setVolume(vol);
+                    slider.value = vol;
                 }
             } else {
-                // If it is playing and we click toggle, we act as mute/unmute or play/pause
-                // Actually, let's strictly pause/play for the button, 
-                // OR duplicate the request to mute.
-                // Standard behavior: Toggle mute usually just mutes, but play/pause button stops it.
-                // Given the visual is a Speaker, let's treat it as Mute Toggle if playing.
-
                 if (audio.volume > 0) {
-                    lastVolume = audio.volume;
-                    audio.volume = 0;
+                    lastVolume = audio.volume; // save current before mute
+                    setVolume(0);
                     slider.value = 0;
                 } else {
-                    audio.volume = lastVolume || 0.2;
-                    slider.value = audio.volume;
+                    let vol = lastVolume || 0.2;
+                    setVolume(vol);
+                    slider.value = vol;
                 }
             }
             updateAudioIcon();
@@ -1012,7 +1034,7 @@
         // Slider Logic
         slider.addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            audio.volume = val;
+            setVolume(val);
 
             if (val > 0 && audio.paused) {
                 audio.play();
@@ -1028,7 +1050,15 @@
             toggleAudio();
         });
 
-        // Try playing immediately
+        // Global interaction fallback
+        // If autoplay failed, one click anywhere starts it
+        document.addEventListener('click', () => {
+            if (audio.paused && !hasInteracted) {
+                tryPlayAudio();
+            }
+        }, { once: true });
+
+        // Try playing immediately on load
         tryPlayAudio();
 
         // Global interaction listeners - aggressive
