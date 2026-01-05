@@ -30,7 +30,9 @@ window.setBackgroundVideo = function (key) {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            zIndex: '0'
+            zIndex: '9999', // DEBUG: Force on top
+            pointerEvents: 'none', // Allow clicking through
+            opacity: '0.5' // See-through
         });
 
         container.appendChild(video);
