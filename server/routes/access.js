@@ -213,81 +213,86 @@ router.get('/auth/discord', (req, res, next) => {
             <p>Please set DISCORD_CLIENT_ID and DISCORD_CLIENT_SECRET in your environment variables.</p>
         `);
     }
-    passport.authenticate('discord')(req, res, next);
+    const callbackURL = `${req.protocol}://${req.get('host')}/api/access/auth/discord/callback`;
+    console.log("Discord Auth Start. Callback:", callbackURL);
+    passport.authenticate('discord', { callbackURL })(req, res, next);
 });
 
 // Discord Login
 router.get('/auth/discord/login', (req, res, next) => {
-    passport.authenticate('discord', { state: 'login' })(req, res, next);
+    const callbackURL = `${req.protocol}://${req.get('host')}/api/access/auth/discord/callback`;
+    passport.authenticate('discord', { state: 'login', callbackURL })(req, res, next);
 });
 
 // Discord Callback
-router.get('/auth/discord/callback',
+router.get('/auth/discord/callback', (req, res, next) => {
+    const callbackURL = `${req.protocol}://${req.get('host')}/api/access/auth/discord/callback`;
     passport.authenticate('discord', {
         failureRedirect: '/?error=auth_failed',
-        session: false
-    }),
-    (req, res) => {
-        // Successful authentication
-        const user = req.user;
-        const state = req.query.state;
+        session: false,
+        callbackURL
+    })(req, res, next);
+}, (req, res) => {
+    // Successful authentication
+    const user = req.user;
+    const state = req.query.state;
 
-        if (state === 'login') {
-            // Create User in DB
-            const discordId = user.id;
-            const email = user.email;
-            const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+    if (state === 'login') {
+        // Create User in DB
+        const discordId = user.id;
+        const email = user.email;
+        const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
 
-            let dbUser = db.prepare('SELECT * FROM users WHERE discordId = ?').get(discordId);
-            if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+        let dbUser = db.prepare('SELECT * FROM users WHERE discordId = ?').get(discordId);
+        if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
-            if (!dbUser) {
-                const id = discordId;
-                try {
-                    db.prepare('INSERT INTO users (id, email, discordId, avatarUrl) VALUES (?, ?, ?, ?)').run(id, email, discordId, avatarUrl);
-                    dbUser = { id, email, discordId, avatarUrl };
-                } catch (e) { console.error("Discord User Create Error", e); }
-            } else {
-                // Link discord ID if matched by email
-                if (!dbUser.discordId) {
-                    db.prepare('UPDATE users SET discordId = ?, avatarUrl = ? WHERE id = ?').run(discordId, avatarUrl, dbUser.id);
-                    dbUser.discordId = discordId;
-                }
+        if (!dbUser) {
+            const id = discordId;
+            try {
+                db.prepare('INSERT INTO users (id, email, discordId, avatarUrl) VALUES (?, ?, ?, ?)').run(id, email, discordId, avatarUrl);
+                dbUser = { id, email, discordId, avatarUrl };
+            } catch (e) { console.error("Discord User Create Error", e); }
+        } else {
+            // Link discord ID if matched by email
+            if (!dbUser.discordId) {
+                db.prepare('UPDATE users SET discordId = ?, avatarUrl = ? WHERE id = ?').run(discordId, avatarUrl, dbUser.id);
+                dbUser.discordId = discordId;
             }
-
-            req.session.user = dbUser;
-            // Ensure session saves before redirect
-            req.session.save(() => {
-                res.redirect('/public?action=link_key');
-            });
-            return;
         }
 
-        // Verification Logic
-        const displayName = user.global_name || user.username;
-        const descriptor = (user.discriminator && user.discriminator !== '0') ? `#${user.discriminator}` : '';
-        const handle = `@${user.username}${descriptor}`;
-        const identity = `${displayName} (${handle})`;
+        req.session.user = dbUser;
+        // Ensure session saves before redirect
+        req.session.save(() => {
+            res.redirect('/public?action=link_key');
+        });
+        return;
+    }
 
-        // CHECK AUTOMATION: Does this user already have a key?
-        // We can look up by discordId (user.id) or email (user.email)
-        let existingKey = null;
-        try {
-            // Check via Discord ID first
-            let keyRow = db.prepare('SELECT key FROM access_keys WHERE discordId = ? AND status = ?').get(user.id, 'active');
+    // Verification Logic
+    const displayName = user.global_name || user.username;
+    const descriptor = (user.discriminator && user.discriminator !== '0') ? `#${user.discriminator}` : '';
+    const handle = `@${user.username}${descriptor}`;
+    const identity = `${displayName} (${handle})`;
 
-            // If not found, check via Email
-            if (!keyRow && user.email) {
-                keyRow = db.prepare('SELECT key FROM access_keys WHERE email = ? AND status = ?').get(user.email, 'active');
-            }
+    // CHECK AUTOMATION: Does this user already have a key?
+    // We can look up by discordId (user.id) or email (user.email)
+    let existingKey = null;
+    try {
+        // Check via Discord ID first
+        let keyRow = db.prepare('SELECT key FROM access_keys WHERE discordId = ? AND status = ?').get(user.id, 'active');
 
-            if (keyRow) {
-                existingKey = keyRow.key;
-            }
-        } catch (e) { console.error("Auto-Key Check Error", e); }
+        // If not found, check via Email
+        if (!keyRow && user.email) {
+            keyRow = db.prepare('SELECT key FROM access_keys WHERE email = ? AND status = ?').get(user.email, 'active');
+        }
 
-        // Return a script to communicate with the opener
-        res.send(`
+        if (keyRow) {
+            existingKey = keyRow.key;
+        }
+    } catch (e) { console.error("Auto-Key Check Error", e); }
+
+    // Return a script to communicate with the opener
+    res.send(`
             <html>
             <body style="background: #0f0f12; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden;">
                 <h1 style="color: #00ff88; font-family: sans-serif; font-size: 2rem; margin-bottom: 1rem;">Verified!</h1>
@@ -316,7 +321,7 @@ router.get('/auth/discord/callback',
             </body>
             </html>
         `);
-    }
+}
 );
 
 // --- Admin Routes ---
