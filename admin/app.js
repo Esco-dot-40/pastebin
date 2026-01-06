@@ -46,6 +46,12 @@ const generatedKey = document.getElementById('generatedKey');
 const copyKeyBtn = document.getElementById('copyKeyBtn');
 const generateKeyBtn = document.getElementById('generateKeyBtn');
 
+// Users Elements
+const usersBtn = document.getElementById('usersBtn');
+const usersModal = document.getElementById('usersModal');
+const closeUsersBtn = document.getElementById('closeUsersBtn');
+const usersList = document.getElementById('usersList');
+
 // Embed Elements
 const embedUrl = document.getElementById('embedUrl');
 const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
@@ -82,6 +88,21 @@ if (closeStatsBtn) closeStatsBtn.addEventListener('click', () => {
 if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
     accessModal.classList.remove('active');
 });
+
+if (usersBtn) usersBtn.addEventListener('click', () => {
+    usersModal.classList.add('active');
+    loadUsers();
+});
+
+if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
+    usersModal.classList.remove('active');
+});
+
+if (usersModal) {
+    usersModal.addEventListener('click', (e) => {
+        if (e.target === usersModal) usersModal.classList.remove('active');
+    });
+}
 
 
 console.log('[KEY GEN] generateKeyBtn element:', generateKeyBtn);
@@ -800,9 +821,60 @@ async function deleteFolder(id) {
     try {
         await storage.deleteFolder(id);
         await loadFolderList();
-        await loadPasteList();
     } catch (error) {
         alert('Failed to delete folder: ' + error.message);
+    }
+}
+
+async function loadUsers() {
+    try {
+        usersList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-tertiary)">Loading users...</div>';
+
+        const res = await fetch('/api/access/users', { credentials: 'include' });
+        const users = await res.json();
+
+        if (!users || users.length === 0) {
+            usersList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-tertiary)">No users found.</div>';
+            return;
+        }
+
+        usersList.innerHTML = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 12px; color: var(--text-secondary)">User</th>
+                        <th style="padding: 12px; color: var(--text-secondary)">Identity</th>
+                        <th style="padding: 12px; color: var(--text-secondary)">First Seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${users.map(u => `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05)">
+                            <td style="padding: 12px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:32px; height:32px; border-radius:50%">
+                                    <div>
+                                        <div style="font-weight:600; color:white;">${escapeHtml(u.displayName || u.username || 'Unknown')}</div>
+                                        <div style="font-size:0.75rem; color:var(--text-tertiary)">${escapeHtml(u.username || '')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <div style="font-family:monospace; color:var(--primary-start)">${u.discordId}</div>
+                                <div style="font-size:0.75rem; color:var(--text-tertiary)">${escapeHtml(u.email || 'No Email')}</div>
+                            </td>
+                            <td style="padding: 12px; color:var(--text-tertiary)">
+                                ${formatDateTime(u.createdAt)}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (e) {
+        console.error("Load Users Error:", e);
+        usersList.innerHTML = `<div style="padding:20px; color:#ff006e">Error loading users: ${e.message}</div>`;
     }
 }
 

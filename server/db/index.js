@@ -162,6 +162,12 @@ migrateTable('access_keys', [
     { name: 'lastUsedAt', type: 'DATETIME' }
 ]);
 
+// Ensure Users have display names
+migrateTable('users', [
+    { name: 'username', type: 'TEXT' },
+    { name: 'displayName', type: 'TEXT' }
+]);
+
 console.log('✅ SQLite Database Migrations Complete (All columns verified)');
 
 export default db;

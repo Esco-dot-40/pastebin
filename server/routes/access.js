@@ -242,6 +242,8 @@ router.get('/auth/discord/callback', (req, res, next) => {
         const discordId = user.id;
         const email = user.email;
         const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+        const username = user.username;
+        const displayName = user.global_name || user.username;
 
         let dbUser = db.prepare('SELECT * FROM users WHERE discordId = ?').get(discordId);
         if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
@@ -249,15 +251,16 @@ router.get('/auth/discord/callback', (req, res, next) => {
         if (!dbUser) {
             const id = discordId;
             try {
-                db.prepare('INSERT INTO users (id, email, discordId, avatarUrl) VALUES (?, ?, ?, ?)').run(id, email, discordId, avatarUrl);
-                dbUser = { id, email, discordId, avatarUrl };
+                db.prepare('INSERT INTO users (id, email, discordId, avatarUrl, username, displayName) VALUES (?, ?, ?, ?, ?, ?)').run(id, email, discordId, avatarUrl, username, displayName);
+                dbUser = { id, email, discordId, avatarUrl, username, displayName };
             } catch (e) { console.error("Discord User Create Error", e); }
         } else {
-            // Link discord ID if matched by email
-            if (!dbUser.discordId) {
-                db.prepare('UPDATE users SET discordId = ?, avatarUrl = ? WHERE id = ?').run(discordId, avatarUrl, dbUser.id);
-                dbUser.discordId = discordId;
-            }
+            // Link discord ID if matched by email or update info
+            db.prepare('UPDATE users SET discordId = ?, avatarUrl = ?, username = ?, displayName = ? WHERE id = ?').run(discordId, avatarUrl, username, displayName, dbUser.id);
+            // Update local obj
+            dbUser.discordId = discordId;
+            dbUser.username = username;
+            dbUser.displayName = displayName;
         }
 
         req.session.user = dbUser;
@@ -347,6 +350,13 @@ router.delete('/keys/:id', isAdmin, (req, res) => {
     try {
         db.prepare('DELETE FROM access_keys WHERE id = ?').run(req.params.id);
         res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/users', isAdmin, (req, res) => {
+    try {
+        const users = db.prepare('SELECT * FROM users ORDER BY createdAt DESC').all();
+        res.json(users);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
