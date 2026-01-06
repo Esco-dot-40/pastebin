@@ -1,6 +1,6 @@
 const VIDEO_SOURCES = {
     main: "/public/uploads/main_bg.mp4",
-    pastes: "/public/uploads/supreme_bg.jpg"
+    pastes: "/public/uploads/11855892-hd_1920_1080_60fps.mp4"
 };
 
 let currentVideoKey = null;
@@ -53,6 +53,8 @@ window.setBackgroundVideo = function (key) {
         video.muted = true;
         video.playsInline = true;
         video.loop = true;
+        video.disablePictureInPicture = true; // Block PiP
+        video.setAttribute('disablePictureInPicture', '');
 
         Object.assign(video.style, {
             position: 'absolute',
@@ -63,13 +65,14 @@ window.setBackgroundVideo = function (key) {
             objectFit: 'cover',
             zIndex: '0',
             opacity: '0',
+            pointerEvents: 'none', // Block Hover/Click
             transition: 'opacity 1s ease'
         });
 
         video.onloadeddata = () => { video.style.opacity = '1'; };
         video.src = src;
         container.appendChild(video);
-        video.play().catch(e => console.error("Play failed", e));
+        video.play().catch(e => { /* silent */ });
 
         // Safety
         setTimeout(() => video.style.opacity = '1', 500);
@@ -77,10 +80,13 @@ window.setBackgroundVideo = function (key) {
 };
 
 // Initial Load
+// Initial Load
 document.addEventListener('DOMContentLoaded', () => {
-    // Default to main if not triggered elsewhere, but allow logic to drive it
-    // If no video is present, load main
-    if (!document.querySelector('#video-background-container video') && !document.querySelector('#video-background-container img')) {
-        window.setBackgroundVideo('main');
+    // Only default to main if we are on the main page (index.html) or public landing
+    // This prevents the 'pastes' view from loading 'main' if its own video is slow or missing
+    if (window.location.pathname === '/' || window.location.pathname === '/public') {
+        if (!document.querySelector('#video-background-container video') && !document.querySelector('#video-background-container img')) {
+            window.setBackgroundVideo('main');
+        }
     }
 });

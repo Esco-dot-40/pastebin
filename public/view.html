@@ -17,6 +17,7 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/public/cursor.css">
 </head>
 
 <body>
@@ -194,44 +195,42 @@
     <div id="motion-blur-container"></div>
 
     <!-- Loading Screen (Shader) -->
-    <div id="loading-screen"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: #000; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-        <div id="loading-info"
-            style="color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase;">
-            Loading...</div>
+    <!-- Premium Loader -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/pinwheel.js"></script>
+    <div id="loadingState" class="loader-overlay">
+        <video class="loader-bg bg-animate" autoplay loop muted playsinline>
+            <!-- <source src="/public/loader-bg.mp4" type="video/mp4"> -->
+        </video>
+        <div class="loader-content">
+            <l-pinwheel size="45" stroke="3.5" speed="0.9" color="#00f5ff"></l-pinwheel>
+            <div class="loader-text">Decrypting Paste...</div>
+        </div>
     </div>
+
+    <link rel="stylesheet" href="/public/loader.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenMax.min.js"></script>
     <script src="/public/motion-blur.js"></script>
 
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-        }
-    }
-    </script>
-    <script type="module">
-        import { initLoadingShader } from '/public/loading-shader.js';
+    <!-- Background Media -->
+    <div id="video-background-container"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -5; background: #000;"></div>
+    <script src="/public/video-manager.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.setBackgroundVideo) window.setBackgroundVideo('pastes');
+        });
 
-        // Initialize shader
-        initLoadingShader('loading-screen');
-
-        // Hide loader when content is ready (hooked into existing logic or timeout)
+        // New Loader Logic
         window.hideLoader = function () {
-            const loader = document.getElementById('loading-screen');
-            if (loader && !loader.classList.contains('fading')) {
-                loader.classList.add('fading');
-                // Simple fade out animation
-                loader.style.transition = 'opacity 1s ease';
-                loader.style.opacity = '0';
+            const loader = document.getElementById('loadingState');
+            if (loader && !loader.classList.contains('hidden')) {
+                loader.classList.add('hidden');
                 setTimeout(() => loader.remove(), 1000);
             }
         };
-
-        // Fallback if app.js doesn't call it immediately
-        setTimeout(window.hideLoader, 2000); 
+        setTimeout(window.hideLoader, 1500); 
     </script>
 
     <!-- Audio Elements -->
@@ -343,6 +342,8 @@
 
     <script src="/shared/api.js"></script>
     <script src="/public/app.js"></script>
+    <script src="/public/cursor.js"></script>
+    <script src="/public/title-rotator.js"></script>
 </body>
 
 </html>
