@@ -78,9 +78,47 @@ import accessRouter from './routes/access.js';
 app.use('/api/access', accessRouter);
 
 // Root Redirect/Entry
+// Root Redirect/Entry
 app.get('/', (req, res) => {
-    // Show the entry screen
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    let html = '';
+    try {
+        html = fs.readFileSync(indexPath, 'utf-8');
+    } catch (err) {
+        console.error('Error reading index.html:', err);
+        return res.status(500).send('Error loading frontend.');
+    }
+
+    // Default Meta Data for Home
+    const title = 'QuietBin.space';
+    const description = 'Share code and text content securely.';
+    const siteName = 'QuietBin.space';
+    const themeColor = '#00f5ff';
+    const imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.png`;
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+    const metaTags = `
+    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:url" content="${fullUrl}">
+    <meta property="og:image" content="${imageUrl}">
+    <meta name="theme-color" content="${themeColor}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    <meta name="twitter:image" content="${imageUrl}">
+    `;
+
+    // Replace title if needed, or just rely on meta tags. 
+    // index.html has <title>QuietBin.space</title> already, but let's be explicit.
+    html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
+
+    // Inject before closing head
+    html = html.replace('</head>', `${metaTags}\n</head>`);
+
+    res.send(html);
 });
 
 // Public Viewer - SPA Redirects
@@ -121,7 +159,7 @@ app.get('/v/:id', (req, res) => {
     let description = 'Share code and text content securely.';
     const siteName = 'QuietBin.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
-    let imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.jpg`; // Default to the uploaded "sus" image
+    let imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.png`; // Default to the uploaded image
 
     if (paste) {
         title = paste.title || 'Untitled Paste';

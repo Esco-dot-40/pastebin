@@ -89,10 +89,16 @@ if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
     accessModal.classList.remove('active');
 });
 
-if (usersBtn) usersBtn.addEventListener('click', () => {
-    usersModal.classList.add('active');
-    loadUsers();
-});
+if (usersBtn) {
+    usersBtn.addEventListener('click', () => {
+        console.log("Users button clicked");
+        if (usersModal) usersModal.classList.add('active');
+        else console.error("Users modal not found");
+        loadUsers();
+    });
+} else {
+    console.error("Users button not found");
+}
 
 if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
     usersModal.classList.remove('active');
