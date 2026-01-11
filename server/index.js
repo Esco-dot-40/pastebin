@@ -94,7 +94,7 @@ app.get('/', (req, res) => {
     const description = 'Share code and text content securely.';
     const siteName = 'QuietBin.space';
     const themeColor = '#00f5ff';
-    const imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.png`;
+    const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
     const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
 
     const metaTags = `
@@ -159,7 +159,7 @@ app.get('/v/:id', (req, res) => {
     let description = 'Share code and text content securely.';
     const siteName = 'QuietBin.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
-    let imageUrl = `${req.protocol}://${req.get('host')}/public/default_embed.png`; // Default to the uploaded image
+    let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`; // Default to the uploaded image
 
     if (paste) {
         title = paste.title || 'Untitled Paste';
