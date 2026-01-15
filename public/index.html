@@ -2011,23 +2011,6 @@
             }, 3000);
         };
 
-        // Global Action for reactions
-        window.handleReaction = async (type) => {
-            if (!window.currentPasteId) return;
-            try {
-                const res = await storage.toggleReaction(window.currentPasteId, type);
-                // Update UI counts (already partially handled by app.js if we update it)
-                if (window.refreshPaste) window.refreshPaste();
-            } catch (e) {
-                if (e.message === 'AUTH_REQUIRED') {
-                    showToast('👋 You must be logged in with Discord to react!', 'info');
-                    storage.loginWithDiscord();
-                }
-                else {
-                    console.error(e);
-                }
-            }
-        };
 
         // Check Auth on load
         document.addEventListener('DOMContentLoaded', async () => {
