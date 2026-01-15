@@ -2,9 +2,9 @@
 (function () {
     // console.log("Title Rotator Initializing...");
     const domains = [
-        "quietbin | veroe.space",
+        "veroe.space",
         "veroe.fun",
-        "velarixsolutions.nl"
+        "quietbin"
     ];
     const colors = ["🔴", "🟠", "🟡", "⚪", "🔵", "🟢", "🟣", "⚫"];
 
