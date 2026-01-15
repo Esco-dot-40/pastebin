@@ -351,6 +351,9 @@ async function loadPasteList() {
                 <div class="paste-item-meta">
                     <span class="language-tag">${paste.language}</span>
                     <span>👁️ ${paste.views}</span>
+                    <span style="color: #ff006e">❤️ ${paste.hearts || 0}</span>
+                    <span style="color: #ffd700">⭐ ${paste.stars || 0}</span>
+                    <span style="color: #00f5ff">👍 ${paste.likes || 0}</span>
                     <span>📅 ${formatDate(paste.createdAt)}</span>
                     ${paste.folderId ? `<span>📁 ${escapeHtml(folderMap[paste.folderId] || 'Unknown')}</span>` : ''}
                     ${paste.burnAfterRead ? '<span>🔥 Burn</span>' : ''}
@@ -569,6 +572,7 @@ async function showAnalytics(pasteId) {
                             <th style="padding: 12px; text-align: left;">Type</th>
                             <th style="padding: 12px; text-align: left;">Location</th>
                             <th style="padding: 12px; text-align: left;">Timestamp</th>
+                            <th style="padding: 12px; text-align: right;">Action</th>
                         </tr>
                     </thead>
                     <tbody>

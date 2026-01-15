@@ -308,7 +308,16 @@ async function updateHostname(table, id, ip) {
 
 // ADMIN LIST
 router.get('/', requireAuth, (req, res) => {
-    const list = db.prepare('SELECT * FROM pastes ORDER BY createdAt DESC').all();
+    const query = `
+        SELECT p.*, f.name as folderName,
+        (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'heart') as hearts,
+        (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'star') as stars,
+        (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'like') as likes
+        FROM pastes p
+        LEFT JOIN folders f ON p.folderId = f.id
+        ORDER BY p.createdAt DESC
+    `;
+    const list = db.prepare(query).all();
     res.json(list);
 });
 
