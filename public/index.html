@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>veroe.space</title>
     <link rel="stylesheet" href="/public/style.css">
-    <link rel="stylesheet" href="/public/swirl.css">
-    <link rel="stylesheet" href="/public/scroll-blur.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -619,35 +617,6 @@
             opacity: 0.8;
         }
 
-        /* Toast Notifications */
-        .toast-container {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .toast {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
         /* Folder Sections */
         .folder-section {
             margin-bottom: 2rem;
@@ -664,38 +633,77 @@
             letter-spacing: 2px;
             font-family: 'JetBrains Mono', monospace;
         }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(15px);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.success {
+            border-color: #00f5ff;
+        }
+
+        .toast.error {
+            border-color: #ff0050;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toast.fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.5s ease;
+        }
     </style>
     <link rel="stylesheet" href="/public/cursor.css">
 </head>
 
 <body>
-    <div id="loading-screen"
-        style="position:fixed; inset:0; z-index:99999; background:#000; transition:opacity 1s ease-out;">
-        <div id="loading-info"
-            style="position:absolute; top:20px; left:20px; color:#fff; font-family:monospace; z-index:100000;">
-            veroe.space system loading...</div>
-    </div>
+    <link rel="stylesheet" href="/public/loader.css">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/pinwheel.js"></script>
 
-    <div id="swirl-background">
-        <input type="checkbox" name="play" id="play-toggle" checked>
-        <input type="checkbox" name="case" id="case-toggle" checked>
-        <div class="swirl-container">
-            <div class="swirl-wrapper">
-                <div class="swirl-element">
-                    <span class="swirl-span">V</span><span class="swirl-span">E</span><span
-                        class="swirl-span">R</span><span class="swirl-span">O</span><span
-                        class="swirl-span">E</span><span class="swirl-span">.</span><span
-                        class="swirl-span">S</span><span class="swirl-span">P</span><span
-                        class="swirl-span">A</span><span class="swirl-span">C</span><span
-                        class="swirl-span">E</span><span class="swirl-span"> </span><span
-                        class="swirl-span">S</span><span class="swirl-span">Y</span><span
-                        class="swirl-span">S</span><span class="swirl-span">T</span><span
-                        class="swirl-span">E</span><span class="swirl-span">M</span><span class="swirl-span">
-                    </span><span class="swirl-span">O</span><span class="swirl-span">N</span><span
-                        class="swirl-span">L</span><span class="swirl-span">I</span><span
-                        class="swirl-span">N</span><span class="swirl-span">E</span>
-                </div>
-            </div>
+    <!-- Original Loader -->
+    <div id="loadingState" class="loader-overlay">
+        <video class="loader-bg bg-animate" autoplay loop muted playsinline>
+            <!-- <source src="/public/loader-bg.mp4" type="video/mp4"> -->
+        </video>
+        <div class="loader-content">
+            <l-pinwheel size="45" stroke="3.5" speed="0.9" color="#00f5ff"></l-pinwheel>
+            <div class="loader-text">Loading System...</div>
         </div>
     </div>
 
@@ -717,8 +725,6 @@
         </div>
     </div>
 
-    <!-- Motion Blur -->
-    <div id="motion-blur-container"></div>
 
     <!-- Audio -->
     <audio id="bgAudio" loop preload="auto">
@@ -2015,24 +2021,9 @@
             }
         });
     </script>
-    <script type="module">
-        import { initLoadingShader } from '/public/loading-shader.js';
-        initLoadingShader('loading-screen');
-
-        // Hide loader after a while
-        setTimeout(() => {
-            const loader = document.getElementById('loading-screen');
-            if (loader) {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 1000);
-            }
-        }, 2000);
-    </script>
     <script src="/public/app.js"></script>
     <script src="/public/cursor.js"></script>
     <script src="/public/title-rotator.js"></script>
-    <script src="/public/scroll-blur.js"></script>
-    <script src="/public/loading-shader.js"></script>
 </body>
 
 </html>
