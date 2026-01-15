@@ -292,6 +292,52 @@ class PasteAPI {
             throw error;
         }
     }
+
+    // AUTH METHODS
+    async getMe() {
+        try {
+            const response = await fetch(`${this.apiUrl}/auth/me`, { credentials: 'include' });
+            if (!response.ok) return null;
+            const data = await response.json();
+            return data.user;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    loginWithDiscord() {
+        window.location.href = `${this.apiUrl}/auth/discord`;
+    }
+
+    async logout() {
+        await fetch(`${this.apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' });
+        window.location.reload();
+    }
+
+    // REACTION METHODS
+    async toggleReaction(pasteId, type) {
+        try {
+            const response = await fetch(`${this.apiUrl}/pastes/${pasteId}/react`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ type })
+            });
+
+            if (response.status === 401) {
+                const data = await response.json();
+                if (data.authRequired) {
+                    throw new Error('AUTH_REQUIRED');
+                }
+            }
+
+            if (!response.ok) throw new Error('Reaction failed');
+            return await response.json();
+        } catch (error) {
+            console.error('Error toggling reaction:', error);
+            throw error;
+        }
+    }
 }
 
 window.PasteAPI = PasteAPI;

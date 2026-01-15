@@ -499,6 +499,15 @@
             color: black;
         }
 
+        .btn-contact {
+            border-color: rgba(147, 51, 234, 0.4) !important;
+        }
+
+        .btn-contact:hover {
+            background: rgba(147, 51, 234, 0.1) !important;
+            box-shadow: 0 0 30px rgba(147, 51, 234, 0.2) !important;
+        }
+
         .close-modal {
             position: absolute;
             top: 1rem;
@@ -510,37 +519,121 @@
             line-height: 1;
         }
 
-        .reactions-container {
-            display: flex;
-            gap: 10px;
-            margin-left: auto;
-        }
-
-        .reaction-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .reaction-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-
         .reaction-btn.active {
+            border-color: #ff006e;
+            background: rgba(255, 0, 110, 0.1);
+        }
+
+        .reaction-btn.user-reacted {
             border-color: #00f5ff;
             background: rgba(0, 245, 255, 0.1);
         }
+
+        /* User Profile */
+        .user-profile {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .user-profile:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(30, 30, 40, 0.6);
+        }
+
+        #userAvatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #00f5ff;
+        }
+
+        #userName {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .auth-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-discord {
+            border-color: #5865F2;
+        }
+
+        .btn-discord:hover {
+            background: rgba(88, 101, 242, 0.2);
+        }
+
+        .btn-google {
+            border-color: #EA4335;
+        }
+
+        .btn-google:hover {
+            background: rgba(234, 67, 53, 0.2);
+        }
+
+        /* Reactions in detail view */
+        .detail-reactions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .reaction-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
     </style>
     <link rel="stylesheet" href="/public/cursor.css">
+    <!-- Auth Profile -->
+    <div id="userProfile" class="user-profile">
+        <div id="userLoggedIn" style="display: none; align-items: center; gap: 12px;">
+            <img id="userAvatar" src="" alt="Avatar">
+            <span id="userName">User</span>
+            <button onclick="storage.logout()" class="auth-btn">Logout</button>
+        </div>
+        <div id="userLoggedOut" style="display: flex; gap: 8px;">
+            <button onclick="storage.loginWithDiscord()" class="auth-btn btn-discord">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+                </svg>
+                Discord
+            </button>
+            <button onclick="loginWithGoogle()" class="auth-btn btn-google">Google</button>
+        </div>
+    </div>
 </head>
 
 <body>
@@ -715,6 +808,11 @@
                     Private Access
                     <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">Access Key Required</div>
                 </a>
+                <a href="mailto:admin@velarixsolutions.nl" class="entry-btn btn-contact"
+                    style="pointer-events: auto; display: inline-block; text-decoration: none; text-align: center; cursor: pointer; position: relative; z-index: 2147483647;">
+                    Contact Admin
+                    <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">admin@velarixsolutions.nl</div>
+                </a>
             </div>
 
             <script>
@@ -794,6 +892,24 @@
                         <button id="copyBtn" class="btn btn-secondary">Copy</button>
                     </div>
                 </header>
+                <div id="reactionsPanel" class="detail-reactions" style="display: none;">
+                    <button class="reaction-btn" onclick="handleReaction('heart')">
+                        <span>❤️</span>
+                        <span class="reaction-count" id="count-heart">0</span>
+                    </button>
+                    <button class="reaction-btn" onclick="handleReaction('star')">
+                        <span>⭐</span>
+                        <span class="reaction-count" id="count-star">0</span>
+                    </button>
+                    <button class="reaction-btn" onclick="handleReaction('like')">
+                        <span>👍</span>
+                        <span class="reaction-count" id="count-like">0</span>
+                    </button>
+                    <div id="reactionStatus"
+                        style="font-size: 0.8rem; opacity: 0.5; margin-left: auto; align-self: center;">
+                        Log in with Discord to react
+                    </div>
+                </div>
                 <main id="mainContent" style="margin-top: 2rem;">
                     <div id="detailLoading" class="state-container" style="display: none;">
                         <div class="loader"></div>
@@ -1690,6 +1806,87 @@
         window.addEventListener('load', () => setTimeout(hideLoader, 800));
         setTimeout(hideLoader, 2500); // Fallback
     </script>
+    <script src="/shared/api.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        // Firebase Config (Placeholder - User should update)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAs-X-X-X",
+            authDomain: "idump-velarix.firebaseapp.com",
+            projectId: "idump-velarix",
+            storageBucket: "idump-velarix.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        window.loginWithGoogle = async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const response = await fetch('/api/auth/google', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: user.email,
+                        uid: user.uid,
+                        photoURL: user.photoURL
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error("Google login failed", error);
+                alert("Google Login Failed: " + error.message);
+            }
+        };
+
+        // Global Action for reactions
+        window.handleReaction = async (type) => {
+            if (!window.currentPasteId) return;
+            try {
+                const res = await storage.toggleReaction(window.currentPasteId, type);
+                // Update UI counts (already partially handled by app.js if we update it)
+                if (window.refreshPaste) window.refreshPaste();
+            } catch (e) {
+                if (e.message === 'AUTH_REQUIRED') {
+                    alert('You must be logged in with Discord to react!');
+                    storage.loginWithDiscord();
+                } else {
+                    console.error(e);
+                }
+            }
+        };
+
+        // Check Auth on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await storage.getMe();
+            const loggedInView = document.getElementById('userLoggedIn');
+            const loggedOutView = document.getElementById('userLoggedOut');
+            const reactionStatus = document.getElementById('reactionStatus');
+
+            if (user) {
+                loggedInView.style.display = 'flex';
+                loggedOutView.style.display = 'none';
+                document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
+                document.getElementById('userName').textContent = user.displayName || user.username || 'User';
+                if (reactionStatus) reactionStatus.style.display = 'none';
+                window.currentUser = user;
+            } else {
+                loggedInView.style.display = 'none';
+                loggedOutView.style.display = 'flex';
+                if (reactionStatus) reactionStatus.style.display = 'block';
+            }
+        });
+    </script>
+    <script src="/public/app.js"></script>
     <script src="/public/cursor.js"></script>
     <script src="/public/title-rotator.js"></script>
 </body>

@@ -18,6 +18,104 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="/public/cursor.css">
+    <style>
+        /* Auth Profile */
+        .user-profile {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        #userAvatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #00f5ff;
+        }
+
+        .auth-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-discord {
+            border-color: #5865F2;
+        }
+
+        .btn-google {
+            border-color: #EA4335;
+        }
+
+        /* Reactions */
+        .detail-reactions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .reaction-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .reaction-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .reaction-count {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+    </style>
+    <!-- Auth Profile -->
+    <div id="userProfile" class="user-profile">
+        <div id="userLoggedIn" style="display: none; align-items: center; gap: 12px;">
+            <img id="userAvatar" src="" alt="Avatar">
+            <span id="userName" style="color: white; font-size: 0.9rem;">User</span>
+            <button onclick="storage.logout()" class="auth-btn">Logout</button>
+        </div>
+        <div id="userLoggedOut" style="display: flex; gap: 8px;">
+            <button onclick="storage.loginWithDiscord()" class="auth-btn btn-discord">Discord</button>
+            <button onclick="loginWithGoogle()" class="auth-btn btn-google">Google</button>
+        </div>
+    </div>
 </head>
 
 <body>
@@ -141,28 +239,41 @@
                             </span>
                         </div>
                     </div>
-                </div>
-
-                <div class="code-container">
-                    <div class="code-header">
-                        <div class="code-dots">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                        <div class="code-title" id="codeTitle">code.txt</div>
-                        <div class="code-actions">
-                            <button id="toggleLineNumbers" class="code-action-btn" title="Toggle line numbers">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M2 4h2M2 8h2M2 12h2M6 4h8M6 8h8M6 12h8" stroke="currentColor"
-                                        stroke-width="1.5" stroke-linecap="round" />
-                                </svg>
-                            </button>
-                        </div>
+                    <div id="reactionsPanel" class="detail-reactions">
+                        <button class="reaction-btn" onclick="handleReaction('heart')">
+                            <span>❤️</span>
+                            <span class="reaction-count" id="count-heart">0</span>
+                        </button>
+                        <button class="reaction-btn" onclick="handleReaction('star')">
+                            <span>⭐</span>
+                            <span class="reaction-count" id="count-star">0</span>
+                        </button>
+                        <button class="reaction-btn" onclick="handleReaction('like')">
+                            <span>👍</span>
+                            <span class="reaction-count" id="count-like">0</span>
+                        </button>
                     </div>
-                    <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
+
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                            <div class="code-title" id="codeTitle">code.txt</div>
+                            <div class="code-actions">
+                                <button id="toggleLineNumbers" class="code-action-btn" title="Toggle line numbers">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M2 4h2M2 8h2M2 12h2M6 4h8M6 8h8M6 12h8" stroke="currentColor"
+                                            stroke-width="1.5" stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
+                    </div>
                 </div>
-            </div>
         </main>
 
         <!-- Footer -->
@@ -341,6 +452,44 @@
     </script>
 
     <script src="/shared/api.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        const firebaseConfig = { apiKey: "AIzaSyAs-X-X-X", authDomain: "idump-velarix.firebaseapp.com", projectId: "idump-velarix", storageBucket: "idump-velarix.appspot.com", messagingSenderId: "123456789", appId: "1:123456789:web:abcdef" };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        window.loginWithGoogle = async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                const response = await fetch('/api/auth/google', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL }) });
+                const data = await response.json();
+                if (data.success) window.location.reload();
+            } catch (error) { console.error("Google login failed", error); }
+        };
+        window.handleReaction = async (type) => {
+            if (!window.currentPasteId) return;
+            try {
+                await storage.toggleReaction(window.currentPasteId, type);
+                if (window.refreshPaste) window.refreshPaste();
+            } catch (e) {
+                if (e.message === 'AUTH_REQUIRED') {
+                    alert('You must be logged in with Discord to react!');
+                    storage.loginWithDiscord();
+                }
+            }
+        };
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await storage.getMe();
+            if (user) {
+                document.getElementById('userLoggedIn').style.display = 'flex';
+                document.getElementById('userLoggedOut').style.display = 'none';
+                document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
+                document.getElementById('userName').textContent = user.displayName || user.username || 'User';
+            }
+        });
+    </script>
     <script src="/public/app.js"></script>
     <script src="/public/cursor.js"></script>
     <script src="/public/title-rotator.js"></script>

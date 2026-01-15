@@ -161,6 +161,13 @@ function displayPaste(paste) {
     pasteView.style.display = 'block';
     footer.style.display = 'flex';
 
+    // Reactions Integration
+    window.currentPasteId = paste.id;
+    if (document.getElementById('reactionsPanel')) {
+        document.getElementById('reactionsPanel').style.display = 'flex';
+        displayReactions(paste.reactions || {});
+    }
+
     // Set title and meta
     pasteTitle.textContent = paste.title;
     document.title = `${paste.title} - PasteBin Pro`;
@@ -225,6 +232,28 @@ function displayPaste(paste) {
     if (showLineNumbers) {
         addLineNumbers();
     }
+}
+
+window.refreshPaste = async () => {
+    if (!currentPaste) return;
+    try {
+        const paste = await storage.getPaste(currentPaste.id, false);
+        displayReactions(paste.reactions || {});
+    } catch (e) {
+        console.error('Failed to refresh reactions:', e);
+    }
+};
+
+function displayReactions(reactions) {
+    const counts = {
+        heart: document.getElementById('count-heart'),
+        star: document.getElementById('count-star'),
+        like: document.getElementById('count-like')
+    };
+
+    if (counts.heart) counts.heart.textContent = reactions.heart || 0;
+    if (counts.star) counts.star.textContent = reactions.star || 0;
+    if (counts.like) counts.like.textContent = reactions.like || 0;
 }
 
 function addLineNumbers() {
