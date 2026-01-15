@@ -72,6 +72,7 @@ db.exec(`
         asName TEXT,
         userAgent TEXT,
         discordId TEXT,
+        userId TEXT,
         username TEXT,
         avatarUrl TEXT,
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -99,6 +100,7 @@ function migrateTable(tableName, columns) {
 // Reaction User Info
 migrateTable('paste_reactions', [
     { name: 'discordId', type: 'TEXT' },
+    { name: 'userId', type: 'TEXT' },
     { name: 'username', type: 'TEXT' },
     { name: 'avatarUrl', type: 'TEXT' },
     { name: 'hostname', type: 'TEXT' }
