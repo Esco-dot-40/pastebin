@@ -106,19 +106,24 @@ router.get('/public-list', (req, res) => {
         const hasAccess = validateAccessKey(accessKey) || isAdmin;
 
         let query = `
-            SELECT p.*, f.name as folderName 
+            SELECT p.*, f.name as folderName,
+            (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'heart') as hearts,
+            (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'star') as stars,
+            (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'like') as likes
             FROM pastes p 
             LEFT JOIN folders f ON p.folderId = f.id 
             WHERE p.isPublic = 1
         `;
 
         if (hasAccess) {
-            // Allow private pastes too
             query = `
-                SELECT p.*, f.name as folderName 
+                SELECT p.*, f.name as folderName,
+                (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'heart') as hearts,
+                (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'star') as stars,
+                (SELECT COUNT(*) FROM paste_reactions WHERE pasteId = p.id AND type = 'like') as likes
                 FROM pastes p 
                 LEFT JOIN folders f ON p.folderId = f.id 
-                WHERE 1=1 -- Show all (public + private)
+                WHERE 1=1
             `;
         }
 
@@ -142,10 +147,11 @@ router.get('/public-list', (req, res) => {
 router.get('/stats/summary', requireAuth, (req, res) => {
     const totalPastes = db.prepare('SELECT COUNT(*) as count FROM pastes').get().count;
     const totalViews = db.prepare('SELECT SUM(views) as total FROM pastes').get().total || 0;
+    const totalReactions = db.prepare('SELECT COUNT(*) as count FROM paste_reactions').get().count;
     const langs = db.prepare('SELECT language, COUNT(*) as count FROM pastes GROUP BY language').all();
     const languageBreakdown = {};
     langs.forEach(l => languageBreakdown[l.language] = l.count);
-    res.json({ totalPastes, totalViews, languageBreakdown });
+    res.json({ totalPastes, totalViews, totalReactions, languageBreakdown });
 });
 
 // GET ONE

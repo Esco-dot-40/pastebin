@@ -720,6 +720,10 @@ async function showStats() {
                 <div class="stat-value">${stats.totalViews}</div>
                 <div class="stat-label">Total Views</div>
             </div>
+            <div class="stat-card" style="border-color: #ff006e22">
+                <div class="stat-value" style="color: #ff006e">${stats.totalReactions || 0}</div>
+                <div class="stat-label">Total Reactions</div>
+            </div>
             <div class="grid col-3" style="width: 100%; margin-top: 16px">
                 ${languageCards}
             </div>
