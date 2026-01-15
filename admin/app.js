@@ -351,9 +351,26 @@ async function loadPasteList() {
                 <div class="paste-item-meta">
                     <span class="language-tag">${paste.language}</span>
                     <span>👁️ ${paste.views}</span>
-                    <span style="color: #ff006e">❤️ ${paste.hearts || 0}</span>
-                    <span style="color: #ffd700">⭐ ${paste.stars || 0}</span>
-                    <span style="color: #00f5ff">👍 ${paste.likes || 0}</span>
+                    
+                    <!-- Reaction Controls for Admin -->
+                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <span style="color: #ff006e; font-weight: bold;">❤️ ${paste.hearts || 0}</span>
+                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'heart', true)" style="background: none; border: none; color: #ff006e; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
+                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'heart')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                    </div>
+
+                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <span style="color: #ffd700; font-weight: bold;">⭐ ${paste.stars || 0}</span>
+                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'star', true)" style="background: none; border: none; color: #ffd700; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
+                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'star')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                    </div>
+
+                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <span style="color: #00f5ff; font-weight: bold;">👍 ${paste.likes || 0}</span>
+                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'like', true)" style="background: none; border: none; color: #00f5ff; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
+                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'like')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                    </div>
+
                     <span>📅 ${formatDate(paste.createdAt)}</span>
                     ${paste.folderId ? `<span>📁 ${escapeHtml(folderMap[paste.folderId] || 'Unknown')}</span>` : ''}
                     ${paste.burnAfterRead ? '<span>🔥 Burn</span>' : ''}
@@ -634,7 +651,7 @@ async function resetViews(id) {
     }
 }
 
-async function injectReaction(pasteId, type) {
+async function injectReaction(pasteId, type, fromList = false) {
     try {
         await fetch(`/api/pastes/${pasteId}/react`, {
             method: 'POST',
@@ -642,9 +659,27 @@ async function injectReaction(pasteId, type) {
             body: JSON.stringify({ type }),
             credentials: 'include'
         });
-        showAnalytics(pasteId); // Refresh
+        if (fromList) loadPasteList();
+        if (analyticsModal.classList.contains('active')) showAnalytics(pasteId);
     } catch (e) {
         alert('Failed to add reaction');
+    }
+}
+
+async function removeLastReaction(pasteId, type) {
+    try {
+        const res = await fetch(`/api/pastes/${pasteId}/react/${type}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            loadPasteList();
+            if (analyticsModal.classList.contains('active')) showAnalytics(pasteId);
+        } else {
+            console.error("No reactions to remove");
+        }
+    } catch (e) {
+        alert('Failed to remove reaction');
     }
 }
 

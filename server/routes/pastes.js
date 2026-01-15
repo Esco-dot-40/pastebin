@@ -321,7 +321,19 @@ router.get('/', requireAuth, (req, res) => {
     res.json(list);
 });
 
-// DELETE REACTION (Admin Only)
+// DELETE REACTION BY TYPE (Admin adjustment)
+router.delete('/:id/react/:type', requireAuth, (req, res) => {
+    const { id, type } = req.params;
+    const lastReaction = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND type = ? ORDER BY createdAt DESC LIMIT 1').get(id, type);
+    if (lastReaction) {
+        db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(lastReaction.id);
+        res.json({ success: true, action: 'removed' });
+    } else {
+        res.status(404).json({ error: 'No reactions of this type found' });
+    }
+});
+
+// DELETE REACTION (Admin Only by ID)
 router.delete('/reactions/:id', requireAuth, (req, res) => {
     db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(req.params.id);
     res.json({ success: true });
