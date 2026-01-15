@@ -343,7 +343,8 @@ function sharePaste() {
 
 function copyUrlToClipboard(url) {
     navigator.clipboard.writeText(url).then(() => {
-        alert('URL copied to clipboard!');
+        if (window.showToast) window.showToast('✅ URL copied to clipboard!', 'success');
+        else alert('URL copied to clipboard!');
     });
 }
 

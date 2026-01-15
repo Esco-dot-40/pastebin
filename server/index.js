@@ -90,9 +90,9 @@ app.get('/', (req, res) => {
     }
 
     // Default Meta Data for Home
-    const title = 'QuietBin.space';
+    const title = 'veroe.space';
     const description = 'Share code and text content securely.';
-    const siteName = 'QuietBin.space';
+    const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
     const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
     const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
@@ -155,9 +155,9 @@ app.get('/v/:id', (req, res) => {
 
     // 3. Construct Meta Data
     // Default values if paste not found (SPA will handle 404 UI)
-    let title = 'QuietBin.space';
+    let title = 'veroe.space';
     let description = 'Share code and text content securely.';
-    const siteName = 'QuietBin.space';
+    const siteName = 'veroe.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
     let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`; // Default to the uploaded image
 
@@ -238,7 +238,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Minimalist PasteBin Ready!`);
-    console.log(`🌍 Public: http://localhost:${PORT}`);
-    console.log(`🔐 Admin:  http://localhost:${PORT}/adminperm`);
+    console.log(`🚀 veroe.space Ready on Port ${PORT}!`);
 });
