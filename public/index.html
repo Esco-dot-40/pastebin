@@ -1378,14 +1378,11 @@
                 });
                 const pastes = await res.json();
 
-                const cardsContainer = document.querySelector('.cards');
-                if (!cardsContainer) {
-                    console.error('Cards container not found');
-                    return;
-                }
-
                 if (pastes.length === 0) {
-                    cardsContainer.innerHTML = '<li style="display:flex; justify-content:center; align-items:center; background:none; border:none; box-shadow:none;"><h3>No Pastes Found</h3></li>';
+                    const cardsContainer = document.querySelector('.cards');
+                    if (cardsContainer) {
+                        cardsContainer.innerHTML = '<li style="display:flex; justify-content:center; align-items:center; background:none; border:none; box-shadow:none;"><h3>No Pastes Found</h3></li>';
+                    }
                     return;
                 }
 
@@ -1449,8 +1446,28 @@
                     `;
                 }
 
-                const listViewContainer = document.getElementById('pasteList');
-                listViewContainer.innerHTML = html;
+                const listViewContainer = document.getElementById('listView');
+                // Target the ul.cards specifically if we want to keep navigation buttons, 
+                // but since folder-section adds its own headers, we replace the whole gallery content.
+                // However, we must preserve the back button if it's outside. 
+                // Based on line 936, listView is the parent of ul.cards.
+
+                // Let's just update the .cards container and append headers before them if needed,
+                // or just replace listView's innerHTML but preserve the actions/hint.
+
+                const cardsContent = document.querySelector('#listView .cards');
+                if (cardsContent) {
+                    // If we use folders, we should probably clear the main .cards and append sections to listView
+                    listViewContainer.innerHTML = `
+                        <div class="folder-container" style="padding: 2.5rem; max-width: 1200px; margin: 0 auto;">
+                            ${html}
+                        </div>
+                        <div class="actions">
+                            <button class="nav-btn prev" onclick="window.scrollBy({top: -300, behavior: 'smooth'})">&uarr; Scroll Up</button>
+                            <button class="nav-btn next" onclick="window.scrollBy({top: 300, behavior: 'smooth'})">&darr; Scroll Down</button>
+                        </div>
+                    `;
+                }
 
                 // Simple fade-in animation with GSAP
                 if (window.gsap) {
