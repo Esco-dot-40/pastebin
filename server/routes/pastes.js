@@ -253,7 +253,8 @@ router.post('/:id/react', async (req, res) => {
         const isAdmin = req.session.isAdmin;
 
         // Check for existing reaction by this user on this paste of this type
-        let existing = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND userId = ? AND type = ?').get(id, user.id, type);
+        // ADMIN BYPASS: Admins can bypass the "one per person" rule to "modify the amount" as requested
+        let existing = isAdmin ? null : db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND userId = ? AND type = ?').get(id, user.id, type);
 
         if (existing) {
             // Toggle off
@@ -309,6 +310,12 @@ async function updateHostname(table, id, ip) {
 router.get('/', requireAuth, (req, res) => {
     const list = db.prepare('SELECT * FROM pastes ORDER BY createdAt DESC').all();
     res.json(list);
+});
+
+// DELETE REACTION (Admin Only)
+router.delete('/reactions/:id', requireAuth, (req, res) => {
+    db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
 });
 
 // DELETE

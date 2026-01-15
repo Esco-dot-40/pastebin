@@ -538,7 +538,14 @@ async function showAnalytics(pasteId) {
             </div>
 
             <!-- Reactions Section -->
-            <h4 style="font-size: 1.2rem; margin: 32px 0 16px 0; color: #ff006e; border-top: 1px solid var(--border); padding-top: 24px;">❤️ Reactions</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 32px 0 16px 0; border-top: 1px solid var(--border); padding-top: 24px;">
+                <h4 style="font-size: 1.2rem; margin: 0; color: #ff006e;">❤️ Reactions</h4>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="injectReaction('${pasteId}', 'heart')" class="btn-small btn-glass" style="color: #ff006e; border-color: #ff006e44">+ ❤️</button>
+                    <button onclick="injectReaction('${pasteId}', 'star')" class="btn-small btn-glass" style="color: #ffd700; border-color: #ffd70044">+ ⭐</button>
+                    <button onclick="injectReaction('${pasteId}', 'like')" class="btn-small btn-glass" style="color: #00f5ff; border-color: #00f5ff44">+ 👍</button>
+                </div>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
                 <div class="stat-card" style="border-color: #ff006e22">
                     <div class="stat-value" style="color: #ff006e">${analytics.reactions?.heart || 0}</div>
@@ -580,6 +587,9 @@ async function showAnalytics(pasteId) {
                                     <small style="color:#666">${r.isp || ''}</small>
                                 </td>
                                 <td style="padding: 12px;">${formatDateTime(r.createdAt)}</td>
+                                <td style="padding: 12px; text-align: right;">
+                                    <button onclick="deleteReaction(${r.id}, '${pasteId}')" class="btn-small btn-glass" style="color: #ff006e; padding: 2px 5px;">🗑️</button>
+                                </td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -617,6 +627,35 @@ async function resetViews(id) {
         await loadPasteList(); // Refresh main list
     } catch (error) {
         alert('Failed to reset views: ' + error.message);
+    }
+}
+
+async function injectReaction(pasteId, type) {
+    try {
+        await fetch(`/api/pastes/${pasteId}/react`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type }),
+            credentials: 'include'
+        });
+        showAnalytics(pasteId); // Refresh
+    } catch (e) {
+        alert('Failed to add reaction');
+    }
+}
+
+async function deleteReaction(reactionId, pasteId) {
+    if (!confirm('Remove this reaction?')) return;
+    try {
+        const res = await fetch(`/api/pastes/reactions/${reactionId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            showAnalytics(pasteId); // Refresh
+        }
+    } catch (e) {
+        alert('Failed to delete reaction');
     }
 }
 
