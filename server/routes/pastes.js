@@ -236,7 +236,7 @@ router.get('/:id', async (req, res) => {
 // React to Paste
 router.post('/:id/react', async (req, res) => {
     try {
-        // FORCE LOGIN: Users must be logged in via Discord to react
+        // FORCE LOGIN: Users must be logged in to react
         if (!req.session || !req.session.user) {
             return res.status(401).json({ error: 'Auth Required', authRequired: true });
         }
@@ -250,30 +250,34 @@ router.post('/:id/react', async (req, res) => {
         const ip = getClientIP(req);
         const userAgent = req.headers['user-agent'] || '';
         const user = req.session.user;
+        const isAdmin = req.session.isAdmin;
 
-        // Check for existing reaction (Toggle) - Bind to User ID if possible, else IP (but we force login now)
-        // We'll trust the User ID first
-        let existing = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND discordId = ? AND type = ?').get(id, user.discordId, type);
+        // Check for existing reaction by this user on this paste of this type
+        let existing = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND userId = ? AND type = ?').get(id, user.id, type);
 
         if (existing) {
+            // Toggle off
             db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(existing.id);
             res.json({ success: true, action: 'removed' });
         } else {
+            // One per person rule:
+            // For non-admins, ensure they don't have multiple reactions of the SAME type via other methods (id matched)
+            // But actually, userId is the primary key for the person here now.
+
             // Fetch Geo for Analytics
             const loc = await fetchGeolocation(ip);
+            const geo = loc || {};
 
             // Prepare Insert
-            const cols = `pasteId, type, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, discordId, username, avatarUrl`;
-            const vals = `?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?`;
-
-            const geo = loc || {};
+            const cols = `pasteId, type, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, discordId, userId, username, avatarUrl`;
+            const vals = `?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?`;
 
             const result = db.prepare(`INSERT INTO paste_reactions (${cols}) VALUES (${vals})`).run(
                 id, type, ip,
                 geo.country || null, geo.countryCode || null, geo.region || null, geo.regionName || null,
                 geo.city || null, geo.zip || null, geo.lat || null, geo.lon || null, geo.isp || null, geo.org || null, geo.as || null,
                 userAgent,
-                user.discordId, user.email || user.username || 'User', user.avatarUrl
+                user.discordId || null, user.id, user.username || user.displayName || 'User', user.avatarUrl
             );
 
             // Async Reverse DNS
