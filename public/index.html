@@ -1811,42 +1811,49 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // Firebase Config (Placeholder - User should update)
-        const firebaseConfig = {
-            apiKey: "AIzaSyAs-X-X-X",
-            authDomain: "idump-velarix.firebaseapp.com",
-            projectId: "idump-velarix",
-            storageBucket: "idump-velarix.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
-        window.loginWithGoogle = async () => {
+        // Fetch Firebase Config from server
+        async function initFirebase() {
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-                const response = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: user.email,
-                        uid: user.uid,
-                        photoURL: user.photoURL
-                    })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    window.location.reload();
+                const configRes = await fetch('/api/auth/firebase-config');
+                const firebaseConfig = await configRes.json();
+
+                if (!firebaseConfig.apiKey) {
+                    console.error("Firebase Config missing! Set FIREBASE_API_KEY in .env");
+                    return;
                 }
-            } catch (error) {
-                console.error("Google login failed", error);
-                alert("Google Login Failed: " + error.message);
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const provider = new GoogleAuthProvider();
+
+                window.loginWithGoogle = async () => {
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const user = result.user;
+                        const response = await fetch('/api/auth/google', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: user.email,
+                                uid: user.uid,
+                                photoURL: user.photoURL
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            window.location.reload();
+                        }
+                    } catch (error) {
+                        console.error("Google login failed", error);
+                        alert("Google Login Failed: " + error.message);
+                    }
+                };
+            } catch (e) {
+                console.error("Failed to initialize Firebase:", e);
             }
-        };
+        }
+
+        initFirebase();
 
         // Global Action for reactions
         window.handleReaction = async (type) => {
