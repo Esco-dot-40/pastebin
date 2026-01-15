@@ -38,8 +38,6 @@ router.get('/force-login/:key', async (req, res) => {
     res.status(403).send('Denied');
 });
 
-import db from '../db/index.js';
-
 // ... (existing helper)
 
 // Login via Google (Client sends profile)
