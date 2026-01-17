@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Pastes - PasteBin Pro</title>
+    <link rel="stylesheet" href="/public/style.css">
+    <link rel="stylesheet" href="/public/swirl.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: white;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00f5ff, #7b42ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+        }
+
+        .paste-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .paste-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-decoration: none;
+            color: white;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .paste-item:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #00f5ff;
+        }
+
+        .paste-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .paste-meta {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .badge {
+            background: #7b42ff;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+        }
+
+        .folder-group {
+            margin-bottom: 1rem;
+        }
+
+        .folder-title {
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            list-style: none;
+            position: relative;
+            padding-left: 30px;
+            display: flex;
+            align-items: center;
+            transition: color 0.2s;
+        }
+
+        .folder-title:hover {
+            color: #00f5ff;
+        }
+
+        .folder-title::-webkit-details-marker {
+            display: none;
+        }
+
+        .folder-title::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            font-size: 0.6em;
+            transition: transform 0.2s ease;
+            color: #7b42ff;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        details[open] .folder-title::before {
+            transform: translateY(-50%) rotate(90deg);
+        }
+
+        .folder-count {
+            font-size: 0.9rem;
+            opacity: 0.6;
+            margin-left: 12px;
+            font-weight: normal;
+        }
+
+        .folder-items {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Animation for details */
+        details[open] .folder-items {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading Screen */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: #000;
+            transition: opacity 1s ease-out;
+            pointer-events: auto;
+            /* Allow clicks on shader */
+        }
+
+        #loading-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #loading-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 10000;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-screen">
+        <div id="loading-info">Click/Tap for water-like distortion ripples</div>
+    </div>
+
+    <div id="swirl-background">
+        <input type="checkbox" name="play" id="play-toggle" checked>
+        <input type="checkbox" name="case" id="case-toggle" checked>
+
+        <div class="swirl-container">
+            <div class="swirl-wrapper">
+                <div class="swirl-element">
+                    <span class="swirl-span">T</span><span class="swirl-span">H</span><span
+                        class="swirl-span">E</span><span class="swirl-span"> </span><span
+                        class="swirl-span">E</span><span class="swirl-span">N</span><span
+                        class="swirl-span">D</span><span class="swirl-span"> </span><span
+                        class="swirl-span">I</span><span class="swirl-span">S</span><span class="swirl-span">
+                    </span><span class="swirl-span">T</span><span class="swirl-span">H</span><span
+                        class="swirl-span">E</span><span class="swirl-span"> </span><span
+                        class="swirl-span">B</span><span class="swirl-span">E</span><span
+                        class="swirl-span">G</span><span class="swirl-span">I</span><span
+                        class="swirl-span">N</span><span class="swirl-span">N</span><span
+                        class="swirl-span">I</span><span class="swirl-span">N</span><span
+                        class="swirl-span">G</span><span class="swirl-span"> </span><span
+                        class="swirl-span">I</span><span class="swirl-span">S</span>
+                </div>
+                <label for="play-toggle" class="playBtn" title="Press to play">
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="col">
+                        <div class="dot"></div>
+                    </div>
+                </label>
+            </div>
+
+            <div class="swirl-wrapper">
+                <div class="swirl-element">
+                    <span class="swirl-span">T</span><span class="swirl-span">H</span><span
+                        class="swirl-span">E</span><span class="swirl-span"> </span><span
+                        class="swirl-span">E</span><span class="swirl-span">N</span><span
+                        class="swirl-span">D</span><span class="swirl-span"> </span><span
+                        class="swirl-span">I</span><span class="swirl-span">S</span><span class="swirl-span">
+                    </span><span class="swirl-span">T</span><span class="swirl-span">H</span><span
+                        class="swirl-span">E</span><span class="swirl-span"> </span><span
+                        class="swirl-span">B</span><span class="swirl-span">E</span><span
+                        class="swirl-span">G</span><span class="swirl-span">I</span><span
+                        class="swirl-span">N</span><span class="swirl-span">N</span><span
+                        class="swirl-span">I</span><span class="swirl-span">N</span><span
+                        class="swirl-span">G</span><span class="swirl-span"> </span><span
+                        class="swirl-span">I</span><span class="swirl-span">S</span>
+                </div>
+                <label for="play-toggle" class="pauseBtn" title="Press to pause">
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                    <div class="col">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <div class="switchBox">
+            <label class="lowerCase" for="case-toggle" title="Switch text to lowercase"></label>
+            <label class="upperCase" for="case-toggle" title="Switch text to uppercase"></label>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initLoadingShader } from '/public/loading-shader.js';
+        initLoadingShader('loading-screen');
+    </script>
+
+    <div class="container">
+        <header>
+            <h1>Public Pastes</h1>
+        </header>
+        <div id="pasteList" class="paste-list">
+            <p>Loading pastes...</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadPastes() {
+            try {
+                const res = await fetch('/api/pastes/public-list');
+                const pastes = await res.json();
+                const container = document.getElementById('pasteList');
+
+                if (pastes.length === 0) {
+                    container.innerHTML = '<p>No public pastes found.</p>';
+                    return;
+                }
+
+                // Group by folder
+                const folders = {};
+                const noFolder = [];
+
+                pastes.forEach(p => {
+                    if (p.folderName) {
+                        if (!folders[p.folderName]) folders[p.folderName] = [];
+                        folders[p.folderName].push(p);
+                    } else {
+                        noFolder.push(p);
+                    }
+                });
+
+                let html = '';
+
+                // Render Uncategorized (Top Priority)
+                if (noFolder.length > 0) {
+                    html += `
+                        <div class="folder-group">
+                            ${Object.keys(folders).length > 0 ? '<h2 class="folder-title">📄 Uncategorized</h2>' : ''}
+                            <div class="folder-items">
+                                ${noFolder.map(p => renderPasteItem(p)).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Render Folders
+                for (const [name, items] of Object.entries(folders)) {
+                    html += `
+                        <details class="folder-group">
+                            <summary class="folder-title">
+                                📁 ${name} <span class="folder-count">${items.length} items</span>
+                            </summary>
+                            <div class="folder-items">
+                                ${items.map(p => renderPasteItem(p)).join('')}
+                            </div>
+                        </details>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+                // Hide loading screen after a short delay to show off the shader
+                setTimeout(() => {
+                    const loader = document.getElementById('loading-screen');
+                    if (loader) {
+                        loader.classList.add('fade-out');
+                        setTimeout(() => loader.remove(), 1000); // Remove from DOM after fade
+                    }
+                }, 2500); // Wait 2.5s seconds to let user see the cool shader
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('pasteList').innerHTML = '<p>Error loading pastes.</p>';
+                // Ensure loader hides even on error
+                const loader = document.getElementById('loading-screen');
+                if (loader) {
+                    loader.classList.add('fade-out');
+                    setTimeout(() => loader.remove(), 1000);
+                }
+            }
+        }
+
+        function renderPasteItem(p) {
+            return `
+                <a href="/v/${p.id}" class="paste-item">
+                    <div>
+                        <div class="paste-title">
+                            ${p.hasPassword ? '🔒 ' : ''}${p.title || 'Untitled'}
+                        </div>
+                        <div class="paste-meta">Created ${new Date(p.createdAt).toLocaleString()}</div>
+                    </div>
+                    <div>
+                        <span class="badge">${p.views} views</span>
+                    </div>
+                </a>
+            `;
+        }
+
+        loadPastes();
+    </script>
+</body>
+
+</html>
