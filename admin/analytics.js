@@ -104,7 +104,7 @@ function updateMap(locations) {
 }
 
 function updatePlatforms(platforms) {
-    const container = document.getElementById('platform Bars');
+    const container = document.getElementById('platformBars');
     if (!container) return;
     container.innerHTML = '';
 
