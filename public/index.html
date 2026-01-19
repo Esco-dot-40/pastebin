@@ -1543,6 +1543,9 @@
             window.showDetail = async function (id) {
                 if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
 
+                // Switch to detail video background
+                if (window.setBackgroundVideo) window.setBackgroundVideo('detail');
+
                 listView.style.display = 'none';
                 detailView.style.display = 'block';
 
