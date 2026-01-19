@@ -1,6 +1,8 @@
 const VIDEO_SOURCES = {
-    main: "/public/uploads/main_bg.mp4",
-    pastes: "/public/uploads/11855892-hd_1920_1080_60fps.mp4"
+    main: "/public/uploads/main_bg.mp4",           // Beach for entry page
+    loading: "/public/uploads/19627-304735769_medium.mp4",  // Loading transitions
+    public: "/public/uploads/153978-806571981.mp4",        // Public pastes list
+    detail: "/public/uploads/150883-799711528_medium.mp4"  // Individual paste view
 };
 
 let currentVideoKey = null;
@@ -14,6 +16,11 @@ window.setBackgroundVideo = function (key) {
     if (!container) return;
 
     const src = VIDEO_SOURCES[key];
+    if (!src) {
+        console.warn(`No video source for key: ${key}`);
+        return;
+    }
+
     const isImage = src.match(/\.(jpg|jpeg|png|gif)$/i);
 
     // Clear existing content to prevent mixing
@@ -80,11 +87,10 @@ window.setBackgroundVideo = function (key) {
 };
 
 // Initial Load
-// Initial Load
 document.addEventListener('DOMContentLoaded', () => {
     // Only default to main if we are on the main page (index.html) or public landing
     // This prevents the 'pastes' view from loading 'main' if its own video is slow or missing
-    if (window.location.pathname === '/' || window.location.pathname === '/public') {
+    if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
         if (!document.querySelector('#video-background-container video') && !document.querySelector('#video-background-container img')) {
             window.setBackgroundVideo('main');
         }
