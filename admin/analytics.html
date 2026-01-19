@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Command Center - veroe.space</title>
+    <link rel="stylesheet" href="analytics.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="icon" type="image/png" href="/public/favicon.png">
+</head>
+
+<body>
+    <div class="analytics-container">
+        <!-- Header -->
+        <header class="analytics-header">
+            <div class="analytics-title">
+                <h1>Analytics <span style="color: #7b42ff;">Command Center</span></h1>
+                <div class="live-indicator">
+                    <div class="live-dot"></div>
+                    <span>Live • Auto-refresh every 30s •
+                        <span style="color: var(--accent-green); font-weight: 600;">1 active now</span>
+                    </span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-logout" onclick="window.location.href='/admin'">
+                    ← Back to Admin
+                </button>
+                <button class="btn-logout" id="logoutBtn">
+                    🔒 Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Visits</span>
+                    <div class="stat-icon icon-visits">👁️</div>
+                </div>
+                <div class="stat-value" id="totalVisits">14</div>
+                <div class="stat-subtitle">All time page views</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Unique Visitors</span>
+                    <div class="stat-icon icon-users">👥</div>
+                </div>
+                <div class="stat-value" id="uniqueVisitors">3</div>
+                <div class="stat-subtitle">Distinct IP addresses</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Active Now</span>
+                    <div class="stat-icon icon-active">⚡</div>
+                </div>
+                <div class="stat-value" id="activeNow">1</div>
+                <div class="stat-subtitle">Last 5 minutes</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Geographic Reach</span>
+                    <div class="stat-icon icon-geo">🌍</div>
+                </div>
+                <div class="stat-value" id="geoReach">2</div>
+                <div class="stat-subtitle">Unique locations</div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <!-- Visitor Distribution -->
+            <div class="chart-card">
+                <h3><span class="chart-icon">👤</span> New vs Returning Visitors</h3>
+                <div style="display: flex; align-items: center; justify-content: space-around; padding: 2rem 0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">New
+                            Visitors</div>
+                        <div style="font-size: 3rem; font-weight: 700; color: var(--accent-cyan);" id="newVisitors">0
+                        </div>
+                    </div>
+                    <div style="font-size: 3rem; color: var(--text-tertiary);">|</div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Returning
+                            Visitors</div>
+                        <div style="font-size: 3rem; font-weight: 700; color: var(--accent-purple);"
+                            id="returningVisitors">3</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Device Capabilities -->
+            <div class="chart-card">
+                <h3><span class="chart-icon">📱</span> Device Capabilities</h3>
+                <div class="device-grid">
+                    <div class="device-item">
+                        <div class="device-icon">⚙️</div>
+                        <div class="device-value" id="avgCpuCores">16.0</div>
+                        <div class="device-label">Avg CPU Cores</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-icon">💾</div>
+                        <div class="device-value" id="avgRam">0.0 GB</div>
+                        <div class="device-label">Avg RAM</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-icon">👆</div>
+                        <div class="device-value" id="touchDevices">0</div>
+                        <div class="device-label">Touch Devices</div>
+                    </div>
+                    <div class="device-item">
+                        <div class="device-icon">💻</div>
+                        <div class="device-value" id="desktopDevices">14</div>
+                        <div class="device-label">Desktop</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="overview">
+                <span>🌐</span> Overview
+            </button>
+            <button class="tab" data-tab="devices">
+                <span>📱</span> Devices
+            </button>
+            <button class="tab" data-tab="network">
+                <span>📡</span> Network
+            </button>
+            <button class="tab" data-tab="traffic">
+                <span>📊</span> Traffic
+            </button>
+            <button class="tab" data-tab="recent">
+                <span>⏱️</span> Recent
+            </button>
+        </div>
+
+        <!-- Global Visitor Distribution Map -->
+        <div class="map-section">
+            <div class="map-header">
+                <h3><span style="font-size: 1.5rem;">🌍</span> Global Visitor Distribution</h3>
+            </div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Platform Distribution -->
+        <div class="chart-card">
+            <h3><span class="chart-icon">💻</span> Platform Distribution</h3>
+            <div class="platform-bars" id="platformBars">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../shared/api.js"></script>
+    <script src="analytics.js"></script>
+</body>
+
+</html>
