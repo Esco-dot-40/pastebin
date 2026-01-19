@@ -119,7 +119,7 @@ function updatePlatforms(platforms) {
     });
 }
 
-// Tab switching
+// Tab switching with content visibility
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -127,7 +127,22 @@ document.querySelectorAll('.tab').forEach(tab => {
 
         const tabName = tab.getAttribute('data-tab');
         console.log('Switched to tab:', tabName);
-        // Future: Load different data based on tab
+
+        // Hide all tab content sections
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.style.display = 'none';
+        });
+
+        // Show selected tab content
+        const selectedContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+        if (selectedContent) {
+            selectedContent.style.display = 'block';
+        }
+
+        // Refresh map when switching to overview
+        if (tabName === 'overview' && map) {
+            setTimeout(() => map.invalidateSize(), 100);
+        }
     });
 });
 
