@@ -422,7 +422,7 @@ router.get('/analytics', requireAuth, (req, res) => {
         });
 
         // Locations with coordinates
-        const locations = [];
+        let locations = [];
         const locationMap = {};
         allViews.forEach(v => {
             if (v.lat && v.lon && v.city) {
