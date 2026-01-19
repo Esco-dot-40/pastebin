@@ -4,6 +4,7 @@ const storage = new PasteStorage();
 // Initialize map
 let map = null;
 let markers = [];
+let currentData = null;
 
 function initMap() {
     map = L.map('map', {
@@ -29,11 +30,20 @@ async function loadAnalytics() {
         if (!response.ok) throw new Error('Failed to load analytics');
 
         const data = await response.json();
+        currentData = data;
 
         updateStats(data);
         updateMap(data.locations || []);
         updatePlatforms(data.platforms || {});
         updateDevices(data.devices || {});
+
+        // Update tab-specific content
+        updateBrowsersTab(data.browsers || []);
+        updateISPTab(data.isps || []);
+        updateResolutionsTab(data.resolutions || []);
+        updateReferrersTab(data.referrers || []);
+        updateConnectionsTab(data.connections || []);
+        updateRecentActivityTab(data.recentViews || [], data.recentReactions || []);
 
     } catch (error) {
         console.error('Analytics error:', error);
@@ -94,16 +104,15 @@ function updateMap(locations) {
 }
 
 function updatePlatforms(platforms) {
-    const container = document.getElementById('platformBars');
+    const container = document.getElementById('platform Bars');
+    if (!container) return;
     container.innerHTML = '';
 
-    const platformData = Object.entries(platforms)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5); // Top 5
+    const platformData = Array.isArray(platforms) ? platforms : Object.entries(platforms).map(([name, count]) => ({ name, count }));
+    const sorted = platformData.sort((a, b) => b.count - a.count).slice(0, 5);
+    const maxCount = sorted[0]?.count || 1;
 
-    const maxCount = platformData[0]?.[1] || 1;
-
-    platformData.forEach(([name, count]) => {
+    sorted.forEach(({ name, count }) => {
         const percentage = (count / maxCount) * 100;
 
         const item = document.createElement('div');
@@ -117,6 +126,172 @@ function updatePlatforms(platforms) {
         `;
         container.appendChild(item);
     });
+}
+
+function updateBrowsersTab(browsers) {
+    const container = document.getElementById('browsersContent');
+    if (!container) return;
+
+    const sorted = (Array.isArray(browsers) ? browsers : []).sort((a, b) => b.count - a.count);
+    const maxCount = sorted[0]?.count || 1;
+
+    container.innerHTML = sorted.map(({ name, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="stat-bar">
+                <div class="stat-bar-label">${name}</div>
+                <div class="stat-bar-track">
+                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00f5ff, #7b42ff);"></div>
+                </div>
+                <div class="stat-bar-value">${count} visits</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateISPTab(isps) {
+    const container = document.getElementById('ispContent');
+    if (!container) return;
+
+    const sorted = (Array.isArray(isps) ? isps : []).sort((a, b) => b.count - a.count).slice(0, 10);
+    const maxCount = sorted[0]?.count || 1;
+
+    container.innerHTML = sorted.map(({ name, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="stat-bar">
+                <div class="stat-bar-label">${name || 'Unknown ISP'}</div>
+                <div class="stat-bar-track">
+                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #ff006e, #ffbe0b);"></div>
+                </div>
+                <div class="stat-bar-value">${count}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateResolutionsTab(resolutions) {
+    const container = document.getElementById('resolutionsContent');
+    if (!container) return;
+
+    const sorted = (Array.isArray(resolutions) ? resolutions : []).sort((a, b) => b.count - a.count);
+    const maxCount = sorted[0]?.count || 1;
+
+    container.innerHTML = sorted.map(({ name, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="stat-bar">
+                <div class="stat-bar-label">${name}</div>
+                <div class="stat-bar-track">
+                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00ff88, #00f5ff);"></div>
+                </div>
+                <div class="stat-bar-value">${count} devices</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateReferrersTab(referrers) {
+    const container = document.getElementById('referrersContent');
+    if (!container) return;
+
+    const sorted = (Array.isArray(referrers) ? referrers : []).sort((a, b) => b.count - a.count);
+    const maxCount = sorted[0]?.count || 1;
+
+    container.innerHTML = sorted.map(({ name, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="stat-bar">
+                <div class="stat-bar-label">${name}</div>
+                <div class="stat-bar-track">
+                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #7b42ff, #ff006e);"></div>
+                </div>
+                <div class="stat-bar-value">${count} visits</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateConnectionsTab(connections) {
+    const container = document.getElementById('connectionsContent');
+    if (!container) return;
+
+    const sorted = (Array.isArray(connections) ? connections : []).sort((a, b) => b.count - a.count);
+    const maxCount = sorted[0]?.count || 1;
+
+    container.innerHTML = sorted.map(({ name, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="stat-bar">
+                <div class="stat-bar-label">${name.toUpperCase()}</div>
+                <div class="stat-bar-track">
+                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #ffbe0b, #ff006e);"></div>
+                </div>
+                <div class="stat-bar-value">${count} connections</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function updateRecentActivityTab(views, reactions) {
+    const container = document.getElementById('recentContent');
+    if (!container) return;
+
+    // Combine and sort by timestamp
+    const activities = [
+        ...views.map(v => ({ type: 'view', data: v, timestamp: new Date(v.timestamp) })),
+        ...reactions.map(r => ({ type: 'reaction', data: r, timestamp: new Date(r.createdAt) }))
+    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+
+    container.innerHTML = `
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; color: white;">
+                <thead>
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                        <th style="padding: 12px;">Time</th>
+                        <th style="padding: 12px;">Type</th>
+                        <th style="padding: 12px;">Location</th>
+                        <th style="padding: 12px;">ISP</th>
+                        <th style="padding: 12px;">IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${activities.map(activity => {
+        const d = activity.data;
+        const timeAgo = formatTimeAgo(activity.timestamp);
+        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Unknown');
+        const actionType = activity.type === 'view' ? '👁️ View' : `${getReactionEmoji(d.type)} Reaction`;
+
+        return `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 12px; opacity: 0.7;">${timeAgo}</td>
+                                <td style="padding: 12px;">${actionType}</td>
+                                <td style="padding: 12px;">${location}</td>
+                                <td style="padding: 12px; opacity: 0.8;">${d.isp || 'Unknown'}</td>
+                                <td style="padding: 12px; font-family: monospace; opacity: 0.6;">${d.ip || 'N/A'}</td>
+                            </tr>
+                        `;
+    }).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+function getReactionEmoji(type) {
+    const emojis = { heart: '❤️', star: '⭐', like: '👍' };
+    return emojis[type] || '👍';
+}
+
+function formatTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return `${seconds}s ago`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
 }
 
 // Tab switching with content visibility

@@ -357,6 +357,41 @@ body {
     border-bottom-color: var(--accent-cyan);
 }
 
+/* Stat Bars for Tab Content */
+.stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-bar-label {
+    min-width: 150px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-bar-track {
+    flex: 1;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.stat-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-bar-value {
+    min-width: 80px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
     .charts-section {

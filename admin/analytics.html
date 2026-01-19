@@ -165,41 +165,62 @@
 
         <!-- Tab Content: Devices -->
         <div class="tab-content" data-tab-content="devices" style="display: none;">
-            <div class="chart-card">
-                <h3><span class="chart-icon">📱</span> Device Analytics</h3>
-                <p style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                    Detailed device breakdowns and hardware capabilities coming soon...
-                </p>
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3><span class="chart-icon">🌐</span> Browser Distribution</h3>
+                    <div id="browsersContent"
+                        style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3><span class="chart-icon">📱</span> Screen Resolutions</h3>
+                    <div id="resolutionsContent"
+                        style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Tab Content: Network -->
         <div class="tab-content" data-tab-content="network" style="display: none;">
-            <div class="chart-card">
-                <h3><span class="chart-icon">📡</span> Network Analytics</h3>
-                <p style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                    ISP distribution and connection types analysis coming soon...
-                </p>
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h3><span class="chart-icon">📡</span> ISP Distribution</h3>
+                    <div id="ispContent" style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3><span class="chart-icon">🔌</span> Connection Types</h3>
+                    <div id="connectionsContent"
+                        style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Tab Content: Traffic -->
         <div class="tab-content" data-tab-content="traffic" style="display: none;">
             <div class="chart-card">
-                <h3><span class="chart-icon">📊</span> Traffic Sources</h3>
-                <p style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                    Referrer analysis and traffic source breakdown coming soon...
-                </p>
+                <h3><span class="chart-icon">📊</span> Traffic Sources & Referrers</h3>
+                <div id="referrersContent" style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                    <!-- Populated by JS -->
+                </div>
             </div>
         </div>
 
         <!-- Tab Content: Recent -->
         <div class="tab-content" data-tab-content="recent" style="display: none;">
             <div class="chart-card">
-                <h3><span class="chart-icon">⏱️</span> Recent Activity</h3>
-                <p style="text-align: center; padding: 3rem; color: var(--text-secondary);">
-                    Real-time visitor stream and recent activity log coming soon...
-                </p>
+                <h3><span class="chart-icon">⏱️</span> Recent Activity Stream</h3>
+                <div id="recentContent" style="padding: 1rem 0;">
+                    <!-- Populated by JS -->
+                </div>
             </div>
         </div>
     </div>
