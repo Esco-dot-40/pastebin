@@ -736,7 +736,7 @@
     <!-- Original Loader -->
     <div id="loadingState" class="loader-overlay">
         <video class="loader-bg bg-animate" autoplay loop muted playsinline>
-            <!-- <source src="/public/loader-bg.mp4" type="video/mp4"> -->
+            <source src="/public/uploads/19627-304735769_medium.mp4" type="video/mp4">
         </video>
         <div class="loader-content">
             <l-pinwheel size="45" stroke="3.5" speed="0.9" color="#00f5ff"></l-pinwheel>
@@ -800,7 +800,7 @@
     <div id="video-background-container"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.65);">
     </div>
-    <script src="/public/video-manager.js?v=6"></script>
+    <script src="/public/video-manager.js?v=8"></script>
 
     <!-- View: ENTRY -->
     <div id="view-entry">
@@ -1544,7 +1544,12 @@
                 if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
 
                 // Switch to detail video background
-                if (window.setBackgroundVideo) window.setBackgroundVideo('detail');
+                console.log('Switching to detail video background for paste:', id);
+                if (window.setBackgroundVideo) {
+                    window.setBackgroundVideo('detail');
+                } else {
+                    console.warn('setBackgroundVideo not available yet');
+                }
 
                 listView.style.display = 'none';
                 detailView.style.display = 'block';
