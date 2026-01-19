@@ -196,28 +196,32 @@ router.get('/:id', async (req, res) => {
 
         db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
 
-        // Track View (Ensure all fields are handled)
-        const ip = getClientIP(req);
-        const userAgent = req.headers['user-agent'] || '';
+        // Track View (Skip if admin to avoid polluting analytics)
+        const isAdmin = req.session && req.session.isAdmin;
 
-        fetchGeolocation(ip).then(loc => {
-            if (loc) {
-                const res2 = db.prepare(`
-                    INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `).run(
-                    req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName,
-                    loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, userAgent
-                );
-                updateHostname('paste_views', res2.lastInsertRowid, ip);
-            } else {
+        if (!isAdmin) {
+            const ip = getClientIP(req);
+            const userAgent = req.headers['user-agent'] || '';
+
+            fetchGeolocation(ip).then(loc => {
+                if (loc) {
+                    const res2 = db.prepare(`
+                        INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName,
+                        loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, userAgent
+                    );
+                    updateHostname('paste_views', res2.lastInsertRowid, ip);
+                } else {
+                    const res2 = db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, userAgent);
+                    updateHostname('paste_views', res2.lastInsertRowid, ip);
+                }
+            }).catch(() => {
                 const res2 = db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, userAgent);
                 updateHostname('paste_views', res2.lastInsertRowid, ip);
-            }
-        }).catch(() => {
-            const res2 = db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, userAgent);
-            updateHostname('paste_views', res2.lastInsertRowid, ip);
-        });
+            });
+        }
 
         // Fetch Reactions
         const reactions = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(req.params.id);
@@ -261,32 +265,36 @@ router.post('/:id/react', async (req, res) => {
             db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(existing.id);
             res.json({ success: true, action: 'removed' });
         } else {
-            // One per person rule:
-            // For non-admins, ensure they don't have multiple reactions of the SAME type via other methods (id matched)
-            // But actually, userId is the primary key for the person here now.
+            // Skip detailed analytics for admin (don't pollute data)
+            if (isAdmin) {
+                // Insert minimal reaction without geo/analytics data
+                db.prepare(`INSERT INTO paste_reactions (pasteId, type, userId, username) VALUES (?, ?, ?, ?)`).run(
+                    id, type, user.id, user.username || 'Admin'
+                );
+                res.json({ success: true, action: 'added' });
+            } else {
+                // Full analytics tracking for non-admin users
+                const loc = await fetchGeolocation(ip);
+                const geo = loc || {};
 
-            // Fetch Geo for Analytics
-            const loc = await fetchGeolocation(ip);
-            const geo = loc || {};
+                // Prepare Insert
+                const cols = `pasteId, type, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, discordId, userId, username, avatarUrl`;
+                const vals = `?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?`;
 
-            // Prepare Insert
-            const cols = `pasteId, type, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, discordId, userId, username, avatarUrl`;
-            const vals = `?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?`;
+                const result = db.prepare(`INSERT INTO paste_reactions (${cols}) VALUES (${vals})`).run(
+                    id, type, ip,
+                    geo.country || null, geo.countryCode || null, geo.region || null, geo.regionName || null,
+                    geo.city || null, geo.zip || null, geo.lat || null, geo.lon || null, geo.isp || null, geo.org || null, geo.as || null,
+                    userAgent,
+                    user.discordId || null, user.id, user.username || user.displayName || 'User', user.avatarUrl
+                );
 
-            const result = db.prepare(`INSERT INTO paste_reactions (${cols}) VALUES (${vals})`).run(
-                id, type, ip,
-                geo.country || null, geo.countryCode || null, geo.region || null, geo.regionName || null,
-                geo.city || null, geo.zip || null, geo.lat || null, geo.lon || null, geo.isp || null, geo.org || null, geo.as || null,
-                userAgent,
-                user.discordId || null, user.id, user.username || user.displayName || 'User', user.avatarUrl
-            );
+                // Async Reverse DNS
+                updateHostname('paste_reactions', result.lastInsertRowid, ip);
 
-            // Async Reverse DNS
-            updateHostname('paste_reactions', result.lastInsertRowid, ip);
-
-            res.json({ success: true, action: 'added' });
+                res.json({ success: true, action: 'added' });
+            }
         }
-
     } catch (e) {
         res.status(500).json({ error: e.message });
     }
