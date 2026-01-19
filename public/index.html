@@ -14,6 +14,8 @@
     <link rel="icon" type="image/png" href="/public/favicon.png">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <link rel="stylesheet" href="/public/loader.css?v=6">
+    <script src="/shared/api.js?v=6"></script>
 
     <script type="importmap">
     {
@@ -729,7 +731,6 @@
 </head>
 
 <body>
-    <link rel="stylesheet" href="/public/loader.css">
     <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/pinwheel.js"></script>
 
     <!-- Original Loader -->
@@ -799,7 +800,7 @@
     <div id="video-background-container"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.65);">
     </div>
-    <script src="/public/video-manager.js?v=4"></script>
+    <script src="/public/video-manager.js?v=6"></script>
 
     <!-- View: ENTRY -->
     <div id="view-entry">
@@ -1179,24 +1180,7 @@
     <script type="module">
         import { initLoadingShader } from '/public/loading-shader.js';
 
-        // Initialize shader
-        initLoadingShader('loading-screen');
-
-        // Hide loader logic
-        window.hideLoader = function () {
-            const loader = document.getElementById('loading-screen');
-            if (loader && !loader.classList.contains('fading')) {
-                loader.classList.add('fading');
-                loader.style.transition = 'opacity 1s ease';
-                loader.style.opacity = '0';
-                setTimeout(() => loader.remove(), 1000);
-            }
-        };
-        // Fallback
-        setTimeout(window.hideLoader, 2000);
     </script>
-
-    <script src="/shared/api.js"></script>
 
     <script>
         // --- 1. Audio Logic ---
@@ -1339,11 +1323,30 @@
         // Handle Initial Load
         document.addEventListener('DOMContentLoaded', handleRoute);
 
-        function navigateTo(path) {
-            console.log("Navigating to:", path);
-            window.history.pushState({}, '', path);
-            handleRoute();
+        window.navigateTo = function (path) {
+            console.log("Navigating with cinematic transition:", path);
+            const ls = document.getElementById('loadingState');
+            if (ls) {
+                ls.style.display = 'flex';
+                ls.classList.remove('fade-out');
+                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+            }
+
+            // Show loading for 2.5 seconds to hit the "few seconds" target
+            setTimeout(() => {
+                window.history.pushState({}, '', path);
+                handleRoute();
+            }, 2500);
         }
+
+        window.hideLoader = function () {
+            const ls = document.getElementById('loadingState');
+            if (!ls) return;
+            ls.classList.add('fade-out');
+            setTimeout(() => {
+                ls.style.display = 'none';
+            }, 800);
+        };
 
         function handleRoute() {
             const path = window.location.pathname;
@@ -1372,7 +1375,7 @@
                 document.getElementById('view-entry').style.display = 'none';
                 document.getElementById('view-viewer').style.display = 'block';
                 document.body.style.overflow = 'auto'; // Allow scroll
-                if (window.setBackgroundVideo) window.setBackgroundVideo('pastes');
+                if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
                 if (path.startsWith('/v/')) {
                     const id = path.split('/')[2];
@@ -1384,238 +1387,243 @@
         }
 
 
-        // --- 3. Viewer Logic ---
-        const storage = new PasteStorage();
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const pasteListContainer = document.getElementById('pasteList');
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
+        // --- 3. Viewer Logic (Isolated Scope) ---
+        (function () {
+            const storage = window.storage = new PasteStorage();
+            const listView = document.getElementById('listView');
+            const detailView = document.getElementById('detailView');
+            const pasteListContainer = document.getElementById('pasteList');
+            const detailLoading = document.getElementById('detailLoading');
+            const notFoundState = document.getElementById('notFoundState');
+            const pasteViewContent = document.getElementById('pasteViewContent');
 
-        // Elements for detail
-        const pasteTitle = document.getElementById('pasteTitle');
-        const pasteLanguage = document.getElementById('pasteLanguage');
-        const pasteViews = document.getElementById('pasteViews');
-        const pasteDate = document.getElementById('pasteDate');
-        const pasteContent = document.getElementById('pasteContent');
+            // Elements for detail
+            const pTitle = document.getElementById('pasteTitle');
+            const pLang = document.getElementById('pasteLanguage');
+            const pViews = document.getElementById('pasteViews');
+            const pDate = document.getElementById('pasteDate');
+            const pContent = document.getElementById('pasteContent');
 
-        async function showList() {
-            detailView.style.display = 'none';
-            listView.style.display = 'block';
-            await loadPastes();
-        }
+            window.showList = async function () {
+                detailView.style.display = 'none';
+                listView.style.display = 'block';
+                await loadPastes();
+            };
 
-        async function loadPastes() {
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
+            async function loadPastes() {
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    const key = localStorage.getItem('private_access_key');
+                    if (key) headers['x-access-key'] = key;
 
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                    headers,
-                    credentials: 'include'
-                });
-                const pastes = await res.json();
+                    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
+                        headers,
+                        credentials: 'include'
+                    });
+                    const pastes = await res.json();
 
-                if (pastes.length === 0) {
-                    const cardsContainer = document.querySelector('.cards');
-                    if (cardsContainer) {
-                        cardsContainer.innerHTML = '<li style="display:flex; justify-content:center; align-items:center; background:none; border:none; box-shadow:none;"><h3>No Pastes Found</h3></li>';
+                    if (!Array.isArray(pastes)) {
+                        console.error("Expected array from public-list, got:", pastes);
+                        return;
                     }
-                    return;
-                }
 
-                // Group by folder
-                const folders = {};
-                const noFolder = [];
-
-                pastes.forEach(p => {
-                    if (p.folderName) {
-                        if (!folders[p.folderName]) folders[p.folderName] = [];
-                        folders[p.folderName].push(p);
-                    } else {
-                        noFolder.push(p);
+                    if (pastes.length === 0) {
+                        const listViewContainer = document.getElementById('listView');
+                        if (listViewContainer) {
+                            const hasKey = !!localStorage.getItem('private_access_key');
+                            listViewContainer.innerHTML = `
+                                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:60vh; color:white; text-align:center; padding:2rem;">
+                                    <h2 style="font-size:2.5rem; margin-bottom:1rem; background: linear-gradient(135deg, #00f5ff, #7b42ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">No Pastes Found</h2>
+                                    <p style="opacity:0.8; max-width:600px; line-height:1.6; font-size: 1.1rem;">
+                                        ${hasKey ? "Your access key is active, but there are no pastes to display at this time." : "This secure vault is currently private. If you are the owner, please authenticate via the entry portal. Visitors require an authorized access key."}
+                                    </p>
+                                    ${!hasKey ? `
+                                        <div style="margin-top:2.5rem; display:flex; gap:1rem;">
+                                            <button onclick="navigateTo('/')" class="nav-btn" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:600;">Main Portal</button>
+                                            <button onclick="openRequestModal()" class="nav-btn" style="background:linear-gradient(135deg, #00f5ff, #7b42ff); border:none; color:white; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:600; box-shadow: 0 10px 20px rgba(0,245,255,0.2);">Enter Key</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        }
+                        return;
                     }
-                });
 
-                let html = '';
+                    // Group by folder
+                    const folders = {};
+                    const noFolder = [];
 
-                const renderCard = (p) => `
-                    <li onclick="showDetail('${p.id}')" class="${p.isPrivate ? 'private-card' : ''}">
-                        <div class="accent-line"></div>
-                        <div class="card-content">
-                            <h3>${p.title || 'Untitled'}</h3>
-                            <div class="card-meta">
-                                <span>📝 ${p.language}</span>
-                                ${p.isPrivate ? '<span>🔒 Private</span>' : '<span>🌍 Public</span>'}
-                                <span>👁️ ${p.views || 0} views</span>
-                                <span>📅 ${new Date(p.createdAt).toLocaleDateString()}</span>
-                                <div class="card-reactions" style="display: flex; gap: 8px; margin-left: auto;">
-                                    <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('heart', '${p.id}')">❤️ ${p.hearts || 0}</button>
-                                    <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('star', '${p.id}')">⭐ ${p.stars || 0}</button>
-                                    <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('like', '${p.id}')">👍 ${p.likes || 0}</button>
+                    pastes.forEach(p => {
+                        if (p.folderName) {
+                            if (!folders[p.folderName]) folders[p.folderName] = [];
+                            folders[p.folderName].push(p);
+                        } else {
+                            noFolder.push(p);
+                        }
+                    });
+
+                    let html = '';
+
+                    const renderCard = (p) => `
+                        <li onclick="navigateTo('/v/${p.id}')" class="${p.isPrivate ? 'private-card' : ''}">
+                            <div class="accent-line"></div>
+                            <div class="card-content">
+                                <h3>${p.title || 'Untitled'}</h3>
+                                <div class="card-meta">
+                                    <span>📝 ${p.language}</span>
+                                    ${p.isPrivate ? '<span>🔒 Private</span>' : '<span>🌍 Public</span>'}
+                                    <span>👁️ ${p.views || 0} views</span>
+                                    <span>📅 ${new Date(p.createdAt).toLocaleDateString()}</span>
+                                    <div class="card-reactions" style="display: flex; gap: 8px; margin-left: auto;">
+                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('heart', '${p.id}')">❤️ ${p.hearts || 0}</button>
+                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('star', '${p.id}')">⭐ ${p.stars || 0}</button>
+                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('like', '${p.id}')">👍 ${p.likes || 0}</button>
+                                    </div>
+                                </div>
+                                <div class="card-preview-text">
+                                    ${p.content ? p.content.substring(0, 300).replace(/</g, '&lt;') : 'No preview available'}
                                 </div>
                             </div>
-                            <div class="card-preview-text">
-                                ${p.content ? p.content.substring(0, 300).replace(/</g, '&lt;') : 'No preview available'}
+                        </li>
+                    `;
+
+                    if (noFolder.length > 0) {
+                        html += `
+                            <div class="folder-section">
+                                <h2 class="folder-header">📁 Uncategorized</h2>
+                                <ul class="cards">
+                                    ${noFolder.map(p => renderCard(p)).join('')}
+                                </ul>
                             </div>
-                        </div>
-                    </li>
-                `;
-
-                if (noFolder.length > 0) {
-                    html += `
-                        <div class="folder-section">
-                            <h2 class="folder-header">📁 Uncategorized</h2>
-                            <ul class="cards">
-                                ${noFolder.map(p => renderCard(p)).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                for (const [name, items] of Object.entries(folders)) {
-                    html += `
-                        <div class="folder-section">
-                            <h2 class="folder-header">📁 ${name}</h2>
-                            <ul class="cards">
-                                ${items.map(p => renderCard(p)).join('')}
-                            </ul>
-                        </div>
-                    `;
-                }
-
-                const listViewContainer = document.getElementById('listView');
-                // Target the ul.cards specifically if we want to keep navigation buttons, 
-                // but since folder-section adds its own headers, we replace the whole gallery content.
-                // However, we must preserve the back button if it's outside. 
-                // Based on line 936, listView is the parent of ul.cards.
-
-                // Let's just update the .cards container and append headers before them if needed,
-                // or just replace listView's innerHTML but preserve the actions/hint.
-
-                const cardsContent = document.querySelector('#listView .cards');
-                if (cardsContent) {
-                    // If we use folders, we should probably clear the main .cards and append sections to listView
-                    listViewContainer.innerHTML = `
-                        <div class="folder-container" style="padding: 2.5rem; max-width: 1200px; margin: 0 auto;">
-                            ${html}
-                        </div>
-                        <div class="actions">
-                            <button class="nav-btn prev" onclick="window.scrollBy({top: -300, behavior: 'smooth'})">&uarr; Scroll Up</button>
-                            <button class="nav-btn next" onclick="window.scrollBy({top: 300, behavior: 'smooth'})">&darr; Scroll Down</button>
-                        </div>
-                    `;
-                }
-
-                // Simple fade-in animation with GSAP
-                if (window.gsap) {
-                    gsap.from('.cards li', {
-                        duration: 0.6,
-                        y: 40,
-                        opacity: 0,
-                        stagger: 0.08,
-                        ease: 'power3.out',
-                        clearProps: 'all'
-                    });
-                }
-
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-
-        function initCarousel() {
-            // Deprecated - now using vertical scroll layout
-        }
-
-        function buildSeamlessLoop() {
-            // Deprecated - now using vertical scroll layout
-        }
-
-        function renderPasteItem(p) { return ''; } // Deprecated helper
-
-
-        async function showDetail(id) {
-            // Disable ScrollTrigger/Draggable to prevent carousel hijacking scroll in Detail View
-            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
-            if (window.Draggable) Draggable.get(".cards")?.disable();
-
-            listView.style.display = 'none';
-            detailView.style.display = 'block';
-
-            detailLoading.style.display = 'flex';
-            notFoundState.style.display = 'none';
-            pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
-
-            try {
-                let paste = null;
-                try {
-                    paste = await storage.getPaste(id);
-                } catch (e) {
-                    // Handle password-protected or private pastes
-                    if (e.message.includes('401') || e.message.includes('403')) {
-                        const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                        if (!pwd) throw new Error('Cancelled');
-                        paste = await storage.getPaste(id, true, pwd);
-                    } else {
-                        throw e;
+                        `;
                     }
+
+                    for (const [name, items] of Object.entries(folders)) {
+                        html += `
+                            <div class="folder-section">
+                                <h2 class="folder-header">📁 ${name}</h2>
+                                <ul class="cards">
+                                    ${items.map(p => renderCard(p)).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+
+                    const listViewContainer = document.getElementById('listView');
+                    if (listViewContainer) {
+                        listViewContainer.innerHTML = `
+                            <div class="folder-container" style="padding: 2.5rem; max-width: 1200px; margin: 0 auto;">
+                                ${html}
+                            </div>
+                            <div class="actions">
+                                <button class="nav-btn prev" onclick="window.scrollBy({top: -300, behavior: 'smooth'})">&uarr; Scroll Up</button>
+                                <button class="nav-btn next" onclick="window.scrollBy({top: 300, behavior: 'smooth'})">&darr; Scroll Down</button>
+                            </div>
+                        `;
+                    }
+
+                    if (window.gsap) {
+                        gsap.from('.cards li', {
+                            duration: 0.6,
+                            y: 40,
+                            opacity: 0,
+                            stagger: 0.08,
+                            ease: 'power3.out',
+                            clearProps: 'all'
+                        });
+                    }
+
+                } catch (e) {
+                    console.error("Paste load error:", e);
+                } finally {
+                    window.hideLoader();
+                }
+            }
+
+            window.showDetail = async function (id) {
+                if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+
+                listView.style.display = 'none';
+                detailView.style.display = 'block';
+
+                detailLoading.style.display = 'flex';
+                notFoundState.style.display = 'none';
+                pasteViewContent.style.display = 'none';
+                window.currentPasteId = id;
+
+                try {
+                    let paste = null;
+                    try {
+                        paste = await storage.getPaste(id);
+                    } catch (e) {
+                        if (e.message.includes('401') || e.message.includes('403')) {
+                            const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
+                            if (!pwd) throw new Error('Cancelled');
+                            paste = await storage.getPaste(id, true, pwd);
+                        } else {
+                            throw e;
+                        }
+                    }
+
+                    if (!paste) throw new Error('Not found');
+
+                    renderPasteDetail(paste);
+                    detailLoading.style.display = 'none';
+                    pasteViewContent.style.display = 'block';
+
+                } catch (err) {
+                    console.error(err);
+                    detailLoading.style.display = 'none';
+                    if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+                } finally {
+                    window.hideLoader();
+                }
+            };
+
+            function renderPasteDetail(paste) {
+                pTitle.textContent = paste.title || 'Untitled';
+                pLang.textContent = paste.language;
+                pViews.textContent = `${paste.views} views`;
+                pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+                const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+                const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+
+                if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+                    pContent.innerHTML = marked.parse(paste.content);
+                    pContent.classList.add('markdown-body');
+                    pContent.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    pContent.textContent = paste.content;
+                    pContent.className = `hljs language-${paste.language}`;
+                    hljs.highlightElement(pContent);
                 }
 
-                if (!paste) throw new Error('Not found');
+                // Reactions
+                const panel = document.getElementById('reactionsPanel');
+                if (panel) panel.style.display = 'flex';
+                if (paste.reactions) {
+                    const l = document.getElementById('count-like');
+                    const h = document.getElementById('count-heart');
+                    const s = document.getElementById('count-star');
+                    if (l) l.textContent = paste.reactions.like || 0;
+                    if (h) h.textContent = paste.reactions.heart || 0;
+                    if (s) s.textContent = paste.reactions.star || 0;
+                }
 
-                renderPasteDetail(paste);
-                detailLoading.style.display = 'none';
-                pasteViewContent.style.display = 'block';
+                // Burn Notice
+                const burnNotice = document.getElementById('burnNotice');
+                if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
 
-            } catch (err) {
-                console.error(err);
-                detailLoading.style.display = 'none';
-                if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+                // Cleanup active states
+                document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
+
+                window.currentViewedPaste = paste;
             }
-        }
-
-        function renderPasteDetail(paste) {
-            pasteTitle.textContent = paste.title || 'Untitled';
-            pasteLanguage.textContent = paste.language;
-            pasteViews.textContent = `${paste.views} views`;
-            pasteDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-            // Syntax highlighting or Markdown rendering
-            // Auto-detect markdown images, HTML video tags, or iframes even in plaintext
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                pasteContent.innerHTML = marked.parse(paste.content);
-                pasteContent.classList.add('markdown-body');
-                // Apply syntax highlighting to code blocks within markdown
-                pasteContent.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            } else {
-                pasteContent.textContent = paste.content;
-                pasteContent.className = `hljs language-${paste.language}`;
-                hljs.highlightElement(pasteContent);
-            }
-            window.currentViewedPaste = paste;
-
-            // Reactions
-            document.getElementById('reactionsPanel').style.display = 'flex';
-            if (paste.reactions) {
-                document.getElementById('count-like').textContent = paste.reactions.like || 0;
-                document.getElementById('count-heart').textContent = paste.reactions.heart || 0;
-                document.getElementById('count-star').textContent = paste.reactions.star || 0;
-            }
-
-            // Cleanup active states (simple reset for now)
-            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
-        }
+        })();
 
         window.handleReaction = async function (type, specificId = null) {
             const id = specificId || window.currentPasteId;
@@ -1928,18 +1936,10 @@
         document.addEventListener('DOMContentLoaded', checkStoredKey);
     </script>
     <script>
-        // Loader Hiding Logic
-        function hideLoader() {
-            const loader = document.getElementById('loadingState');
-            if (loader && !loader.classList.contains('hidden')) {
-                loader.classList.add('hidden');
-                setTimeout(() => loader.remove(), 800);
-            }
-        }
-        window.addEventListener('load', () => setTimeout(hideLoader, 800));
-        setTimeout(hideLoader, 2500); // Fallback
+        // Initial / Fallback Loading Hider
+        window.addEventListener('load', () => setTimeout(window.hideLoader, 800));
+        setTimeout(window.hideLoader, 4000); // Conservative fallback
     </script>
-    <script src="/shared/api.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -2033,7 +2033,7 @@
             }
         });
     </script>
-    <script src="/public/app.js"></script>
+    <!-- app.js removed to prevent SPA conflicts -->
     <script src="/public/cursor.js"></script>
     <script src="/public/title-rotator.js"></script>
 </body>

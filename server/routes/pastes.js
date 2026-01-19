@@ -422,4 +422,17 @@ router.delete('/analytics/all', requireAuth, (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// SET SPECIFIC VIEW COUNT
+router.put('/:id/views', requireAuth, (req, res) => {
+    try {
+        const { id } = req.params;
+        const { views } = req.body;
+        if (typeof views !== 'number') return res.status(400).json({ error: 'Views must be a number' });
+        db.prepare('UPDATE pastes SET views = ? WHERE id = ?').run(views, id);
+        res.json({ success: true, views });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;

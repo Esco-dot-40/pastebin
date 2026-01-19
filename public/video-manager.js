@@ -1,8 +1,8 @@
 const VIDEO_SOURCES = {
-    main: "/public/uploads/main_bg.mp4",           // Beach for entry page
-    loading: "/public/uploads/19627-304735769_medium.mp4",  // Loading transitions
-    public: "/public/uploads/153978-806571981.mp4",        // Public pastes list
-    detail: "/public/uploads/150883-799711528_medium.mp4"  // Individual paste view
+    main: "/public/uploads/main_bg.mp4",               // Main Screen
+    loading: "/public/uploads/19627-304735769_medium.mp4", // Any and All Loading
+    public: "/public/uploads/19627-304735769_medium.mp4",  // Public Paste List
+    detail: "/public/uploads/19627-304735769_medium.mp4"   // Individual Paste View
 };
 
 let currentVideoKey = null;
@@ -10,16 +10,17 @@ let currentVideoKey = null;
 // Initialize Global Controls
 window.setBackgroundVideo = function (key) {
     if (currentVideoKey === key) return;
+
+    const src = VIDEO_SOURCES[key];
+    if (!src || typeof src !== 'string') {
+        console.warn(`Invalid video source for key: ${key}`, src);
+        return;
+    }
+
     currentVideoKey = key;
 
     const container = document.getElementById('video-background-container');
     if (!container) return;
-
-    const src = VIDEO_SOURCES[key];
-    if (!src) {
-        console.warn(`No video source for key: ${key}`);
-        return;
-    }
 
     const isImage = src.match(/\.(jpg|jpeg|png|gif)$/i);
 
@@ -44,14 +45,10 @@ window.setBackgroundVideo = function (key) {
         });
 
         img.onload = () => {
-            // Force reflow
-            img.offsetHeight;
             img.style.opacity = '1';
         };
 
         container.appendChild(img);
-
-        // Safety: ensure opacity turns on even if cached
         setTimeout(() => img.style.opacity = '1', 100);
 
     } else {
@@ -60,7 +57,7 @@ window.setBackgroundVideo = function (key) {
         video.muted = true;
         video.playsInline = true;
         video.loop = true;
-        video.disablePictureInPicture = true; // Block PiP
+        video.disablePictureInPicture = true;
         video.setAttribute('disablePictureInPicture', '');
 
         Object.assign(video.style, {
@@ -72,7 +69,7 @@ window.setBackgroundVideo = function (key) {
             objectFit: 'cover',
             zIndex: '0',
             opacity: '0',
-            pointerEvents: 'none', // Block Hover/Click
+            pointerEvents: 'none',
             transition: 'opacity 1s ease'
         });
 
@@ -81,15 +78,12 @@ window.setBackgroundVideo = function (key) {
         container.appendChild(video);
         video.play().catch(e => { /* silent */ });
 
-        // Safety
         setTimeout(() => video.style.opacity = '1', 500);
     }
 };
 
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
-    // Only default to main if we are on the main page (index.html) or public landing
-    // This prevents the 'pastes' view from loading 'main' if its own video is slow or missing
     if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
         if (!document.querySelector('#video-background-container video') && !document.querySelector('#video-background-container img')) {
             window.setBackgroundVideo('main');

@@ -350,7 +350,13 @@ async function loadPasteList() {
                 </div>
                 <div class="paste-item-meta">
                     <span class="language-tag">${paste.language}</span>
-                    <span>👁️ ${paste.views}</span>
+                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                        <span title="Views">👁️</span>
+                        <input type="number" value="${paste.views}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updatePasteViews('${paste.id}', this.value)"
+                            style="width: 50px; background: none; border: none; color: white; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield;">
+                    </div>
                     
                     <!-- Reaction Controls for Admin -->
                     <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
@@ -648,6 +654,28 @@ async function resetViews(id) {
         await loadPasteList(); // Refresh main list
     } catch (error) {
         alert('Failed to reset views: ' + error.message);
+    }
+}
+
+async function updatePasteViews(id, views) {
+    try {
+        const res = await fetch(`/api/pastes/${id}/views`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ views: parseInt(views) })
+        });
+        const data = await res.json();
+        if (data.success) {
+            console.log(`Updated views for ${id} to ${views}`);
+        } else {
+            alert('Failed to update views: ' + (data.error || 'Unknown error'));
+            loadPasteList(); // Refresh to original value
+        }
+    } catch (e) {
+        console.error('Error updating views:', e);
+        alert('Error: ' + e.message);
+        loadPasteList(); // Refresh
     }
 }
 

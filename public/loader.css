@@ -1,0 +1,80 @@
+/* Premium Loader Styles */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+}
+
+.loader-overlay.fade-out {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loader-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    filter: brightness(0.6) blur(0px);
+    transform: scale(1.0);
+}
+
+.loader-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    text-align: center;
+}
+
+.loader-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: #00f5ff;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 700;
+    text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
+    animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+}
+
+@keyframes ken-burns {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.2);
+    }
+}
+
+.bg-animate {
+    animation: ken-burns 60s linear infinite alternate;
+}
