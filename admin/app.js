@@ -360,21 +360,27 @@ async function loadPasteList() {
                     
                     <!-- Reaction Controls for Admin -->
                     <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <span style="color: #ff006e; font-weight: bold;">❤️ ${paste.hearts || 0}</span>
-                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'heart', true)" style="background: none; border: none; color: #ff006e; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
-                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'heart')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                        <span title="Hearts">❤️</span>
+                        <input type="number" value="${paste.hearts || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'heart', this.value)"
+                            style="width: 50px; background: none; border: none; color: #ff006e; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
                     <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <span style="color: #ffd700; font-weight: bold;">⭐ ${paste.stars || 0}</span>
-                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'star', true)" style="background: none; border: none; color: #ffd700; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
-                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'star')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                        <span title="Stars">⭐</span>
+                        <input type="number" value="${paste.stars || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'star', this.value)"
+                            style="width: 50px; background: none; border: none; color: #ffd700; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
                     <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                        <span style="color: #00f5ff; font-weight: bold;">👍 ${paste.likes || 0}</span>
-                        <button onclick="event.stopPropagation(); injectReaction('${paste.id}', 'like', true)" style="background: none; border: none; color: #00f5ff; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">+</button>
-                        <button onclick="event.stopPropagation(); removeLastReaction('${paste.id}', 'like')" style="background: none; border: none; color: #888; cursor: pointer; padding: 0 4px; font-size: 1.1rem;">-</button>
+                        <span title="Likes">👍</span>
+                        <input type="number" value="${paste.likes || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'like', this.value)"
+                            style="width: 50px; background: none; border: none; color: #00f5ff; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
                     <span>📅 ${formatDate(paste.createdAt)}</span>
@@ -674,6 +680,28 @@ async function updatePasteViews(id, views) {
         }
     } catch (e) {
         console.error('Error updating views:', e);
+        alert('Error: ' + e.message);
+        loadPasteList(); // Refresh
+    }
+}
+
+async function updateReactionCount(id, type, count) {
+    try {
+        const res = await fetch(`/api/pastes/${id}/reactions/${type}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ count: parseInt(count) })
+        });
+        const data = await res.json();
+        if (data.success) {
+            console.log(`Updated ${type} for ${id} to ${count}`);
+        } else {
+            alert(`Failed to update ${type}: ` + (data.error || 'Unknown error'));
+            loadPasteList(); // Refresh to original value
+        }
+    } catch (e) {
+        console.error(`Error updating ${type}:`, e);
         alert('Error: ' + e.message);
         loadPasteList(); // Refresh
     }

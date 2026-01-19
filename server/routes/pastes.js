@@ -435,4 +435,38 @@ router.put('/:id/views', requireAuth, (req, res) => {
     }
 });
 
+// SET SPECIFIC REACTION COUNT
+router.put('/:id/reactions/:type', requireAuth, (req, res) => {
+    try {
+        const { id, type } = req.params;
+        const { count } = req.body;
+        const VALID_TYPES = ['heart', 'star', 'like'];
+
+        if (!VALID_TYPES.includes(type)) {
+            return res.status(400).json({ error: 'Invalid reaction type' });
+        }
+
+        if (typeof count !== 'number' || count < 0) {
+            return res.status(400).json({ error: 'Count must be a non-negative number' });
+        }
+
+        // Delete all existing reactions of this type for this paste
+        db.prepare('DELETE FROM paste_reactions WHERE pasteId = ? AND type = ?').run(id, type);
+
+        // Create the specified number of synthetic reactions
+        const stmt = db.prepare(`
+            INSERT INTO paste_reactions (pasteId, type, ip, userId, username, avatarUrl)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `);
+
+        for (let i = 0; i < count; i++) {
+            stmt.run(id, type, '0.0.0.0', 'admin-synthetic', 'Admin', null);
+        }
+
+        res.json({ success: true, type, count });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;
