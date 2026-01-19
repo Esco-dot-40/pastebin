@@ -199,7 +199,7 @@ router.get('/:id', async (req, res) => {
         // Track View (Skip if admin to avoid polluting analytics)
         const isAdmin = req.session && req.session.isAdmin;
 
-        if (!isAdmin) {
+        if (true) {  // TEMP: Track ALL including admin
             const ip = getClientIP(req);
             const userAgent = req.headers['user-agent'] || '';
 
