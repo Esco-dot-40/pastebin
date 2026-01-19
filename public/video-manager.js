@@ -73,11 +73,47 @@ window.setBackgroundVideo = function (key) {
             transition: 'opacity 1s ease'
         });
 
-        video.onloadeddata = () => { video.style.opacity = '1'; };
+        // Set source and attempt to play
         video.src = src;
         container.appendChild(video);
-        video.play().catch(e => { /* silent */ });
 
+        // Try to load and play with better error handling
+        video.load();
+
+        const attemptPlay = () => {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log(`Video playing: ${key}`);
+                        video.style.opacity = '1';
+                    })
+                    .catch(err => {
+                        console.warn(`Autoplay blocked for ${key}, will play on next interaction:`, err.message);
+                        // Still show the video frame even if autoplay is blocked
+                        video.style.opacity = '1';
+
+                        // Retry on next user interaction
+                        const playOnInteraction = () => {
+                            video.play().catch(() => { });
+                            document.removeEventListener('click', playOnInteraction);
+                            document.removeEventListener('keydown', playOnInteraction);
+                        };
+                        document.addEventListener('click', playOnInteraction, { once: true });
+                        document.addEventListener('keydown', playOnInteraction, { once: true });
+                    });
+            }
+        };
+
+        // If video is ready, play immediately
+        if (video.readyState >= 3) {
+            attemptPlay();
+        } else {
+            // Otherwise wait for it to be ready
+            video.onloadeddata = attemptPlay;
+        }
+
+        // Fallback opacity transition
         setTimeout(() => video.style.opacity = '1', 500);
     }
 };
