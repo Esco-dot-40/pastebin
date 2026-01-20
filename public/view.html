@@ -393,22 +393,25 @@
                     stroke-linejoin="round" />
             </svg>
         </div>
-        <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume">
-            <!-- Muted Icon by default -->
-            <svg id="iconMuted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            <!-- Sound Icon (hidden) -->
-            <svg id="iconSound" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" style="display: none;">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
-                <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
-            </svg>
-        </button>
+        <div class="volume-control-inner">
+            <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume">
+                <!-- Muted Icon by default -->
+                <svg id="iconMuted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                    <line x1="23" y1="9" x2="17" y2="15" />
+                    <line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+                <!-- Sound Icon (hidden) -->
+                <svg id="iconSound" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" style="display: none;">
+                    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                    <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
+                    <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
+                </svg>
+            </button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.02">
+        </div>
     </div>
 
     <script>
@@ -418,43 +421,67 @@
             const iconMuted = document.getElementById('iconMuted');
             const iconSound = document.getElementById('iconSound');
             const arrow = document.getElementById('volumeArrow');
+            const slider = document.getElementById('volumeSlider');
 
-            // Set volume extremely low as requested
-            audio.volume = 0.02;
+            // --- Persistence Logic ---
+            let storedVolume = localStorage.getItem('audioVolume');
+            let storedTime = localStorage.getItem('audioCurrentTime');
+            let storedPaused = localStorage.getItem('audioIsPaused');
 
-            let isPlaying = false;
+            // Default values if not in storage
+            let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.02;
+
+            audio.volume = lastVolume;
+            slider.value = lastVolume;
+            if (storedTime) audio.currentTime = parseFloat(storedTime);
+
             let hasInteracted = false;
 
+            // Sync with storage periodically
+            audio.addEventListener('timeupdate', () => {
+                localStorage.setItem('audioCurrentTime', audio.currentTime);
+            });
+
+            function setVolume(val) {
+                audio.volume = val;
+                localStorage.setItem('audioVolume', val);
+                if (val > 0) lastVolume = val;
+            }
+
             function playAudio() {
-                if (isPlaying) return;
-
                 audio.play().then(() => {
-                    isPlaying = true;
+                    localStorage.setItem('audioIsPaused', 'false');
                     updateIcon();
-
-                    // Show arrow briefly then fade
-                    arrow.classList.add('visible');
-                    setTimeout(() => {
-                        arrow.classList.remove('visible');
-                    }, 4000);
-
+                    if (audio.currentTime < 5) {
+                        arrow.classList.add('visible');
+                        setTimeout(() => arrow.classList.remove('visible'), 4000);
+                    }
                 }).catch(e => {
                     console.log("Audio play failed (waiting for interaction):", e);
                 });
             }
 
+            function pauseAudio() {
+                audio.pause();
+                localStorage.setItem('audioIsPaused', 'true');
+                updateIcon();
+            }
+
             function toggleAudio() {
                 if (audio.paused) {
-                    playAudio(); // This will just work because it's in a click handler
+                    playAudio();
+                    if (audio.volume === 0) {
+                        let vol = lastVolume || 0.02;
+                        setVolume(vol);
+                        slider.value = vol;
+                    }
                 } else {
-                    audio.pause();
-                    isPlaying = false;
-                    updateIcon();
+                    pauseAudio();
                 }
             }
 
             function updateIcon() {
-                if (!audio.paused) {
+                if (!audio.paused && audio.volume > 0) {
                     iconMuted.style.display = 'none';
                     iconSound.style.display = 'block';
                     volBtn.classList.add('active-volume');
@@ -465,24 +492,42 @@
                 }
             }
 
+            // Slider Logic
+            slider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                setVolume(val);
+                if (val > 0 && audio.paused) {
+                    playAudio();
+                } else if (val === 0 && !audio.paused) {
+                    pauseAudio();
+                }
+                updateIcon();
+            });
+
+            slider.addEventListener('click', (e) => e.stopPropagation());
+
             // Button Toggle
             volBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleAudio();
             });
 
-            // Global Interaction Listener (One-time auto-start)
+            // Global Interaction Listener
             function onGlobalInteraction() {
-                if (!hasInteracted && audio.paused) {
-                    hasInteracted = true; // Mark as interacted so we don't annoyingly retry if they explicitly paused it later (though this runs once usually)
-                    playAudio();
+                if (!hasInteracted) {
+                    hasInteracted = true;
+                    if (storedPaused !== 'true') {
+                        playAudio();
+                    }
                 }
             }
 
-            // Listen to clicks/keys anywhere to start the music
-            document.addEventListener('click', onGlobalInteraction);
-            document.addEventListener('keydown', onGlobalInteraction);
-            document.addEventListener('touchstart', onGlobalInteraction);
+            document.addEventListener('click', onGlobalInteraction, { once: true });
+            document.addEventListener('keydown', onGlobalInteraction, { once: true });
+            document.addEventListener('touchstart', onGlobalInteraction, { once: true });
+
+            // Initial icon update
+            updateIcon();
         });
     </script>
 

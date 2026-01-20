@@ -103,24 +103,29 @@ router.post('/link-key', (req, res) => {
 });
 
 // DISCORD OAUTH
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || 'qOyQ_YgGUOK8M1f5Zb1O0gDgiS6lvi10';
+
 router.get('/discord', (req, res) => {
-    const url = `https://discord.com/api/oauth2/authorize?client_id=${process.env.DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.DISCORD_REDIRECT_URI)}&response_type=code&scope=identify%20email`;
+    const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email`;
     res.redirect(url);
 });
 
 router.get('/discord/callback', async (req, res) => {
     const { code } = req.query;
     if (!code) return res.redirect('/?error=no_code');
+    const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
 
     try {
         const response = await fetch('https://discord.com/api/oauth2/token', {
             method: 'POST',
             body: new URLSearchParams({
-                client_id: process.env.DISCORD_CLIENT_ID,
-                client_secret: process.env.DISCORD_CLIENT_SECRET,
+                client_id: DISCORD_CLIENT_ID,
+                client_secret: DISCORD_CLIENT_SECRET,
                 code,
                 grant_type: 'authorization_code',
-                redirect_uri: process.env.DISCORD_REDIRECT_URI,
+                redirect_uri: callbackURL,
                 scope: 'identify email'
             }),
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -145,20 +150,22 @@ router.get('/discord/callback', async (req, res) => {
             db.prepare('INSERT INTO users (id, email, discordId, avatarUrl, username, displayName) VALUES (?, ?, ?, ?, ?, ?)').run(
                 id, discordUser.email, discordUser.id, avatarUrl, discordUser.username, discordUser.global_name || discordUser.username
             );
-            user = { id, email: discordUser.email, discordId: discordUser.id, avatarUrl, username: discordUser.username };
+            user = { id, email: discordUser.email, discordId: discordUser.id, avatarUrl, username: discordUser.username, displayName: discordUser.global_name || discordUser.username };
         } else {
             db.prepare('UPDATE users SET avatarUrl = ?, username = ?, displayName = ? WHERE id = ?').run(
                 avatarUrl, discordUser.username, discordUser.global_name || discordUser.username, user.id
             );
             user.avatarUrl = avatarUrl;
             user.username = discordUser.username;
+            user.displayName = discordUser.global_name || discordUser.username;
         }
 
         req.session.user = user;
-        req.session.save();
-
-        // Redirect back to return path if any
-        res.redirect('/public');
+        req.session.save((err) => {
+            if (err) console.error('Session save error:', err);
+            // Redirect back to return path if any
+            res.redirect('/public');
+        });
     } catch (e) {
         console.error('Discord Auth Error:', e);
         res.redirect('/?error=auth_failed');

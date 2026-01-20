@@ -216,10 +216,13 @@
             const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
             const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
             const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+            const container = document.getElementById('pasteContentContainer');
 
             if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
                 pasteContent.innerHTML = marked.parse(paste.content);
                 pasteContent.classList.add('markdown-body');
+                if (container) container.classList.add('markdown-body');
+
                 // Apply syntax highlighting to code blocks within markdown
                 pasteContent.querySelectorAll('pre code').forEach((block) => {
                     hljs.highlightElement(block);
@@ -227,6 +230,7 @@
             } else {
                 pasteContent.textContent = paste.content;
                 pasteContent.className = `language-${paste.language}`;
+                if (container) container.classList.remove('markdown-body');
                 hljs.highlightElement(pasteContent);
             }
         }

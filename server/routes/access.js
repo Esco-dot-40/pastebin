@@ -187,16 +187,16 @@ router.post('/generate', (req, res) => {
 
 
 // Discord OAuth Configuration
-// TODO: User must set these env variables or hardcode them
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || 'qOyQ_YgGUOK8M1f5Zb1O0gDgiS6lvi10';
-const DISCORD_CALLBACK_URL = process.env.DISCORD_CALLBACK_URL || 'http://localhost:3000/api/access/auth/discord/callback';
 
 if (DISCORD_CLIENT_ID !== 'YOUR_CLIENT_ID') {
+    // Configure Passport with a placeholder callback URL
+    // The actual callback URL will be set dynamically in each route
     passport.use(new DiscordStrategy({
         clientID: DISCORD_CLIENT_ID,
         clientSecret: DISCORD_CLIENT_SECRET,
-        callbackURL: DISCORD_CALLBACK_URL,
+        callbackURL: '/api/access/auth/discord/callback', // Placeholder - will be overridden
         scope: ['identify', 'email']
     }, (accessToken, refreshToken, profile, done) => {
         return done(null, profile);
@@ -232,13 +232,12 @@ router.get('/auth/discord/callback', (req, res, next) => {
         session: false,
         callbackURL
     })(req, res, next);
-}, (req, res) => {
+}, async (req, res) => {
     // Successful authentication
     const user = req.user;
     const state = req.query.state;
 
     if (state === 'login') {
-        // Create User in DB
         const discordId = user.id;
         const email = user.email;
         const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
@@ -249,29 +248,24 @@ router.get('/auth/discord/callback', (req, res, next) => {
         if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
         if (!dbUser) {
-            const id = discordId;
+            const id = 'user-' + Date.now();
             try {
                 db.prepare('INSERT INTO users (id, email, discordId, avatarUrl, username, displayName) VALUES (?, ?, ?, ?, ?, ?)').run(id, email, discordId, avatarUrl, username, displayName);
                 dbUser = { id, email, discordId, avatarUrl, username, displayName };
             } catch (e) { console.error("Discord User Create Error", e); }
         } else {
-            // Link discord ID if matched by email or update info
             db.prepare('UPDATE users SET discordId = ?, avatarUrl = ?, username = ?, displayName = ? WHERE id = ?').run(discordId, avatarUrl, username, displayName, dbUser.id);
-            // Update local obj
             dbUser.discordId = discordId;
             dbUser.username = username;
             dbUser.displayName = displayName;
         }
 
         req.session.user = dbUser;
-        // Ensure session saves before redirect
-        req.session.save(() => {
-            res.redirect('/public?action=link_key');
-        });
-        return;
+        await new Promise(resolve => req.session.save(resolve));
+        // Continue to verify/message logic instead of redirecting
     }
 
-    // Verification Logic
+    // Verification & Message Logic
     const displayName = user.global_name || user.username;
     const descriptor = (user.discriminator && user.discriminator !== '0') ? `#${user.discriminator}` : '';
     const handle = `@${user.username}${descriptor}`;

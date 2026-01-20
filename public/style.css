@@ -680,21 +680,29 @@ body {
 
 @media (max-width: 768px) {
     .container {
-        padding: var(--spacing-md);
+        padding: var(--spacing-sm);
     }
 
     .header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
         gap: var(--spacing-md);
+        padding: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
     }
 
     .header-actions {
         width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
     }
 
     .header-actions .btn {
-        flex: 1;
+        flex: 1 1 auto;
+        padding: 8px 12px;
+        font-size: 0.85rem;
     }
 
     .logo-text h1 {
@@ -703,22 +711,53 @@ body {
 
     .paste-info h2 {
         font-size: 1.5rem;
+        word-break: break-word;
     }
 
     .paste-meta {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        gap: var(--spacing-sm);
+        text-align: center;
     }
 
     .code-header {
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: var(--spacing-sm);
+        padding: var(--spacing-sm);
+    }
+
+    .code-dots {
+        display: none;
+        /* Hide dots on mobile to save space */
+    }
+
+    #pasteContentContainer {
+        padding: var(--spacing-sm);
+    }
+
+    #pasteContent {
+        font-size: 0.85rem;
     }
 
     .footer {
         flex-direction: column;
         gap: var(--spacing-md);
         text-align: center;
+        padding: var(--spacing-md) 0;
+    }
+
+    .card-meta {
+        gap: 10px !important;
+    }
+
+    .card-meta span {
+        font-size: 0.75rem !important;
+        padding: 2px 8px !important;
+    }
+
+    .badge {
+        font-size: 0.65rem;
     }
 }
 
@@ -804,6 +843,174 @@ body {
 
     .volume-arrow span {
         display: none;
-        /* Hide text on mobile, just arrow */
     }
+}
+
+.volume-control-inner {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px 16px;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.volume-control-inner .volume-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    width: auto;
+    height: auto;
+    backdrop-filter: none;
+    box-shadow: none;
+}
+
+input[type=range] {
+    width: 100px;
+    margin-left: 10px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+    input[type=range] {
+        width: 60px;
+        /* Smaller slider on mobile */
+    }
+}
+
+/* ============================================
+   MARKDOWN & EMBED RENDERING
+   ============================================ */
+
+.markdown-body {
+    color: var(--text-primary);
+    line-height: 1.6 !important;
+    word-wrap: break-word !important;
+    font-family: var(--font-sans) !important;
+    white-space: normal !important;
+}
+
+/* Reset for when markdown is inside code/pre */
+code.markdown-body {
+    display: block !important;
+    white-space: normal !important;
+    font-family: var(--font-sans) !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border: none !important;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+    margin-top: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    color: var(--primary-start) !important;
+}
+
+.markdown-body p {
+    margin-bottom: 1rem !important;
+}
+
+.markdown-body a {
+    color: var(--primary-start) !important;
+    text-decoration: none !important;
+    border-bottom: 1px solid rgba(0, 245, 255, 0.3);
+    transition: all 0.2s;
+}
+
+.markdown-body a:hover {
+    border-bottom-color: var(--primary-start) !important;
+    background: rgba(0, 245, 255, 0.1);
+}
+
+.markdown-body img {
+    max-width: 100% !important;
+    height: auto !important;
+    border-radius: 12px;
+    margin: 1.5rem 0 !important;
+    box-shadow: var(--shadow-lg);
+}
+
+/* Responsive Embeds (Frames, Videos) */
+.markdown-body iframe,
+.markdown-body video,
+.markdown-body .video-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    min-height: 300px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin: 2rem 0 !important;
+    background: #000;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Fix for pre-wrapped containers */
+#pasteContentContainer.markdown-body {
+    white-space: normal !important;
+    overflow-x: hidden !important;
+}
+
+.markdown-body pre {
+    background: rgba(0, 0, 0, 0.3) !important;
+    padding: 1.5rem !important;
+    border-radius: 12px !important;
+    margin: 1.5rem 0 !important;
+    overflow-x: auto !important;
+    border: 1px solid var(--border) !important;
+    white-space: pre !important;
+}
+
+.markdown-body code:not(.hljs) {
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 4px !important;
+    font-family: var(--font-mono) !important;
+    font-size: 0.9em !important;
+}
+
+.markdown-body blockquote {
+    padding: 0 1rem !important;
+    color: var(--text-secondary) !important;
+    border-left: 4px solid var(--primary-start) !important;
+    margin: 1.5rem 0 !important;
+    font-style: italic;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin-bottom: 1rem !important;
+    padding-left: 2rem !important;
+}
+
+.markdown-body li {
+    margin-bottom: 0.5rem !important;
 }

@@ -72,6 +72,17 @@
             list-style: none;
         }
 
+        @media (max-width: 768px) {
+            .gallery {
+                padding: 60px 0;
+            }
+
+            .cards {
+                padding: 0 15px;
+                gap: 20px;
+            }
+        }
+
         .cards li {
             position: relative;
             width: 100%;
@@ -218,6 +229,13 @@
             z-index: 2;
         }
 
+        @media (max-width: 768px) {
+            .card-content {
+                padding: 20px;
+                gap: 15px;
+            }
+        }
+
         /* Title Styling - Premium Gradient */
         .cards li h3 {
             font-size: 2.4rem;
@@ -230,6 +248,12 @@
             text-shadow: 0 0 30px rgba(0, 245, 255, 0.4);
             letter-spacing: -1px;
             line-height: 1.1;
+        }
+
+        @media (max-width: 768px) {
+            .cards li h3 {
+                font-size: 1.5rem;
+            }
         }
 
         .cards li.private-card h3 {
@@ -751,7 +775,7 @@
             <button onclick="storage.logout()" class="auth-btn">Logout</button>
         </div>
         <div id="userLoggedOut" style="display: flex; gap: 8px;">
-            <button onclick="storage.loginWithDiscord()" class="auth-btn btn-discord">
+            <button onclick="startDiscordAuth('login')" class="auth-btn btn-discord">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path
                         d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
@@ -819,6 +843,45 @@
                     text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
                 }
 
+                @media (max-width: 768px) {
+                    .animated-title {
+                        font-size: 2.2rem;
+                        margin-bottom: 1.5rem;
+                    }
+
+                    .button-container {
+                        gap: 1rem !important;
+                    }
+
+                    .entry-btn {
+                        padding: 1.2rem 2rem !important;
+                        min-width: 100% !important;
+                        font-size: 1.1rem !important;
+                    }
+
+                    .website-links {
+                        gap: 0.5rem !important;
+                        margin-top: 2rem !important;
+                    }
+
+                    .website-link {
+                        padding: 0.6rem 1rem !important;
+                        font-size: 0.8rem !important;
+                        flex: 1 1 40%;
+                        text-align: center;
+                    }
+
+                    .discord-promo div {
+                        width: 60px !important;
+                        height: 60px !important;
+                    }
+
+                    .discord-promo svg {
+                        width: 35px !important;
+                        height: 35px !important;
+                    }
+                }
+
                 /* End of animated-title */
             </style>
 
@@ -866,41 +929,6 @@
                 .discord-promo a:hover div {
                     background: #4752C4 !important;
                     transform: scale(1.1);
-                }
-
-                /* Volume Slider Styles */
-                .volume-control-inner {
-                    display: flex;
-                    align-items: center;
-                    background: rgba(0, 0, 0, 0.6);
-                    padding: 8px 16px;
-                    border-radius: 30px;
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                }
-
-                input[type=range] {
-                    width: 100px;
-                    margin-left: 10px;
-                    height: 4px;
-                    border-radius: 2px;
-                    background: rgba(255, 255, 255, 0.2);
-                    outline: none;
-                    appearance: none;
-                }
-
-                input[type=range]::-webkit-slider-thumb {
-                    appearance: none;
-                    width: 12px;
-                    height: 12px;
-                    border-radius: 50%;
-                    background: #fff;
-                    cursor: pointer;
-                    transition: transform 0.1s;
-                }
-
-                input[type=range]::-webkit-slider-thumb:hover {
-                    transform: scale(1.2);
                 }
             </style>
 
@@ -1182,7 +1210,7 @@
                 You must verify your identity before requesting a key.
             </p>
             <div class="auth-buttons">
-                <button type="button" class="btn-submit auth-discord" onclick="storage.loginWithDiscord()">
+                <button type="button" class="btn-submit auth-discord" onclick="startDiscordAuth('request')">
                     <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
                         <path fill="currentColor"
                             d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
@@ -1301,7 +1329,7 @@
 
         // Restore Volume
         let storedVolume = localStorage.getItem('audioVolume');
-        let lastVolume = storedVolume ? parseFloat(storedVolume) : 0.2; // Default 0.2
+        let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
 
         // Restore Time
         let storedTime = localStorage.getItem('audioCurrentTime');
@@ -1309,11 +1337,14 @@
             audio.currentTime = parseFloat(storedTime);
         }
 
+        // Restore Paused State
+        let storedPaused = localStorage.getItem('audioIsPaused');
+
         // Initialize state
         audio.volume = lastVolume;
         slider.value = lastVolume;
 
-        // Persist Time Update (Throttled by browser event loop naturally)
+        // Persist Time Update
         audio.addEventListener('timeupdate', () => {
             localStorage.setItem('audioCurrentTime', audio.currentTime);
         });
@@ -1322,22 +1353,20 @@
         function setVolume(val) {
             audio.volume = val;
             localStorage.setItem('audioVolume', val);
+            if (val > 0) {
+                lastVolume = val;
+            }
         }
 
         function tryPlayAudio() {
-            // We can try to play if we think we have interaction, 
-            // but usually we need a fresh interaction on a new load unless the browser allows it.
-            // We will respect the "hasInteracted" flag if we are in an SPA,
-            // but for reloads, we blindly try.
+            if (storedPaused === 'true' && !hasInteracted) return;
 
             const playPromise = audio.play();
-
             if (playPromise !== undefined) {
                 playPromise.then(() => {
                     hasInteracted = true;
+                    localStorage.setItem('audioIsPaused', 'false');
                     updateAudioIcon();
-                    console.log("Audio playing");
-                    // Show arrow hint only if we are at the very start (first 5 seconds)
                     if (audio.currentTime < 5) {
                         arrow.classList.add('visible');
                         setTimeout(() => arrow.classList.remove('visible'), 4000);
@@ -1352,23 +1381,16 @@
             if (audio.paused) {
                 audio.play();
                 hasInteracted = true;
-                // If previously muted (vol 0), restore
+                localStorage.setItem('audioIsPaused', 'false');
+                // If previously volume was 0, restore it
                 if (audio.volume === 0) {
                     let vol = lastVolume || 0.2;
-                    if (vol === 0) vol = 0.2; // safety
                     setVolume(vol);
                     slider.value = vol;
                 }
             } else {
-                if (audio.volume > 0) {
-                    lastVolume = audio.volume; // save current before mute
-                    setVolume(0);
-                    slider.value = 0;
-                } else {
-                    let vol = lastVolume || 0.2;
-                    setVolume(vol);
-                    slider.value = vol;
-                }
+                audio.pause();
+                localStorage.setItem('audioIsPaused', 'true');
             }
             updateAudioIcon();
         }
@@ -1393,11 +1415,15 @@
             if (val > 0 && audio.paused) {
                 audio.play();
                 hasInteracted = true;
+                localStorage.setItem('audioIsPaused', 'false');
+            } else if (val === 0 && !audio.paused) {
+                audio.pause();
+                localStorage.setItem('audioIsPaused', 'true');
             }
             updateAudioIcon();
         });
 
-        slider.addEventListener('click', (e) => e.stopPropagation()); // Prevent document click
+        slider.addEventListener('click', (e) => e.stopPropagation());
 
         volBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1405,20 +1431,25 @@
         });
 
         // Global interaction fallback
-        // If autoplay failed, one click anywhere starts it
         document.addEventListener('click', () => {
-            if (audio.paused && !hasInteracted) {
+            if (audio.paused && !hasInteracted && storedPaused !== 'true') {
                 tryPlayAudio();
             }
+            hasInteracted = true;
         }, { once: true });
 
         // Try playing immediately on load
         tryPlayAudio();
 
-        // Global interaction listeners - aggressive
-        const interactEvents = ['click', 'keydown', 'touchstart', 'mousemove', 'scroll'];
+        // Global interaction listeners
+        const interactEvents = ['click', 'keydown', 'touchstart'];
         interactEvents.forEach(evt =>
-            window.addEventListener(evt, tryPlayAudio, { once: true, capture: true })
+            window.addEventListener(evt, () => {
+                if (!hasInteracted && storedPaused !== 'true') {
+                    tryPlayAudio();
+                }
+                hasInteracted = true;
+            }, { once: true, capture: true })
         );
 
 
@@ -1703,16 +1734,20 @@
                 const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
                 const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
                 const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const container = document.getElementById('pasteContentContainer');
 
                 if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
                     pContent.innerHTML = marked.parse(paste.content);
                     pContent.classList.add('markdown-body');
+                    if (container) container.classList.add('markdown-body');
+
                     pContent.querySelectorAll('pre code').forEach((block) => {
                         hljs.highlightElement(block);
                     });
                 } else {
                     pContent.textContent = paste.content;
                     pContent.className = `hljs language-${paste.language}`;
+                    if (container) container.classList.remove('markdown-body');
                     hljs.highlightElement(pContent);
                 }
 
@@ -1813,17 +1848,24 @@
             document.getElementById('reqReason').value = '';
         }
 
-        window.startDiscordAuth = function () {
+        window.startDiscordAuth = function (mode = 'request') {
             const width = 500;
             const height = 800;
             const left = (window.screen.width / 2) - (width / 2);
             const top = (window.screen.height / 2) - (height / 2);
 
-            const popup = window.open('/api/access/auth/discord', 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+            const endpoint = mode === 'login' ? '/api/access/auth/discord/login' : '/api/access/auth/discord';
+            const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
 
             window.addEventListener('message', function onMessage(e) {
                 if (e.data.type === 'DISCORD_VERIFIED') {
                     window.removeEventListener('message', onMessage);
+
+                    if (mode === 'login') {
+                        showToast("✅ Signed in with Discord!", "success");
+                        setTimeout(() => window.location.reload(), 1000);
+                        return;
+                    }
 
                     // FOUND AUTO-KEY?
                     if (e.data.existingKey) {
@@ -2128,7 +2170,8 @@
 
         // Check Auth on load
         document.addEventListener('DOMContentLoaded', async () => {
-            const user = await storage.getMe();
+            const api = window.storage || new PasteStorage();
+            const user = await api.getMe();
             const loggedInView = document.getElementById('userLoggedIn');
             const loggedOutView = document.getElementById('userLoggedOut');
             const reactionStatus = document.getElementById('reactionStatus');
