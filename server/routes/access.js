@@ -188,7 +188,7 @@ router.post('/generate', (req, res) => {
 
 // Discord OAuth Configuration
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || 'qOyQ_YgGUOK8M1f5Zb1O0gDgiS6lvi10';
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn_kWaG51JBEggpQ6jHQiu';
 
 if (DISCORD_CLIENT_ID !== 'YOUR_CLIENT_ID') {
     // Configure Passport with a placeholder callback URL
