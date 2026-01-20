@@ -197,17 +197,27 @@ app.get('/v/:id', (req, res) => {
             }
 
             // Truncate content for description AND STRIP HTML/Code
-            const rawContent = paste.content || '';
+            let rawContent = paste.content || '';
+
+            // Decode common HTML entities (case insensitive)
+            rawContent = rawContent
+                .replace(/&lt;/gi, '<')
+                .replace(/&gt;/gi, '>')
+                .replace(/&quot;/gi, '"')
+                .replace(/&#39;/gi, "'")
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&amp;/gi, '&');
+
             const strippedContent = rawContent
                 .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
                 .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')   // Remove styles
-                .replace(/<[^>]+>/g, ' ')                                           // Remove all HTML tags
-                .replace(/[=-]{3,}/g, '')                                          // Remove long lines of === or ---
-                .replace(/\s+/g, ' ')                                              // Collapse whitespace
+                .replace(/<\/?[^>]+(>|$)/g, ' ')                                    // Strip tags
+                .replace(/[=-]{3,}/g, '')                                          // Remove separators
+                .replace(/\s+/g, ' ')                                              // Collapse spaces
                 .trim();
 
             const maxDesc = 200;
-            if (strippedContent.length > 5) {
+            if (strippedContent.length > 3) {
                 description = strippedContent.length > maxDesc
                     ? strippedContent.substring(0, maxDesc) + '...'
                     : strippedContent;
@@ -216,6 +226,7 @@ app.get('/v/:id', (req, res) => {
             }
         }
     }
+
 
 
     // 4. Escape HTML Helpers
