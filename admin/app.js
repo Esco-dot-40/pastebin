@@ -72,7 +72,6 @@ if (refreshBtn) refreshBtn.addEventListener('click', loadPasteList);
 if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
     window.open('/', '_blank');
 });
-if (statsBtn) statsBtn.addEventListener('click', showStats);
 if (accessBtn) accessBtn.addEventListener('click', () => {
     accessModal.classList.add('active');
     generatedKey.value = ''; // Clear previous

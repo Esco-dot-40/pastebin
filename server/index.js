@@ -159,15 +159,28 @@ app.get('/v/:id', (req, res) => {
     let description = 'Share code and text content securely.';
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
-    let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`; // Default to the uploaded image
+    let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
+    let videoUrl = null;
+    let videoType = 'text/html';
 
     if (paste) {
         title = paste.title || 'Untitled Paste';
+
+        // Handle image vs video in embedUrl
         if (paste.embedUrl) {
-            if (paste.embedUrl.startsWith('http')) {
-                imageUrl = paste.embedUrl;
+            let fullEmbedUrl = paste.embedUrl;
+            if (!fullEmbedUrl.startsWith('http')) {
+                fullEmbedUrl = `${req.protocol}://${req.get('host')}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
+            }
+
+            // Simple extension detection
+            if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
+                videoUrl = fullEmbedUrl;
+                videoType = 'video/mp4';
+                // For direct video, also provide a thumbnail if we can
+                imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
             } else {
-                imageUrl = `${req.protocol}://${req.get('host')}${paste.embedUrl.startsWith('/') ? '' : '/'}${paste.embedUrl}`;
+                imageUrl = fullEmbedUrl;
             }
         }
 
@@ -176,12 +189,21 @@ app.get('/v/:id', (req, res) => {
         } else if (paste.isPublic === 0) {
             description = '🔒 Private Paste.';
         } else {
-            // Truncate content for description
+            // Check for iframe in content
+            const iframeMatch = paste.content?.match(/<iframe.*?src=["'](.*?)["']/i);
+            if (iframeMatch && iframeMatch[1]) {
+                videoUrl = iframeMatch[1];
+                videoType = 'text/html';
+            }
+
+            // Truncate content for description AND STRIP HTML
+            const rawContent = paste.content || '';
+            const strippedContent = rawContent.replace(/<[^>]*>?/gm, '').trim();
+
             const maxDesc = 150;
-            const content = paste.content || '';
-            description = content.length > maxDesc
-                ? content.substring(0, maxDesc) + '...'
-                : content;
+            description = strippedContent.length > maxDesc
+                ? strippedContent.substring(0, maxDesc) + '...'
+                : (strippedContent || 'View this content on veroe.space');
         }
     }
 
@@ -206,7 +228,7 @@ app.get('/v/:id', (req, res) => {
     <meta property="og:description" content="${safeDesc}">
     <meta property="og:url" content="${fullUrl}">
     <meta name="theme-color" content="${themeColor}">
-    <meta name="twitter:card" content="${imageUrl ? 'summary_large_image' : 'summary'}">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
     `;
@@ -218,6 +240,17 @@ app.get('/v/:id', (req, res) => {
         `;
     }
 
+    if (videoUrl) {
+        metaTags += `
+    <meta property="og:video" content="${videoUrl}">
+    <meta property="og:video:url" content="${videoUrl}">
+    <meta property="og:video:secure_url" content="${videoUrl}">
+    <meta property="og:video:type" content="${videoType}">
+    <meta property="og:video:width" content="1280">
+    <meta property="og:video:height" content="720">
+        `;
+    }
+
     // Replace title
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
 
@@ -226,6 +259,7 @@ app.get('/v/:id', (req, res) => {
 
     res.send(html);
 });
+
 
 // Error handling
 app.use((err, req, res, next) => {

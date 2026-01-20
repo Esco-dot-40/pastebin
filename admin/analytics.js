@@ -54,6 +54,13 @@ function updateStats(data) {
     document.getElementById('totalVisits').textContent = data.totalVisits || 0;
     document.getElementById('uniqueVisitors').textContent = data.uniqueVisitors || 0;
     document.getElementById('activeNow').textContent = data.activeNow || 0;
+
+    // Update header indicator
+    const headerActive = document.getElementById('headerActiveNow');
+    if (headerActive) {
+        headerActive.textContent = `${data.activeNow || 0} active now`;
+    }
+
     document.getElementById('geoReach').textContent = data.uniqueLocations || 0;
     document.getElementById('newVisitors').textContent = data.newVisitors || 0;
     document.getElementById('returningVisitors').textContent = data.returningVisitors || 0;
