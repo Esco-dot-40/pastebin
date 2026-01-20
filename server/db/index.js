@@ -78,6 +78,31 @@ db.exec(`
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(pasteId) REFERENCES pastes(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS page_accesses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        path TEXT NOT NULL,
+        method TEXT DEFAULT 'GET',
+        ip TEXT,
+        country TEXT,
+        countryCode TEXT,
+        region TEXT,
+        regionName TEXT,
+        city TEXT,
+        zip TEXT,
+        lat REAL,
+        lon REAL,
+        isp TEXT,
+        org TEXT,
+        asName TEXT,
+        userAgent TEXT,
+        referrer TEXT,
+        hostname TEXT,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_page_accesses_path ON page_accesses(path);
+    CREATE INDEX IF NOT EXISTS idx_page_accesses_timestamp ON page_accesses(timestamp);
 `);
 
 // Migration Helper

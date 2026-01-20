@@ -357,7 +357,82 @@ router.delete('/:id', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
-// GLOBAL ANALYTICS (All Pastes)
+// GET TOP CITIES (for deletion UI) - MUST BE BEFORE /analytics
+router.get('/analytics/top-cities', requireAuth, (req, res) => {
+    try {
+        const cities = db.prepare(`
+            SELECT city, country, COUNT(*) as count
+            FROM paste_views
+            WHERE city IS NOT NULL AND city != ''
+            GROUP BY city, country
+            ORDER BY count DESC
+            LIMIT 50
+        `).all();
+
+        res.json(cities);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// CLEAR ALL ANALYTICS (Wipe All Logs + Reset All Counters) - MUST BE BEFORE /analytics
+router.delete('/analytics/all', requireAuth, (req, res) => {
+    try {
+        db.prepare('DELETE FROM paste_views').run();
+        db.prepare('UPDATE pastes SET views = 0').run();
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE LOGS BY CITY (Admin Only) - MUST BE BEFORE /analytics
+router.delete('/analytics/city/:cityName', requireAuth, (req, res) => {
+    try {
+        const { cityName } = req.params;
+
+        // Delete from paste_views
+        const viewsResult = db.prepare('DELETE FROM paste_views WHERE city = ?').run(cityName);
+
+        // Delete from paste_reactions
+        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE city = ?').run(cityName);
+
+        res.json({
+            success: true,
+            deleted: {
+                views: viewsResult.changes,
+                reactions: reactionsResult.changes
+            },
+            message: `Deleted all logs from ${cityName}`
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// DELETE LOGS BY ISP (Admin Only) - MUST BE BEFORE /analytics
+router.delete('/analytics/isp/:ispName', requireAuth, (req, res) => {
+    try {
+        const { ispName } = req.params;
+
+        // Delete from paste_views
+        const viewsResult = db.prepare('DELETE FROM paste_views WHERE isp = ?').run(ispName);
+
+        // Delete from paste_reactions
+        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE isp = ?').run(ispName);
+
+        res.json({
+            success: true,
+            deleted: {
+                views: viewsResult.changes,
+                reactions: reactionsResult.changes
+            },
+            message: `Deleted all logs from ISP: ${ispName}`
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GLOBAL ANALYTICS (All Pastes) - General route comes AFTER specific ones
 router.get('/analytics', requireAuth, (req, res) => {
     try {
         // Get all views across all pastes
@@ -503,7 +578,19 @@ router.get('/analytics', requireAuth, (req, res) => {
             referrers,
             connections,
             recentViews: allViews.slice(0, 50),
-            recentReactions: allReactions.slice(0, 50)
+            recentReactions: allReactions.slice(0, 50),
+            // Page-level analytics
+            pageAccesses: {
+                total: db.prepare('SELECT COUNT(*) as count FROM page_accesses').get().count,
+                byPage: db.prepare(`
+                    SELECT path, COUNT(*) as count
+                    FROM page_accesses
+                    GROUP BY path
+                    ORDER BY count DESC
+                    LIMIT 20
+                `).all(),
+                recent: db.prepare('SELECT * FROM page_accesses ORDER BY timestamp DESC LIMIT 50').all()
+            }
         });
     } catch (e) {
         res.status(500).json({ error: e.message });
@@ -581,15 +668,6 @@ router.post('/:id/reset-views', requireAuth, (req, res) => {
     }
 });
 
-// CLEAR ALL ANALYTICS (Wipe All Logs + Reset All Counters)
-router.delete('/analytics/all', requireAuth, (req, res) => {
-    try {
-        db.prepare('DELETE FROM paste_views').run();
-        db.prepare('UPDATE pastes SET views = 0').run();
-        res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
 // SET SPECIFIC VIEW COUNT
 router.put('/:id/views', requireAuth, (req, res) => {
     try {
@@ -632,72 +710,6 @@ router.put('/:id/reactions/:type', requireAuth, (req, res) => {
         }
 
         res.json({ success: true, type, count });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// DELETE LOGS BY CITY (Admin Only)
-router.delete('/analytics/city/:cityName', requireAuth, (req, res) => {
-    try {
-        const { cityName } = req.params;
-
-        // Delete from paste_views
-        const viewsResult = db.prepare('DELETE FROM paste_views WHERE city = ?').run(cityName);
-
-        // Delete from paste_reactions
-        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE city = ?').run(cityName);
-
-        res.json({
-            success: true,
-            deleted: {
-                views: viewsResult.changes,
-                reactions: reactionsResult.changes
-            },
-            message: `Deleted all logs from ${cityName}`
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// DELETE LOGS BY ISP (Admin Only)
-router.delete('/analytics/isp/:ispName', requireAuth, (req, res) => {
-    try {
-        const { ispName } = req.params;
-
-        // Delete from paste_views
-        const viewsResult = db.prepare('DELETE FROM paste_views WHERE isp = ?').run(ispName);
-
-        // Delete from paste_reactions
-        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE isp = ?').run(ispName);
-
-        res.json({
-            success: true,
-            deleted: {
-                views: viewsResult.changes,
-                reactions: reactionsResult.changes
-            },
-            message: `Deleted all logs from ISP: ${ispName}`
-        });
-    } catch (e) {
-        res.status(500).json({ error: e.message });
-    }
-});
-
-// GET TOP CITIES (for deletion UI)
-router.get('/analytics/top-cities', requireAuth, (req, res) => {
-    try {
-        const cities = db.prepare(`
-            SELECT city, country, COUNT(*) as count
-            FROM paste_views
-            WHERE city IS NOT NULL AND city != ''
-            GROUP BY city, country
-            ORDER BY count DESC
-            LIMIT 50
-        `).all();
-
-        res.json(cities);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

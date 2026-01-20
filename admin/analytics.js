@@ -45,6 +45,11 @@ async function loadAnalytics() {
         updateConnectionsTab(data.connections || []);
         updateRecentActivityTab(data.recentViews || [], data.recentReactions || []);
 
+        // Update page accesses if available
+        if (data.pageAccesses) {
+            updatePageAccessesTab(data.pageAccesses);
+        }
+
         // Load top cities
         await loadTopCities();
 
@@ -390,6 +395,38 @@ function formatTimeAgo(date) {
     if (hours < 24) return `${hours}h ago`;
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
+}
+
+function updatePageAccessesTab(pageAccesses) {
+    const container = document.getElementById('pageAccessesContent');
+    if (!container) return;
+
+    const { byPage = [], total = 0 } = pageAccesses;
+    const maxCount = byPage[0]?.count || 1;
+
+    if (byPage.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 2rem;">No page access data available</p>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+            <h4 style="font-size: 1.1rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">Total Page Hits: ${total}</h4>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">Breakdown by page/route</p>
+        </div>
+        ${byPage.map(({ path, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+                <div class="stat-bar">
+                    <div class="stat-bar-label" style="font-family: monospace;">${path}</div>
+                    <div class="stat-bar-track">
+                        <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00ff88, #00f5ff);"></div>
+                    </div>
+                    <div class="stat-bar-value">${count} hits</div>
+                </div>
+            `;
+    }).join('')}
+    `;
 }
 
 // Tab switching with content visibility

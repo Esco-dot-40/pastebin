@@ -46,6 +46,102 @@ app.use(session({
     }
 }));
 
+// Global Page Access Tracking Middleware
+app.use(async (req, res, next) => {
+    // Skip tracking for:
+    // - Static assets (css, js, images, etc.)
+    // - API endpoints (they have their own tracking)
+    // - Admin panel requests (privacy)
+    const skipPaths = [
+        /\.(css|js|jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i,
+        /^\/api\//,
+        /^\/adminperm\//,
+        /^\/shared\//,
+        /^\/public\//,
+        /^\/uploads\//
+    ];
+
+    const shouldSkip = skipPaths.some(pattern => pattern.test(req.path));
+
+    if (!shouldSkip && req.method === 'GET') {
+        // Async tracking - don't block the request
+        setImmediate(async () => {
+            try {
+                const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                    req.headers['x-real-ip'] ||
+                    req.socket.remoteAddress ||
+                    '127.0.0.1';
+
+                const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
+                const userAgent = req.headers['user-agent'] || '';
+                const referrer = req.headers['referer'] || req.headers['referrer'] || null;
+
+                // Fetch geolocation
+                let geoData = null;
+                if (cleanIP !== '127.0.0.1' && !cleanIP.startsWith('192.168.') && !cleanIP.startsWith('10.')) {
+                    try {
+                        const fetch = (await import('node-fetch')).default;
+                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as`);
+                        const data = await response.json();
+                        if (data.status === 'success') {
+                            geoData = data;
+                        }
+                    } catch (e) {
+                        // Silent fail for geo lookup
+                    }
+                }
+
+                // Insert into database
+                if (geoData) {
+                    const result = db.prepare(`
+                        INSERT INTO page_accesses (path, method, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, referrer)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        req.path,
+                        req.method,
+                        cleanIP,
+                        geoData.country,
+                        geoData.countryCode,
+                        geoData.region,
+                        geoData.regionName,
+                        geoData.city,
+                        geoData.zip,
+                        geoData.lat,
+                        geoData.lon,
+                        geoData.isp,
+                        geoData.org,
+                        geoData.as,
+                        userAgent,
+                        referrer
+                    );
+
+                    // Async reverse DNS
+                    if (cleanIP !== '127.0.0.1' && !cleanIP.includes(':')) {
+                        try {
+                            const { promises: dns } = await import('dns');
+                            const hostnames = await dns.reverse(cleanIP);
+                            if (hostnames && hostnames.length > 0) {
+                                db.prepare('UPDATE page_accesses SET hostname = ? WHERE id = ?').run(hostnames[0], result.lastInsertRowid);
+                            }
+                        } catch (e) {
+                            // Silent fail for DNS
+                        }
+                    }
+                } else {
+                    db.prepare(`
+                        INSERT INTO page_accesses (path, method, ip, userAgent, referrer)
+                        VALUES (?, ?, ?, ?, ?)
+                    `).run(req.path, req.method, cleanIP, userAgent, referrer);
+                }
+            } catch (err) {
+                console.error('Page tracking error:', err.message);
+            }
+        });
+    }
+
+    next();
+});
+
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/pastes', pastesRouter);

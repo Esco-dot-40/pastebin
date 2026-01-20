@@ -140,6 +140,9 @@
             <button class="tab" data-tab="traffic">
                 <span>📊</span> Traffic
             </button>
+            <button class="tab" data-tab="pages">
+                <span>📄</span> Pages
+            </button>
             <button class="tab" data-tab="recent">
                 <span>⏱️</span> Recent
             </button>
@@ -220,6 +223,17 @@
             <div class="chart-card">
                 <h3><span class="chart-icon">📊</span> Traffic Sources & Referrers</h3>
                 <div id="referrersContent" style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Pages -->
+        <div class="tab-content" data-tab-content="pages" style="display: none;">
+            <div class="chart-card">
+                <h3><span class="chart-icon">📄</span> Page Access Analytics</h3>
+                <div id="pageAccessesContent"
+                    style="display: flex; flex-direction: column; gap: 12px; padding: 1rem 0;">
                     <!-- Populated by JS -->
                 </div>
             </div>
