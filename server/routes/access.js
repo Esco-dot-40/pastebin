@@ -233,71 +233,97 @@ router.get('/auth/discord/callback', (req, res, next) => {
         callbackURL
     })(req, res, next);
 }, async (req, res) => {
-    // Successful authentication
-    const user = req.user;
-    const state = req.query.state;
-
-    if (state === 'login') {
-        const discordId = user.id;
-        const email = user.email;
-        const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-        const username = user.username;
-        const displayName = user.global_name || user.username;
-
-        let dbUser = db.prepare('SELECT * FROM users WHERE discordId = ?').get(discordId);
-        if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-
-        if (!dbUser) {
-            const id = 'user-' + Date.now();
-            try {
-                db.prepare('INSERT INTO users (id, email, discordId, avatarUrl, username, displayName) VALUES (?, ?, ?, ?, ?, ?)').run(id, email, discordId, avatarUrl, username, displayName);
-                dbUser = { id, email, discordId, avatarUrl, username, displayName };
-            } catch (e) { console.error("Discord User Create Error", e); }
-        } else {
-            db.prepare('UPDATE users SET discordId = ?, avatarUrl = ?, username = ?, displayName = ? WHERE id = ?').run(discordId, avatarUrl, username, displayName, dbUser.id);
-            dbUser.discordId = discordId;
-            dbUser.username = username;
-            dbUser.displayName = displayName;
-        }
-
-        req.session.user = dbUser;
-        await new Promise(resolve => req.session.save(resolve));
-        // Continue to verify/message logic instead of redirecting
-    }
-
-    // Verification & Message Logic
-    const displayName = user.global_name || user.username;
-    const descriptor = (user.discriminator && user.discriminator !== '0') ? `#${user.discriminator}` : '';
-    const handle = `@${user.username}${descriptor}`;
-    const identity = `${displayName} (${handle})`;
-
-    // CHECK AUTOMATION: Does this user already have a key?
-    // We can look up by discordId (user.id) or email (user.email)
-    let existingKey = null;
     try {
-        // Check via Discord ID first
-        let keyRow = db.prepare('SELECT key FROM access_keys WHERE discordId = ? AND status = ?').get(user.id, 'active');
+        console.log('🔵 [DISCORD CALLBACK] Processing authentication callback...');
 
-        // If not found, check via Email
-        if (!keyRow && user.email) {
-            keyRow = db.prepare('SELECT key FROM access_keys WHERE email = ? AND status = ?').get(user.email, 'active');
+        // Successful authentication
+        const user = req.user;
+
+        if (!user) {
+            console.error('🔴 [DISCORD CALLBACK] No user object from passport!');
+            return res.status(500).send(`
+                <html>
+                <body style="background: #0f0f12; color: white; padding: 2rem; font-family: sans-serif;">
+                    <h1 style="color: #ff006e;">Authentication Error</h1>
+                    <p>No user data received from Discord. Please try again.</p>
+                    <button onclick="window.close()" style="margin-top: 1rem; padding: 10px 20px; background: #7b42ff; border: none; color: white; border-radius: 6px; cursor: pointer;">Close Window</button>
+                </body>
+                </html>
+            `);
         }
 
-        if (keyRow) {
-            existingKey = keyRow.key;
-        }
-    } catch (e) { console.error("Auto-Key Check Error", e); }
+        console.log(`✅ [DISCORD CALLBACK] User authenticated: ${user.username} (ID: ${user.id})`);
+        const state = req.query.state;
+        console.log(`🔵 [DISCORD CALLBACK] State: ${state || 'none'}`);
 
-    // Return a script to communicate with the opener
-    res.send(`
+        if (state === 'login') {
+            console.log('🔵 [DISCORD CALLBACK] Processing LOGIN state...');
+            const discordId = user.id;
+            const email = user.email;
+            const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
+            const username = user.username;
+            const displayName = user.global_name || user.username;
+
+            try {
+                let dbUser = db.prepare('SELECT * FROM users WHERE discordId = ?').get(discordId);
+                if (!dbUser && email) dbUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+
+                if (!dbUser) {
+                    const id = 'user-' + Date.now();
+                    console.log(`✨ [DISCORD CALLBACK] Creating new user: ${username}`);
+                    db.prepare('INSERT INTO users (id, email, discordId, avatarUrl, username, displayName) VALUES (?, ?, ?, ?, ?, ?)').run(id, email, discordId, avatarUrl, username, displayName);
+                    dbUser = { id, email, discordId, avatarUrl, username, displayName };
+                } else {
+                    console.log(`🔄 [DISCORD CALLBACK] Updating existing user: ${username}`);
+                    db.prepare('UPDATE users SET discordId = ?, avatarUrl = ?, username = ?, displayName = ? WHERE id = ?').run(discordId, avatarUrl, username, displayName, dbUser.id);
+                    dbUser.discordId = discordId;
+                    dbUser.username = username;
+                    dbUser.displayName = displayName;
+                }
+
+                req.session.user = dbUser;
+                await new Promise(resolve => req.session.save(resolve));
+                console.log('✅ [DISCORD CALLBACK] Session saved successfully');
+            } catch (dbError) {
+                console.error('🔴 [DISCORD CALLBACK] Database error:', dbError);
+                throw new Error(`Database operation failed: ${dbError.message}`);
+            }
+        }
+
+        // Verification & Message Logic
+        const displayName = user.global_name || user.username;
+        const descriptor = (user.discriminator && user.discriminator !== '0') ? `#${user.discriminator}` : '';
+        const handle = `@${user.username}${descriptor}`;
+        const identity = `${displayName} (${handle})`;
+
+        // CHECK AUTOMATION: Does this user already have a key?
+        let existingKey = null;
+        try {
+            let keyRow = db.prepare('SELECT key FROM access_keys WHERE discordId = ? AND status = ?').get(user.id, 'active');
+            if (!keyRow && user.email) {
+                keyRow = db.prepare('SELECT key FROM access_keys WHERE email = ? AND status = ?').get(user.email, 'active');
+            }
+            if (keyRow) {
+                existingKey = keyRow.key;
+                console.log('🔑 [DISCORD CALLBACK] Found existing access key for user');
+            }
+        } catch (keyError) {
+            console.error('⚠️ [DISCORD CALLBACK] Error checking for existing key:', keyError);
+        }
+
+        console.log('✅ [DISCORD CALLBACK] Sending success response to popup window');
+
+        // Return a script to communicate with the opener
+        res.send(`
             <html>
             <body style="background: #0f0f12; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden;">
-                <h1 style="color: #00ff88; font-family: sans-serif; font-size: 2rem; margin-bottom: 1rem;">Verified!</h1>
+                <h1 style="color: #00ff88; font-family: sans-serif; font-size: 2rem; margin-bottom: 1rem;">✅ Verified!</h1>
                 <p style="color: #666; font-family: sans-serif; font-size: 1rem;">Closing window...</p>
                 <script>
                     setTimeout(() => {
                         if (window.opener) {
                             try {
+                                console.log('[DISCORD POPUP] Sending postMessage to parent window');
                                 window.opener.postMessage({
                                     type: 'DISCORD_VERIFIED',
                                     id: '${identity.replace(/'/g, "\\'")}',
@@ -306,18 +332,35 @@ router.get('/auth/discord/callback', (req, res, next) => {
                                     email: '${user.email || ""}',
                                     existingKey: '${existingKey || ""}' 
                                 }, '*');
+                                console.log('[DISCORD POPUP] Message sent, closing window');
                                 window.close();
                             } catch(e) {
-                                document.body.innerHTML += '<p style="color:red">Error communicating with main window.</p>';
+                                console.error('[DISCORD POPUP] PostMessage error:', e);
+                                document.body.innerHTML += '<p style="color:red">Error: ' + e.message + '</p>';
                             }
                         } else {
-                            document.body.innerHTML = '<p style="color:white; font-family: sans-serif;">Verified as ${identity}. You can close this window.</p>';
+                            document.body.innerHTML = '<p style="color:white; font-family: sans-serif;">✅ Verified as ${identity}. You can close this window.</p>';
                         }
                     }, 1000);
                 </script>
             </body>
             </html>
         `);
+    } catch (error) {
+        console.error('🔴 [DISCORD CALLBACK] FATAL ERROR:', error);
+        console.error('🔴 [DISCORD CALLBACK] Stack trace:', error.stack);
+        res.status(500).send(`
+            <html>
+            <body style="background: #0f0f12; color: white; padding: 2rem; font-family: sans-serif;">
+                <h1 style="color: #ff006e;">❌ Discord Authentication Error</h1>
+                <p>An error occurred during authentication:</p>
+                <pre style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; overflow: auto; color: #ff006e;">${error.message}</pre>
+                <p style="margin-top: 1rem; color: #666;">Check the server console for detailed error logs.</p>
+                <button onclick="window.close()" style="margin-top: 1rem; padding: 10px 20px; background: #7b42ff; border: none; color: white; border-radius: 6px; cursor: pointer;">Close Window</button>
+            </body>
+            </html>
+        `);
+    }
 }
 );
 

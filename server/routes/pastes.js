@@ -198,8 +198,10 @@ router.get('/:id', async (req, res) => {
 
         // Track View (Skip if admin to avoid polluting analytics)
         const isAdmin = req.session && req.session.isAdmin;
+        const isAdminPanel = req.headers.referer && req.headers.referer.includes('/admin');
 
-        if (true) {  // TEMP: Track ALL including admin
+        // Only track if NOT admin OR NOT from admin panel
+        if (!isAdmin && !isAdminPanel) {
             const ip = getClientIP(req);
             const userAgent = req.headers['user-agent'] || '';
 
@@ -221,6 +223,8 @@ router.get('/:id', async (req, res) => {
                 const res2 = db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, userAgent);
                 updateHostname('paste_views', res2.lastInsertRowid, ip);
             });
+        } else {
+            console.log(`📊 [SKIP] Admin viewing ${req.params.id} - not tracking to analytics`);
         }
 
         // Fetch Reactions
@@ -628,6 +632,72 @@ router.put('/:id/reactions/:type', requireAuth, (req, res) => {
         }
 
         res.json({ success: true, type, count });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// DELETE LOGS BY CITY (Admin Only)
+router.delete('/analytics/city/:cityName', requireAuth, (req, res) => {
+    try {
+        const { cityName } = req.params;
+
+        // Delete from paste_views
+        const viewsResult = db.prepare('DELETE FROM paste_views WHERE city = ?').run(cityName);
+
+        // Delete from paste_reactions
+        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE city = ?').run(cityName);
+
+        res.json({
+            success: true,
+            deleted: {
+                views: viewsResult.changes,
+                reactions: reactionsResult.changes
+            },
+            message: `Deleted all logs from ${cityName}`
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// DELETE LOGS BY ISP (Admin Only)
+router.delete('/analytics/isp/:ispName', requireAuth, (req, res) => {
+    try {
+        const { ispName } = req.params;
+
+        // Delete from paste_views
+        const viewsResult = db.prepare('DELETE FROM paste_views WHERE isp = ?').run(ispName);
+
+        // Delete from paste_reactions
+        const reactionsResult = db.prepare('DELETE FROM paste_reactions WHERE isp = ?').run(ispName);
+
+        res.json({
+            success: true,
+            deleted: {
+                views: viewsResult.changes,
+                reactions: reactionsResult.changes
+            },
+            message: `Deleted all logs from ISP: ${ispName}`
+        });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// GET TOP CITIES (for deletion UI)
+router.get('/analytics/top-cities', requireAuth, (req, res) => {
+    try {
+        const cities = db.prepare(`
+            SELECT city, country, COUNT(*) as count
+            FROM paste_views
+            WHERE city IS NOT NULL AND city != ''
+            GROUP BY city, country
+            ORDER BY count DESC
+            LIMIT 50
+        `).all();
+
+        res.json(cities);
     } catch (e) {
         res.status(500).json({ error: e.message });
     }

@@ -45,8 +45,99 @@ async function loadAnalytics() {
         updateConnectionsTab(data.connections || []);
         updateRecentActivityTab(data.recentViews || [], data.recentReactions || []);
 
+        // Load top cities
+        await loadTopCities();
+
     } catch (error) {
         console.error('Analytics error:', error);
+    }
+}
+
+// Load Top Cities for deletion UI
+async function loadTopCities() {
+    try {
+        const response = await fetch('/api/pastes/analytics/top-cities', {
+            credentials: 'include'
+        });
+
+        if (!response.ok) return;
+
+        const cities = await response.json();
+        updateTopCitiesUI(cities);
+    } catch (error) {
+        console.error('Failed to load top cities:', error);
+    }
+}
+
+// Update Top Cities UI
+function updateTopCitiesUI(cities) {
+    const container = document.getElementById('topCitiesContent');
+    if (!container) return;
+
+    if (!cities || cities.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-tertiary); text-align: center; padding: 2rem;">No city data available</p>';
+        return;
+    }
+
+    const maxCount = cities[0]?.count || 1;
+
+    container.innerHTML = cities.map(({ city, country, count }) => {
+        const percentage = (count / maxCount) * 100;
+        return `
+            <div class="city-item" style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; transition: all 0.2s;">
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: white; margin-bottom: 4px;">${city}, ${country}</div>
+                    <div style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; overflow: hidden;">
+                        <div style="width: ${percentage}%; height: 100%; background: linear-gradient(90deg, #ff006e, #7b42ff); transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                <div style="color: var(--text-secondary); font-weight
+: 600; min-width: 50px; text-align: right;">${count} hits</div>
+                <button 
+                    class="delete-city-btn" 
+                    data-city="${city.replace(/"/g, '&quot;')}"
+                    style="padding: 6px 12px; background: rgba(255,0,110,0.2); color: #ff006e; border: 1px solid rgba(255,0,110,0.3); border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,0,110,0.3)'; this.style.borderColor='#ff006e';"
+                    onmouseout="this.style.background='rgba(255,0,110,0.2)'; this.style.borderColor='rgba(255,0,110,0.3)';"
+                >
+                    🗑️ Delete
+                </button>
+            </div>
+        `;
+    }).join('');
+
+    // Add event listeners to delete buttons
+    container.querySelectorAll('.delete-city-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const cityName = e.target.getAttribute('data-city');
+            await deleteLogsFromCity(cityName);
+        });
+    });
+}
+
+// Delete logs from specific city
+async function deleteLogsFromCity(cityName) {
+    if (!confirm(`⚠️ Are you sure you want to DELETE ALL logs from ${cityName}?\n\nThis will permanently remove:\n• All paste views from ${cityName}\n• All reactions from ${cityName}\n\nThis action cannot be undone!`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/pastes/analytics/city/${encodeURIComponent(cityName)}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Delete failed');
+
+        const result = await response.json();
+
+        alert(`✅ Success!\n\nDeleted from ${cityName}:\n• ${result.deleted.views} view logs\n• ${result.deleted.reactions} reaction logs`);
+
+        // Reload analytics to reflect changes
+        await loadAnalytics();
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('❌ Failed to delete logs. Please try again.');
     }
 }
 
