@@ -196,16 +196,27 @@ app.get('/v/:id', (req, res) => {
                 videoType = 'text/html';
             }
 
-            // Truncate content for description AND STRIP HTML
+            // Truncate content for description AND STRIP HTML/Code
             const rawContent = paste.content || '';
-            const strippedContent = rawContent.replace(/<[^>]*>?/gm, '').trim();
+            const strippedContent = rawContent
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
+                .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')   // Remove styles
+                .replace(/<[^>]+>/g, ' ')                                           // Remove all HTML tags
+                .replace(/[=-]{3,}/g, '')                                          // Remove long lines of === or ---
+                .replace(/\s+/g, ' ')                                              // Collapse whitespace
+                .trim();
 
-            const maxDesc = 150;
-            description = strippedContent.length > maxDesc
-                ? strippedContent.substring(0, maxDesc) + '...'
-                : (strippedContent || 'View this content on veroe.space');
+            const maxDesc = 200;
+            if (strippedContent.length > 5) {
+                description = strippedContent.length > maxDesc
+                    ? strippedContent.substring(0, maxDesc) + '...'
+                    : strippedContent;
+            } else {
+                description = 'Interactive content hosted on veroe.space';
+            }
         }
     }
+
 
     // 4. Escape HTML Helpers
     const escape = (str) => String(str || '')
