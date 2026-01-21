@@ -107,13 +107,14 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510'
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn_kWaG51JBEggpQ6jHQiu';
 
 router.get('/discord', (req, res) => {
+    const isLogin = req.query.state === 'login';
     const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
-    const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email`;
+    const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email&state=${isLogin ? 'login' : 'verify'}`;
     res.redirect(url);
 });
 
 router.get('/discord/callback', async (req, res) => {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) return res.redirect('/?error=no_code');
     const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
 
@@ -161,14 +162,56 @@ router.get('/discord/callback', async (req, res) => {
         }
 
         req.session.user = user;
-        req.session.save((err) => {
-            if (err) console.error('Session save error:', err);
-            // Redirect back to return path if any
-            res.redirect('/public');
-        });
+        await new Promise(resolve => req.session.save(resolve));
+
+        // Detect existing key for the verified identity
+        let existingKey = null;
+        try {
+            const keyRow = db.prepare('SELECT key FROM access_keys WHERE (discordId = ? OR email = ?) AND status = ?').get(discordUser.id, discordUser.email, 'active');
+            if (keyRow) existingKey = keyRow.key;
+        } catch (e) {
+            console.error('Key lookup error:', e);
+        }
+
+        const identityName = discordUser.global_name || discordUser.username;
+        const identityHandle = `@${discordUser.username}${(discordUser.discriminator && discordUser.discriminator !== '0') ? '#' + discordUser.discriminator : ''}`;
+        const identity = `${identityName} (${identityHandle})`;
+
+        // Support Popup Response with postMessage
+        res.send(`
+            <html>
+            <body style="background: #0f0f12; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif;">
+                <h2 style="color: #00ff88;">✅ Verified as ${discordUser.global_name || discordUser.username}</h2>
+                <p>Closing window...</p>
+                <script>
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'DISCORD_VERIFIED',
+                            id: \`${identity.replace(/`/g, '\\`')}\`,
+                            email: '${discordUser.email || ''}',
+                            discordId: '${discordUser.id}',
+                            existingKey: '${existingKey || ""}',
+                            verified: true
+                        }, '*');
+                        setTimeout(() => window.close(), 1000);
+                    } else {
+                        window.location.href = '/public';
+                    }
+                </script>
+            </body>
+            </html>
+        `);
     } catch (e) {
         console.error('Discord Auth Error:', e);
-        res.redirect('/?error=auth_failed');
+        res.status(500).send(`
+            <html>
+            <body style="background: #0f0f12; color: #ff006e; padding: 2rem; font-family: sans-serif;">
+                <h1>Auth Failed</h1>
+                <p>${e.message}</p>
+                <button onclick="window.close()">Close</button>
+            </body>
+            </html>
+        `);
     }
 });
 

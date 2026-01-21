@@ -48,29 +48,29 @@ async function loadAnalytics() {
         updateStats(data);
 
         // Run updates safely
-        const runner = (fn, arg, name) => {
+        const runner = (fn, name, ...args) => {
             try {
-                fn(arg);
+                fn(...args);
             } catch (e) {
                 console.error(`❌ Error in ${name}:`, e);
             }
         };
 
-        runner(updateMap, data.locations || [], 'updateMap');
-        runner(updatePlatforms, data.platforms || [], 'updatePlatforms');
-        runner(updateDevices, data.devices || {}, 'updateDevices');
+        runner(updateMap, 'updateMap', data.locations || []);
+        runner(updatePlatforms, 'updatePlatforms', data.platforms || []);
+        runner(updateDevices, 'updateDevices', data.devices || {});
 
         // Update tab-specific content
-        runner(updateBrowsersTab, data.browsers || [], 'updateBrowsersTab');
-        runner(updateISPTab, data.isps || [], 'updateISPTab');
-        runner(updateResolutionsTab, data.resolutions || [], 'updateResolutionsTab');
-        runner(updateReferrersTab, data.referrers || [], 'updateReferrersTab');
-        runner(updateConnectionsTab, data.connections || [], 'updateConnectionsTab');
-        runner(updateRecentActivityTab, (data.recentViews || []), (data.recentReactions || []), 'updateRecentActivityTab');
+        runner(updateBrowsersTab, 'updateBrowsersTab', data.browsers || []);
+        runner(updateISPTab, 'updateISPTab', data.isps || []);
+        runner(updateResolutionsTab, 'updateResolutionsTab', data.resolutions || []);
+        runner(updateReferrersTab, 'updateReferrersTab', data.referrers || []);
+        runner(updateConnectionsTab, 'updateConnectionsTab', data.connections || []);
+        runner(updateRecentActivityTab, 'updateRecentActivityTab', (data.recentViews || []), (data.recentReactions || []));
 
         // Update page accesses if available
         if (data.pageAccesses) {
-            runner(updatePageAccessesTab, data.pageAccesses, 'updatePageAccessesTab');
+            runner(updatePageAccessesTab, 'updatePageAccessesTab', data.pageAccesses);
         }
 
         // Load top cities

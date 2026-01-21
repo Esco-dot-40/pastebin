@@ -1854,7 +1854,8 @@
             const left = (window.screen.width / 2) - (width / 2);
             const top = (window.screen.height / 2) - (height / 2);
 
-            const endpoint = mode === 'login' ? '/api/access/auth/discord/login' : '/api/access/auth/discord';
+            // Using the consolidated auth endpoint
+            const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
             const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
 
             window.addEventListener('message', function onMessage(e) {
