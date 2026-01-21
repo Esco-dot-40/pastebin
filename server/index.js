@@ -48,22 +48,12 @@ app.use(session({
 
 // Global Page Access Tracking Middleware
 app.use(async (req, res, next) => {
-    // Skip tracking for:
-    // - Static assets (css, js, images, etc.)
-    // - API endpoints (they have their own tracking)
-    // - Admin panel requests (privacy)
-    const skipPaths = [
-        /\.(css|js|jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i,
-        /^\/api\//,
-        /^\/adminperm\//,
-        /^\/shared\//,
-        /^\/public\//,
-        /^\/uploads\//
-    ];
+    const isStatic = /\.(css|js|jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i.test(req.path);
+    const isApi = req.path.startsWith('/api/');
+    const isAdminPath = req.path.startsWith('/adminperm/');
+    const isAdminUser = req.session && req.session.isAdmin;
 
-    const shouldSkip = skipPaths.some(pattern => pattern.test(req.path));
-
-    if (!shouldSkip && req.method === 'GET') {
+    if (!isStatic && !isApi && !isAdminPath && !isAdminUser && req.method === 'GET') {
         // Async tracking - don't block the request
         setImmediate(async () => {
             try {
