@@ -833,9 +833,30 @@
             <img src="/public/favicon.png" class="esco-avatar" alt="Esco">
             <div class="esco-name">Ξ s c o</div>
             <div class="esco-title">Lead Architect // veroe.space</div>
-            <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px;">
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.6; margin-bottom: 30px;">
                 Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
             </p>
+
+            <div class="button-container"
+                style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
+                    onclick="navigateTo('/public'); return false;"
+                    style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
+                    Global Propagations
+                </a>
+                <a href="#" id="btnPrivateAccess" class="entry-btn btn-private" onclick="openKeyModal(); return false;"
+                    style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
+                    Secure Access
+                </a>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <a href="#" id="btnRequestAccess" class="tech-hint" onclick="openRequestModal(); return false;"
+                    style="font-size: 0.8rem;">
+                    Request Access Key
+                </a>
+            </div>
+
             <div class="esco-socials">
                 <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -850,26 +871,9 @@
                     </svg>
                 </a>
             </div>
-        </div>
-
-        <div class="button-container" style="position: relative; z-index: 1001;">
-            <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
-                onclick="navigateTo('/public'); return false;">
-                Global Propagations
-            </a>
-            <a href="#" id="btnPrivateAccess" class="entry-btn btn-private" onclick="openKeyModal(); return false;">
-                Secure Access
-                <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">Access Key Required</div>
-            </a>
-        </div>
-
-        <div style="margin-top: 40px; text-align: center; position: relative; z-index: 1001;">
-            <a href="#" id="btnRequestAccess" class="tech-hint" onclick="openRequestModal(); return false;">
-                Request Access Key from Esco
-            </a>
             <div style="margin-top: 20px;">
                 <a href="mailto:admin@velarixsolutions.nl"
-                    style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.8rem; font-family: 'JetBrains Mono';">admin@velarixsolutions.nl</a>
+                    style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.75rem; font-family: 'JetBrains Mono';">admin@velarixsolutions.nl</a>
             </div>
         </div>
     </div>
@@ -946,7 +950,6 @@
                 </div>
             </main>
         </div>
-    </div>
     </div>
 
     <!-- Key Entry Modal -->
