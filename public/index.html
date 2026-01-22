@@ -803,10 +803,33 @@
             width: 100%;
             text-align: center;
             pointer-events: none;
-            opacity: 0.3;
+            opacity: 0.8;
             transition: all 0.2s ease;
             color: #fff;
-            filter: blur(0.5px);
+            filter: blur(0.2px);
+            z-index: 100;
+        }
+
+        .access-notification {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #ff0050;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255, 0, 80, 0.5);
+        }
+
+        .access-notification.active {
+            opacity: 1;
+            bottom: -35px;
         }
 
         .text-top {
@@ -917,16 +940,18 @@
             </p>
 
             <div class="button-container"
-                style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+                style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; position: relative;">
                 <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
                     onclick="navigateTo('/public'); return false;"
                     style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
                     Global Propagations
                 </a>
-                <a href="#" id="btnPrivateAccess" class="entry-btn btn-private" onclick="openKeyModal(); return false;"
+                <a href="#" id="btnPrivateAccess" class="entry-btn btn-private"
                     style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
                     Private Access
                 </a>
+                <div id="accessNotification" class="access-notification">Please obtain a key to view Escos private
+                    pastes</div>
             </div>
 
             <div style="margin-bottom: 30px;">
@@ -1810,7 +1835,17 @@
                 btnPrivate.onclick = null;
                 btnPrivate.addEventListener('click', (e) => {
                     e.preventDefault();
-                    openKeyModal();
+                    const hasKey = localStorage.getItem('private_access_key');
+                    if (!hasKey) {
+                        const notif = document.getElementById('accessNotification');
+                        if (notif) {
+                            notif.classList.add('active');
+                            setTimeout(() => notif.classList.remove('active'), 3000);
+                        }
+                        openKeyModal();
+                    } else {
+                        navigateTo('/public');
+                    }
                 });
             }
 
