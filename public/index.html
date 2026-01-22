@@ -746,16 +746,59 @@
             }
         }
 
-        .toast.fade-out {
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.5s ease;
+        /* Immersive Enhancements */
+        .immersive-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, transparent 10%, rgba(0, 0, 0, 0.6) 100%);
+            pointer-events: none;
+            z-index: 5;
+            mix-blend-mode: multiply;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 6;
+            animation: noiseAnim 0.2s infinite steps(2);
+        }
+
+        @keyframes noiseAnim {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(-10px, -10px);
+            }
+        }
+
+        #view-entry {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            perspective: 1000px;
+        }
+
+        .esco-profile-card {
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
         }
     </style>
     <link rel="stylesheet" href="/public/cursor.css">
 </head>
 
 <body>
+    <div class="immersive-overlay"></div>
+    <div class="noise-overlay"></div>
     <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/pinwheel.js"></script>
 
     <!-- Original Loader -->
@@ -769,6 +812,7 @@
         </div>
     </div>
 
+    <!-- User Profile Controls -->
     <div id="userProfile" class="user-profile">
         <div id="userLoggedIn" style="display: none; align-items: center; gap: 12px;">
             <img id="userAvatar" src="" alt="Avatar">
@@ -787,8 +831,7 @@
         </div>
     </div>
 
-
-    <!-- Audio -->
+    <!-- Audio Engine -->
     <audio id="bgAudio" loop preload="auto">
         <source src="/public/audio.mp3" type="audio/mp3">
     </audio>
@@ -821,7 +864,7 @@
         </div>
     </div>
 
-    <!-- Background Media -->
+    <!-- Background Media Controller -->
     <div id="video-background-container"
         style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.65);">
     </div>
@@ -878,466 +921,406 @@
         </div>
     </div>
 
-    <!-- View: VIEWER (Merged) -->
-    <!-- View: VIEWER (Carousel) -->
-    <div id="view-viewer"
-        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent;">
-        <div id="listView" class="gallery">
-            <!-- Populated via JS -->
-        </div>
-    </div>
-
-    <!-- Detail View Overlay -->
-    <div id="detailView"
-        style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 50; overflow-y: auto;">
-        <div class="container" style="max-width: 900px; margin: 0 auto; padding: 4rem 2rem;">
-            <header class="header">
-                <div class="logo">
-                    <div class="logo-text">
-                        <h1 style="font-size: 1.5rem;">PasteBin Pro</h1>
-                        <span class="badge">Detail View</span>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <button id="backBtn" class="btn btn-secondary">Back to Gallery</button>
-                    <button id="rawBtn" class="btn btn-glass">Raw</button>
-                    <button id="copyBtn" class="btn btn-secondary">Copy</button>
-                </div>
-            </header>
-            <div id="reactionsPanel" class="detail-reactions" style="display: none;">
-                <button class="reaction-btn" onclick="handleReaction('heart')">
-                    <span>❤️</span>
-                    <span class="reaction-count" id="count-heart">0</span>
-                </button>
-                <button class="reaction-btn" onclick="handleReaction('star')">
-                    <span>⭐</span>
-                    <span class="reaction-count" id="count-star">0</span>
-                </button>
-                <button class="reaction-btn" onclick="handleReaction('like')">
-                    <span>👍</span>
-                    <span class="reaction-count" id="count-like">0</span>
-                </button>
-                <div id="reactionStatus"
-                    style="font-size: 0.8rem; opacity: 0.5; margin-left: auto; align-self: center;">
-                    Log in with Discord to react
-                </div>
-            </div>
-            <main id="mainContent" style="margin-top: 2rem;">
-                <div id="detailLoading" class="state-container" style="display: none;">
-                    <div class="loader"></div>
-                    <p>Loading paste...</p>
-                </div>
-                <div id="notFoundState" class="state-container" style="display: none;">
-                    <h2>Paste Not Found</h2>
-                </div>
-                <div id="pasteViewContent" style="display: none;">
-                    <div class="paste-header">
-                        <div class="paste-info">
-                            <h2 id="pasteTitle">Loading...</h2>
-                            <div class="paste-meta">
-                                <span class="language-tag" id="pasteLanguage">plaintext</span>
-                                <span class="meta-item" id="pasteViews">0 views</span>
-                                <span class="meta-item" id="pasteDate">Just now</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="code-container">
-                        <div class="code-header">
-                            <div class="code-title" id="codeTitle">code.txt</div>
-                        </div>
-                        <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <!-- Key Entry Modal -->
-    <div id="keyModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="close-modal" onclick="closeModals()">✕</div>
-            <h2 style="margin-top: 0;">Enter Access Key</h2>
-            <div class="input-group">
-                <label>Access Key</label>
-                <input type="password" id="accessKeyInput" placeholder="sk-...">
-            </div>
-            <button type="button" class="btn-submit blue" onclick="submitKey()">Unlock</button>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">
-                Don't have one? <a href="#" onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
-                    Access</a>
-            </p>
-        </div>
-    </div>
-
-    <!-- Request Access Modal -->
-    <div id="requestModal" class="modal-overlay">
-        <!-- View 1: Auth Selection -->
-        <div id="req-view-1" class="modal-box">
-            <div class="close-modal" onclick="closeModals()">✕</div>
-            <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
-            <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">
-                You must verify your identity before requesting a key.
-            </p>
-            <div class="auth-buttons">
-                <button type="button" class="btn-submit auth-discord" onclick="startDiscordAuth('request')">
-                    <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
-                        <path fill="currentColor"
-                            d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-                    </svg>
-                    Discord
-                </button>
-                <button type="button" class="btn-submit auth-google" onclick="window.loginWithGoogle()"
-                    style="background: #EA4335; color: white;">
-                    Google
-                </button>
-                <button type="button" class="btn-submit auth-manual" onclick="showManualInput()">
-                    Manual Request
-                </button>
-            </div>
-        </div>
-
-        <!-- View 2: Manual Request Input -->
-        <div id="req-view-manual" class="modal-box" style="display: none;">
-            <div class="close-modal" onclick="resetRequestModal()">✕</div>
-            <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
-            <div class="input-group">
-                <label>Your Identity (Discord User / Email)</label>
-                <input type="text" id="manualIdentity" placeholder="Who are you?">
-            </div>
-            <div class="input-group">
-                <label>Reason</label>
-                <textarea id="manualReason" rows="6"
-                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
-            </div>
-            <p
-                style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
-                <strong>Note:</strong> You will still be required to confirm your identity later before receiving a key.
-                Verification via Discord is faster and preferred.
-            </p>
-            <button type="button" class="btn-submit red" onclick="submitManualRequest()">Send Request</button>
-        </div>
-
-        <!-- View 4: Request Form -->
-        <div id="req-view-4" class="modal-box" style="display: none;">
-            <div class="close-modal" onclick="closeModals()">✕</div>
-            <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
-            <div class="input-group">
-                <label>Verified ID</label>
-                <input type="text" id="verifiedId" readonly style="opacity: 0.5;">
-            </div>
-            <div class="input-group">
-                <label>Reason</label>
-                <textarea id="reqReason" rows="6"
-                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
-            </div>
-            <button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send Request</button>
-        </div>
-    </div>
-
-    <!-- Success Popup -->
-    <div id="successPopup" class="modal-overlay">
-        <div class="modal-box" style="text-align: center;">
-            <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-            <h2>Request Sent!</h2>
-            <p style="color: #ccc; margin-bottom: 2rem;">
-                Your request has been forwarded. <br>
-                For faster approval, join our Discord server:
-            </p>
-            <a href="https://discord.gg/YAqe3UvU5E" target="_blank" class="btn-submit auth-discord"
-                style="text-decoration: none; margin-bottom: 1rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
-                    <path fill="currentColor"
-                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-                </svg>
-                Join Discord
-            </a>
-            <button type="button" class="btn-submit blue" onclick="window.location.reload()">Return to Home</button>
-        </div>
-    </div>
-
-    <!-- Additional Styles for Auth -->
-    <style>
-        .auth-discord {
-            background: #5865F2;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-
-        .auth-discord:hover {
-            background: #4752C4;
-        }
-
-        .auth-email {
-            background: #333;
-            color: white;
-        }
-
-        .auth-email:hover {
-            background: #444;
-        }
-    </style>
-
-    <script type="module">
-        import { initLoadingShader } from '/public/loading-shader.js';
-
-    </script>
-
+    <!-- Mouse Parallax Script -->
     <script>
-        // --- 1. Audio Logic ---
-        const audio = document.getElementById('bgAudio');
-        const volBtn = document.getElementById('imgVolumeBtn');
-        const iconMuted = document.getElementById('iconMuted');
-        const iconSound = document.getElementById('iconSound');
-        const arrow = document.getElementById('volumeArrow');
-        const slider = document.getElementById('volumeSlider');
-
-        let hasInteracted = false;
-
-        // Restore Volume
-        let storedVolume = localStorage.getItem('audioVolume');
-        let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
-
-        // Restore Time
-        let storedTime = localStorage.getItem('audioCurrentTime');
-        if (storedTime) {
-            audio.currentTime = parseFloat(storedTime);
-        }
-
-        // Restore Paused State
-        let storedPaused = localStorage.getItem('audioIsPaused');
-
-        // Initialize state
-        audio.volume = lastVolume;
-        slider.value = lastVolume;
-
-        // Persist Time Update
-        audio.addEventListener('timeupdate', () => {
-            localStorage.setItem('audioCurrentTime', audio.currentTime);
+        document.addEventListener('mousemove', (e) => {
+            const card = document.querySelector('.esco-profile-card');
+            if (!card || window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
         });
-
-        // Persist Volume
-        function setVolume(val) {
-            audio.volume = val;
-            localStorage.setItem('audioVolume', val);
-            if (val > 0) {
-                lastVolume = val;
-            }
-        }
-
-        function tryPlayAudio() {
-            if (storedPaused === 'true' && !hasInteracted) return;
-
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    hasInteracted = true;
-                    localStorage.setItem('audioIsPaused', 'false');
-                    updateAudioIcon();
-                    if (audio.currentTime < 5) {
-                        arrow.classList.add('visible');
-                        setTimeout(() => arrow.classList.remove('visible'), 4000);
-                    }
-                }).catch(error => {
-                    console.log("Autoplay prevented. Waiting for interaction.", error);
-                });
-            }
-        }
-
-        function toggleAudio() {
-            if (audio.paused) {
-                audio.play();
-                hasInteracted = true;
-                localStorage.setItem('audioIsPaused', 'false');
-                // If previously volume was 0, restore it
-                if (audio.volume === 0) {
-                    let vol = lastVolume || 0.2;
-                    setVolume(vol);
-                    slider.value = vol;
-                }
-            } else {
-                audio.pause();
-                localStorage.setItem('audioIsPaused', 'true');
-            }
-            updateAudioIcon();
-        }
-
-        function updateAudioIcon() {
-            if (!audio.paused && audio.volume > 0) {
-                iconMuted.style.display = 'none';
-                iconSound.style.display = 'block';
-                volBtn.classList.add('active-volume');
-            } else {
-                iconMuted.style.display = 'block';
-                iconSound.style.display = 'none';
-                volBtn.classList.remove('active-volume');
-            }
-        }
-
-        // Slider Logic
-        slider.addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            setVolume(val);
-
-            if (val > 0 && audio.paused) {
-                audio.play();
-                hasInteracted = true;
-                localStorage.setItem('audioIsPaused', 'false');
-            } else if (val === 0 && !audio.paused) {
-                audio.pause();
-                localStorage.setItem('audioIsPaused', 'true');
-            }
-            updateAudioIcon();
+        document.addEventListener('mouseleave', () => {
+            const card = document.querySelector('.esco-profile-card');
+            if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
         });
+    </script>
+    </div>
+    <main id="mainContent" style="margin-top: 2rem;">
+        <div id="detailLoading" class="state-container" style="display: none;">
+            <div class="loader"></div>
+            <p>Loading paste...</p>
+        </div>
+        <div id="notFoundState" class="state-container" style="display: none;">
+            <h2>Paste Not Found</h2>
+        </div>
+        <div id="pasteViewContent" style="display: none;">
+            <div class="paste-header">
+                <div class="paste-info">
+                    <h2 id="pasteTitle">Loading...</h2>
+                    <div class="paste-meta"><span class="language-tag" id="pasteLanguage">plaintext</span><span
+                            class="meta-item" id="pasteViews">0 views</span><span class="meta-item" id="pasteDate">Just
+                            now</span></div>
+                </div>
+            </div>
+            <div class="code-container">
+                <div class="code-header">
+                    <div class="code-title" id="codeTitle">code.txt</div>
+                </div>
+                <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
+            </div>
+        </div>
+    </main>
+    </div>
+    </div>
+    < !-- Key Entry Modal -->
+        <div id="keyModal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="close-modal" onclick="closeModals()">✕</div>
+                <h2 style="margin-top: 0;">Enter Access Key</h2>
+                <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
+                        placeholder="sk-..."></div><button type="button" class="btn-submit blue"
+                    onclick="submitKey()">Unlock</button>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a
+                        href="#" onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
+                        Access</a></p>
+            </div>
+        </div>
+        < !-- Request Access Modal -->
+            <div id="requestModal" class="modal-overlay">
+                < !-- View 1: Auth Selection -->
+                    <div id="req-view-1" class="modal-box">
+                        <div class="close-modal" onclick="closeModals()">✕</div>
+                        <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
+                        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">You must verify your identity
+                            before requesting a key. </p>
+                        <div class="auth-buttons"><button type="button" class="btn-submit auth-discord"
+                                onclick="startDiscordAuth('request')"><svg width="20" height="20" viewBox="0 0 24 24"
+                                    style="margin-right: 10px; vertical-align: bottom;">
+                                    <path fill="currentColor"
+                                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
+                                </svg>Discord </button><button type="button" class="btn-submit auth-google"
+                                onclick="window.loginWithGoogle()" style="background: #EA4335; color: white;">Google
+                            </button><button type="button" class="btn-submit auth-manual"
+                                onclick="showManualInput()">Manual Request </button></div>
+                    </div>
+                    < !-- View 2: Manual Request Input -->
+                        <div id="req-view-manual" class="modal-box" style="display: none;">
+                            <div class="close-modal" onclick="resetRequestModal()">✕</div>
+                            <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
+                            <div class="input-group"><label>Your Identity (Discord User / Email)</label><input
+                                    type="text" id="manualIdentity" placeholder="Who are you?"></div>
+                            <div class="input-group"><label>Reason</label><textarea id="manualReason" rows="6"
+                                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+                            </div>
+                            <p
+                                style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
+                                <strong>Note:</strong>You will still be required to confirm your identity later before
+                                receiving a key. Verification via Discord is faster and preferred.
+                            </p><button type="button" class="btn-submit red" onclick="submitManualRequest()">Send
+                                Request</button>
+                        </div>
+                        < !-- View 4: Request Form -->
+                            <div id="req-view-4" class="modal-box" style="display: none;">
+                                <div class="close-modal" onclick="closeModals()">✕</div>
+                                <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
+                                <div class="input-group"><label>Verified ID</label><input type="text" id="verifiedId"
+                                        readonly style="opacity: 0.5;"></div>
+                                <div class="input-group"><label>Reason</label><textarea id="reqReason" rows="6"
+                                        placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+                                </div><button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send
+                                    Request</button>
+                            </div>
+            </div>
+            < !-- Success Popup -->
+                <div id="successPopup" class="modal-overlay">
+                    <div class="modal-box" style="text-align: center;">
+                        <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                        <h2>Request Sent !</h2>
+                        <p style="color: #ccc; margin-bottom: 2rem;">Your request has been forwarded. <br>For faster
+                            approval, join our Discord server: </p><a href="https://discord.gg/YAqe3UvU5E"
+                            target="_blank" class="btn-submit auth-discord"
+                            style="text-decoration: none; margin-bottom: 1rem;"><svg width="20" height="20"
+                                viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
+                                <path fill="currentColor"
+                                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
+                            </svg>Join Discord </a><button type="button" class="btn-submit blue"
+                            onclick="window.location.reload()">Return to Home</button>
+                    </div>
+                </div>
+                < !-- Additional Styles for Auth -->
+                    <style>
+                        .auth-discord {
+                            background: #5865F2;
+                            color: white;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin-bottom: 1rem;
+                        }
 
-        slider.addEventListener('click', (e) => e.stopPropagation());
+                        .auth-discord:hover {
+                            background: #4752C4;
+                        }
 
-        volBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            toggleAudio();
-        });
+                        .auth-email {
+                            background: #333;
+                            color: white;
+                        }
 
-        // Global interaction fallback
-        document.addEventListener('click', () => {
-            if (audio.paused && !hasInteracted && storedPaused !== 'true') {
-                tryPlayAudio();
-            }
-            hasInteracted = true;
-        }, { once: true });
+                        .auth-email:hover {
+                            background: #444;
+                        }
+                    </style>
 
-        // Try playing immediately on load
-        tryPlayAudio();
+                    <script type="module">
+                        import { initLoadingShader } from '/public/loading-shader.js';
 
-        // Global interaction listeners
-        const interactEvents = ['click', 'keydown', 'touchstart'];
-        interactEvents.forEach(evt =>
-            window.addEventListener(evt, () => {
-                if (!hasInteracted && storedPaused !== 'true') {
-                    tryPlayAudio();
-                }
-                hasInteracted = true;
-            }, { once: true, capture: true })
-        );
+                    </script>
+
+                    <script>
+                        // --- 1. Audio Logic ---
+                        const audio = document.getElementById('bgAudio');
+                        const volBtn = document.getElementById('imgVolumeBtn');
+                        const iconMuted = document.getElementById('iconMuted');
+                        const iconSound = document.getElementById('iconSound');
+                        const arrow = document.getElementById('volumeArrow');
+                        const slider = document.getElementById('volumeSlider');
+
+                        let hasInteracted = false;
+
+                        // Restore Volume
+                        let storedVolume = localStorage.getItem('audioVolume');
+                        let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
+
+                        // Restore Time
+                        let storedTime = localStorage.getItem('audioCurrentTime');
+                        if (storedTime) {
+                            audio.currentTime = parseFloat(storedTime);
+                        }
+
+                        // Restore Paused State
+                        let storedPaused = localStorage.getItem('audioIsPaused');
+
+                        // Initialize state
+                        audio.volume = lastVolume;
+                        slider.value = lastVolume;
+
+                        // Persist Time Update
+                        audio.addEventListener('timeupdate', () => {
+                            localStorage.setItem('audioCurrentTime', audio.currentTime);
+                        });
+
+                        // Persist Volume
+                        function setVolume(val) {
+                            audio.volume = val;
+                            localStorage.setItem('audioVolume', val);
+                            if (val > 0) {
+                                lastVolume = val;
+                            }
+                        }
+
+                        function tryPlayAudio() {
+                            if (storedPaused === 'true' && !hasInteracted) return;
+
+                            const playPromise = audio.play();
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    hasInteracted = true;
+                                    localStorage.setItem('audioIsPaused', 'false');
+                                    updateAudioIcon();
+                                    if (audio.currentTime < 5) {
+                                        arrow.classList.add('visible');
+                                        setTimeout(() => arrow.classList.remove('visible'), 4000);
+                                    }
+                                }).catch(error => {
+                                    console.log("Autoplay prevented. Waiting for interaction.", error);
+                                });
+                            }
+                        }
+
+                        function toggleAudio() {
+                            if (audio.paused) {
+                                audio.play();
+                                hasInteracted = true;
+                                localStorage.setItem('audioIsPaused', 'false');
+                                // If previously volume was 0, restore it
+                                if (audio.volume === 0) {
+                                    let vol = lastVolume || 0.2;
+                                    setVolume(vol);
+                                    slider.value = vol;
+                                }
+                            } else {
+                                audio.pause();
+                                localStorage.setItem('audioIsPaused', 'true');
+                            }
+                            updateAudioIcon();
+                        }
+
+                        function updateAudioIcon() {
+                            if (!audio.paused && audio.volume > 0) {
+                                iconMuted.style.display = 'none';
+                                iconSound.style.display = 'block';
+                                volBtn.classList.add('active-volume');
+                            } else {
+                                iconMuted.style.display = 'block';
+                                iconSound.style.display = 'none';
+                                volBtn.classList.remove('active-volume');
+                            }
+                        }
+
+                        // Slider Logic
+                        slider.addEventListener('input', (e) => {
+                            const val = parseFloat(e.target.value);
+                            setVolume(val);
+
+                            if (val > 0 && audio.paused) {
+                                audio.play();
+                                hasInteracted = true;
+                                localStorage.setItem('audioIsPaused', 'false');
+                            } else if (val === 0 && !audio.paused) {
+                                audio.pause();
+                                localStorage.setItem('audioIsPaused', 'true');
+                            }
+                            updateAudioIcon();
+                        });
+
+                        slider.addEventListener('click', (e) => e.stopPropagation());
+
+                        volBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleAudio();
+                        });
+
+                        // Global interaction fallback
+                        document.addEventListener('click', () => {
+                            if (audio.paused && !hasInteracted && storedPaused !== 'true') {
+                                tryPlayAudio();
+                            }
+                            hasInteracted = true;
+                        }, { once: true });
+
+                        // Try playing immediately on load
+                        tryPlayAudio();
+
+                        // Global interaction listeners
+                        const interactEvents = ['click', 'keydown', 'touchstart'];
+                        interactEvents.forEach(evt =>
+                            window.addEventListener(evt, () => {
+                                if (!hasInteracted && storedPaused !== 'true') {
+                                    tryPlayAudio();
+                                }
+                                hasInteracted = true;
+                            }, { once: true, capture: true })
+                        );
 
 
-        // --- 2. SPA Navigation ---
+                        // --- 2. SPA Navigation ---
 
-        // Handle Back/Forward
-        window.addEventListener('popstate', handleRoute);
-        // Handle Initial Load
-        document.addEventListener('DOMContentLoaded', handleRoute);
+                        // Handle Back/Forward
+                        window.addEventListener('popstate', handleRoute);
+                        // Handle Initial Load
+                        document.addEventListener('DOMContentLoaded', handleRoute);
 
-        window.navigateTo = function (path) {
-            console.log("Navigating with cinematic transition:", path);
-            const ls = document.getElementById('loadingState');
-            if (ls) {
-                ls.style.display = 'flex';
-                ls.classList.remove('fade-out');
-                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-            }
+                        window.navigateTo = function (path) {
+                            console.log("Navigating with cinematic transition:", path);
+                            const ls = document.getElementById('loadingState');
+                            if (ls) {
+                                ls.style.display = 'flex';
+                                ls.classList.remove('fade-out');
+                                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+                            }
 
-            // Show loading for 2.5 seconds to hit the "few seconds" target
-            setTimeout(() => {
-                window.history.pushState({}, '', path);
-                handleRoute();
-            }, 2500);
-        }
+                            // Show loading for 2.5 seconds to hit the "few seconds" target
+                            setTimeout(() => {
+                                window.history.pushState({}, '', path);
+                                handleRoute();
+                            }, 2500);
+                        }
 
-        window.hideLoader = function () {
-            const ls = document.getElementById('loadingState');
-            if (!ls) return;
-            ls.classList.add('fade-out');
-            setTimeout(() => {
-                ls.style.display = 'none';
-            }, 800);
-        };
+                        window.hideLoader = function () {
+                            const ls = document.getElementById('loadingState');
+                            if (!ls) return;
+                            ls.classList.add('fade-out');
+                            setTimeout(() => {
+                                ls.style.display = 'none';
+                            }, 800);
+                        };
 
-        function handleRoute() {
-            const path = window.location.pathname;
+                        function handleRoute() {
+                            const path = window.location.pathname;
 
-            // Ensure audio is trying to play on route change (interaction happened)
-            if (audio.paused && hasInteracted) {
-                audio.play().catch(e => console.log('Resume play failed', e));
-                updateAudioIcon();
-            }
+                            // Ensure audio is trying to play on route change (interaction happened)
+                            if (audio.paused && hasInteracted) {
+                                audio.play().catch(e => console.log('Resume play failed', e));
+                                updateAudioIcon();
+                            }
 
-            // Entry Page
-            if (path === '/' || path === '/index.html') {
-                const ls = document.getElementById('loadingState');
-                if (ls) ls.style.display = 'none'; // Hide loading screen
+                            // Entry Page
+                            if (path === '/' || path === '/index.html') {
+                                const ls = document.getElementById('loadingState');
+                                if (ls) ls.style.display = 'none'; // Hide loading screen
 
-                document.getElementById('view-entry').style.display = 'flex';
-                document.getElementById('view-viewer').style.display = 'none';
-                document.body.style.overflow = 'hidden'; // Lock scroll on entry
-                if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-            }
-            // Public Viewer
-            else if (path.startsWith('/public') || path.startsWith('/v/')) {
-                const ls = document.getElementById('loadingState');
-                if (ls) ls.style.display = 'none'; // Hide loading screen
+                                document.getElementById('view-entry').style.display = 'flex';
+                                document.getElementById('view-viewer').style.display = 'none';
+                                document.body.style.overflow = 'hidden'; // Lock scroll on entry
+                                if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+                            }
+                            // Public Viewer
+                            else if (path.startsWith('/public') || path.startsWith('/v/')) {
+                                const ls = document.getElementById('loadingState');
+                                if (ls) ls.style.display = 'none'; // Hide loading screen
 
-                document.getElementById('view-entry').style.display = 'none';
-                document.getElementById('view-viewer').style.display = 'block';
-                document.body.style.overflow = 'auto'; // Allow scroll
-                if (window.setBackgroundVideo) window.setBackgroundVideo('public');
+                                document.getElementById('view-entry').style.display = 'none';
+                                document.getElementById('view-viewer').style.display = 'block';
+                                document.body.style.overflow = 'auto'; // Allow scroll
+                                if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
-                if (path.startsWith('/v/')) {
-                    const id = path.split('/')[2];
-                    showDetail(id);
-                } else {
-                    showList();
-                }
-            }
-        }
+                                if (path.startsWith('/v/')) {
+                                    const id = path.split('/')[2];
+                                    showDetail(id);
+                                } else {
+                                    showList();
+                                }
+                            }
+                        }
 
 
-        // --- 3. Viewer Logic (Isolated Scope) ---
-        (function () {
-            const storage = window.storage = new PasteStorage();
-            const listView = document.getElementById('listView');
-            const detailView = document.getElementById('detailView');
-            const pasteListContainer = document.getElementById('pasteList');
-            const detailLoading = document.getElementById('detailLoading');
-            const notFoundState = document.getElementById('notFoundState');
-            const pasteViewContent = document.getElementById('pasteViewContent');
+                        // --- 3. Viewer Logic (Isolated Scope) ---
+                        (function () {
+                            const storage = window.storage = new PasteStorage();
+                            const listView = document.getElementById('listView');
+                            const detailView = document.getElementById('detailView');
+                            const pasteListContainer = document.getElementById('pasteList');
+                            const detailLoading = document.getElementById('detailLoading');
+                            const notFoundState = document.getElementById('notFoundState');
+                            const pasteViewContent = document.getElementById('pasteViewContent');
 
-            // Elements for detail
-            const pTitle = document.getElementById('pasteTitle');
-            const pLang = document.getElementById('pasteLanguage');
-            const pViews = document.getElementById('pasteViews');
-            const pDate = document.getElementById('pasteDate');
-            const pContent = document.getElementById('pasteContent');
+                            // Elements for detail
+                            const pTitle = document.getElementById('pasteTitle');
+                            const pLang = document.getElementById('pasteLanguage');
+                            const pViews = document.getElementById('pasteViews');
+                            const pDate = document.getElementById('pasteDate');
+                            const pContent = document.getElementById('pasteContent');
 
-            window.showList = async function () {
-                detailView.style.display = 'none';
-                listView.style.display = 'block';
-                await loadPastes();
-            };
+                            window.showList = async function () {
+                                detailView.style.display = 'none';
+                                listView.style.display = 'block';
+                                await loadPastes();
+                            };
 
-            async function loadPastes() {
-                try {
-                    const headers = { 'Content-Type': 'application/json' };
-                    const key = localStorage.getItem('private_access_key');
-                    if (key) headers['x-access-key'] = key;
+                            async function loadPastes() {
+                                try {
+                                    const headers = { 'Content-Type': 'application/json' };
+                                    const key = localStorage.getItem('private_access_key');
+                                    if (key) headers['x-access-key'] = key;
 
-                    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                        headers,
-                        credentials: 'include'
-                    });
-                    const pastes = await res.json();
+                                    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
+                                        headers,
+                                        credentials: 'include'
+                                    });
+                                    const pastes = await res.json();
 
-                    if (!Array.isArray(pastes)) {
-                        console.error("Expected array from public-list, got:", pastes);
-                        return;
-                    }
+                                    if (!Array.isArray(pastes)) {
+                                        console.error("Expected array from public-list, got:", pastes);
+                                        return;
+                                    }
 
-                    if (pastes.length === 0) {
-                        const listViewContainer = document.getElementById('listView');
-                        if (listViewContainer) {
-                            const hasKey = !!localStorage.getItem('private_access_key');
-                            listViewContainer.innerHTML = `
+                                    if (pastes.length === 0) {
+                                        const listViewContainer = document.getElementById('listView');
+                                        if (listViewContainer) {
+                                            const hasKey = !!localStorage.getItem('private_access_key');
+                                            listViewContainer.innerHTML = `
                                 <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:60vh; color:white; text-align:center; padding:2rem;">
                                     <h2 style="font-size:2.5rem; margin-bottom:1rem; background: linear-gradient(135deg, #00f5ff, #7b42ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">No Pastes Found</h2>
                                     <p style="opacity:0.8; max-width:600px; line-height:1.6; font-size: 1.1rem;">
@@ -1351,28 +1334,28 @@
                                     ` : ''}
                                 </div>
                             `;
-                        }
-                        return;
-                    }
+                                        }
+                                        return;
+                                    }
 
-                    // Group by folder
-                    const folders = {};
-                    const noFolder = [];
+                                    // Group by folder
+                                    const folders = {};
+                                    const noFolder = [];
 
-                    pastes.forEach(p => {
-                        if (p.folderName) {
-                            if (!folders[p.folderName]) folders[p.folderName] = [];
-                            folders[p.folderName].push(p);
-                        } else {
-                            noFolder.push(p);
-                        }
-                    });
+                                    pastes.forEach(p => {
+                                        if (p.folderName) {
+                                            if (!folders[p.folderName]) folders[p.folderName] = [];
+                                            folders[p.folderName].push(p);
+                                        } else {
+                                            noFolder.push(p);
+                                        }
+                                    });
 
-                    let html = '';
+                                    let html = '';
 
-                    const renderCard = (p) => {
-                        const thumb = p.embedUrl || '/public/preview.png';
-                        return `
+                                    const renderCard = (p) => {
+                                        const thumb = p.embedUrl || '/public/preview.png';
+                                        return `
                         <div onclick="navigateTo('/v/${p.id}')" class="product-card">
                             <img src="${thumb}" class="product-card-image" alt="${p.title}" onerror="this.src='/public/preview.png'">
                             <div class="product-card-info">
@@ -1388,8 +1371,8 @@
                         </div>
                     `};
 
-                    if (noFolder.length > 0) {
-                        html += `
+                                    if (noFolder.length > 0) {
+                                        html += `
                             <div class="folder-section">
                                 <h2 class="folder-header">🌍 PRIMARY NETWORK</h2>
                                 <div class="product-grid">
@@ -1397,10 +1380,10 @@
                                 </div>
                             </div>
                         `;
-                    }
+                                    }
 
-                    for (const [name, items] of Object.entries(folders)) {
-                        html += `
+                                    for (const [name, items] of Object.entries(folders)) {
+                                        html += `
                             <div class="folder-section">
                                 <h2 class="folder-header">📁 ${name.toUpperCase()}</h2>
                                 <div class="product-grid">
@@ -1408,10 +1391,10 @@
                                 </div>
                             </div>
                         `;
-                    }
+                                    }
 
-                    if (listView) {
-                        listView.innerHTML = `
+                                    if (listView) {
+                                        listView.innerHTML = `
                             <div class="category-tabs">
                                 <div class="category-tab active" onclick="showToast('Filtering for Global Stream...', 'info')">GLOBAL STREAM</div>
                                 <div class="category-tab" onclick="showToast('Filtering for Trending Nodes...', 'info')">TRENDING</div>
@@ -1421,544 +1404,544 @@
                                 ${html}
                             </div>
                         `;
-                    }
+                                    }
 
-                    // Animation
-                    if (window.gsap && document.querySelectorAll('.product-card').length > 0) {
-                        gsap.from('.product-card', {
-                            duration: 0.8,
-                            y: 50,
-                            opacity: 0,
-                            stagger: 0.1,
-                            ease: 'power4.out',
-                            clearProps: 'all'
+                                    // Animation
+                                    if (window.gsap && document.querySelectorAll('.product-card').length > 0) {
+                                        gsap.from('.product-card', {
+                                            duration: 0.8,
+                                            y: 50,
+                                            opacity: 0,
+                                            stagger: 0.1,
+                                            ease: 'power4.out',
+                                            clearProps: 'all'
+                                        });
+                                    }
+
+                                } catch (e) {
+                                    console.error("Paste load error:", e);
+                                } finally {
+                                    window.hideLoader();
+                                }
+                            }
+
+                            window.showDetail = async function (id) {
+                                if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+
+                                // Switch to detail video background
+                                console.log('Switching to detail video background for paste:', id);
+                                if (window.setBackgroundVideo) {
+                                    window.setBackgroundVideo('detail');
+                                } else {
+                                    console.warn('setBackgroundVideo not available yet');
+                                }
+
+                                listView.style.display = 'none';
+                                detailView.style.display = 'block';
+
+                                detailLoading.style.display = 'flex';
+                                notFoundState.style.display = 'none';
+                                pasteViewContent.style.display = 'none';
+                                window.currentPasteId = id;
+
+                                try {
+                                    let paste = null;
+                                    try {
+                                        paste = await storage.getPaste(id);
+                                    } catch (e) {
+                                        if (e.message.includes('401') || e.message.includes('403')) {
+                                            const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
+                                            if (!pwd) throw new Error('Cancelled');
+                                            paste = await storage.getPaste(id, true, pwd);
+                                        } else {
+                                            throw e;
+                                        }
+                                    }
+
+                                    if (!paste) throw new Error('Not found');
+
+                                    renderPasteDetail(paste);
+                                    detailLoading.style.display = 'none';
+                                    pasteViewContent.style.display = 'block';
+
+                                } catch (err) {
+                                    console.error(err);
+                                    detailLoading.style.display = 'none';
+                                    if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+                                } finally {
+                                    window.hideLoader();
+                                }
+                            };
+
+                            function renderPasteDetail(paste) {
+                                pTitle.textContent = paste.title || 'Untitled';
+                                pLang.textContent = paste.language;
+                                pViews.textContent = `${paste.views} views`;
+                                pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+                                const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+                                const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+                                const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+                                const container = document.getElementById('pasteContentContainer');
+
+                                if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+                                    pContent.innerHTML = marked.parse(paste.content);
+                                    pContent.classList.add('markdown-body');
+                                    if (container) container.classList.add('markdown-body');
+
+                                    pContent.querySelectorAll('pre code').forEach((block) => {
+                                        hljs.highlightElement(block);
+                                    });
+                                } else {
+                                    pContent.textContent = paste.content;
+                                    pContent.className = `hljs language-${paste.language}`;
+                                    if (container) container.classList.remove('markdown-body');
+                                    hljs.highlightElement(pContent);
+                                }
+
+                                // Reactions
+                                const panel = document.getElementById('reactionsPanel');
+                                if (panel) panel.style.display = 'flex';
+                                if (paste.reactions) {
+                                    const l = document.getElementById('count-like');
+                                    const h = document.getElementById('count-heart');
+                                    const s = document.getElementById('count-star');
+                                    if (l) l.textContent = paste.reactions.like || 0;
+                                    if (h) h.textContent = paste.reactions.heart || 0;
+                                    if (s) s.textContent = paste.reactions.star || 0;
+                                }
+
+                                // Burn Notice
+                                const burnNotice = document.getElementById('burnNotice');
+                                if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
+
+                                // Cleanup active states
+                                document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
+
+                                window.currentViewedPaste = paste;
+                            }
+                        })();
+
+                        window.handleReaction = async function (type, specificId = null) {
+                            const id = specificId || window.currentPasteId;
+                            if (!id) return;
+
+                            try {
+                                const res = await storage.toggleReaction(id, type);
+                                if (res.success) {
+                                    if (specificId) {
+                                        loadPastes(); // Refresh list to update count
+                                    } else {
+                                        const countEl = document.getElementById(`count-${type}`);
+                                        if (countEl) {
+                                            let current = parseInt(countEl.textContent) || 0;
+                                            countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
+                                        }
+                                    }
+                                    showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
+                                }
+                            } catch (e) {
+                                if (e.message === 'AUTH_REQUIRED') {
+                                    showToast('🔐 Login with Discord or Google to react!', 'info');
+                                    if (window.openRequestModal) window.openRequestModal();
+                                    else storage.loginWithDiscord();
+                                } else {
+                                    console.error("Reaction failed", e);
+                                }
+                            }
+                        }
+
+                        // Viewer Buttons
+                        document.getElementById('backBtn').addEventListener('click', () => navigateTo('/public'));
+                        document.getElementById('copyBtn').addEventListener('click', () => {
+                            if (window.currentViewedPaste) navigator.clipboard.writeText(window.currentViewedPaste.content);
                         });
-                    }
+                        document.getElementById('rawBtn').addEventListener('click', () => {
+                            if (window.currentViewedPaste) {
+                                const win = window.open();
+                                win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
+                            }
+                        });
 
-                } catch (e) {
-                    console.error("Paste load error:", e);
-                } finally {
-                    window.hideLoader();
-                }
-            }
 
-            window.showDetail = async function (id) {
-                if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+                        // --- 4. Auth & Modal Logic (Restored) ---
+                        let currentEmail = '';
+                        let authMethod = '';
 
-                // Switch to detail video background
-                console.log('Switching to detail video background for paste:', id);
-                if (window.setBackgroundVideo) {
-                    window.setBackgroundVideo('detail');
-                } else {
-                    console.warn('setBackgroundVideo not available yet');
-                }
-
-                listView.style.display = 'none';
-                detailView.style.display = 'block';
-
-                detailLoading.style.display = 'flex';
-                notFoundState.style.display = 'none';
-                pasteViewContent.style.display = 'none';
-                window.currentPasteId = id;
-
-                try {
-                    let paste = null;
-                    try {
-                        paste = await storage.getPaste(id);
-                    } catch (e) {
-                        if (e.message.includes('401') || e.message.includes('403')) {
-                            const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                            if (!pwd) throw new Error('Cancelled');
-                            paste = await storage.getPaste(id, true, pwd);
-                        } else {
-                            throw e;
+                        window.openKeyModal = function () {
+                            closeModals();
+                            document.getElementById('keyModal').classList.add('active');
                         }
-                    }
 
-                    if (!paste) throw new Error('Not found');
-
-                    renderPasteDetail(paste);
-                    detailLoading.style.display = 'none';
-                    pasteViewContent.style.display = 'block';
-
-                } catch (err) {
-                    console.error(err);
-                    detailLoading.style.display = 'none';
-                    if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
-                } finally {
-                    window.hideLoader();
-                }
-            };
-
-            function renderPasteDetail(paste) {
-                pTitle.textContent = paste.title || 'Untitled';
-                pLang.textContent = paste.language;
-                pViews.textContent = `${paste.views} views`;
-                pDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-                const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-                const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-                const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-                const container = document.getElementById('pasteContentContainer');
-
-                if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                    pContent.innerHTML = marked.parse(paste.content);
-                    pContent.classList.add('markdown-body');
-                    if (container) container.classList.add('markdown-body');
-
-                    pContent.querySelectorAll('pre code').forEach((block) => {
-                        hljs.highlightElement(block);
-                    });
-                } else {
-                    pContent.textContent = paste.content;
-                    pContent.className = `hljs language-${paste.language}`;
-                    if (container) container.classList.remove('markdown-body');
-                    hljs.highlightElement(pContent);
-                }
-
-                // Reactions
-                const panel = document.getElementById('reactionsPanel');
-                if (panel) panel.style.display = 'flex';
-                if (paste.reactions) {
-                    const l = document.getElementById('count-like');
-                    const h = document.getElementById('count-heart');
-                    const s = document.getElementById('count-star');
-                    if (l) l.textContent = paste.reactions.like || 0;
-                    if (h) h.textContent = paste.reactions.heart || 0;
-                    if (s) s.textContent = paste.reactions.star || 0;
-                }
-
-                // Burn Notice
-                const burnNotice = document.getElementById('burnNotice');
-                if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
-
-                // Cleanup active states
-                document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
-
-                window.currentViewedPaste = paste;
-            }
-        })();
-
-        window.handleReaction = async function (type, specificId = null) {
-            const id = specificId || window.currentPasteId;
-            if (!id) return;
-
-            try {
-                const res = await storage.toggleReaction(id, type);
-                if (res.success) {
-                    if (specificId) {
-                        loadPastes(); // Refresh list to update count
-                    } else {
-                        const countEl = document.getElementById(`count-${type}`);
-                        if (countEl) {
-                            let current = parseInt(countEl.textContent) || 0;
-                            countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
+                        window.openRequestModal = function () {
+                            console.log("Opening request modal");
+                            closeModals();
+                            resetRequestModal();
+                            document.getElementById('requestModal').classList.add('active');
                         }
-                    }
-                    showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
-                }
-            } catch (e) {
-                if (e.message === 'AUTH_REQUIRED') {
-                    showToast('🔐 Login with Discord or Google to react!', 'info');
-                    if (window.openRequestModal) window.openRequestModal();
-                    else storage.loginWithDiscord();
-                } else {
-                    console.error("Reaction failed", e);
-                }
-            }
-        }
 
-        // Viewer Buttons
-        document.getElementById('backBtn').addEventListener('click', () => navigateTo('/public'));
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            if (window.currentViewedPaste) navigator.clipboard.writeText(window.currentViewedPaste.content);
-        });
-        document.getElementById('rawBtn').addEventListener('click', () => {
-            if (window.currentViewedPaste) {
-                const win = window.open();
-                win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
-            }
-        });
+                        window.closeModals = function () {
+                            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+                        }
 
+                        window.switchView = function (id) {
+                            document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
+                            document.getElementById(id).style.display = 'block';
+                        }
 
-        // --- 4. Auth & Modal Logic (Restored) ---
-        let currentEmail = '';
-        let authMethod = '';
+                        window.resetRequestModal = function () {
+                            switchView('req-view-1');
+                            document.getElementById('manualIdentity').value = '';
+                            document.getElementById('manualReason').value = '';
+                            document.getElementById('reqReason').value = '';
+                        }
 
-        window.openKeyModal = function () {
-            closeModals();
-            document.getElementById('keyModal').classList.add('active');
-        }
+                        window.startDiscordAuth = function (mode = 'request') {
+                            const width = 500;
+                            const height = 800;
+                            const left = (window.screen.width / 2) - (width / 2);
+                            const top = (window.screen.height / 2) - (height / 2);
 
-        window.openRequestModal = function () {
-            console.log("Opening request modal");
-            closeModals();
-            resetRequestModal();
-            document.getElementById('requestModal').classList.add('active');
-        }
+                            // Using the consolidated auth endpoint
+                            const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
+                            const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
 
-        window.closeModals = function () {
-            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-        }
+                            window.addEventListener('message', function onMessage(e) {
+                                if (e.data.type === 'DISCORD_VERIFIED') {
+                                    window.removeEventListener('message', onMessage);
 
-        window.switchView = function (id) {
-            document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-        }
+                                    if (mode === 'login') {
+                                        showToast("✅ Signed in with Discord!", "success");
+                                        setTimeout(() => window.location.reload(), 1000);
+                                        return;
+                                    }
 
-        window.resetRequestModal = function () {
-            switchView('req-view-1');
-            document.getElementById('manualIdentity').value = '';
-            document.getElementById('manualReason').value = '';
-            document.getElementById('reqReason').value = '';
-        }
+                                    // FOUND AUTO-KEY?
+                                    if (e.data.existingKey) {
+                                        localStorage.setItem('private_access_key', e.data.existingKey);
+                                        closeModals();
+                                        // Show quick success visual
+                                        const hint = document.querySelector('.tech-hint');
+                                        if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
+                                        setTimeout(() => navigateTo('/public'), 800);
+                                        return;
+                                    }
 
-        window.startDiscordAuth = function (mode = 'request') {
-            const width = 500;
-            const height = 800;
-            const left = (window.screen.width / 2) - (width / 2);
-            const top = (window.screen.height / 2) - (height / 2);
+                                    currentEmail = e.data.id;
+                                    authMethod = 'Discord';
+                                    document.getElementById('verifiedId').value = currentEmail;
+                                    switchView('req-view-4');
+                                }
+                            });
+                        }
 
-            // Using the consolidated auth endpoint
-            const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
-            const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+                        window.showManualInput = function () {
+                            switchView('req-view-manual');
+                        }
 
-            window.addEventListener('message', function onMessage(e) {
-                if (e.data.type === 'DISCORD_VERIFIED') {
-                    window.removeEventListener('message', onMessage);
+                        window.submitManualRequest = async function () {
+                            const contact = document.getElementById('manualIdentity').value;
+                            const reason = document.getElementById('manualReason').value;
+                            const btn = document.querySelector('#req-view-manual .btn-submit');
 
-                    if (mode === 'login') {
-                        showToast("✅ Signed in with Discord!", "success");
-                        setTimeout(() => window.location.reload(), 1000);
-                        return;
-                    }
+                            if (!contact || !reason) return alert('Please fill in all fields.');
 
-                    // FOUND AUTO-KEY?
-                    if (e.data.existingKey) {
-                        localStorage.setItem('private_access_key', e.data.existingKey);
-                        closeModals();
-                        // Show quick success visual
+                            btn.disabled = true;
+                            btn.textContent = 'Sending...';
+
+                            try {
+                                const res = await fetch('/api/access/request', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ contact, reason, method: 'Manual' })
+                                });
+                                const data = await res.json();
+
+                                if (data.success) {
+                                    closeModals();
+                                    document.getElementById('successPopup').classList.add('active');
+                                } else {
+                                    alert('Error: ' + (data.error || 'Unknown error'));
+                                }
+                            } catch (e) {
+                                alert('Connection error');
+                            } finally {
+                                btn.disabled = false;
+                                btn.textContent = 'Send Request';
+                            }
+                        }
+
+                        window.submitFinalRequest = async function () {
+                            const reason = document.getElementById('reqReason').value;
+                            const btn = document.querySelector('#req-view-4 .btn-submit');
+
+                            btn.disabled = true;
+                            btn.textContent = 'Sending...';
+
+                            try {
+                                const res = await fetch('/api/access/request', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
+                                });
+                                const data = await res.json();
+
+                                if (data.success) {
+                                    closeModals();
+                                    document.getElementById('successPopup').classList.add('active');
+                                } else {
+                                    alert('Error: ' + (data.error || 'Unknown error'));
+                                }
+                            } catch (e) {
+                                alert('Connection error');
+                            } finally {
+                                btn.disabled = false;
+                                btn.textContent = 'Send Request';
+                            }
+                        }
+
+                        window.submitKey = async function () {
+                            const key = document.getElementById('accessKeyInput').value.trim();
+                            const btn = document.querySelector('#keyModal .btn-submit');
+                            if (!key) return alert('Enter a key.');
+                            btn.disabled = true;
+                            btn.textContent = 'Verifying...';
+                            try {
+                                const res = await fetch('/api/access/verify', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ key })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    localStorage.setItem('private_access_key', data.key);
+                                    closeModals();
+                                    navigateTo('/public'); // Changed from window.location.href to SPA nav
+                                } else {
+                                    alert(data.error || 'Invalid key.');
+                                }
+                            } catch (e) {
+                                alert('Verification failed.');
+                            } finally {
+                                btn.disabled = false;
+                                btn.textContent = 'Unlock';
+                            }
+                        }
+
+                        // Explicit Event Listeners for Entry Buttons
+                        document.addEventListener('DOMContentLoaded', () => {
+                            const btnPublic = document.getElementById('btnPublicAccess');
+                            const btnPrivate = document.getElementById('btnPrivateAccess');
+                            const btnRequest = document.getElementById('btnRequestAccess');
+
+                            if (btnPublic) {
+                                btnPublic.onclick = null; // Clear inline just in case
+                                btnPublic.addEventListener('click', () => navigateTo('/public'));
+                            }
+
+                            if (btnPrivate) {
+                                btnPrivate.onclick = null;
+                                btnPrivate.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    openKeyModal();
+                                });
+                            }
+
+                            if (btnRequest) {
+                                btnRequest.onclick = null;
+                                btnRequest.addEventListener('click', (e) => {
+                                    console.log("Request Clicked via Listener");
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    openRequestModal();
+                                });
+                            }
+                        });
+
+                        // Glitch effect on hint
                         const hint = document.querySelector('.tech-hint');
-                        if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
-                        setTimeout(() => navigateTo('/public'), 800);
-                        return;
-                    }
-
-                    currentEmail = e.data.id;
-                    authMethod = 'Discord';
-                    document.getElementById('verifiedId').value = currentEmail;
-                    switchView('req-view-4');
-                }
-            });
-        }
-
-        window.showManualInput = function () {
-            switchView('req-view-manual');
-        }
-
-        window.submitManualRequest = async function () {
-            const contact = document.getElementById('manualIdentity').value;
-            const reason = document.getElementById('manualReason').value;
-            const btn = document.querySelector('#req-view-manual .btn-submit');
-
-            if (!contact || !reason) return alert('Please fill in all fields.');
-
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-
-            try {
-                const res = await fetch('/api/access/request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contact, reason, method: 'Manual' })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    closeModals();
-                    document.getElementById('successPopup').classList.add('active');
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
-            } catch (e) {
-                alert('Connection error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Send Request';
-            }
-        }
-
-        window.submitFinalRequest = async function () {
-            const reason = document.getElementById('reqReason').value;
-            const btn = document.querySelector('#req-view-4 .btn-submit');
-
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-
-            try {
-                const res = await fetch('/api/access/request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
-                });
-                const data = await res.json();
-
-                if (data.success) {
-                    closeModals();
-                    document.getElementById('successPopup').classList.add('active');
-                } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                }
-            } catch (e) {
-                alert('Connection error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Send Request';
-            }
-        }
-
-        window.submitKey = async function () {
-            const key = document.getElementById('accessKeyInput').value.trim();
-            const btn = document.querySelector('#keyModal .btn-submit');
-            if (!key) return alert('Enter a key.');
-            btn.disabled = true;
-            btn.textContent = 'Verifying...';
-            try {
-                const res = await fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    localStorage.setItem('private_access_key', data.key);
-                    closeModals();
-                    navigateTo('/public'); // Changed from window.location.href to SPA nav
-                } else {
-                    alert(data.error || 'Invalid key.');
-                }
-            } catch (e) {
-                alert('Verification failed.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Unlock';
-            }
-        }
-
-        // Explicit Event Listeners for Entry Buttons
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnPublic = document.getElementById('btnPublicAccess');
-            const btnPrivate = document.getElementById('btnPrivateAccess');
-            const btnRequest = document.getElementById('btnRequestAccess');
-
-            if (btnPublic) {
-                btnPublic.onclick = null; // Clear inline just in case
-                btnPublic.addEventListener('click', () => navigateTo('/public'));
-            }
-
-            if (btnPrivate) {
-                btnPrivate.onclick = null;
-                btnPrivate.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    openKeyModal();
-                });
-            }
-
-            if (btnRequest) {
-                btnRequest.onclick = null;
-                btnRequest.addEventListener('click', (e) => {
-                    console.log("Request Clicked via Listener");
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openRequestModal();
-                });
-            }
-        });
-
-        // Glitch effect on hint
-        const hint = document.querySelector('.tech-hint');
-        if (hint) {
-            setInterval(() => {
-                if (Math.random() > 0.95) {
-                    hint.style.opacity = 0.5;
-                    setTimeout(() => hint.style.opacity = 0.8, 50);
-                }
-            }, 100);
-        }
-
-        // --- Animated Title ---
-        (function () {
-            const originalTitle = "QuietBin.space";
-            const altTitle = "ERROR // CORRUPTION";
-            let isOriginal = true;
-
-            setInterval(() => {
-                document.title = isOriginal ? originalTitle : altTitle;
-                isOriginal = !isOriginal;
-            }, 2000); // Toggle every 2 seconds
-        })();
-    </script>
-    <script>
-        window.submitKey = async function () {
-            const key = document.getElementById('accessKeyInput').value.trim();
-            const btn = document.querySelector('#keyModal .btn-submit');
-            if (!key) return alert('Enter a key.');
-
-            btn.disabled = true;
-            btn.textContent = 'Verifying...';
-            try {
-                const res = await fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    localStorage.setItem('private_access_key', data.key);
-                    closeModals();
-                    navigateTo('/public');
-                } else {
-                    alert(data.error || 'Invalid key.');
-                }
-            } catch (e) {
-                alert('Verification failed.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Unlock';
-            }
-        };
-
-        async function checkStoredKey() {
-            const storedKey = localStorage.getItem('private_access_key');
-            if (storedKey) {
-                try {
-                    const res = await fetch('/api/access/verify', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ key: storedKey })
-                    });
-                    const data = await res.json();
-
-                    if (data.success) {
-                        console.log("✅ Auto-unlocked with stored key");
-                        const entryView = document.getElementById('view-entry');
-                        if (entryView && entryView.style.display !== 'none') {
-                            navigateTo('/public');
+                        if (hint) {
+                            setInterval(() => {
+                                if (Math.random() > 0.95) {
+                                    hint.style.opacity = 0.5;
+                                    setTimeout(() => hint.style.opacity = 0.8, 50);
+                                }
+                            }, 100);
                         }
-                    } else {
-                        console.warn("Stored key invalid/expired");
-                        localStorage.removeItem('private_access_key');
-                    }
-                } catch (e) {
-                    console.error("Auto-check failed", e);
-                }
-            }
-        }
-        document.addEventListener('DOMContentLoaded', checkStoredKey);
-    </script>
-    <script>
-        // Initial / Fallback Loading Hider
-        window.addEventListener('load', () => setTimeout(window.hideLoader, 800));
-        setTimeout(window.hideLoader, 4000); // Conservative fallback
-    </script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // Fetch Firebase Config from server
-        async function initFirebase() {
-            try {
-                const configRes = await fetch('/api/auth/firebase-config');
-                const firebaseConfig = await configRes.json();
+                        // --- Animated Title ---
+                        (function () {
+                            const originalTitle = "QuietBin.space";
+                            const altTitle = "ERROR // CORRUPTION";
+                            let isOriginal = true;
 
-                if (!firebaseConfig.apiKey) {
-                    console.error("Firebase Config missing! Set variables in Railway Dashboard.");
-                    return;
-                }
+                            setInterval(() => {
+                                document.title = isOriginal ? originalTitle : altTitle;
+                                isOriginal = !isOriginal;
+                            }, 2000); // Toggle every 2 seconds
+                        })();
+                    </script>
+                    <script>
+                        window.submitKey = async function () {
+                            const key = document.getElementById('accessKeyInput').value.trim();
+                            const btn = document.querySelector('#keyModal .btn-submit');
+                            if (!key) return alert('Enter a key.');
 
-                const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
-                const provider = new GoogleAuthProvider();
+                            btn.disabled = true;
+                            btn.textContent = 'Verifying...';
+                            try {
+                                const res = await fetch('/api/access/verify', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ key })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                    localStorage.setItem('private_access_key', data.key);
+                                    closeModals();
+                                    navigateTo('/public');
+                                } else {
+                                    alert(data.error || 'Invalid key.');
+                                }
+                            } catch (e) {
+                                alert('Verification failed.');
+                            } finally {
+                                btn.disabled = false;
+                                btn.textContent = 'Unlock';
+                            }
+                        };
 
-                window.loginWithGoogle = async () => {
-                    try {
-                        const result = await signInWithPopup(auth, provider);
-                        const user = result.user;
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: user.email,
-                                uid: user.uid,
-                                photoURL: user.photoURL
-                            })
+                        async function checkStoredKey() {
+                            const storedKey = localStorage.getItem('private_access_key');
+                            if (storedKey) {
+                                try {
+                                    const res = await fetch('/api/access/verify', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ key: storedKey })
+                                    });
+                                    const data = await res.json();
+
+                                    if (data.success) {
+                                        console.log("✅ Auto-unlocked with stored key");
+                                        const entryView = document.getElementById('view-entry');
+                                        if (entryView && entryView.style.display !== 'none') {
+                                            navigateTo('/public');
+                                        }
+                                    } else {
+                                        console.warn("Stored key invalid/expired");
+                                        localStorage.removeItem('private_access_key');
+                                    }
+                                } catch (e) {
+                                    console.error("Auto-check failed", e);
+                                }
+                            }
+                        }
+                        document.addEventListener('DOMContentLoaded', checkStoredKey);
+                    </script>
+                    <script>
+                        // Initial / Fallback Loading Hider
+                        window.addEventListener('load', () => setTimeout(window.hideLoader, 800));
+                        setTimeout(window.hideLoader, 4000); // Conservative fallback
+                    </script>
+                    <script type="module">
+                        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+                        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+                        // Fetch Firebase Config from server
+                        async function initFirebase() {
+                            try {
+                                const configRes = await fetch('/api/auth/firebase-config');
+                                const firebaseConfig = await configRes.json();
+
+                                if (!firebaseConfig.apiKey) {
+                                    console.error("Firebase Config missing! Set variables in Railway Dashboard.");
+                                    return;
+                                }
+
+                                const app = initializeApp(firebaseConfig);
+                                const auth = getAuth(app);
+                                const provider = new GoogleAuthProvider();
+
+                                window.loginWithGoogle = async () => {
+                                    try {
+                                        const result = await signInWithPopup(auth, provider);
+                                        const user = result.user;
+                                        const response = await fetch('/api/auth/google', {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify({
+                                                email: user.email,
+                                                uid: user.uid,
+                                                photoURL: user.photoURL
+                                            })
+                                        });
+                                        const data = await response.json();
+                                        if (data.success) {
+                                            showToast("✅ Signed in with Google!", "success");
+                                            setTimeout(() => window.location.reload(), 1000);
+                                        }
+                                    } catch (error) {
+                                        console.error("Google login failed", error);
+                                        showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
+                                    }
+                                };
+                            } catch (e) {
+                                console.error("Failed to initialize Firebase:", e);
+                            }
+                        }
+
+                        initFirebase();
+
+                        // Toast Helper
+                        window.showToast = (message, type = 'info') => {
+                            let container = document.getElementById('toastContainer');
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.id = 'toastContainer';
+                                container.className = 'toast-container';
+                                document.body.appendChild(container);
+                            }
+
+                            const toast = document.createElement('div');
+                            toast.className = `toast ${type}`;
+                            toast.innerHTML = `<span>${message}</span>`;
+
+                            container.appendChild(toast);
+
+                            setTimeout(() => {
+                                toast.classList.add('fade-out');
+                                setTimeout(() => toast.remove(), 500);
+                            }, 3000);
+                        };
+
+
+                        // Check Auth on load
+                        document.addEventListener('DOMContentLoaded', async () => {
+                            const api = window.storage || new PasteStorage();
+                            const user = await api.getMe();
+                            const loggedInView = document.getElementById('userLoggedIn');
+                            const loggedOutView = document.getElementById('userLoggedOut');
+                            const reactionStatus = document.getElementById('reactionStatus');
+
+                            if (user) {
+                                loggedInView.style.display = 'flex';
+                                loggedOutView.style.display = 'none';
+                                document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
+                                document.getElementById('userName').textContent = user.displayName || user.username || 'User';
+                                if (reactionStatus) reactionStatus.style.display = 'none';
+                                window.currentUser = user;
+                            } else {
+                                loggedInView.style.display = 'none';
+                                loggedOutView.style.display = 'flex';
+                                if (reactionStatus) reactionStatus.style.display = 'block';
+                            }
                         });
-                        const data = await response.json();
-                        if (data.success) {
-                            showToast("✅ Signed in with Google!", "success");
-                            setTimeout(() => window.location.reload(), 1000);
-                        }
-                    } catch (error) {
-                        console.error("Google login failed", error);
-                        showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
-                    }
-                };
-            } catch (e) {
-                console.error("Failed to initialize Firebase:", e);
-            }
-        }
-
-        initFirebase();
-
-        // Toast Helper
-        window.showToast = (message, type = 'info') => {
-            let container = document.getElementById('toastContainer');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toastContainer';
-                container.className = 'toast-container';
-                document.body.appendChild(container);
-            }
-
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerHTML = `<span>${message}</span>`;
-
-            container.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        };
-
-
-        // Check Auth on load
-        document.addEventListener('DOMContentLoaded', async () => {
-            const api = window.storage || new PasteStorage();
-            const user = await api.getMe();
-            const loggedInView = document.getElementById('userLoggedIn');
-            const loggedOutView = document.getElementById('userLoggedOut');
-            const reactionStatus = document.getElementById('reactionStatus');
-
-            if (user) {
-                loggedInView.style.display = 'flex';
-                loggedOutView.style.display = 'none';
-                document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
-                document.getElementById('userName').textContent = user.displayName || user.username || 'User';
-                if (reactionStatus) reactionStatus.style.display = 'none';
-                window.currentUser = user;
-            } else {
-                loggedInView.style.display = 'none';
-                loggedOutView.style.display = 'flex';
-                if (reactionStatus) reactionStatus.style.display = 'block';
-            }
-        });
-    </script>
-    <!-- app.js removed to prevent SPA conflicts -->
-    <script src="/public/cursor.js"></script>
-    <script src="/public/title-rotator.js"></script>
+                    </script>
+                    <!-- app.js removed to prevent SPA conflicts -->
+                    <script src="/public/cursor.js"></script>
+                    <script src="/public/title-rotator.js"></script>
 </body>
 
 </html>
