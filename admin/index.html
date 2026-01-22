@@ -4,375 +4,230 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>veroe.space | Premium Admin</title>
-    <link rel="stylesheet" href="style.css?v=8">
+    <title>ENERG | Admin Analytics</title>
+    <!-- Modern Sans-Serif Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="style.css?v=11">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <div class="background-gradient"></div>
-
-    <div class="container-fluid">
-        <!-- Header -->
-        <header class="header glass-card">
-            <div class="logo">
-                <div class="logo-text">
-                    <h1>veroe.space <span class="accent">Admin</span></h1>
-                    <div class="system-status">
-                        <span class="status-dot"></span>
-                        <span id="activeVisitors">0 Active Visitors</span>
-                    </div>
-                </div>
-            </div>
-            <div class="header-actions">
-                <button id="accessBtn" class="btn btn-glass">Access Keys</button>
-                <button id="usersBtn" class="btn btn-glass">Users</button>
-                <button id="logoutBtn" class="btn btn-glass"
-                    style="border-color: #ff006e; color: #ff006e;">Logout</button>
-            </div>
-        </header>
-
-        <!-- Dashboard Stats -->
-        <section class="dashboard-stats">
-            <div class="stat-group">
-                <div class="stat-box">
-                    <span class="stat-label">Total Hits</span>
-                    <span id="totalHits" class="stat-value">0</span>
-                    <div class="stat-trend">Tracking Live</div>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Unique Readers</span>
-                    <span id="uniqueReaders" class="stat-value">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Geo Reach</span>
-                    <span id="geoReach" class="stat-value">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Avg Session</span>
-                    <span class="stat-value">4.2m</span>
-                </div>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">E</div>
+                <span class="brand-name">ENERG</span>
             </div>
 
-            <!-- Global Traffic Matrix (Surveillance Theme) -->
-            <div class="heatmap-container glass-card">
-                <div class="matrix-header">
-                    <div class="matrix-title">
-                        <span class="matrix-label">GLOBAL TRAFFIC MATRIX</span>
-                        <span class="matrix-sub">LIVE NODE DEPLOYMENT</span>
-                    </div>
-                    <div class="matrix-status">
-                        <span class="sync-badge">
-                            <span class="sync-dot"></span>
-                            MAP SYNCHRONIZED
-                        </span>
-                        <div class="globe-icon">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.5">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path
-                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                                </path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="map-wrapper">
-                    <div id="mainHeatmap" class="map-frame"></div>
-                    <div class="map-overlay-box">
-                        <div class="overlay-row">
-                            <span class="overlay-dot pulse-purple"></span>
-                            <span class="overlay-text">LIVE SURVEILLANCE</span>
-                        </div>
-                        <div id="packetCounter" class="overlay-sub">SYNCING 0 PACKETS...</div>
-                    </div>
-                </div>
-
-                <div id="clusterGrid" class="cluster-summary-grid">
-                    <!-- Dynamically populated Cluster items -->
-                </div>
+            <div class="search-bar-container">
+                <input type="text" id="globalSearch" placeholder="Search..." class="sidebar-search">
             </div>
 
-            <!-- Detailed Intelligence Grid -->
-            <div class="intelligence-grid">
-                <div class="intel-module glass-card">
-                    <div class="intel-header">
-                        <span class="intel-label">SYSTEM ARCHITECTURE</span>
-                        <span class="intel-sub">BROWSER DISTRIBUTION</span>
-                    </div>
-                    <div id="browserList" class="intel-list">
-                        <!-- Loaded via JS -->
-                    </div>
-                </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="overview">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Overview</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="active">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">Active Nodes</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="security">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-label">Security</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="network">
+                    <span class="nav-icon">🌐</span>
+                    <span class="nav-label">Network</span>
+                </a>
+            </nav>
 
-                <div class="intel-module glass-card">
-                    <div class="intel-header">
-                        <span class="intel-label">NUCLEUS OS</span>
-                        <span class="intel-sub">PLATFORM METRICS</span>
-                    </div>
-                    <div id="platformList" class="intel-list">
-                        <!-- Loaded via JS -->
-                    </div>
-                </div>
-
-                <div class="intel-module glass-card">
-                    <div class="intel-header">
-                        <span class="intel-label">CARRIER NETWORK</span>
-                        <span class="intel-sub">ISP INFRASTRUCTURE</span>
-                    </div>
-                    <div id="ispList" class="intel-list">
-                        <!-- Loaded via JS -->
-                    </div>
-                </div>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="logout-btn">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-label">Logout</span>
+                </button>
             </div>
-        </section>
+        </aside>
 
         <!-- Main Content -->
-        <main class="main-grid">
-            <!-- Left: Paste List -->
-            <section class="paste-list glass-card">
-                <div class="section-header">
-                    <h2>Recent Drops</h2>
-                    <div class="header-tools">
-                        <div class="search-box">
-                            <input type="text" id="pasteSearch" placeholder="Filter ID/Title...">
-                        </div>
-                        <button id="refreshBtn" class="btn-mini-icon">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <path
-                                    d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
-                                </path>
-                            </svg>
-                        </button>
+        <main class="main-content">
+            <!-- Header Section -->
+            <header class="main-header">
+                <div class="header-titles">
+                    <h1>Energy Terminal</h1>
+                    <p class="header-sub">System-wide traffic monitoring and node propagation.</p>
+                </div>
+                <div class="header-stats">
+                    <div class="active-dot-pulse"></div>
+                    <span id="activeVisitors">0 Active Visitors</span>
+                </div>
+            </header>
+
+            <!-- Hero Stats Row -->
+            <section class="stats-grid">
+                <div class="hero-stat-card glass-card">
+                    <div class="card-header">
+                        <span class="card-title">TOTAL PROPAGATION</span>
+                    </div>
+                    <div class="stat-main">
+                        <span id="totalHits" class="stat-value">0</span>
+                        <div class="stat-badge success">Live</div>
                     </div>
                 </div>
-                <div id="pasteListContainer" class="paste-items-v2">
-                    <!-- Loaded via JS -->
+
+                <div class="hero-stat-card glass-card">
+                    <div class="card-header">
+                        <span class="card-title">UNIQUE NODES</span>
+                    </div>
+                    <div class="stat-main">
+                        <span id="uniqueReaders" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="hero-stat-card glass-card">
+                    <div class="card-header">
+                        <span class="card-title">GEO FOOTPRINT</span>
+                    </div>
+                    <div class="stat-main">
+                        <span id="geoReach" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="hero-stat-card glass-card">
+                    <div class="card-header">
+                        <span class="card-title">BATTERY HEALTH</span>
+                    </div>
+                    <div class="stat-main">
+                        <span class="stat-value">98<small>%</small></span>
+                    </div>
                 </div>
             </section>
 
-            <!-- Right: Editor -->
-            <section class="paste-editor glass-card">
-                <div class="section-header">
-                    <h2>Deploy Content</h2>
-                    <button id="clearBtn" class="btn btn-glass">Clear</button>
-                </div>
-                <div class="editor-v2">
-                    <div class="editor-main">
-                        <div class="input-container">
-                            <label>Title</label>
-                            <input type="text" id="pasteTitle" placeholder="Untitled Paste" class="neon-input">
+            <!-- Mid Section: Charts & Map -->
+            <section class="content-grid-mid">
+                <div class="large-card glass-card">
+                    <div class="card-header-flex">
+                        <div class="title-group">
+                            <span class="card-label">GLOBAL TRAFFIC MATRIX</span>
+                            <span class="card-sub">NODE DEPLOYMENT VECTOR</span>
                         </div>
-                        <div class="grid-2">
-                            <div class="input-container">
-                                <label>Language</label>
-                                <select id="pasteLanguage" class="neon-select"></select>
-                            </div>
-                            <div class="input-container">
-                                <label>Expiration</label>
-                                <select id="pasteExpiration" class="neon-select">
-                                    <option value="never">Permanent</option>
-                                    <option value="10m">10 Minutes</option>
-                                    <option value="1h">1 Hour</option>
-                                    <option value="1d">1 Day</option>
-                                    <option value="1w">1 Week</option>
-                                    <option value="1M">1 Month</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="input-container">
-                            <label>Folder Collection</label>
-                            <div class="folder-select-group" style="display: flex; gap: 10px;">
-                                <select id="pasteFolder" class="neon-select">
-                                    <option value="">Ungrouped</option>
-                                </select>
-                                <button id="manageFoldersBtn" class="btn btn-glass"
-                                    style="padding: 10px 15px;">+</button>
-                            </div>
-                        </div>
-
-                        <div class="input-container">
-                            <label>Content Payload</label>
-                            <div class="textarea-wrapper"
-                                style="border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2);">
-                                <div class="textarea-toolbar"
-                                    style="padding: 8px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; gap: 8px;">
-                                    <button id="uploadImageBtn" class="btn btn-glass"
-                                        style="padding: 5px 10px; font-size: 0.7rem;">🖼️ Insert Media</button>
-                                    <button id="uploadEmbedBtn" class="btn btn-glass"
-                                        style="padding: 5px 10px; font-size: 0.7rem;">📸 Discord Image</button>
-                                    <input type="file" id="imageInput" style="display: none;" accept="image/*,video/*">
-                                    <input type="file" id="embedInput" style="display: none;" accept="image/*">
-                                </div>
-                                <textarea id="pasteContent" placeholder="Enter source code or markdown payload..."
-                                    class="neon-textarea" style="border: none !important;"></textarea>
-                            </div>
+                        <div class="matrix-sync">
+                            <span class="sync-dot"></span>
+                            <span class="sync-text">MAP SYNCED</span>
                         </div>
                     </div>
-                    <div class="editor-sidebar">
-                        <div class="config-panel">
-                            <div class="input-container">
-                                <label>Access Password</label>
-                                <input type="password" id="pastePassword" placeholder="Optional Lock" class="neon-input"
-                                    style="margin-bottom: 10px;">
+                    <div class="map-container-v3">
+                        <div id="mainHeatmap" class="map-frame"></div>
+                        <div class="map-overlay-v3">
+                            <div class="overlay-row">
+                                <span class="pulse-indicator"></span>
+                                <span class="overlay-title">SYSTEM MONITOR</span>
                             </div>
-                            <div class="input-container">
-                                <label>Embed Override</label>
-                                <input type="text" id="embedUrl" placeholder="Direct Image URL" class="neon-input">
-                            </div>
-                            <div class="toggle-list">
-                                <label class="neon-toggle">
-                                    <input type="checkbox" id="burnAfterRead">
-                                    <span class="slider"></span>
-                                    <span>Self-Destruct</span>
-                                </label>
-                                <label class="neon-toggle" style="margin-top: 10px;">
-                                    <input type="checkbox" id="isPublic" checked>
-                                    <span class="slider"></span>
-                                    <span>Public</span>
-                                </label>
-                            </div>
+                            <div id="packetCounter" class="overlay-sub">IDLE</div>
                         </div>
-                        <button id="createPasteBtn" class="btn btn-primary-neon">Deploy Payload</button>
+                    </div>
+                </div>
+
+                <div class="side-module-stack">
+                    <div class="side-module glass-card">
+                        <div class="card-header">
+                            <span class="card-label">CHARGE STATISTICS</span>
+                        </div>
+                        <div class="chart-wrapper-v3">
+                            <canvas id="trafficChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="side-module glass-card" style="margin-top: 25px;">
+                        <div class="card-header">
+                            <span class="card-label">ACTIVE PAYLOAD NODES</span>
+                        </div>
+                        <div id="topPastesList" class="payload-nodes-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bottom Section: Detailed Intelligence -->
+            <section class="content-grid-bottom">
+                <div class="intel-module glass-card">
+                    <div class="card-header">
+                        <span class="card-label">SYSTEM ARCHITECTURE</span>
+                    </div>
+                    <div id="browserList" class="intel-list-v3"></div>
+                </div>
+
+                <div class="intel-module glass-card">
+                    <div class="card-header">
+                        <span class="card-label">CARRIER NETWORK</span>
+                    </div>
+                    <div id="ispList" class="intel-list-v3"></div>
+                </div>
+
+                <div class="live-log-container glass-card">
+                    <div class="card-header">
+                        <span class="card-label">LIVE INTELLIGENCE STREAM</span>
+                    </div>
+                    <div class="log-table-wrapper-v3">
+                        <table class="log-table-v3">
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>ENDPOINT</th>
+                                    <th>LOCATION</th>
+                                    <th>ISP</th>
+                                    <th>IP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trafficLogBody"></tbody>
+                        </table>
                     </div>
                 </div>
             </section>
         </main>
-
-        <!-- Live Intelligence Stream -->
-        <section class="live-stream-section glass-card">
-            <div class="section-header">
-                <div class="matrix-title">
-                    <span class="matrix-label">LIVE INTELLIGENCE STREAM</span>
-                    <span class="matrix-sub">REAL-TIME TRAFFIC ANALYSIS</span>
-                </div>
-            </div>
-            <div class="log-table-wrapper">
-                <table class="log-table">
-                    <thead>
-                        <tr>
-                            <th>TIME</th>
-                            <th>ENDPOINT</th>
-                            <th>LOCATION</th>
-                            <th>ISP / NETWORK</th>
-                            <th>PLATFORM</th>
-                            <th>IP ADDRESS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="trafficLogBody">
-                        <!-- Loaded via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
     </div>
 
-    <!-- Modals -->
-    <div id="analyticsModal" class="modal">
-        <div class="modal-content modal-large">
-            <div id="analyticsContent"></div>
-            <button onclick="document.getElementById('analyticsModal').classList.remove('active')" class="btn"
-                style="margin-top: 20px;">Close</button>
-        </div>
-    </div>
-
-    <div id="accessModal" class="modal">
-        <div class="modal-content">
-            <div class="matrix-header">
-                <div class="matrix-title">
-                    <span class="matrix-label">SECURE KEYS</span>
-                    <span class="matrix-sub">ACCESS PRIVILEGE MANAGEMENT</span>
+    <!-- Edit/Editor Section (Hidden by default, triggered by JS) -->
+    <div id="editorOverlay" class="editor-overlay">
+        <div class="editor-modal glass-card">
+            <div class="modal-header">
+                <h2>DEPLOY CONTENT</h2>
+                <button id="closeEditorBtn" class="close-btn">&times;</button>
+            </div>
+            <!-- Editor implementation inside the modal -->
+            <div class="editor-grid">
+                <div class="editor-main">
+                    <input type="text" id="pasteTitle" placeholder="Payload Title" class="energ-input">
+                    <div class="input-row">
+                        <select id="pasteLanguage" class="energ-select"></select>
+                        <select id="pasteExpiration" class="energ-select">
+                            <option value="never">Permanent</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="1d">1 Day</option>
+                        </select>
+                    </div>
+                    <textarea id="pasteContent" placeholder="Payload data..." class="energ-textarea"></textarea>
                 </div>
-            </div>
-            <div id="keyList" class="intel-list" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
-            <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;">
-                <input type="text" id="generatedKey" readonly class="neon-input"
-                    style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
-                <div style="display: flex; gap: 10px;">
-                    <button id="generateKeyBtn" class="btn-primary-neon" style="flex: 1; padding: 12px;">Generate New
-                        Key</button>
-                    <button id="copyKeyBtn" class="btn btn-glass">Copy</button>
+                <div class="editor-side">
+                    <button id="createPasteBtn" class="btn-gradient">DEPLOY PAYLOAD</button>
+                    <button id="clearBtn" class="btn-outline">CLEAR</button>
                 </div>
-            </div>
-            <button onclick="document.getElementById('accessModal').classList.remove('active')" class="btn btn-glass"
-                style="margin-top: 25px; width: 100%; justify-content: center;">Close Console</button>
-        </div>
-    </div>
-
-    <div id="folderModal" class="modal">
-        <div class="modal-content">
-            <div class="matrix-header">
-                <div class="matrix-title">
-                    <span class="matrix-label">FOLDERS</span>
-                    <span class="matrix-sub">LOGICAL GROUPING</span>
-                </div>
-            </div>
-            <div id="folderList" class="intel-list" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <input type="text" id="newFolderName" placeholder="New Folder Name" class="neon-input">
-                <button id="addFolderBtn" class="btn btn-glass">Add</button>
-            </div>
-            <button onclick="document.getElementById('folderModal').classList.remove('active')" class="btn btn-glass"
-                style="margin-top: 20px; width: 100%; justify-content: center;">Close</button>
-        </div>
-    </div>
-
-    <div id="usersModal" class="modal">
-        <div class="modal-content modal-large">
-            <div class="matrix-header">
-                <div class="matrix-title">
-                    <span class="matrix-label">OPERATORS</span>
-                    <span class="matrix-sub">USER PRIVILEGE AUDIT</span>
-                </div>
-            </div>
-            <div class="detail-list" style="margin-top: 20px;">
-                <table class="log-table">
-                    <thead>
-                        <tr>
-                            <th>ID / DISCORD</th>
-                            <th>JOINED</th>
-                            <th>LAST ACTIVE</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersList"></tbody>
-                </table>
-            </div>
-            <button onclick="document.getElementById('usersModal').classList.remove('active')" class="btn btn-glass"
-                style="margin-top: 20px;">Close Audit</button>
-        </div>
-    </div>
-
-    <div id="successModal" class="modal">
-        <div class="modal-content" style="text-align: center;">
-            <div class="sync-dot"
-                style="width: 50px; height: 50px; margin: 0 auto 20px; background: #00ff88; box-shadow: 0 0 20px #00ff88;">
-            </div>
-            <h2 style="color: var(--primary); margin-bottom: 10px;">DEPLOYMENT SUCCESSFUL</h2>
-            <p style="color: var(--text-dim); margin-bottom: 25px;">The payload has been propagated to all nodes.</p>
-            <input type="text" id="pasteUrl" readonly class="neon-input"
-                style="text-align: center; margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px;">
-                <button id="copyUrlBtn" class="btn btn-primary-neon" style="flex: 1;">Copy Link</button>
-                <button onclick="document.getElementById('successModal').classList.remove('active')"
-                    class="btn btn-glass">Dismiss</button>
             </div>
         </div>
     </div>
 
-    <script src="../shared/api.js?v=8"></script>
-    <script src="app.js?v=8"></script>
+    <!-- Base Dependencies -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../shared/api.js?v=11"></script>
+    <script src="app.js?v=11"></script>
 </body>
 
 </html>
