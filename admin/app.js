@@ -71,6 +71,13 @@ async function loadGlobalAnalytics() {
         if (els.activeVisitors) els.activeVisitors.textContent = `${data.activeNow || 0} Active Visitors`;
 
         updateMainMap(data.locations || []);
+        updateClusterSummary(data.locations || []);
+
+        // Packet counter animation
+        const packetEl = document.getElementById('packetCounter');
+        if (packetEl) {
+            packetEl.textContent = `SYNCING ${data.totalVisits % 50 + 10} PACKETS...`;
+        }
     } catch (e) {
         console.error('Analytics load failed:', e);
     }
@@ -115,17 +122,35 @@ function updateMainMap(locations) {
         const lon = parseFloat(loc.lon);
 
         if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.circleMarker([lat, lon], {
-                radius: 8 + Math.log(loc.count || 1) * 4,
-                fillColor: '#ff006e',
-                color: '#fff',
-                weight: 1,
-                opacity: 0.9,
-                fillOpacity: 0.6
+            // Outer Ring (Surveillance Style)
+            const ring = L.circleMarker([lat, lon], {
+                radius: 12 + Math.log(loc.count || 1) * 8,
+                fillColor: '#7b42ff',
+                color: '#7b42ff',
+                weight: 2,
+                opacity: 0.4,
+                fillOpacity: 0.2
             }).addTo(mainMap);
 
-            marker.bindPopup(`<b>${loc.city}</b><br>Hits: ${loc.count}`);
-            mainMapMarkers.push(marker);
+            // Center Dot
+            const dot = L.circleMarker([lat, lon], {
+                radius: 3,
+                fillColor: '#fff',
+                color: '#fff',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 1
+            }).addTo(mainMap);
+
+            const popup = `
+                <div style="background:#0a0a0f; color:#fff; padding:10px; border-radius:8px; border:1px solid #7b42ff;">
+                    <strong style="color:#7b42ff; letter-spacing:1px;">NODE: ${loc.city.toUpperCase()}</strong><br>
+                    <span style="opacity:0.7; font-size:11px;">TRAFFIC IMPACT: ${loc.count}</span>
+                </div>
+            `;
+
+            ring.bindPopup(popup);
+            mainMapMarkers.push(ring, dot);
         }
     });
 
@@ -135,6 +160,44 @@ function updateMainMap(locations) {
         mainMap.fitBounds(group.getBounds().pad(0.1));
         mainMap._fitted = true;
     }
+}
+
+function updateClusterSummary(locations) {
+    const clusterGrid = document.getElementById('clusterGrid');
+    if (!clusterGrid) return;
+
+    // Group by Country Code or Region for "Clusters"
+    const clusters = {};
+    locations.forEach(loc => {
+        const key = loc.countryCode || 'UN';
+        if (!clusters[key]) {
+            clusters[key] = { count: 0, label: loc.country || 'Unknown' };
+        }
+        clusters[key].count += loc.count;
+    });
+
+    // Sort by count and take top 5
+    const topClusters = Object.entries(clusters)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 5);
+
+    const maxCount = topClusters.length > 0 ? topClusters[0][1].count : 1;
+
+    clusterGrid.innerHTML = topClusters.map(([code, data]) => `
+        <div class="cluster-item">
+            <div class="cluster-name">
+                <span class="code">${code}</span>
+                <span class="label">${data.label.toUpperCase()} CLUSTER</span>
+            </div>
+            <div class="cluster-impact">
+                <span class="impact-val">${data.count}</span>
+                <span class="impact-label">IMPACT</span>
+            </div>
+            <div class="cluster-bar">
+                <div class="cluster-bar-fill" style="width: ${(data.count / maxCount) * 100}%"></div>
+            </div>
+        </div>
+    `).join('');
 }
 
 async function loadPasteList(query = '') {

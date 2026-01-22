@@ -60,16 +60,45 @@
                 </div>
             </div>
 
-            <!-- Heatmap Container -->
+            <!-- Global Traffic Matrix (Surveillance Theme) -->
             <div class="heatmap-container glass-card">
-                <div class="heatmap-header">
-                    <h3>Visitor Distribution Heatmap</h3>
-                    <div class="heatmap-legend">
-                        <span class="legend-item"><span class="dot pink"></span> High Traffic</span>
-                        <span class="legend-item"><span class="dot blue"></span> Recent Activity</span>
+                <div class="matrix-header">
+                    <div class="matrix-title">
+                        <span class="matrix-label">GLOBAL TRAFFIC MATRIX</span>
+                        <span class="matrix-sub">LIVE NODE DEPLOYMENT</span>
+                    </div>
+                    <div class="matrix-status">
+                        <span class="sync-badge">
+                            <span class="sync-dot"></span>
+                            MAP SYNCHRONIZED
+                        </span>
+                        <div class="globe-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="2" y1="12" x2="22" y2="12"></line>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
+                            </svg>
+                        </div>
                     </div>
                 </div>
-                <div id="mainHeatmap" class="map-frame"></div>
+
+                <div class="map-wrapper">
+                    <div id="mainHeatmap" class="map-frame"></div>
+                    <div class="map-overlay-box">
+                        <div class="overlay-row">
+                            <span class="overlay-dot pulse-purple"></span>
+                            <span class="overlay-text">LIVE SURVEILLANCE</span>
+                        </div>
+                        <div id="packetCounter" class="overlay-sub">SYNCING 0 PACKETS...</div>
+                    </div>
+                </div>
+
+                <div id="clusterGrid" class="cluster-summary-grid">
+                    <!-- Dynamically populated Cluster items -->
+                </div>
             </div>
         </section>
 
