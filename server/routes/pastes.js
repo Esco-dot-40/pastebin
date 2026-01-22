@@ -56,7 +56,7 @@ const validateAccessKey = (key) => {
 };
 
 // ==========================================
-// ANALYTICS ROUTES (Must be before /:id)
+// ANALYTICS / ADMIN UTILS (Must be first)
 // ==========================================
 
 router.get('/analytics/top-cities', requireAuth, (req, res) => {
@@ -81,6 +81,26 @@ router.delete('/analytics/all', requireAuth, (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+router.delete('/analytics/city/:cityName', requireAuth, (req, res) => {
+    try {
+        const { cityName } = req.params;
+        const v = db.prepare('DELETE FROM paste_views WHERE city = ?').run(cityName);
+        const r = db.prepare('DELETE FROM paste_reactions WHERE city = ?').run(cityName);
+        const p = db.prepare('DELETE FROM page_accesses WHERE city = ?').run(cityName);
+        res.json({ success: true, deleted: { views: v.changes, reactions: r.changes, pageAccesses: p.changes } });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.delete('/analytics/isp/:ispName', requireAuth, (req, res) => {
+    try {
+        const { ispName } = req.params;
+        const v = db.prepare('DELETE FROM paste_views WHERE isp = ?').run(ispName);
+        const r = db.prepare('DELETE FROM paste_reactions WHERE isp = ?').run(ispName);
+        const p = db.prepare('DELETE FROM page_accesses WHERE isp = ?').run(ispName);
+        res.json({ success: true, deleted: { views: v.changes, reactions: r.changes, pageAccesses: p.changes } });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/analytics', requireAuth, (req, res) => {
     try {
         const pasteViews = db.prepare('SELECT * FROM paste_views').all();
@@ -100,8 +120,18 @@ router.get('/analytics', requireAuth, (req, res) => {
             return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
         };
 
+        const ipCounts = {}; allHits.forEach(h => { ipCounts[h.ip] = (ipCounts[h.ip] || 0) + 1; });
+        const newVisitors = Object.values(ipCounts).filter(c => c === 1).length;
+        const returningVisitors = Object.values(ipCounts).filter(c => c > 1).length;
+
+        // Devices
+        const touchDevices = allHits.filter(h => {
+            const ua = h.userAgent || '';
+            return ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone') || ua.includes('iPad');
+        }).length;
+
         res.json({
-            totalVisits, uniqueVisitors, activeNow, uniqueLocations,
+            totalVisits, uniqueVisitors, activeNow, uniqueLocations, newVisitors, returningVisitors,
             platforms: groupCount(allHits, h => {
                 const ua = h.userAgent || '';
                 if (ua.includes('Windows')) return 'Windows';
@@ -126,12 +156,21 @@ router.get('/analytics', requireAuth, (req, res) => {
                 return acc;
             }, {})),
             isps: groupCount(allHits, h => h.isp),
+            devices: { touchCount: touchDevices, desktopCount: allHits.length - touchDevices },
+            referrers: groupCount(allHits, h => { if (!h.referrer) return 'Direct'; try { return new URL(h.referrer).hostname; } catch (e) { return 'Other'; } }),
             recentViews: pasteViews.slice(-50).reverse(),
-            pageAccesses: {
-                total: pageAccesses.length,
-                recent: pageAccesses.slice(-50).reverse()
-            }
+            recentReactions: allReactions.slice(0, 50),
+            pageAccesses: { total: pageAccesses.length, byPage: groupCount(pageAccesses, p => p.path).slice(0, 20), recent: pageAccesses.slice(-50).reverse() }
         });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+router.get('/stats/summary', requireAuth, (req, res) => {
+    try {
+        const totalPastes = db.prepare('SELECT COUNT(*) as count FROM pastes').get().count;
+        const totalViews = db.prepare('SELECT SUM(views) as total FROM pastes').get().total || 0;
+        const totalReactions = db.prepare('SELECT COUNT(*) as count FROM paste_reactions').get().count;
+        res.json({ totalPastes, totalViews, totalReactions });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -139,77 +178,108 @@ router.get('/analytics', requireAuth, (req, res) => {
 // CORE CRUD
 // ==========================================
 
+router.get('/', requireAuth, (req, res) => {
+    const list = db.prepare('SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
+    res.json(list);
+});
+
 router.get('/public-list', (req, res) => {
-    try {
-        const isAdmin = req.session && req.session.isAdmin;
-        const hasAccess = validateAccessKey(req.headers['x-access-key']) || isAdmin;
-        let query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE ${hasAccess ? '1=1' : 'p.isPublic = 1'} ORDER BY p.createdAt DESC`;
-        const list = db.prepare(query).all();
-        res.json(list.map(p => ({ ...p, hasPassword: !!p.password, password: undefined })));
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    const isAdmin = req.session && req.session.isAdmin;
+    const hasAccess = validateAccessKey(req.headers['x-access-key']) || isAdmin;
+    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE ${hasAccess ? '1=1' : 'p.isPublic = 1'} ORDER BY p.createdAt DESC`;
+    const list = db.prepare(query).all();
+    res.json(list.map(p => ({ ...p, hasPassword: !!p.password, password: undefined })));
 });
 
 router.post('/', requireAuth, async (req, res) => {
-    try {
-        const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
-        const id = generateId();
-        db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null);
-        res.status(201).json({ id, success: true });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
+    const id = generateId();
+    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null);
+    res.status(201).json({ id, success: true });
 });
 
-router.get('/stats/summary', requireAuth, (req, res) => {
-    const totalPastes = db.prepare('SELECT COUNT(*) as count FROM pastes').get().count;
-    const totalViews = db.prepare('SELECT SUM(views) as total FROM pastes').get().total || 0;
-    res.json({ totalPastes, totalViews });
-});
-
-router.get('/:id', async (req, res) => {
-    try {
-        const paste = db.prepare('SELECT * FROM pastes WHERE id = ?').get(req.params.id);
-        if (!paste) return res.status(404).json({ error: 'Not found' });
-
-        if (paste.password && (req.headers['x-paste-password'] || req.query.password) !== paste.password && !(req.session && req.session.isAdmin && req.query.track === 'false')) {
-            return res.status(401).json({ error: 'Password required', passwordRequired: true });
-        }
-
-        db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
-        const isAdmin = req.session && req.session.isAdmin;
-        if (!isAdmin || process.env.LOG_ADMINS === 'true') {
-            const ip = getClientIP(req);
-            fetchGeolocation(ip).then(loc => {
-                const q = loc ? `INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` : `INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`;
-                const params = loc ? [req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, req.headers['user-agent']] : [req.params.id, ip, req.headers['user-agent']];
-                const res2 = db.prepare(q).run(...params);
-                updateHostname('paste_views', res2.lastInsertRowid, ip);
-            }).catch(() => { });
-        }
-        res.json(paste);
-    } catch (e) { res.status(500).json({ error: e.message }); }
-});
-
-router.get('/:id/analytics', requireAuth, (req, res) => {
-    try {
-        const paste = db.prepare('SELECT views FROM pastes WHERE id = ?').get(req.params.id);
-        if (!paste) return res.status(404).json({ error: 'Not found' });
-        const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
-        const groupCount = (arr, keyFn) => {
-            const map = {};
-            arr.forEach(item => { const k = keyFn(item); if (k) { if (!map[k]) map[k] = { name: k, count: 0 }; map[k].count++; } });
-            return Object.values(map).sort((a, b) => b.count - a.count);
-        };
-        res.json({
-            totalViews: paste.views,
-            uniqueIPs: new Set(views.map(v => v.ip)).size,
-            topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10),
-            topISPs: groupCount(views, v => v.isp).slice(0, 10),
-            recentViews: views.slice(0, 50)
-        });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+router.put('/:id', requireAuth, async (req, res) => {
+    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
+    db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=?, embedUrl=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, embedUrl, req.params.id);
+    res.json({ success: true });
 });
 
 router.delete('/:id', requireAuth, (req, res) => {
     db.prepare('DELETE FROM pastes WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+// ==========================================
+// PASTE ACTIONS
+// ==========================================
+
+router.get('/:id', async (req, res) => {
+    const paste = db.prepare('SELECT * FROM pastes WHERE id = ?').get(req.params.id);
+    if (!paste) return res.status(404).json({ error: 'Not found' });
+    if (paste.password && (req.headers['x-paste-password'] || req.query.password) !== paste.password && !(req.session && req.session.isAdmin && req.query.track === 'false')) {
+        return res.status(401).json({ error: 'Password required', passwordRequired: true });
+    }
+    db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
+    if (!(req.session && req.session.isAdmin) || process.env.LOG_ADMINS === 'true') {
+        const ip = getClientIP(req); const ua = req.headers['user-agent'];
+        fetchGeolocation(ip).then(loc => {
+            const res2 = loc ? db.prepare(`INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, ua)
+                : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
+            updateHostname('paste_views', res2.lastInsertRowid, ip);
+        }).catch(() => { });
+    }
+    res.json(paste);
+});
+
+router.post('/:id/react', async (req, res) => {
+    if (!req.session?.user) return res.status(401).json({ error: 'Auth Required' });
+    const { type } = req.body; const ip = getClientIP(req); const user = req.session.user;
+    const loc = await fetchGeolocation(ip); const geo = loc || {};
+    const result = db.prepare(`INSERT INTO paste_reactions (pasteId, type, ip, city, country, isp, userAgent, userId, username, avatarUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, type, ip, geo.city, geo.country, geo.isp, req.headers['user-agent'], user.id, user.username, user.avatarUrl);
+    updateHostname('paste_reactions', result.lastInsertRowid, ip);
+    res.json({ success: true });
+});
+
+router.get('/:id/analytics', requireAuth, (req, res) => {
+    const paste = db.prepare('SELECT views FROM pastes WHERE id = ?').get(req.params.id);
+    if (!paste) return res.status(404).json({ error: 'Not found' });
+    const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
+    const groupCount = (arr, keyFn) => { const map = {}; arr.forEach(item => { const k = keyFn(item); if (k) { if (!map[k]) map[k] = { name: k, count: 0 }; map[k].count++; } }); return Object.values(map).sort((a, b) => b.count - a.count); };
+    res.json({ totalViews: paste.views, uniqueIPs: new Set(views.map(v => v.ip)).size, topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10), topISPs: groupCount(views, v => v.isp).slice(0, 10), recentViews: views.slice(0, 50) });
+});
+
+router.delete('/:id/analytics', requireAuth, (req, res) => {
+    db.prepare('DELETE FROM paste_views WHERE pasteId = ?').run(req.params.id);
+    db.prepare('UPDATE pastes SET views = 0 WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+router.post('/:id/reset-views', requireAuth, (req, res) => {
+    db.prepare('UPDATE pastes SET views = 0 WHERE id = ?').run(req.params.id);
+    res.json({ success: true });
+});
+
+router.put('/:id/views', requireAuth, (req, res) => {
+    db.prepare('UPDATE pastes SET views = ? WHERE id = ?').run(req.body.views, req.params.id);
+    res.json({ success: true });
+});
+
+router.put('/:id/reactions/:type', requireAuth, (req, res) => {
+    const { id, type } = req.params; const { count } = req.body;
+    db.prepare('DELETE FROM paste_reactions WHERE pasteId = ? AND type = ?').run(id, type);
+    const stmt = db.prepare(`INSERT INTO paste_reactions (pasteId, type, ip, userId, username) VALUES (?, ?, ?, ?, ?)`);
+    for (let i = 0; i < count; i++) stmt.run(id, type, '0.0.0.0', 'admin-synthetic', 'Admin');
+    res.json({ success: true });
+});
+
+router.delete('/:id/react/:type', requireAuth, (req, res) => {
+    const last = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND type = ? ORDER BY createdAt DESC LIMIT 1').get(req.params.id, req.params.type);
+    if (last) db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(last.id);
+    res.json({ success: true });
+});
+
+router.delete('/reactions/:id', requireAuth, (req, res) => {
+    db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(req.params.id);
     res.json({ success: true });
 });
 
