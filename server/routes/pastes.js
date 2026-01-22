@@ -216,9 +216,20 @@ router.delete('/:id', requireAuth, (req, res) => {
 router.get('/:id', async (req, res) => {
     const paste = db.prepare('SELECT * FROM pastes WHERE id = ?').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
-    if (paste.password && (req.headers['x-paste-password'] || req.query.password) !== paste.password && !(req.session && req.session.isAdmin && req.query.track === 'false')) {
+
+    const isAdmin = req.session && req.session.isAdmin;
+    const hasAccessKey = validateAccessKey(req.headers['x-access-key']);
+    const isAuthorized = isAdmin || hasAccessKey;
+
+    // Check Privacy Access
+    if (paste.isPublic === 0 && !isAuthorized) {
+        return res.status(403).json({ error: 'This paste is private. Authorized access only.' });
+    }
+
+    if (paste.password && (req.headers['x-paste-password'] || req.query.password) !== paste.password && !(isAdmin && req.query.track === 'false')) {
         return res.status(401).json({ error: 'Password required', passwordRequired: true });
     }
+
     db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
     if (!(req.session && req.session.isAdmin) || process.env.LOG_ADMINS === 'true') {
         const ip = getClientIP(req); const ua = req.headers['user-agent'];

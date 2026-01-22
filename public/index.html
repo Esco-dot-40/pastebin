@@ -15,6 +15,7 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <link rel="stylesheet" href="/public/loader.css?v=6">
+    <link rel="stylesheet" href="/public/design-refresh.css">
     <script src="/shared/api.js?v=6"></script>
 
     <script type="importmap">
@@ -1601,36 +1602,31 @@
 
                     let html = '';
 
-                    const renderCard = (p) => `
-                        <li onclick="navigateTo('/v/${p.id}')" class="${p.isPrivate ? 'private-card' : ''}">
-                            <div class="accent-line"></div>
-                            <div class="card-content">
-                                <h3>${p.title || 'Untitled'}</h3>
-                                <div class="card-meta">
-                                    <span>📝 ${p.language}</span>
-                                    ${p.isPrivate ? '<span>🔒 Private</span>' : '<span>🌍 Public</span>'}
-                                    <span>👁️ ${p.views || 0} views</span>
-                                    <span>📅 ${new Date(p.createdAt).toLocaleDateString()}</span>
-                                    <div class="card-reactions" style="display: flex; gap: 8px; margin-left: auto;">
-                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('heart', '${p.id}')">❤️ ${p.hearts || 0}</button>
-                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('star', '${p.id}')">⭐ ${p.stars || 0}</button>
-                                        <button class="reaction-btn-mini" onclick="event.stopPropagation(); window.handleReaction('like', '${p.id}')">👍 ${p.likes || 0}</button>
-                                    </div>
+                    const renderCard = (p) => {
+                        const thumb = p.embedUrl || '/public/preview.png';
+                        return `
+                        <div onclick="navigateTo('/v/${p.id}')" class="product-card">
+                            <img src="${thumb}" class="product-card-image" alt="${p.title}">
+                            <div class="product-card-info">
+                                <span class="product-tag">${p.isPublic === 0 ? '🔒 Private' : '🌍 Public'}</span>
+                                <h3 class="product-title">${p.title || 'Untitled'}</h3>
+                                <div class="product-meta">
+                                    <span>${p.language.toUpperCase()}</span>
+                                    <span>•</span>
+                                    <span>${p.views || 0} PROPAGATIONS</span>
                                 </div>
-                                <div class="card-preview-text">
-                                    ${p.content ? p.content.substring(0, 300).replace(/</g, '&lt;') : 'No preview available'}
-                                </div>
+                                <div class="product-btn">Access Intelligence</div>
                             </div>
-                        </li>
-                    `;
+                        </div>
+                    `};
 
                     if (noFolder.length > 0) {
                         html += `
                             <div class="folder-section">
-                                <h2 class="folder-header">📁 Uncategorized</h2>
-                                <ul class="cards">
+                                <h2 class="folder-header">🌍 PRIMARY NETWORK</h2>
+                                <div class="product-grid">
                                     ${noFolder.map(p => renderCard(p)).join('')}
-                                </ul>
+                                </div>
                             </div>
                         `;
                     }
@@ -1638,10 +1634,10 @@
                     for (const [name, items] of Object.entries(folders)) {
                         html += `
                             <div class="folder-section">
-                                <h2 class="folder-header">📁 ${name}</h2>
-                                <ul class="cards">
+                                <h2 class="folder-header">📁 ${name.toUpperCase()}</h2>
+                                <div class="product-grid">
                                     ${items.map(p => renderCard(p)).join('')}
-                                </ul>
+                                </div>
                             </div>
                         `;
                     }
@@ -1649,12 +1645,13 @@
                     const listViewContainer = document.getElementById('listView');
                     if (listViewContainer) {
                         listViewContainer.innerHTML = `
-                            <div class="folder-container" style="padding: 2.5rem; max-width: 1200px; margin: 0 auto;">
-                                ${html}
+                            <div class="category-tabs">
+                                <div class="category-tab active">GLOBAL STREAM</div>
+                                <div class="category-tab">TRENDING</div>
+                                <div class="category-tab">ENCRYPTED</div>
                             </div>
-                            <div class="actions">
-                                <button class="nav-btn prev" onclick="window.scrollBy({top: -300, behavior: 'smooth'})">&uarr; Scroll Up</button>
-                                <button class="nav-btn next" onclick="window.scrollBy({top: 300, behavior: 'smooth'})">&darr; Scroll Down</button>
+                            <div class="folder-container" style="padding: 2.5rem; max-width: 1400px; margin: 0 auto;">
+                                ${html}
                             </div>
                         `;
                     }
