@@ -271,6 +271,51 @@ if (!window.PasteAPI) {
             }
         }
 
+        // ACCESS KEY METHODS
+        async getAllAccessKeys() {
+            try {
+                const response = await fetch(`${this.apiUrl}/access/keys`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch keys');
+                return await response.json();
+            } catch (e) {
+                console.error('Error getting keys:', e);
+                return [];
+            }
+        }
+
+        async generateAccessKey() {
+            try {
+                const response = await fetch(`${this.apiUrl}/access/generate`, { method: 'POST', credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to generate key');
+                return await response.json();
+            } catch (e) {
+                console.error('Error generating key:', e);
+                throw e;
+            }
+        }
+
+        async revokeAccessKey(id) {
+            try {
+                const response = await fetch(`${this.apiUrl}/access/keys/${id}`, { method: 'DELETE', credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to revoke key');
+                return await response.json();
+            } catch (e) {
+                console.error('Error revoking key:', e);
+                throw e;
+            }
+        }
+
+        async getAllUsers() {
+            try {
+                const response = await fetch(`${this.apiUrl}/access/users`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to fetch users');
+                return await response.json();
+            } catch (e) {
+                console.error('Error getting users:', e);
+                return [];
+            }
+        }
+
         // IMAGE METHODS
         async uploadImage(file) {
             try {

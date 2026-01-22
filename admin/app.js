@@ -6,6 +6,7 @@ let mainMap = null;
 let mainMapMarkers = [];
 let globalAnalyticsData = null;
 let trafficChart = null;
+let currentTab = 'overview';
 
 // Elements
 const els = {
@@ -16,8 +17,17 @@ const els = {
     browserList: document.getElementById('browserList'),
     ispList: document.getElementById('ispList'),
     trafficLogBody: document.getElementById('trafficLogBody'),
-    clusterGrid: document.getElementById('clusterGrid'),
     packetCounter: document.getElementById('packetCounter'),
+    // Tab Specific
+    fullNodesBody: document.getElementById('fullNodesBody'),
+    accessKeyList: document.getElementById('accessKeyList'),
+    adminUsersList: document.getElementById('adminUsersList'),
+    browserDetailList: document.getElementById('browserDetailList'),
+    ispDetailList: document.getElementById('ispDetailList'),
+    referrerList: document.getElementById('referrerList'),
+    tabTitle: document.getElementById('tabTitle'),
+    tabSub: document.getElementById('tabSub'),
+    generateKeyBtn: document.getElementById('generateKeyBtn'),
     // Editor references
     editorOverlay: document.getElementById('editorOverlay'),
     pasteTitle: document.getElementById('pasteTitle'),
@@ -46,6 +56,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Initial data load
     await loadGlobalAnalytics();
+    await loadTabDedicatedData();
 
     // Leaflet Init
     setTimeout(initMainMap, 100);
@@ -76,7 +87,7 @@ async function loadGlobalAnalytics() {
         updateTopPastes(data.pageAccesses?.byPage || []);
         updateTrafficChart(data);
 
-        // Populate Intel
+        // Populate Intel (Overview)
         populateIntelList('browserList', data.browsers || []);
         populateIntelList('ispList', data.isps || []);
 
@@ -90,9 +101,17 @@ async function loadGlobalAnalytics() {
             els.packetCounter.textContent = `SYNCING ${data.totalVisits % 25 + 5} PACKETS...`;
         }
 
+        // Populate Network Tab Data if active
+        if (currentTab === 'network') populateNetworkTab(data);
+
     } catch (e) {
         console.error('Data sync failed:', e);
     }
+}
+
+async function loadTabDedicatedData() {
+    if (currentTab === 'active') await populateActiveNodes();
+    if (currentTab === 'security') await populateSecurityTab();
 }
 
 function initMainMap() {
@@ -163,7 +182,7 @@ function initChart() {
             labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
             datasets: [{
                 label: 'System Load',
-                data: [45, 12, 67, 34, 89, 56, 23], // Placeholder till we have historical
+                data: [45, 12, 67, 34, 89, 56, 23],
                 backgroundColor: 'rgba(139, 92, 246, 0.5)',
                 borderWidth: 0,
                 borderRadius: 8,
@@ -184,7 +203,6 @@ function initChart() {
 
 function updateTrafficChart(data) {
     if (!trafficChart) return;
-    // Map browsers to the chart for visual variety if real history isn't ready
     const counts = (data.browsers || []).map(b => b.count).slice(0, 7);
     if (counts.length > 0) {
         trafficChart.data.datasets[0].data = counts;
@@ -195,10 +213,7 @@ function updateTrafficChart(data) {
 function updateTopPastes(pages) {
     const container = document.getElementById('topPastesList');
     if (!container) return;
-
-    // Filter out root/admin paths
     const filtered = pages.filter(p => p.name.startsWith('/v/') || p.name.includes('paste')).slice(0, 5);
-
     container.innerHTML = filtered.map(p => `
         <div class="payload-node-item" onclick="window.open('${p.name}', '_blank')">
             <div class="node-info">
@@ -210,22 +225,10 @@ function updateTopPastes(pages) {
     `).join('') || '<div style="opacity:0.2; padding:20px; text-align:center;">NO NODES ACTIVE</div>';
 }
 
-function updateClusterSummary(locations) {
-    if (!els.clusterGrid) return;
-    const sorted = locations.sort((a, b) => b.count - a.count).slice(0, 4);
-
-    els.clusterGrid.innerHTML = sorted.map(loc => `
-        <div class="cluster-row">
-            <span class="label">${loc.city.toUpperCase()} NODE</span>
-            <span class="val">${loc.count}</span>
-        </div>
-    `).join('') || '<div class="cluster-row"><span class="label">NO NODES ACTIVE</span></div>';
-}
-
 function populateIntelList(id, items) {
-    const container = document.getElementById(id);
+    const container = typeof id === 'string' ? document.getElementById(id) : id;
     if (!container) return;
-    container.innerHTML = items.slice(0, 5).map(item => `
+    container.innerHTML = items.slice(0, 8).map(item => `
         <div class="intel-item">
             <span class="name">${item.name.toUpperCase()}</span>
             <span class="count">${item.count}</span>
@@ -246,6 +249,70 @@ function populateTrafficLog(activity) {
     `).join('');
 }
 
+// TAB POPULATION LOGIC
+async function populateActiveNodes() {
+    if (!els.fullNodesBody) return;
+    try {
+        const pastes = await storage.getAllPastes();
+        els.fullNodesBody.innerHTML = pastes.map(p => `
+            <tr>
+                <td style="font-family:var(--font-mono); font-size:10px">${p.id}</td>
+                <td style="font-weight:700">${p.title}</td>
+                <td style="font-size:11px; color:var(--text-secondary)">${new Date(p.createdAt).toLocaleDateString()}</td>
+                <td style="color:var(--accent-purple); font-weight:800">${p.views}</td>
+                <td>
+                    <div style="display:flex; gap:10px">
+                        <button onclick="window.open('/v/${p.id}', '_blank')" class="btn-outline" style="padding:4px 10px; font-size:10px">VIEW</button>
+                        <button onclick="deleteNode('${p.id}')" class="btn-outline" style="padding:4px 10px; font-size:10px; border-color:#FF5E5E; color:#FF5E5E">DELETE</button>
+                    </div>
+                </td>
+            </tr>
+        `).join('') || '<tr><td colspan="5" style="text-align:center; opacity:0.3; padding:40px">NO_NODES_FOUND</td></tr>';
+    } catch (e) {
+        console.error('Failed to load nodes:', e);
+    }
+}
+
+async function populateSecurityTab() {
+    try {
+        // Access Keys
+        const keys = await storage.getAllAccessKeys();
+        if (els.accessKeyList) {
+            els.accessKeyList.innerHTML = keys.map(k => `
+                <div class="intel-item" style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.02)">
+                    <div style="display:flex; flex-direction:column">
+                        <span class="name" style="font-family:var(--font-mono); color:white">${k.key}</span>
+                        <span style="font-size:10px; color:var(--text-secondary)">${k.userEmail || 'UNCLAIMED'}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:15px">
+                        <span class="count" style="color:${k.status === 'active' ? 'var(--accent-green)' : '#FF5E5E'}">${k.status.toUpperCase()}</span>
+                        <button onclick="revokeKey('${k.id}')" class="btn-outline" style="padding:2px 8px; font-size:9px; border-color:#FF5E5E; color:#FF5E5E">REVOKE</button>
+                    </div>
+                </div>
+            `).join('') || '<span style="opacity:0.2">NO_KEYS_GENERATED</span>';
+        }
+
+        // Admin Users
+        const users = await storage.getAllUsers();
+        if (els.adminUsersList) {
+            els.adminUsersList.innerHTML = users.map(u => `
+                <div class="intel-item">
+                    <span class="name">${u.username || u.email}</span>
+                    <span class="count" style="color:var(--accent-purple)">${u.isAdmin ? 'ADMIN' : 'USER'}</span>
+                </div>
+            `).join('') || '<span style="opacity:0.2">NO_USERS_FOUND</span>';
+        }
+    } catch (e) {
+        console.error('Security tab error:', e);
+    }
+}
+
+function populateNetworkTab(data) {
+    populateIntelList(els.browserDetailList, data.browsers || []);
+    populateIntelList(els.ispDetailList, data.isps || []);
+    populateIntelList(els.referrerList, data.referrers || []);
+}
+
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     if (seconds < 60) return seconds + "s";
@@ -258,24 +325,56 @@ function timeAgo(date) {
 
 // Sidebar Navigation
 document.querySelectorAll('.nav-item').forEach(item => {
-    item.onclick = (e) => {
+    item.onclick = async (e) => {
         e.preventDefault();
+        const tab = item.dataset.tab;
+        currentTab = tab;
+
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
 
-        // Tab switching logic can go here
-        if (item.dataset.tab === 'active') {
-            // Option to show something else
-        }
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
+
+        // Update titles
+        if (tab === 'overview') { els.tabTitle.textContent = 'Energy Terminal'; els.tabSub.textContent = 'System-wide traffic monitoring and node propagation.'; }
+        if (tab === 'active') { els.tabTitle.textContent = 'Payload Repository'; els.tabSub.textContent = 'Inventory of all active content nodes.'; await populateActiveNodes(); }
+        if (tab === 'security') { els.tabTitle.textContent = 'Security Core'; els.tabSub.textContent = 'Management of access protocols and encryption keys.'; await populateSecurityTab(); }
+        if (tab === 'network') { els.tabTitle.textContent = 'Propagation Network'; els.tabSub.textContent = 'Detailed analysis of traffic carriers and origins.'; if (globalAnalyticsData) populateNetworkTab(globalAnalyticsData); }
     };
 });
+
+window.deleteNode = async (id) => {
+    if (!confirm(`WIPE NODE ${id}?`)) return;
+    await storage.deletePaste(id);
+    await populateActiveNodes();
+};
+
+// Key Management
+if (els.generateKeyBtn) {
+    els.generateKeyBtn.onclick = async () => {
+        try {
+            const res = await storage.generateAccessKey();
+            alert('NEW KEY PROPAGATED:\n' + res.key);
+            await populateSecurityTab();
+        } catch (e) { alert(e.message); }
+    };
+}
+
+window.revokeKey = async (id) => {
+    if (!confirm('TERMINATE ACCESS KEY?')) return;
+    try {
+        await storage.revokeAccessKey(id);
+        await populateSecurityTab();
+    } catch (e) { alert(e.message); }
+};
 
 // Logout
 if (document.getElementById('logoutBtn')) {
     document.getElementById('logoutBtn').onclick = async () => {
         if (!confirm('TERMINATE SESSION?')) return;
         await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/adminperm/login.html';
+        window.location.reload();
     };
 }
 
@@ -285,12 +384,9 @@ function toggleEditor(show = true) {
         show ? els.editorOverlay.classList.add('active') : els.editorOverlay.classList.remove('active');
     }
 }
+window.toggleEditor = toggleEditor;
 
 if (els.closeEditorBtn) els.closeEditorBtn.onclick = () => toggleEditor(false);
-
-// Allow opening editor with shortcut or just click (I should add a dedicated button if missing)
-// Adding a listener to any stat card as a temporary entry point or shortcut
-document.querySelector('.hero-stat-card').onclick = () => toggleEditor(true);
 
 if (els.createPasteBtn) {
     els.createPasteBtn.onclick = async () => {
@@ -305,6 +401,7 @@ if (els.createPasteBtn) {
             });
             alert('PAYLOAD PROPAGATED: ' + id);
             toggleEditor(false);
+            if (currentTab === 'active') await populateActiveNodes();
         } catch (e) { alert(e.message); }
     };
 }

@@ -61,8 +61,8 @@
             <!-- Header Section -->
             <header class="main-header">
                 <div class="header-titles">
-                    <h1>Energy Terminal</h1>
-                    <p class="header-sub">System-wide traffic monitoring and node propagation.</p>
+                    <h1 id="tabTitle">Energy Terminal</h1>
+                    <p id="tabSub" class="header-sub">System-wide traffic monitoring and node propagation.</p>
                 </div>
                 <div class="header-stats">
                     <div class="active-dot-pulse"></div>
@@ -70,128 +70,178 @@
                 </div>
             </header>
 
-            <!-- Hero Stats Row -->
-            <section class="stats-grid">
-                <div class="hero-stat-card glass-card">
-                    <div class="card-header">
-                        <span class="card-title">TOTAL PROPAGATION</span>
-                    </div>
-                    <div class="stat-main">
-                        <span id="totalHits" class="stat-value">0</span>
-                        <div class="stat-badge success">Live</div>
-                    </div>
-                </div>
-
-                <div class="hero-stat-card glass-card">
-                    <div class="card-header">
-                        <span class="card-title">UNIQUE NODES</span>
-                    </div>
-                    <div class="stat-main">
-                        <span id="uniqueReaders" class="stat-value">0</span>
-                    </div>
-                </div>
-
-                <div class="hero-stat-card glass-card">
-                    <div class="card-header">
-                        <span class="card-title">GEO FOOTPRINT</span>
-                    </div>
-                    <div class="stat-main">
-                        <span id="geoReach" class="stat-value">0</span>
-                    </div>
-                </div>
-
-                <div class="hero-stat-card glass-card">
-                    <div class="card-header">
-                        <span class="card-title">BATTERY HEALTH</span>
-                    </div>
-                    <div class="stat-main">
-                        <span class="stat-value">98<small>%</small></span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Mid Section: Charts & Map -->
-            <section class="content-grid-mid">
-                <div class="large-card glass-card">
-                    <div class="card-header-flex">
-                        <div class="title-group">
-                            <span class="card-label">GLOBAL TRAFFIC MATRIX</span>
-                            <span class="card-sub">NODE DEPLOYMENT VECTOR</span>
+            <!-- TAB: OVERVIEW -->
+            <div id="tab-overview" class="tab-pane active">
+                <!-- Hero Stats Row -->
+                <section class="stats-grid">
+                    <div class="hero-stat-card glass-card">
+                        <div class="card-header">
+                            <span class="card-title">TOTAL PROPAGATION</span>
                         </div>
-                        <div class="matrix-sync">
-                            <span class="sync-dot"></span>
-                            <span class="sync-text">MAP SYNCED</span>
+                        <div class="stat-main">
+                            <span id="totalHits" class="stat-value">0</span>
+                            <div class="stat-badge success">Live</div>
                         </div>
                     </div>
-                    <div class="map-container-v3">
-                        <div id="mainHeatmap" class="map-frame"></div>
-                        <div class="map-overlay-v3">
-                            <div class="overlay-row">
-                                <span class="pulse-indicator"></span>
-                                <span class="overlay-title">SYSTEM MONITOR</span>
+
+                    <div class="hero-stat-card glass-card">
+                        <div class="card-header">
+                            <span class="card-title">UNIQUE NODES</span>
+                        </div>
+                        <div class="stat-main">
+                            <span id="uniqueReaders" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-stat-card glass-card">
+                        <div class="card-header">
+                            <span class="card-title">GEO FOOTPRINT</span>
+                        </div>
+                        <div class="stat-main">
+                            <span id="geoReach" class="stat-value">0</span>
+                        </div>
+                    </div>
+
+                    <div class="hero-stat-card glass-card">
+                        <div class="card-header">
+                            <span class="card-title">BATTERY HEALTH</span>
+                        </div>
+                        <div class="stat-main">
+                            <span class="stat-value">98<small>%</small></span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Mid Section: Charts & Map -->
+                <section class="content-grid-mid">
+                    <div class="large-card glass-card">
+                        <div class="card-header-flex">
+                            <div class="title-group">
+                                <span class="card-label">GLOBAL TRAFFIC MATRIX</span>
+                                <span class="card-sub">NODE DEPLOYMENT VECTOR</span>
                             </div>
-                            <div id="packetCounter" class="overlay-sub">IDLE</div>
+                            <div class="matrix-sync">
+                                <span class="sync-dot"></span>
+                                <span class="sync-text">MAP SYNCED</span>
+                            </div>
+                        </div>
+                        <div class="map-container-v3">
+                            <div id="mainHeatmap" class="map-frame"></div>
+                            <div class="map-overlay-v3">
+                                <div class="overlay-row">
+                                    <span class="pulse-indicator"></span>
+                                    <span class="overlay-title">SYSTEM MONITOR</span>
+                                </div>
+                                <div id="packetCounter" class="overlay-sub">IDLE</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="side-module-stack">
-                    <div class="side-module glass-card">
+                    <div class="side-module-stack">
+                        <div class="side-module glass-card">
+                            <div class="card-header">
+                                <span class="card-label">CHARGE STATISTICS</span>
+                            </div>
+                            <div class="chart-wrapper-v3">
+                                <canvas id="trafficChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="side-module glass-card" style="margin-top: 25px;">
+                            <div class="card-header">
+                                <span class="card-label">ACTIVE PAYLOAD NODES</span>
+                            </div>
+                            <div id="topPastesList" class="payload-nodes-list">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="content-grid-bottom">
+                    <div class="live-log-container glass-card" style="grid-column: span 3;">
                         <div class="card-header">
-                            <span class="card-label">CHARGE STATISTICS</span>
+                            <span class="card-label">LIVE INTELLIGENCE STREAM</span>
                         </div>
-                        <div class="chart-wrapper-v3">
-                            <canvas id="trafficChart"></canvas>
+                        <div class="log-table-wrapper-v3">
+                            <table class="log-table-v3">
+                                <thead>
+                                    <tr>
+                                        <th>TIME</th>
+                                        <th>ENDPOINT</th>
+                                        <th>LOCATION</th>
+                                        <th>ISP</th>
+                                        <th>IP</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trafficLogBody"></tbody>
+                            </table>
                         </div>
                     </div>
+                </section>
+            </div>
 
-                    <div class="side-module glass-card" style="margin-top: 25px;">
-                        <div class="card-header">
-                            <span class="card-label">ACTIVE PAYLOAD NODES</span>
-                        </div>
-                        <div id="topPastesList" class="payload-nodes-list">
-                            <!-- Populated by JS -->
-                        </div>
+            <!-- TAB: ACTIVE NODES -->
+            <div id="tab-active" class="tab-pane">
+                <section class="glass-card">
+                    <div class="card-header-flex">
+                        <span class="card-label">PAYLOAD REPOSITORY</span>
+                        <button class="btn-gradient" style="padding: 10px 20px; width: auto;" onclick="toggleEditor(true)">+ NEW DEPLOYMENT</button>
                     </div>
-                </div>
-            </section>
-
-            <!-- Bottom Section: Detailed Intelligence -->
-            <section class="content-grid-bottom">
-                <div class="intel-module glass-card">
-                    <div class="card-header">
-                        <span class="card-label">SYSTEM ARCHITECTURE</span>
-                    </div>
-                    <div id="browserList" class="intel-list-v3"></div>
-                </div>
-
-                <div class="intel-module glass-card">
-                    <div class="card-header">
-                        <span class="card-label">CARRIER NETWORK</span>
-                    </div>
-                    <div id="ispList" class="intel-list-v3"></div>
-                </div>
-
-                <div class="live-log-container glass-card">
-                    <div class="card-header">
-                        <span class="card-label">LIVE INTELLIGENCE STREAM</span>
-                    </div>
-                    <div class="log-table-wrapper-v3">
+                    <div class="log-table-wrapper-v3" style="max-height: 70vh;">
                         <table class="log-table-v3">
                             <thead>
                                 <tr>
-                                    <th>TIME</th>
-                                    <th>ENDPOINT</th>
-                                    <th>LOCATION</th>
-                                    <th>ISP</th>
-                                    <th>IP</th>
+                                    <th>ID</th>
+                                    <th>TITLE</th>
+                                    <th>CREATED</th>
+                                    <th>VIEWS</th>
+                                    <th>ACTIONS</th>
                                 </tr>
                             </thead>
-                            <tbody id="trafficLogBody"></tbody>
+                            <tbody id="fullNodesBody"></tbody>
                         </table>
                     </div>
+                </section>
+            </div>
+
+            <!-- TAB: SECURITY -->
+            <div id="tab-security" class="tab-pane">
+                <div class="content-grid-bottom" style="grid-template-columns: 1fr 1fr;">
+                    <section class="glass-card">
+                        <div class="card-header-flex">
+                            <span class="card-label">ACCESS KEY NODES</span>
+                            <button class="btn-outline" style="padding: 8px 15px; width: auto;" id="generateKeyBtn">GENERATE</button>
+                        </div>
+                        <div class="intel-list-v3" id="accessKeyList"></div>
+                    </section>
+                    
+                    <section class="glass-card">
+                        <div class="card-header">
+                            <span class="card-label">AUTHORIZED OPERATORS</span>
+                        </div>
+                        <div class="intel-list-v3" id="adminUsersList"></div>
+                    </section>
                 </div>
-            </section>
+            </div>
+
+            <!-- TAB: NETWORK -->
+            <div id="tab-network" class="tab-pane">
+                <div class="content-grid-bottom" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="intel-module glass-card">
+                        <div class="card-header"><span class="card-label">BROWSER ARCHITECTURE</span></div>
+                        <div id="browserDetailList" class="intel-list-v3"></div>
+                    </div>
+                    <div class="intel-module glass-card">
+                        <div class="card-header"><span class="card-label">ISP NODES</span></div>
+                        <div id="ispDetailList" class="intel-list-v3"></div>
+                    </div>
+                    <div class="intel-module glass-card">
+                        <div class="card-header"><span class="card-label">TRAFFIC ORIGINS</span></div>
+                        <div id="referrerList" class="intel-list-v3"></div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
