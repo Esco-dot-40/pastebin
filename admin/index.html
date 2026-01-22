@@ -146,7 +146,7 @@
                                 <canvas id="trafficChart"></canvas>
                             </div>
                         </div>
-                        
+
                         <div class="side-module glass-card" style="margin-top: 25px;">
                             <div class="card-header">
                                 <span class="card-label">ACTIVE PAYLOAD NODES</span>
@@ -186,17 +186,21 @@
                 <section class="glass-card">
                     <div class="card-header-flex">
                         <span class="card-label">PAYLOAD REPOSITORY</span>
-                        <button class="btn-gradient" style="padding: 10px 20px; width: auto;" onclick="toggleEditor(true)">+ NEW DEPLOYMENT</button>
+                        <div style="display:flex; gap:10px">
+                            <button class="btn-outline" style="padding: 10px 20px; width: auto;"
+                                onclick="toggleEditor(true)">+ NEW DEPLOYMENT</button>
+                        </div>
                     </div>
                     <div class="log-table-wrapper-v3" style="max-height: 70vh;">
                         <table class="log-table-v3">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>TITLE</th>
-                                    <th>CREATED</th>
-                                    <th>VIEWS</th>
-                                    <th>ACTIONS</th>
+                                    <th>PAYLOAD TITLE</th>
+                                    <th>DEPLOYED</th>
+                                    <th>PROPAGATIONS</th>
+                                    <th>REACTIONS</th>
+                                    <th>CONTROL CENTER</th>
                                 </tr>
                             </thead>
                             <tbody id="fullNodesBody"></tbody>
@@ -211,11 +215,12 @@
                     <section class="glass-card">
                         <div class="card-header-flex">
                             <span class="card-label">ACCESS KEY NODES</span>
-                            <button class="btn-outline" style="padding: 8px 15px; width: auto;" id="generateKeyBtn">GENERATE</button>
+                            <button class="btn-outline" style="padding: 8px 15px; width: auto;"
+                                id="generateKeyBtn">GENERATE</button>
                         </div>
                         <div class="intel-list-v3" id="accessKeyList"></div>
                     </section>
-                    
+
                     <section class="glass-card">
                         <div class="card-header">
                             <span class="card-label">AUTHORIZED OPERATORS</span>
@@ -274,10 +279,85 @@
         </div>
     </div>
 
+    <!-- ANALYTICS MODAL -->
+    <div id="analyticsModal" class="editor-overlay">
+        <div class="editor-modal glass-card" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2>STATIC INTELLIGENCE</h2>
+                <button onclick="closeModal('analyticsModal')" class="close-btn">&times;</button>
+            </div>
+            <div class="analytics-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div class="analytics-left">
+                    <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="hero-stat-card glass-card" style="padding: 15px;">
+                            <span class="card-title">TOTAL HITS</span>
+                            <span id="pTotalViews" class="stat-value" style="font-size: 1.5rem;">0</span>
+                        </div>
+                        <div class="hero-stat-card glass-card" style="padding: 15px;">
+                            <span class="card-title">UNIQUE NODES</span>
+                            <span id="pUniqueIPs" class="stat-value" style="font-size: 1.5rem;">0</span>
+                        </div>
+                    </div>
+                    <div class="glass-card" style="margin-bottom: 20px;">
+                        <span class="card-label">GEOGRAPHIC CLUSTERS</span>
+                        <div id="pTopLocations" class="intel-list-v3"></div>
+                    </div>
+                    <div class="glass-card">
+                        <span class="card-label">CARRIER NODES</span>
+                        <div id="pTopISPs" class="intel-list-v3"></div>
+                    </div>
+                </div>
+                <div class="analytics-right">
+                    <div class="log-table-wrapper-v3" style="max-height: 500px;">
+                        <table class="log-table-v3">
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>LOCATION</th>
+                                    <th>ISP</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pLogBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADJUST STATS MODAL -->
+    <div id="adjustStatsModal" class="editor-overlay">
+        <div class="editor-modal glass-card" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2>NODE METRIC OVERRIDE</h2>
+                <button onclick="closeModal('adjustStatsModal')" class="close-btn">&times;</button>
+            </div>
+            <div class="adjust-form">
+                <div class="input-group">
+                    <label class="card-label" style="font-size: 0.8rem;">TOTAL PROPAGATIONS</label>
+                    <input type="number" id="adjViews" class="energ-input" style="margin-top: 5px;">
+                </div>
+                <div class="input-group">
+                    <label class="card-label" style="font-size: 0.8rem;">HEART REACTIONS</label>
+                    <input type="number" id="adjHearts" class="energ-input" style="margin-top: 5px;">
+                </div>
+                <div class="input-group">
+                    <label class="card-label" style="font-size: 0.8rem;">STAR REACTIONS</label>
+                    <input type="number" id="adjStars" class="energ-input" style="margin-top: 5px;">
+                </div>
+                <div class="input-group">
+                    <label class="card-label" style="font-size: 0.8rem;">LIKE REACTIONS</label>
+                    <input type="number" id="adjLikes" class="energ-input" style="margin-top: 5px;">
+                </div>
+                <button id="saveStatsBtn" class="btn-gradient">APPLY OVERRIDES</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Base Dependencies -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="../shared/api.js?v=11"></script>
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
 </body>
 
 </html>

@@ -28,6 +28,18 @@ const els = {
     tabTitle: document.getElementById('tabTitle'),
     tabSub: document.getElementById('tabSub'),
     generateKeyBtn: document.getElementById('generateKeyBtn'),
+    // Node Specific (Analytics Modal)
+    pTotalViews: document.getElementById('pTotalViews'),
+    pUniqueIPs: document.getElementById('pUniqueIPs'),
+    pTopLocations: document.getElementById('pTopLocations'),
+    pTopISPs: document.getElementById('pTopISPs'),
+    pLogBody: document.getElementById('pLogBody'),
+    // Adjust Stats
+    adjViews: document.getElementById('adjViews'),
+    adjHearts: document.getElementById('adjHearts'),
+    adjStars: document.getElementById('adjStars'),
+    adjLikes: document.getElementById('adjLikes'),
+    saveStatsBtn: document.getElementById('saveStatsBtn'),
     // Editor references
     editorOverlay: document.getElementById('editorOverlay'),
     pasteTitle: document.getElementById('pasteTitle'),
@@ -256,22 +268,118 @@ async function populateActiveNodes() {
         const pastes = await storage.getAllPastes();
         els.fullNodesBody.innerHTML = pastes.map(p => `
             <tr>
-                <td style="font-family:var(--font-mono); font-size:10px">${p.id}</td>
-                <td style="font-weight:700">${p.title}</td>
+                <td style="font-family:var(--font-mono); font-size:10px; opacity:0.6">${p.id}</td>
+                <td style="font-weight:700">
+                    <div style="display:flex; flex-direction:column">
+                        <span>${p.title.toUpperCase()}</span>
+                        <span style="font-size:9px; color:var(--accent-purple); letter-spacing:1px">${p.language.toUpperCase()}</span>
+                    </div>
+                </td>
                 <td style="font-size:11px; color:var(--text-secondary)">${new Date(p.createdAt).toLocaleDateString()}</td>
-                <td style="color:var(--accent-purple); font-weight:800">${p.views}</td>
+                <td style="color:var(--accent-green); font-weight:800; font-size:1.1rem">${p.views}</td>
                 <td>
-                    <div style="display:flex; gap:10px">
-                        <button onclick="window.open('/v/${p.id}', '_blank')" class="btn-outline" style="padding:4px 10px; font-size:10px">VIEW</button>
-                        <button onclick="deleteNode('${p.id}')" class="btn-outline" style="padding:4px 10px; font-size:10px; border-color:#FF5E5E; color:#FF5E5E">DELETE</button>
+                    <div style="display:flex; gap:8px; font-size:14px">
+                        <span>❤️ ${p.hearts || 0}</span>
+                        <span>⭐ ${p.stars || 0}</span>
+                        <span>👍 ${p.likes || 0}</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="display:flex; gap:8px">
+                        <button onclick="window.open('/v/${p.id}', '_blank')" class="btn-outline" style="padding:4px 8px; font-size:9px">VIEW</button>
+                        <button onclick="editNode('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px">EDIT</button>
+                        <button onclick="openNodeEdits('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px">METRICS</button>
+                        <button onclick="openNodeAnalytics('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px; border-color:var(--accent-purple); color:var(--accent-purple)">INTEL</button>
+                        <button onclick="deleteNode('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px; border-color:#FF5E5E; color:#FF5E5E">WIPE</button>
                     </div>
                 </td>
             </tr>
-        `).join('') || '<tr><td colspan="5" style="text-align:center; opacity:0.3; padding:40px">NO_NODES_FOUND</td></tr>';
+        `).join('') || '<tr><td colspan="6" style="text-align:center; opacity:0.3; padding:40px">NO_NODES_FOUND</td></tr>';
     } catch (e) {
         console.error('Failed to load nodes:', e);
     }
 }
+
+async function editNode(id) {
+    try {
+        const paste = await storage.getPaste(id, false);
+        if (!paste) return;
+
+        els.pasteTitle.value = paste.title;
+        els.pasteContent.value = paste.content;
+        els.pasteLanguage.value = paste.language;
+        // Tracking ID for update
+        els.createPasteBtn.dataset.editId = id;
+        els.createPasteBtn.textContent = 'UPDATE PAYLOAD';
+
+        toggleEditor(true);
+    } catch (e) { alert(e.message); }
+}
+
+async function openNodeAnalytics(id) {
+    try {
+        const data = await storage.getAnalytics(id);
+        els.pTotalViews.textContent = data.totalViews;
+        els.pUniqueIPs.textContent = data.uniqueIPs;
+
+        populateIntelList(els.pTopLocations, data.topLocations || []);
+        populateIntelList(els.pTopISPs, data.topISPs || []);
+
+        els.pLogBody.innerHTML = (data.recentViews || []).map(v => `
+            <tr>
+                <td style="font-size:10px">${timeAgo(v.timestamp)}</td>
+                <td style="font-size:10px">${v.city || '??'}, ${v.countryCode || '??'}</td>
+                <td style="font-size:9px; opacity:0.5">${(v.isp || 'PRIVATE').substring(0, 15)}</td>
+            </tr>
+        `).join('');
+
+        document.getElementById('analyticsModal').classList.add('active');
+    } catch (e) { alert(e.message); }
+}
+
+let activeEditId = null;
+async function openNodeEdits(id) {
+    activeEditId = id;
+    const paste = await storage.getPaste(id, false);
+    if (!paste) return;
+
+    els.adjViews.value = paste.views;
+    els.adjHearts.value = paste.reactions?.heart || 0;
+    els.adjStars.value = paste.reactions?.star || 0;
+    els.adjLikes.value = paste.reactions?.like || 0;
+
+    document.getElementById('adjustStatsModal').classList.add('active');
+}
+
+if (els.saveStatsBtn) {
+    els.saveStatsBtn.onclick = async () => {
+        if (!activeEditId) return;
+        try {
+            const id = activeEditId;
+            // Update Views
+            await fetch(`/api/pastes/${id}/views`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ views: parseInt(els.adjViews.value) })
+            });
+            // Update Reactions
+            const types = ['heart', 'star', 'like'];
+            const vals = { heart: els.adjHearts.value, star: els.adjStars.value, like: els.adjLikes.value };
+            for (const t of types) {
+                await fetch(`/api/pastes/${id}/reactions/${t}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ count: parseInt(vals[t]) })
+                });
+            }
+            alert('METRICS PROPAGATED');
+            closeModal('adjustStatsModal');
+            await populateActiveNodes();
+        } catch (e) { alert(e.message); }
+    };
+}
+
+window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
 async function populateSecurityTab() {
     try {
@@ -393,13 +501,23 @@ if (els.createPasteBtn) {
         const content = els.pasteContent.value.trim();
         if (!content) return alert('Payload empty');
 
+        const editId = els.createPasteBtn.dataset.editId;
+        const config = {
+            title: els.pasteTitle.value || 'Untitled',
+            language: els.pasteLanguage.value,
+            expiresAt: calculateExpiration(els.pasteExpiration.value)
+        };
+
         try {
-            const id = await storage.createPaste(content, {
-                title: els.pasteTitle.value || 'Untitled',
-                language: els.pasteLanguage.value,
-                expiresAt: calculateExpiration(els.pasteExpiration.value)
-            });
-            alert('PAYLOAD PROPAGATED: ' + id);
+            if (editId) {
+                await storage.updatePaste(editId, content, config);
+                alert('PAYLOAD UPDATED');
+                els.createPasteBtn.dataset.editId = "";
+                els.createPasteBtn.textContent = "DEPLOY PAYLOAD";
+            } else {
+                const id = await storage.createPaste(content, config);
+                alert('PAYLOAD PROPAGATED: ' + id);
+            }
             toggleEditor(false);
             if (currentTab === 'active') await populateActiveNodes();
         } catch (e) { alert(e.message); }
