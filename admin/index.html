@@ -184,20 +184,52 @@
                                     <option value="10m">10 Minutes</option>
                                     <option value="1h">1 Hour</option>
                                     <option value="1d">1 Day</option>
+                                    <option value="1w">1 Week</option>
+                                    <option value="1M">1 Month</option>
                                 </select>
                             </div>
                         </div>
+
                         <div class="input-container">
-                            <label>Content</label>
-                            <textarea id="pasteContent" placeholder="Paste data here..."
-                                class="neon-textarea"></textarea>
+                            <label>Folder Collection</label>
+                            <div class="folder-select-group" style="display: flex; gap: 10px;">
+                                <select id="pasteFolder" class="neon-select">
+                                    <option value="">Ungrouped</option>
+                                </select>
+                                <button id="manageFoldersBtn" class="btn btn-glass"
+                                    style="padding: 10px 15px;">+</button>
+                            </div>
+                        </div>
+
+                        <div class="input-container">
+                            <label>Content Payload</label>
+                            <div class="textarea-wrapper"
+                                style="border: 1px solid var(--border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2);">
+                                <div class="textarea-toolbar"
+                                    style="padding: 8px; background: rgba(255,255,255,0.03); border-bottom: 1px solid var(--border); display: flex; gap: 8px;">
+                                    <button id="uploadImageBtn" class="btn btn-glass"
+                                        style="padding: 5px 10px; font-size: 0.7rem;">🖼️ Insert Media</button>
+                                    <button id="uploadEmbedBtn" class="btn btn-glass"
+                                        style="padding: 5px 10px; font-size: 0.7rem;">📸 Discord Image</button>
+                                    <input type="file" id="imageInput" style="display: none;" accept="image/*,video/*">
+                                    <input type="file" id="embedInput" style="display: none;" accept="image/*">
+                                </div>
+                                <textarea id="pasteContent" placeholder="Enter source code or markdown payload..."
+                                    class="neon-textarea" style="border: none !important;"></textarea>
+                            </div>
                         </div>
                     </div>
                     <div class="editor-sidebar">
                         <div class="config-panel">
-                            <h3>Security</h3>
-                            <input type="password" id="pastePassword" placeholder="Password (Optional)"
-                                class="neon-input" style="margin-bottom: 10px;">
+                            <div class="input-container">
+                                <label>Access Password</label>
+                                <input type="password" id="pastePassword" placeholder="Optional Lock" class="neon-input"
+                                    style="margin-bottom: 10px;">
+                            </div>
+                            <div class="input-container">
+                                <label>Embed Override</label>
+                                <input type="text" id="embedUrl" placeholder="Direct Image URL" class="neon-input">
+                            </div>
                             <div class="toggle-list">
                                 <label class="neon-toggle">
                                     <input type="checkbox" id="burnAfterRead">
@@ -256,10 +288,86 @@
 
     <div id="accessModal" class="modal">
         <div class="modal-content">
-            <h3>Access Keys</h3>
-            <div id="keyList"></div>
-            <button onclick="document.getElementById('accessModal').classList.remove('active')" class="btn"
-                style="margin-top: 20px;">Close</button>
+            <div class="matrix-header">
+                <div class="matrix-title">
+                    <span class="matrix-label">SECURE KEYS</span>
+                    <span class="matrix-sub">ACCESS PRIVILEGE MANAGEMENT</span>
+                </div>
+            </div>
+            <div id="keyList" class="intel-list" style="margin-top: 20px; max-height: 400px; overflow-y: auto;"></div>
+            <div style="margin-top: 25px; display: flex; flex-direction: column; gap: 15px;">
+                <input type="text" id="generatedKey" readonly class="neon-input"
+                    style="text-align: center; font-family: var(--font-mono); font-weight: 700; color: var(--primary);">
+                <div style="display: flex; gap: 10px;">
+                    <button id="generateKeyBtn" class="btn-primary-neon" style="flex: 1; padding: 12px;">Generate New
+                        Key</button>
+                    <button id="copyKeyBtn" class="btn btn-glass">Copy</button>
+                </div>
+            </div>
+            <button onclick="document.getElementById('accessModal').classList.remove('active')" class="btn btn-glass"
+                style="margin-top: 25px; width: 100%; justify-content: center;">Close Console</button>
+        </div>
+    </div>
+
+    <div id="folderModal" class="modal">
+        <div class="modal-content">
+            <div class="matrix-header">
+                <div class="matrix-title">
+                    <span class="matrix-label">FOLDERS</span>
+                    <span class="matrix-sub">LOGICAL GROUPING</span>
+                </div>
+            </div>
+            <div id="folderList" class="intel-list" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <input type="text" id="newFolderName" placeholder="New Folder Name" class="neon-input">
+                <button id="addFolderBtn" class="btn btn-glass">Add</button>
+            </div>
+            <button onclick="document.getElementById('folderModal').classList.remove('active')" class="btn btn-glass"
+                style="margin-top: 20px; width: 100%; justify-content: center;">Close</button>
+        </div>
+    </div>
+
+    <div id="usersModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="matrix-header">
+                <div class="matrix-title">
+                    <span class="matrix-label">OPERATORS</span>
+                    <span class="matrix-sub">USER PRIVILEGE AUDIT</span>
+                </div>
+            </div>
+            <div class="detail-list" style="margin-top: 20px;">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>ID / DISCORD</th>
+                            <th>JOINED</th>
+                            <th>LAST ACTIVE</th>
+                            <th>ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList"></tbody>
+                </table>
+            </div>
+            <button onclick="document.getElementById('usersModal').classList.remove('active')" class="btn btn-glass"
+                style="margin-top: 20px;">Close Audit</button>
+        </div>
+    </div>
+
+    <div id="successModal" class="modal">
+        <div class="modal-content" style="text-align: center;">
+            <div class="sync-dot"
+                style="width: 50px; height: 50px; margin: 0 auto 20px; background: #00ff88; box-shadow: 0 0 20px #00ff88;">
+            </div>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">DEPLOYMENT SUCCESSFUL</h2>
+            <p style="color: var(--text-dim); margin-bottom: 25px;">The payload has been propagated to all nodes.</p>
+            <input type="text" id="pasteUrl" readonly class="neon-input"
+                style="text-align: center; margin-bottom: 15px;">
+            <div style="display: flex; gap: 10px;">
+                <button id="copyUrlBtn" class="btn btn-primary-neon" style="flex: 1;">Copy Link</button>
+                <button onclick="document.getElementById('successModal').classList.remove('active')"
+                    class="btn btn-glass">Dismiss</button>
+            </div>
         </div>
     </div>
 
