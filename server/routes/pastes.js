@@ -27,11 +27,19 @@ async function fetchGeolocation(ip) {
         }
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as,query`, {
+        // Added: proxy, hosting, mobile, reverse, asname
+        const fields = 'status,message,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
+        const response = await fetch(`http://ip-api.com/json/${ip}?fields=${fields}`, {
             signal: controller.signal
         });
         clearTimeout(timeoutId);
         const data = await response.json();
+
+        // Block Proxies/VPNs if detected (Optional: can be made configurable)
+        if (data.status === 'success' && (data.proxy === true || data.hosting === true)) {
+            data.isBlocked = true;
+        }
+
         return data.status === 'success' ? data : null;
     } catch (e) {
         return null;
@@ -185,7 +193,10 @@ router.get('/', requireAuth, (req, res) => {
 
 router.get('/public-list', (req, res) => {
     const isAdmin = req.session && req.session.isAdmin;
-    const hasAccess = validateAccessKey(req.headers['x-access-key']) || isAdmin;
+    const key = req.headers['x-access-key'] || req.query.key;
+    const hasAccess = validateAccessKey(key) || isAdmin;
+
+    // If admin or has key, 1=1 (all), otherwise only isPublic
     const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE ${hasAccess ? '1=1' : 'p.isPublic = 1'} ORDER BY p.createdAt DESC`;
     const list = db.prepare(query).all();
     res.json(list.map(p => ({ ...p, hasPassword: !!p.password, password: undefined })));
@@ -231,13 +242,19 @@ router.get('/:id', async (req, res) => {
     }
 
     db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
+    const ip = getClientIP(req);
+    const ua = req.headers['user-agent'];
+    const loc = await fetchGeolocation(ip);
+
+    // BLOCK PROXIES/VPNs for authorized nodes if requested
+    if (loc && loc.isBlocked && !isAuthorized) {
+        return res.status(403).json({ error: 'Access Denied: Proxy/VPN identified. Please connect directly to this sector.' });
+    }
+
     if (!(req.session && req.session.isAdmin) || process.env.LOG_ADMINS === 'true') {
-        const ip = getClientIP(req); const ua = req.headers['user-agent'];
-        fetchGeolocation(ip).then(loc => {
-            const res2 = loc ? db.prepare(`INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, ua)
-                : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
-            updateHostname('paste_views', res2.lastInsertRowid, ip);
-        }).catch(() => { });
+        const res2 = loc ? db.prepare(`INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, proxy, hosting, mobile, reverse, district, timezone, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, ua, loc.proxy ? 1 : 0, loc.hosting ? 1 : 0, loc.mobile ? 1 : 0, loc.reverse, loc.district, loc.timezone, loc.currency)
+            : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
+        updateHostname('paste_views', res2.lastInsertRowid, ip);
     }
     res.json(paste);
 });

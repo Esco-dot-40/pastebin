@@ -157,7 +157,7 @@ migrateTable('paste_reactions', [
 ]);
 
 // Ensure ALL analytics columns exist (CRITICAL FIX)
-migrateTable('paste_views', [
+const deepLocColumns = [
     { name: 'country', type: 'TEXT' },
     { name: 'countryCode', type: 'TEXT' },
     { name: 'region', type: 'TEXT' },
@@ -170,14 +170,23 @@ migrateTable('paste_views', [
     { name: 'org', type: 'TEXT' },
     { name: 'asName', type: 'TEXT' },
     { name: 'userAgent', type: 'TEXT' },
-    { name: 'hostname', type: 'TEXT' }
-]);
-
-// Ensure all index columns exist
-migrateTable('page_accesses', [
     { name: 'hostname', type: 'TEXT' },
-    { name: 'referrer', type: 'TEXT' },
-    { name: 'userAgent', type: 'TEXT' }
+    { name: 'proxy', type: 'INTEGER' },
+    { name: 'hosting', type: 'INTEGER' },
+    { name: 'mobile', type: 'INTEGER' },
+    { name: 'reverse', type: 'TEXT' },
+    { name: 'district', type: 'TEXT' },
+    { name: 'timezone', type: 'TEXT' },
+    { name: 'currency', type: 'TEXT' }
+];
+
+migrateTable('paste_views', deepLocColumns);
+migrateTable('paste_reactions', deepLocColumns);
+migrateTable('page_accesses', deepLocColumns);
+
+// Ensure all extra columns exist
+migrateTable('page_accesses', [
+    { name: 'referrer', type: 'TEXT' }
 ]);
 
 // Ensure all paste columns exist

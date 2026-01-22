@@ -52,90 +52,63 @@ app.use(async (req, res, next) => {
     const isApi = req.path.startsWith('/api/');
     const isAdminPath = req.path.startsWith('/adminperm/');
     const isAdminUser = req.session && req.session.isAdmin;
+
+    // IP Detection
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+        req.headers['x-real-ip'] ||
+        req.socket.remoteAddress ||
+        '127.0.0.1';
+    const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
+
+    // --- SELF-LEARNING FIREWALL ---
+    // Synchronously check if this IP was previously flagged as proxy/hosting
+    if (!isStatic && !isAdminUser && cleanIP !== '127.0.0.1') {
+        const blacklist = db.prepare('SELECT proxy, hosting FROM page_accesses WHERE ip = ? AND (proxy = 1 OR hosting = 1) LIMIT 1').get(cleanIP);
+        if (blacklist) {
+            console.warn(`🛡️ [BLOCK] Neutralized Proxy Node: ${cleanIP}`);
+            return res.status(403).send('<h1>403 Forbidden</h1><p>Access Denied: Non-Residential Transit Node Detected.</p>');
+        }
+    }
+
     const shouldSkip = (isAdminPath || isAdminUser) && process.env.LOG_ADMINS !== 'true';
 
     if (!isStatic && !isApi && !shouldSkip && req.method === 'GET') {
-        // Async tracking - don't block the request
         setImmediate(async () => {
             try {
-                const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                    req.headers['x-real-ip'] ||
-                    req.socket.remoteAddress ||
-                    '127.0.0.1';
-
-                const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
                 const userAgent = req.headers['user-agent'] || '';
                 const referrer = req.headers['referer'] || req.headers['referrer'] || null;
 
-                // Fetch geolocation
                 let geoData = null;
                 if (cleanIP !== '127.0.0.1' && !cleanIP.startsWith('192.168.') && !cleanIP.startsWith('10.')) {
                     try {
                         const fetch = (await import('node-fetch')).default;
-                        const controller = new AbortController();
-                        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as`, {
-                            signal: controller.signal
-                        });
-                        clearTimeout(timeoutId);
+                        const fields = 'status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
+                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=${fields}`);
                         const data = await response.json();
-                        if (data.status === 'success') {
-                            geoData = data;
-                        }
-                    } catch (e) {
-                        // Silent fail for geo lookup
-                    }
+                        if (data.status === 'success') geoData = data;
+                    } catch (e) { }
                 }
 
-                // Insert into database
                 if (geoData) {
-                    const result = db.prepare(`
-                        INSERT INTO page_accesses (path, method, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, referrer)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `).run(
-                        req.path,
-                        req.method,
-                        cleanIP,
-                        geoData.country,
-                        geoData.countryCode,
-                        geoData.region,
-                        geoData.regionName,
-                        geoData.city,
-                        geoData.zip,
-                        geoData.lat,
-                        geoData.lon,
-                        geoData.isp,
-                        geoData.org,
-                        geoData.as,
-                        userAgent,
-                        referrer
-                    );
-
-                    // Async reverse DNS
-                    if (cleanIP !== '127.0.0.1' && !cleanIP.includes(':')) {
-                        try {
-                            const { promises: dns } = await import('dns');
-                            const hostnames = await dns.reverse(cleanIP);
-                            if (hostnames && hostnames.length > 0) {
-                                db.prepare('UPDATE page_accesses SET hostname = ? WHERE id = ?').run(hostnames[0], result.lastInsertRowid);
-                            }
-                        } catch (e) {
-                            // Silent fail for DNS
-                        }
-                    }
-                } else {
                     db.prepare(`
-                        INSERT INTO page_accesses (path, method, ip, userAgent, referrer)
-                        VALUES (?, ?, ?, ?, ?)
-                    `).run(req.path, req.method, cleanIP, userAgent, referrer);
+                        INSERT INTO page_accesses (
+                            path, method, ip, country, countryCode, region, regionName, city, district, zip, lat, lon, 
+                            timezone, currency, isp, org, asName, userAgent, referrer, reverse,
+                            proxy, hosting, mobile
+                        )
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        req.path, req.method, cleanIP,
+                        geoData.country, geoData.countryCode, geoData.region, geoData.regionName, geoData.city, geoData.district, geoData.zip,
+                        geoData.lat, geoData.lon, geoData.timezone, geoData.currency,
+                        geoData.isp, geoData.org, geoData.as, userAgent, referrer, geoData.reverse || null,
+                        geoData.proxy ? 1 : 0, geoData.hosting ? 1 : 0, geoData.mobile ? 1 : 0
+                    );
+                } else {
+                    db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent, referrer) VALUES (?, ?, ?, ?, ?)`).run(req.path, req.method, cleanIP, userAgent, referrer);
                 }
-            } catch (err) {
-                console.error('Page tracking error:', err.message);
-            }
+            } catch (err) { }
         });
-    } else if (!isStatic && !isApi && isAdminUser && req.method === 'GET') {
-        console.log(`📊 [SKIP] Admin accessing ${req.path} - not tracking to analytics`);
     }
 
     next();

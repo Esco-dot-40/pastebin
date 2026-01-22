@@ -1426,6 +1426,9 @@
                 }
             }
 
+            // Auto-refresh feed every 30 seconds
+            setInterval(loadPastes, 30000);
+
             window.showDetail = async function (id) {
                 if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
 
