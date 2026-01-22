@@ -9,9 +9,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="/public/favicon.png">
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <link rel="stylesheet" href="/public/loader.css?v=6">
@@ -792,6 +793,8 @@
             transform-style: preserve-3d;
             transition: transform 0.1s ease;
             z-index: 10;
+            overflow: visible !important;
+            /* Allow notifications to pop out */
         }
 
         .landing-text {
@@ -942,20 +945,21 @@
             <div class="button-container"
                 style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; position: relative;">
                 <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
-                    onclick="navigateTo('/public'); return false;"
+                    onclick="window.navigateTo('/public'); return false;"
                     style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
                     Pastes
                 </a>
                 <a href="#" id="btnPrivateAccess" class="entry-btn btn-private"
+                    onclick="window.handlePrivateAccess(); return false;"
                     style="padding: 1rem; min-width: auto; font-size: 1rem; border-radius: 14px;">
                     Private Access
                 </a>
-                <div id="accessNotification" class="access-notification">Please obtain a key to view Escos private
-                    pastes</div>
+                <div id="accessNotification" class="access-notification" style="white-space: nowrap;">Please obtain a
+                    key to view Escos private pastes</div>
             </div>
 
             <div style="margin-bottom: 30px;">
-                <a href="#" id="btnRequestAccess" class="tech-hint" onclick="openRequestModal(); return false;"
+                <a href="#" id="btnRequestAccess" class="tech-hint" onclick="window.openRequestModal(); return false;"
                     style="font-size: 0.8rem;">
                     Request Access Key
                 </a>
@@ -1019,13 +1023,14 @@
     </script>
     <!-- View: VIEWER -->
     <div id="view-viewer"
-        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent;">
-        <div id="listView" class="gallery">
-            <ul class="cards" id="pasteList"></ul>
+        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
+        <div id="listView"
+            style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div id="pasteGalleryApp" style="width: 100%;"></div>
         </div>
 
         <div id="detailView" class="container" style="display: none; padding-top: 100px; padding-bottom: 100px;">
-            <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Propagations</button>
+            <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
 
             <main id="mainContent">
                 <div id="detailLoading" class="state-container" style="display: none;">
@@ -1408,106 +1413,10 @@
                         return;
                     }
 
-                    if (pastes.length === 0) {
-                        const listViewContainer = document.getElementById('listView');
-                        if (listViewContainer) {
-                            const hasKey = !!localStorage.getItem('private_access_key');
-                            listViewContainer.innerHTML = `
-                                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:60vh; color:white; text-align:center; padding:2rem;">
-                                    <h2 style="font-size:2.5rem; margin-bottom:1rem; background: linear-gradient(135deg, #00f5ff, #7b42ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">No Pastes Found</h2>
-                                    <p style="opacity:0.8; max-width:600px; line-height:1.6; font-size: 1.1rem;">
-                                        ${hasKey ? "Your access key is active, but there are no pastes to display at this time." : "This secure vault is currently private. If you are the owner, please authenticate via the entry portal. Visitors require an authorized access key."}
-                                    </p>
-                                    ${!hasKey ? `
-                                        <div style="margin-top:2.5rem; display:flex; gap:1rem;">
-                                            <button onclick="navigateTo('/')" class="nav-btn" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:white; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:600;">Main Portal</button>
-                                            <button onclick="openRequestModal()" class="nav-btn" style="background:linear-gradient(135deg, #00f5ff, #7b42ff); border:none; color:white; padding:12px 24px; border-radius:30px; cursor:pointer; font-weight:600; box-shadow: 0 10px 20px rgba(0,245,255,0.2);">Enter Key</button>
-                                        </div>
-                                    ` : ''}
-                                </div>
-                            `;
-                        }
-                        return;
-                    }
-
-                    // Group by folder
-                    const folders = {};
-                    const noFolder = [];
-
-                    pastes.forEach(p => {
-                        if (p.folderName) {
-                            if (!folders[p.folderName]) folders[p.folderName] = [];
-                            folders[p.folderName].push(p);
-                        } else {
-                            noFolder.push(p);
-                        }
-                    });
-
-                    let html = '';
-
-                    const renderCard = (p) => {
-                        const thumb = p.embedUrl || '/public/preview.png';
-                        return `
-                        <div onclick="navigateTo('/v/${p.id}')" class="product-card">
-                            <img src="${thumb}" class="product-card-image" alt="${p.title}" onerror="this.src='/public/preview.png'">
-                            <div class="product-card-info">
-                                <span class="product-tag">${p.isPublic === 0 ? '🔒 Private' : '🌍 Public'}</span>
-                                <h3 class="product-title">${p.title || 'Untitled'}</h3>
-                                <div class="product-meta">
-                                    <span>${(p.language || 'text').toUpperCase()}</span>
-                                    <span>•</span>
-                                    <span>${p.views || 0} PROPAGATIONS</span>
-                                </div>
-                                <div class="product-btn">Access Intelligence</div>
-                            </div>
-                        </div>
-                    `};
-
-                    if (noFolder.length > 0) {
-                        html += `
-                            <div class="folder-section">
-                                <h2 class="folder-header">🌍 PRIMARY NETWORK</h2>
-                                <div class="product-grid">
-                                    ${noFolder.map(p => renderCard(p)).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    for (const [name, items] of Object.entries(folders)) {
-                        html += `
-                            <div class="folder-section">
-                                <h2 class="folder-header">📁 ${name.toUpperCase()}</h2>
-                                <div class="product-grid">
-                                    ${items.map(p => renderCard(p)).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    if (listView) {
-                        listView.innerHTML = `
-                            <div class="category-tabs">
-                                <div class="category-tab active" onclick="showToast('Filtering for Global Stream...', 'info')">GLOBAL STREAM</div>
-                                <div class="category-tab" onclick="showToast('Filtering for Trending Nodes...', 'info')">TRENDING</div>
-                                <div class="category-tab" onclick="showToast('Restricted Access Required', 'error')">ENCRYPTED</div>
-                            </div>
-                            <div class="folder-container" style="padding: 2.5rem; max-width: 1440px; margin: 0 auto;">
-                                ${html}
-                            </div>
-                        `;
-                    }
-
-                    // Animation
-                    if (window.gsap && document.querySelectorAll('.product-card').length > 0) {
-                        gsap.from('.product-card', {
-                            duration: 0.8,
-                            y: 50,
-                            opacity: 0,
-                            stagger: 0.1,
-                            ease: 'power4.out',
-                            clearProps: 'all'
-                        });
+                    if (window.setPasteData) {
+                        window.setPasteData(pastes);
+                    } else {
+                        window._pendingPastes = pastes;
                     }
 
                 } catch (e) {
@@ -1820,44 +1729,20 @@
             }
         }
 
-        // Explicit Event Listeners for Entry Buttons
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnPublic = document.getElementById('btnPublicAccess');
-            const btnPrivate = document.getElementById('btnPrivateAccess');
-            const btnRequest = document.getElementById('btnRequestAccess');
-
-            if (btnPublic) {
-                btnPublic.onclick = null; // Clear inline just in case
-                btnPublic.addEventListener('click', () => navigateTo('/public'));
+        window.handlePrivateAccess = function () {
+            console.log("Private access requested");
+            const hasKey = localStorage.getItem('private_access_key');
+            if (!hasKey) {
+                const notif = document.getElementById('accessNotification');
+                if (notif) {
+                    notif.classList.add('active');
+                    setTimeout(() => notif.classList.remove('active'), 3000);
+                }
+                if (window.openKeyModal) window.openKeyModal();
+            } else {
+                window.navigateTo('/public');
             }
-
-            if (btnPrivate) {
-                btnPrivate.onclick = null;
-                btnPrivate.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const hasKey = localStorage.getItem('private_access_key');
-                    if (!hasKey) {
-                        const notif = document.getElementById('accessNotification');
-                        if (notif) {
-                            notif.classList.add('active');
-                            setTimeout(() => notif.classList.remove('active'), 3000);
-                        }
-                        if (window.openKeyModal) window.openKeyModal();
-                    } else {
-                        navigateTo('/public');
-                    }
-                });
-            }
-
-            if (btnRequest) {
-                btnRequest.onclick = null;
-                btnRequest.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (window.openRequestModal) window.openRequestModal();
-                });
-            }
-        });
+        };
 
         // Glitch effect on hint
         const hint = document.querySelector('.tech-hint');
@@ -2012,6 +1897,146 @@
         });
     </script>
     <!-- app.js removed to prevent SPA conflicts -->
+    <script type="module">
+        import React, { useState, useEffect } from "https://esm.sh/react@19";
+        import { createRoot } from "https://esm.sh/react-dom@19/client";
+        import { motion } from "https://esm.sh/motion/react";
+
+        const App = () => {
+            const [pastes, setPastes] = useState([]);
+            const [activeIndex, setActiveIndex] = useState(0);
+
+            useEffect(() => {
+                if (window._pendingPastes) {
+                    setPastes(window._pendingPastes);
+                    window._pendingPastes = null;
+                }
+                window.setPasteData = (data) => {
+                    setPastes(data);
+                    setActiveIndex(0);
+                };
+            }, []);
+
+            if (pastes.length === 0) {
+                const hasKey = !!localStorage.getItem('private_access_key');
+                return (
+                    <div className="flex flex-col justify-center items-center h-[60vh] text-center p-8">
+                        <h2 className="text-4xl font-black mb-4 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent uppercase tracking-tight">Empty Network</h2>
+                        <p className="opacity-60 max-w-lg mb-8 text-white leading-relaxed">
+                            {hasKey ? "Connection established but no data packets detected in this sector." : "Unauthorized access. This sector is private. Visitors require a valid security key to view propagation logs."}
+                        </p>
+                        {!hasKey && (
+                            <div className="flex gap-4">
+                                <button onClick={() => window.navigateTo('/')} className="px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">Main Portal</button>
+                                <button onClick={() => window.openRequestModal()} className="px-6 py-2 rounded-full bg-cyan-500 text-black font-bold shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform">Request Key</button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            const HEIGHT = 240;
+            const EDGE = 60;
+
+            const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
+            const toNext = () => activeIndex < pastes.length - 1 && setActiveIndex(prev => prev + 1);
+
+            return (
+                <div className="flex flex-col items-center select-none py-10 w-full overflow-hidden">
+                    <div className="text-center mb-12">
+                        <div className="text-cyan-400 font-mono text-[10px] tracking-[0.5rem] uppercase opacity-40 mb-3">System Node Dispatcher</div>
+                        <h1 className="text-white text-6xl font-black uppercase tracking-tighter leading-none mb-2">Network Feed</h1>
+                        <div className="w-12 h-1 bg-cyan-500 mx-auto rounded-full opacity-30"></div>
+                    </div>
+
+                    <div className={`p-4 transition-all duration-300 ${activeIndex === 0 ? 'opacity-10 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-110 active:scale-95 text-cyan-400'}`} onClick={toPrev}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+                    </div>
+
+                    <div className="overflow-hidden w-full max-w-[1100px] perspective-[2500px] transform-3d relative" style={{ height: HEIGHT + EDGE * 2 }}>
+                        <motion.div
+                            className="flex flex-col items-center"
+                            animate={{ y: activeIndex * -HEIGHT + EDGE }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 120 }}
+                        >
+                            {pastes.map((p, index) => {
+                                const thumb = p.embedUrl || '/public/preview.png';
+                                return (
+                                    <div
+                                        key={p.id}
+                                        style={{ height: HEIGHT }}
+                                        className="shrink-0 w-full flex justify-center py-5 transform-gpu"
+                                    >
+                                        <div
+                                            onClick={() => window.navigateTo(`/v/${p.id}`)}
+                                            className={`h-full aspect-[16/9] md:aspect-[3.6] rounded-[2.5rem] overflow-hidden relative transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
+                                                ${activeIndex !== index ? 'scale-75 opacity-20 blur-[3px]' : 'scale-100 opacity-100 shadow-[0_40px_100px_rgba(0,0,0,0.6)] ring-1 ring-white/20'}
+                                                ${activeIndex > index ? '[transform:rotateX(35deg)_translateY(-20px)]' : ''}
+                                                ${activeIndex < index ? '[transform:rotateX(-35deg)_translateY(20px)]' : ''}
+                                            `}
+                                        >
+                                            <img
+                                                className="w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110 grayscale-[0.2]"
+                                                src={thumb}
+                                                alt={p.title}
+                                                onError={(e) => { e.target.src = '/public/preview.png'; }}
+                                            />
+                                            <div className="absolute inset-0 bg-cyan-500/5 mix-blend-overlay"></div>
+
+                                            <div className="absolute inset-0 flex flex-col justify-end p-10 bg-gradient-to-t from-black via-black/30 to-transparent">
+                                                <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
+                                                    <div className="flex items-center gap-3 mb-3">
+                                                        <span className="text-cyan-400 text-[9px] font-black tracking-[0.25em] uppercase bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/20 backdrop-filter blur-md">
+                                                            {p.isPublic === 0 ? 'Encrypted Core' : 'Global Access'}
+                                                        </span>
+                                                        {p.folderName && (
+                                                            <span className="text-white/30 text-[9px] uppercase tracking-widest font-mono">:: {p.folderName}</span>
+                                                        )}
+                                                    </div>
+                                                    <h3 className="text-white text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.9] mb-5 group-hover:text-cyan-400 transition-colors duration-500">
+                                                        {p.title || 'Undeclared Node'}
+                                                    </h3>
+                                                    <div className="flex items-center gap-8 text-white/40 font-mono text-[9px] tracking-[0.2em] uppercase">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_8px_rgba(0,245,255,1)]"></span>
+                                                            {(p.language || 'txt')}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" /><circle cx="12" cy="12" r="3" /></svg>
+                                                            {p.views || 0} READS
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M2 12h20" /></svg>
+                                                            {new Date(p.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Glow Overlay */}
+                                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.2),transparent_70%)]"></div>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                        </motion.div>
+                    </div>
+
+                    <div className={`p-4 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-10 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-110 active:scale-95 text-cyan-400'}`} onClick={toNext}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                    </div>
+
+                    <div className="mt-12 text-white/10 font-mono text-[9px] tracking-[0.4rem] uppercase">
+                        Active Stream // Section 0{activeIndex + 1}.{pastes.length}
+                    </div>
+                </div>
+            )
+        }
+
+        const container = document.getElementById("pasteGalleryApp");
+        const root = createRoot(container);
+        root.render(<App />);
+    </script>
     <script src="/public/cursor.js"></script>
     <script src="/public/title-rotator.js"></script>
 </body>

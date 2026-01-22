@@ -4,320 +4,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ENERG | Admin Analytics</title>
-    <!-- Modern Sans-Serif Fonts -->
+    <title>Admin Dashboard | veroe.space</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=13">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <div class="dashboard-wrapper">
-        <!-- Sidebar Navigation -->
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-logo">E</div>
-                <span class="brand-name">ENERG</span>
-            </div>
-
-            <div class="search-bar-container">
-                <input type="text" id="globalSearch" placeholder="Search..." class="sidebar-search">
-            </div>
-
-            <nav class="nav-menu">
-                <a href="#" class="nav-item active" data-tab="overview">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-label">Overview</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="active">
-                    <span class="nav-icon">⚡</span>
-                    <span class="nav-label">Active Nodes</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="security">
-                    <span class="nav-icon">🛡️</span>
-                    <span class="nav-label">Security</span>
-                </a>
-                <a href="#" class="nav-item" data-tab="network">
-                    <span class="nav-icon">🌐</span>
-                    <span class="nav-label">Network</span>
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <button id="logoutBtn" class="logout-btn">
-                    <span class="nav-icon">🚪</span>
-                    <span class="nav-label">Logout</span>
-                </button>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header Section -->
-            <header class="main-header">
-                <div class="header-titles">
-                    <h1 id="tabTitle">Energy Terminal</h1>
-                    <p id="tabSub" class="header-sub">System-wide traffic monitoring and node propagation.</p>
+    <div class="admin-container">
+        <!-- TOP NAVIGATION -->
+        <nav class="top-nav">
+            <div class="nav-left">
+                <div class="nav-brand">VEROE<span>ADMIN</span></div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" data-tab="dashboard">Dashboard</a>
+                    <a href="#" class="nav-link" data-tab="analytics">Global Analytics</a>
+                    <a href="#" class="nav-link" data-tab="security">Security</a>
                 </div>
-                <div class="header-stats">
-                    <div class="active-dot-pulse"></div>
-                    <span id="activeVisitors">0 Active Visitors</span>
-                </div>
-            </header>
+            </div>
+            <div class="nav-right">
+                <div id="activeVisitors" class="visitor-badge">0 Active Visitors</div>
+                <button id="logoutBtn" class="nav-logout">Logout</button>
+            </div>
+        </nav>
 
-            <!-- TAB: OVERVIEW -->
-            <div id="tab-overview" class="tab-pane active">
-                <!-- Hero Stats Row -->
-                <section class="stats-grid">
-                    <div class="hero-stat-card glass-card">
-                        <div class="card-header">
-                            <span class="card-title">TOTAL PROPAGATION</span>
-                        </div>
-                        <div class="stat-main">
-                            <span id="totalHits" class="stat-value">0</span>
-                            <div class="stat-badge success">Live</div>
-                        </div>
-                    </div>
-
-                    <div class="hero-stat-card glass-card">
-                        <div class="card-header">
-                            <span class="card-title">UNIQUE NODES</span>
-                        </div>
-                        <div class="stat-main">
-                            <span id="uniqueReaders" class="stat-value">0</span>
-                        </div>
-                    </div>
-
-                    <div class="hero-stat-card glass-card">
-                        <div class="card-header">
-                            <span class="card-title">GEO FOOTPRINT</span>
-                        </div>
-                        <div class="stat-main">
-                            <span id="geoReach" class="stat-value">0</span>
-                        </div>
-                    </div>
-
-                    <div class="hero-stat-card glass-card">
-                        <div class="card-header">
-                            <span class="card-title">BATTERY HEALTH</span>
-                        </div>
-                        <div class="stat-main">
-                            <span class="stat-value">98<small>%</small></span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Mid Section: Charts & Map -->
-                <section class="content-grid-mid">
-                    <div class="large-card glass-card">
-                        <div class="card-header-flex">
-                            <div class="title-group">
-                                <span class="card-label">GLOBAL TRAFFIC MATRIX</span>
-                                <span class="card-sub">NODE DEPLOYMENT VECTOR</span>
-                            </div>
-                            <div class="matrix-sync">
-                                <span class="sync-dot"></span>
-                                <span class="sync-text">MAP SYNCED</span>
-                            </div>
-                        </div>
-                        <div class="map-container-v3">
-                            <div id="mainHeatmap" class="map-frame"></div>
-                            <div class="map-overlay-v3">
-                                <div class="overlay-row">
-                                    <span class="pulse-indicator"></span>
-                                    <span class="overlay-title">SYSTEM MONITOR</span>
+        <main class="content-area">
+            <!-- TAB: DASHBOARD -->
+            <div id="tab-dashboard" class="tab-pane active">
+                <div class="dashboard-grid">
+                    <!-- LEFT CLIP: CREATION FORM -->
+                    <div class="editor-section">
+                        <div class="glass-card editor-card">
+                            <div class="card-header-v4">
+                                <h2 id="editorTitle">Create New Paste</h2>
+                                <div class="header-actions">
+                                    <button class="icon-btn" onclick="clearEditor()" title="Clear Form">🗑️</button>
+                                    <button class="icon-btn" onclick="copyEditorLink()" title="Copy Link">🔗</button>
                                 </div>
-                                <div id="packetCounter" class="overlay-sub">IDLE</div>
+                            </div>
+                            <div class="form-body">
+                                <div class="form-group">
+                                    <label>TITLE</label>
+                                    <input type="text" id="pasteTitle" placeholder="Enter title..." class="admin-input">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>LANGUAGE</label>
+                                        <select id="pasteLanguage" class="admin-select"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>EXPIRATION</label>
+                                        <select id="pasteExpiration" class="admin-select">
+                                            <option value="never">Never</option>
+                                            <option value="1h">1 Hour</option>
+                                            <option value="1d">1 Day</option>
+                                            <option value="1w">1 Week</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>FOLDER</label>
+                                    <select id="pasteFolder" class="admin-select">
+                                        <option value="">None</option>
+                                        <option value="public">Public</option>
+                                        <option value="private">Private</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>PASSWORD (OPTIONAL)</label>
+                                    <input type="password" id="pastePassword" placeholder="Protect with password..."
+                                        class="admin-input">
+                                </div>
+                                <div class="form-group">
+                                    <label>EMBED IMAGE URL (OPTIONAL)</label>
+                                    <div class="input-with-btn">
+                                        <input type="text" id="pasteEmbed" placeholder="https://... (Image for Discord)"
+                                            class="admin-input">
+                                        <button class="inline-btn"
+                                            onclick="showToast('Upload feature coming soon', 'info')">Upload</button>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="label-row">
+                                        <label>CONTENT</label>
+                                        <button class="inline-btn"
+                                            onclick="showToast('Add Media feature coming soon', 'info')">Add
+                                            Media</button>
+                                    </div>
+                                    <textarea id="pasteContent" placeholder="Paste content here..."
+                                        class="admin-textarea"></textarea>
+                                </div>
+                                <div class="form-row checkbox-row">
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="burnAfterRead">
+                                        <span class="checkmark"></span>
+                                        <div class="check-text">
+                                            <strong>BURN AFTER READ</strong>
+                                            <small>Delete after first view</small>
+                                        </div>
+                                    </label>
+                                    <label class="checkbox-container">
+                                        <input type="checkbox" id="isPublic" checked>
+                                        <span class="checkmark"></span>
+                                        <div class="check-text">
+                                            <strong>PUBLIC</strong>
+                                            <small>Visible on public domain</small>
+                                        </div>
+                                    </label>
+                                </div>
+                                <button id="createPasteBtn" class="btn-primary-v4">Create Paste</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="side-module-stack">
-                        <div class="side-module glass-card">
-                            <div class="card-header">
-                                <span class="card-label">CHARGE STATISTICS</span>
+                    <!-- RIGHT CLIP: RECENT PASTES -->
+                    <div class="list-section">
+                        <div class="glass-card list-card">
+                            <div class="card-header-v4">
+                                <h2>Recent Pastes</h2>
+                                <button class="icon-btn" onclick="populateActiveNodes()" title="Refresh">🔄</button>
                             </div>
-                            <div class="chart-wrapper-v3">
+                            <div id="pasteListContainer" class="paste-list-v4">
+                                <!-- Populated by JS -->
+                                <div class="loading-state">Syncing Repository...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: GLOBAL ANALYTICS -->
+            <div id="tab-analytics" class="tab-pane">
+                <div class="analytics-dashboard-v4">
+                    <div class="stats-row-v4">
+                        <div class="stat-card-v4">
+                            <label>TOTAL HITS</label>
+                            <div id="totalHits" class="val">0</div>
+                            <div class="trend success">Live Data</div>
+                        </div>
+                        <div class="stat-card-v4">
+                            <label>UNIQUE VISITORS</label>
+                            <div id="uniqueReaders" class="val">0</div>
+                        </div>
+                        <div class="stat-card-v4">
+                            <label>TOTAL PASTES</label>
+                            <div id="totalPastes" class="val">0</div>
+                        </div>
+                        <div class="stat-card-v4">
+                            <label>GEO FOOTPRINT</label>
+                            <div id="geoReach" class="val">0</div>
+                        </div>
+                    </div>
+
+                    <div class="matrix-row">
+                        <div class="glass-card map-card">
+                            <div class="card-header-v4">
+                                <h3>GLOBAL TRAFFIC MATRIX</h3>
+                                <div class="sync-status">MAP SYNCED</div>
+                            </div>
+                            <div id="mainHeatmap" class="heatmap-v4"></div>
+                        </div>
+                        <div class="glass-card chart-card">
+                            <div class="card-header-v4">
+                                <h3>TRAFFIC DISTRIBUTION</h3>
+                            </div>
+                            <div class="chart-container-v4">
                                 <canvas id="trafficChart"></canvas>
                             </div>
-                        </div>
-
-                        <div class="side-module glass-card" style="margin-top: 25px;">
-                            <div class="card-header">
-                                <span class="card-label">ACTIVE PAYLOAD NODES</span>
-                            </div>
-                            <div id="topPastesList" class="payload-nodes-list">
-                                <!-- Populated by JS -->
+                            <div class="detailed-stats">
+                                <div id="browserList" class="intel-list-v4"></div>
                             </div>
                         </div>
                     </div>
-                </section>
 
-                <section class="content-grid-bottom">
-                    <div class="live-log-container glass-card" style="grid-column: span 3;">
-                        <div class="card-header">
-                            <span class="card-label">LIVE INTELLIGENCE STREAM</span>
-                        </div>
-                        <div class="log-table-wrapper-v3">
-                            <table class="log-table-v3">
-                                <thead>
-                                    <tr>
-                                        <th>TIME</th>
-                                        <th>ENDPOINT</th>
-                                        <th>LOCATION</th>
-                                        <th>ISP</th>
-                                        <th>IP</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="trafficLogBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- TAB: ACTIVE NODES -->
-            <div id="tab-active" class="tab-pane">
-                <section class="glass-card">
-                    <div class="card-header-flex">
-                        <span class="card-label">PAYLOAD REPOSITORY</span>
-                        <div style="display:flex; gap:10px">
-                            <button class="btn-outline" style="padding: 10px 20px; width: auto;"
-                                onclick="toggleEditor(true)">+ NEW DEPLOYMENT</button>
+                    <div class="log-section">
+                        <div class="glass-card log-card">
+                            <div class="card-header-v4">
+                                <h3>LIVE INTELLIGENCE STREAM</h3>
+                                <button class="btn-danger-slim" onclick="wipeAllLogs()">WIPE ALL LOGS</button>
+                            </div>
+                            <div class="table-wrapper-v4">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TIME</th>
+                                            <th>TARGET</th>
+                                            <th>LOCATION</th>
+                                            <th>CARRIER</th>
+                                            <th>IP ADDRESS</th>
+                                            <th>ACTIONS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trafficLogBody"></tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                    <div class="log-table-wrapper-v3" style="max-height: 70vh;">
-                        <table class="log-table-v3">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>PAYLOAD TITLE</th>
-                                    <th>DEPLOYED</th>
-                                    <th>PROPAGATIONS</th>
-                                    <th>REACTIONS</th>
-                                    <th>CONTROL CENTER</th>
-                                </tr>
-                            </thead>
-                            <tbody id="fullNodesBody"></tbody>
-                        </table>
-                    </div>
-                </section>
+                </div>
             </div>
 
             <!-- TAB: SECURITY -->
             <div id="tab-security" class="tab-pane">
-                <div class="content-grid-bottom" style="grid-template-columns: 1fr 1fr;">
-                    <section class="glass-card">
-                        <div class="card-header-flex">
-                            <span class="card-label">ACCESS KEY NODES</span>
-                            <button class="btn-outline" style="padding: 8px 15px; width: auto;"
-                                id="generateKeyBtn">GENERATE</button>
+                <div class="security-grid">
+                    <div class="glass-card">
+                        <div class="card-header-v4">
+                            <h3>ACCESS KEYS</h3>
+                            <button class="btn-primary-slim" id="generateKeyBtn">GENERATE NEW KEY</button>
                         </div>
-                        <div class="intel-list-v3" id="accessKeyList"></div>
-                    </section>
-
-                    <section class="glass-card">
-                        <div class="card-header">
-                            <span class="card-label">AUTHORIZED OPERATORS</span>
+                        <div id="accessKeyList" class="intel-list-v4"></div>
+                    </div>
+                    <div class="glass-card">
+                        <div class="card-header-v4">
+                            <h3>AUTHORIZED OPERATORS</h3>
                         </div>
-                        <div class="intel-list-v3" id="adminUsersList"></div>
-                    </section>
-                </div>
-            </div>
-
-            <!-- TAB: NETWORK -->
-            <div id="tab-network" class="tab-pane">
-                <div class="content-grid-bottom" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <div class="intel-module glass-card">
-                        <div class="card-header"><span class="card-label">BROWSER ARCHITECTURE</span></div>
-                        <div id="browserDetailList" class="intel-list-v3"></div>
-                    </div>
-                    <div class="intel-module glass-card">
-                        <div class="card-header"><span class="card-label">ISP NODES</span></div>
-                        <div id="ispDetailList" class="intel-list-v3"></div>
-                    </div>
-                    <div class="intel-module glass-card">
-                        <div class="card-header"><span class="card-label">TRAFFIC ORIGINS</span></div>
-                        <div id="referrerList" class="intel-list-v3"></div>
+                        <div id="adminUsersList" class="intel-list-v4"></div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Edit/Editor Section (Hidden by default, triggered by JS) -->
-    <div id="editorOverlay" class="editor-overlay">
-        <div class="editor-modal glass-card">
-            <div class="modal-header">
-                <h2>DEPLOY CONTENT</h2>
-                <button id="closeEditorBtn" class="close-btn">&times;</button>
-            </div>
-            <!-- Editor implementation inside the modal -->
-            <div class="editor-grid">
-                <div class="editor-main">
-                    <input type="text" id="pasteTitle" placeholder="Payload Title" class="energ-input">
-                    <div class="input-row">
-                        <select id="pasteLanguage" class="energ-select"></select>
-                        <select id="pasteExpiration" class="energ-select">
-                            <option value="never">Permanent</option>
-                            <option value="1h">1 Hour</option>
-                            <option value="1d">1 Day</option>
-                        </select>
-                    </div>
-                    <textarea id="pasteContent" placeholder="Payload data..." class="energ-textarea"></textarea>
+    <!-- MODAL: PASTE ANALYTICS -->
+    <div id="analyticsModal" class="modal-v4">
+        <div class="modal-content-v4 glass-card">
+            <div class="modal-header-v4">
+                <div class="title-group">
+                    <h2 id="pModalTitle">Paste Analytics</h2>
+                    <span id="pModalId" class="id-tag">--------</span>
                 </div>
-                <div class="editor-side">
-                    <button id="createPasteBtn" class="btn-gradient">DEPLOY PAYLOAD</button>
-                    <button id="clearBtn" class="btn-outline">CLEAR</button>
+                <div class="modal-actions">
+                    <button class="btn-danger-slim" id="pClearLogsBtn">Clear Logs</button>
+                    <button class="btn-warning-slim" id="pResetViewsBtn">Reset Views</button>
+                    <button class="close-btn" onclick="closeModal('analyticsModal')">&times;</button>
                 </div>
             </div>
-        </div>
-    </div>
+            <div class="modal-body-v4">
+                <div class="paste-url-bar">
+                    <input type="text" id="pModalUrl" readonly>
+                    <button onclick="copyModalUrl()">Copy Link</button>
+                </div>
 
-    <!-- ANALYTICS MODAL -->
-    <div id="analyticsModal" class="editor-overlay">
-        <div class="editor-modal glass-card" style="max-width: 1000px;">
-            <div class="modal-header">
-                <h2>STATIC INTELLIGENCE</h2>
-                <button onclick="closeModal('analyticsModal')" class="close-btn">&times;</button>
-            </div>
-            <div class="analytics-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
-                <div class="analytics-left">
-                    <div class="stats-grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div class="hero-stat-card glass-card" style="padding: 15px;">
-                            <span class="card-title">TOTAL HITS</span>
-                            <span id="pTotalViews" class="stat-value" style="font-size: 1.5rem;">0</span>
-                        </div>
-                        <div class="hero-stat-card glass-card" style="padding: 15px;">
-                            <span class="card-title">UNIQUE NODES</span>
-                            <span id="pUniqueIPs" class="stat-value" style="font-size: 1.5rem;">0</span>
-                        </div>
+                <div class="modal-stats-grid">
+                    <div class="m-stat">
+                        <span id="pTotalViews" class="val">0</span>
+                        <label>TOTAL VIEWS</label>
                     </div>
-                    <div class="glass-card" style="margin-bottom: 20px;">
-                        <span class="card-label">GEOGRAPHIC CLUSTERS</span>
-                        <div id="pTopLocations" class="intel-list-v3"></div>
+                    <div class="m-stat">
+                        <span id="pUniqueIPs" class="val">0</span>
+                        <label>UNIQUE VISITORS</label>
                     </div>
-                    <div class="glass-card">
-                        <span class="card-label">CARRIER NODES</span>
-                        <div id="pTopISPs" class="intel-list-v3"></div>
+                    <div class="m-stat">
+                        <span id="pCountryCount" class="val">0</span>
+                        <label>COUNTRIES</label>
                     </div>
                 </div>
-                <div class="analytics-right">
-                    <div class="log-table-wrapper-v3" style="max-height: 500px;">
-                        <table class="log-table-v3">
+
+                <div class="modal-data-row">
+                    <div class="data-col">
+                        <label>📍 Top Cities</label>
+                        <div id="pTopLocations" class="data-list"></div>
+                    </div>
+                    <div class="data-col">
+                        <label>🏢 Top ISPs</label>
+                        <div id="pTopISPs" class="data-list"></div>
+                    </div>
+                </div>
+
+                <div class="modal-log-section">
+                    <label>Detailed View Log</label>
+                    <div class="mini-table-wrapper">
+                        <table class="admin-table mini">
                             <thead>
                                 <tr>
-                                    <th>TIME</th>
+                                    <th>TIMESTAMP</th>
+                                    <th>IDENTITY</th>
                                     <th>LOCATION</th>
-                                    <th>ISP</th>
+                                    <th>DEVICE / NETWORK</th>
                                 </tr>
                             </thead>
                             <tbody id="pLogBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-reactions-section">
+                    <label>Reactions Summary</label>
+                    <div class="reaction-stats">
+                        <div class="r-box heart"><span id="pHearts">0</span> HEARTS</div>
+                        <div class="r-box star"><span id="pStars">0</span> STARS</div>
+                        <div class="r-box like"><span id="pLikes">0</span> LIKES</div>
+                    </div>
+                    <div class="mini-table-wrapper" style="max-height: 200px;">
+                        <table class="admin-table mini">
+                            <thead>
+                                <tr>
+                                    <th>USER</th>
+                                    <th>TYPE</th>
+                                    <th>LOCATION</th>
+                                    <th>TIMESTAMP</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pReactionsLog"></tbody>
                         </table>
                     </div>
                 </div>
@@ -325,39 +318,38 @@
         </div>
     </div>
 
-    <!-- ADJUST STATS MODAL -->
-    <div id="adjustStatsModal" class="editor-overlay">
-        <div class="editor-modal glass-card" style="max-width: 450px;">
-            <div class="modal-header">
-                <h2>NODE METRIC OVERRIDE</h2>
-                <button onclick="closeModal('adjustStatsModal')" class="close-btn">&times;</button>
+    <!-- MODAL: METRIC OVERRIDE -->
+    <div id="adjustStatsModal" class="modal-v4">
+        <div class="modal-content-v4 glass-card" style="max-width: 500px;">
+            <div class="modal-header-v4">
+                <h2>Node Metric Override</h2>
+                <button class="close-btn" onclick="closeModal('adjustStatsModal')">&times;</button>
             </div>
-            <div class="adjust-form">
-                <div class="input-group">
-                    <label class="card-label" style="font-size: 0.8rem;">TOTAL PROPAGATIONS</label>
-                    <input type="number" id="adjViews" class="energ-input" style="margin-top: 5px;">
+            <div class="modal-body-v4">
+                <div class="form-group">
+                    <label>TOTAL PROPAGATIONS (VIEWS)</label>
+                    <input type="number" id="adjViews" class="admin-input">
                 </div>
-                <div class="input-group">
-                    <label class="card-label" style="font-size: 0.8rem;">HEART REACTIONS</label>
-                    <input type="number" id="adjHearts" class="energ-input" style="margin-top: 5px;">
+                <div class="form-group">
+                    <label>HEART REACTIONS</label>
+                    <input type="number" id="adjHearts" class="admin-input">
                 </div>
-                <div class="input-group">
-                    <label class="card-label" style="font-size: 0.8rem;">STAR REACTIONS</label>
-                    <input type="number" id="adjStars" class="energ-input" style="margin-top: 5px;">
+                <div class="form-group">
+                    <label>STAR REACTIONS</label>
+                    <input type="number" id="adjStars" class="admin-input">
                 </div>
-                <div class="input-group">
-                    <label class="card-label" style="font-size: 0.8rem;">LIKE REACTIONS</label>
-                    <input type="number" id="adjLikes" class="energ-input" style="margin-top: 5px;">
+                <div class="form-group">
+                    <label>LIKE REACTIONS</label>
+                    <input type="number" id="adjLikes" class="admin-input">
                 </div>
-                <button id="saveStatsBtn" class="btn-gradient">APPLY OVERRIDES</button>
+                <button id="saveStatsBtn" class="btn-primary-v4">Apply Overrides</button>
             </div>
         </div>
     </div>
 
-    <!-- Base Dependencies -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="../shared/api.js?v=11"></script>
-    <script src="app.js?v=12"></script>
+    <script src="../shared/api.js?v=13"></script>
+    <script src="app.js?v=13"></script>
 </body>
 
 </html>

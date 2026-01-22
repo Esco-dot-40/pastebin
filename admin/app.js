@@ -1,532 +1,555 @@
-// ENERG Premium Analytics Console - veroe.space & ENERG
-const storage = new PasteStorage();
+// VEROE High-Efficiency Admin Console
+const api = new PasteStorage();
 
-// State
+// State Management
 let mainMap = null;
 let mainMapMarkers = [];
-let globalAnalyticsData = null;
+let globalAnalytics = null;
 let trafficChart = null;
-let currentTab = 'overview';
+let currentTab = 'dashboard';
+let activeEditId = null;
 
-// Elements
-const els = {
-    totalHits: document.getElementById('totalHits'),
-    uniqueReaders: document.getElementById('uniqueReaders'),
-    geoReach: document.getElementById('geoReach'),
-    activeVisitors: document.getElementById('activeVisitors'),
-    browserList: document.getElementById('browserList'),
-    ispList: document.getElementById('ispList'),
-    trafficLogBody: document.getElementById('trafficLogBody'),
-    packetCounter: document.getElementById('packetCounter'),
-    // Tab Specific
-    fullNodesBody: document.getElementById('fullNodesBody'),
-    accessKeyList: document.getElementById('accessKeyList'),
-    adminUsersList: document.getElementById('adminUsersList'),
-    browserDetailList: document.getElementById('browserDetailList'),
-    ispDetailList: document.getElementById('ispDetailList'),
-    referrerList: document.getElementById('referrerList'),
-    tabTitle: document.getElementById('tabTitle'),
-    tabSub: document.getElementById('tabSub'),
-    generateKeyBtn: document.getElementById('generateKeyBtn'),
-    // Node Specific (Analytics Modal)
-    pTotalViews: document.getElementById('pTotalViews'),
-    pUniqueIPs: document.getElementById('pUniqueIPs'),
-    pTopLocations: document.getElementById('pTopLocations'),
-    pTopISPs: document.getElementById('pTopISPs'),
-    pLogBody: document.getElementById('pLogBody'),
-    // Adjust Stats
-    adjViews: document.getElementById('adjViews'),
-    adjHearts: document.getElementById('adjHearts'),
-    adjStars: document.getElementById('adjStars'),
-    adjLikes: document.getElementById('adjLikes'),
-    saveStatsBtn: document.getElementById('saveStatsBtn'),
-    // Editor references
-    editorOverlay: document.getElementById('editorOverlay'),
-    pasteTitle: document.getElementById('pasteTitle'),
-    pasteContent: document.getElementById('pasteContent'),
-    pasteLanguage: document.getElementById('pasteLanguage'),
-    pasteExpiration: document.getElementById('pasteExpiration'),
-    createPasteBtn: document.getElementById('createPasteBtn'),
-    closeEditorBtn: document.getElementById('closeEditorBtn')
-};
-
-// Languages Configuration
-const LANGUAGES = [
-    { id: 'plaintext', name: 'Plain Text' },
-    { id: 'javascript', name: 'JavaScript' },
-    { id: 'python', name: 'Python' },
-    { id: 'html', name: 'HTML' },
-    { id: 'css', name: 'CSS' },
-    { id: 'json', name: 'JSON' },
-    { id: 'markdown', name: 'Markdown' }
-];
-
-// Initialize
+// Initialization
 window.addEventListener('DOMContentLoaded', async () => {
     initChart();
-    populateEditorConfig();
+    populateConfig();
 
     // Initial data load
-    await loadGlobalAnalytics();
-    await loadTabDedicatedData();
+    await refreshData();
 
-    // Leaflet Init
-    setTimeout(initMainMap, 100);
+    // Switch to dashboard by default
+    switchTab('dashboard');
 
-    // Refresh cycles
-    setInterval(loadGlobalAnalytics, 15000); // 15s refresh
+    // Interval Updates
+    setInterval(async () => {
+        await refreshData();
+    }, 15000);
 });
 
-function populateEditorConfig() {
-    if (els.pasteLanguage) {
-        els.pasteLanguage.innerHTML = LANGUAGES.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
-    }
-}
-
-async function loadGlobalAnalytics() {
+async function refreshData() {
     try {
-        const data = await storage.getGlobalAnalytics();
-        globalAnalyticsData = data;
+        const stats = await api.getGlobalAnalytics();
+        globalAnalytics = stats;
 
-        // Populate Stats
-        if (els.totalHits) els.totalHits.textContent = data.totalVisits || 0;
-        if (els.uniqueReaders) els.uniqueReaders.textContent = data.uniqueVisitors || 0;
-        if (els.geoReach) els.geoReach.textContent = data.uniqueLocations || 0;
-        if (els.activeVisitors) els.activeVisitors.textContent = `${data.activeNow || 0} Active Visitors`;
-
-        // Update Matrix Components
-        updateMainMap(data.locations || []);
-        updateTopPastes(data.pageAccesses?.byPage || []);
-        updateTrafficChart(data);
-
-        // Populate Intel (Overview)
-        populateIntelList('browserList', data.browsers || []);
-        populateIntelList('ispList', data.isps || []);
-
-        // Log Stream
-        const activity = [...(data.recentViews || []), ...(data.pageAccesses?.recent || [])]
-            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-            .slice(0, 50);
-        populateTrafficLog(activity);
-
-        if (els.packetCounter) {
-            els.packetCounter.textContent = `SYNCING ${data.totalVisits % 25 + 5} PACKETS...`;
+        updateGlobalUI(stats);
+        if (currentTab === 'dashboard') await populateActiveNodes();
+        if (currentTab === 'analytics') {
+            updateGlobalAnalyticsUI(stats);
+            if (!mainMap) setTimeout(initMainMap, 500);
+            else updateMainMap(stats.locations || []);
         }
-
-        // Populate Network Tab Data if active
-        if (currentTab === 'network') populateNetworkTab(data);
+        if (currentTab === 'security') await populateSecurityTab();
 
     } catch (e) {
-        console.error('Data sync failed:', e);
+        console.error('Data refresh error:', e);
     }
 }
 
-async function loadTabDedicatedData() {
-    if (currentTab === 'active') await populateActiveNodes();
-    if (currentTab === 'security') await populateSecurityTab();
+function updateGlobalUI(data) {
+    const vEl = document.getElementById('activeVisitors');
+    if (vEl) vEl.textContent = `${data.activeNow || 0} Active Visitors`;
 }
 
-function initMainMap() {
-    if (mainMap) return;
-    const container = document.getElementById('mainHeatmap');
+async function populateConfig() {
+    const langSelect = document.getElementById('pasteLanguage');
+    if (langSelect) {
+        const langs = [
+            { id: 'plaintext', name: 'Plain Text' },
+            { id: 'javascript', name: 'JavaScript' },
+            { id: 'python', name: 'Python' },
+            { id: 'html', name: 'HTML' },
+            { id: 'css', name: 'CSS' },
+            { id: 'json', name: 'JSON' },
+            { id: 'markdown', name: 'Markdown' }
+        ];
+        langSelect.innerHTML = langs.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+    }
+}
+
+// --- TABS ---
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.toggle('active', l.dataset.tab === tab);
+    });
+    document.querySelectorAll('.tab-pane').forEach(p => {
+        p.classList.toggle('active', p.id === `tab-${tab}`);
+    });
+
+    if (tab === 'dashboard') populateActiveNodes();
+    if (tab === 'analytics') refreshData();
+}
+
+document.querySelectorAll('.nav-link').forEach(link => {
+    link.onclick = (e) => {
+        e.preventDefault();
+        switchTab(link.dataset.tab);
+    }
+});
+
+// --- DASHBOARD: PASTE LIST ---
+async function populateActiveNodes() {
+    const container = document.getElementById('pasteListContainer');
     if (!container) return;
 
-    mainMap = L.map('mainHeatmap', {
-        center: [20, 0],
-        zoom: 2,
-        zoomControl: false,
-        attributionControl: false
-    });
+    try {
+        const pastes = await api.getAllPastes();
+        if (pastes.length === 0) {
+            container.innerHTML = '<div class="empty-state">No nodes propagated in the repository.</div>';
+            return;
+        }
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(mainMap);
+        container.innerHTML = pastes.map(p => `
+            <div class="paste-item-v4">
+                <div class="p-item-header">
+                    <div class="p-item-title-group">
+                        <h3>${p.title || 'Untitled'}</h3>
+                        <span class="p-item-id">${p.id}</span>
+                    </div>
+                    <div class="p-item-badge ${p.isPublic ? 'public' : 'private'}">
+                        ${p.isPublic ? '🌍 PUBLIC' : '🔒 PRIVATE'}
+                    </div>
+                </div>
+                
+                <div class="p-item-stats">
+                    <div class="p-stat-badge lang">${p.language}</div>
+                    <div class="p-stat-badge">👁️ ${p.views}</div>
+                    <div class="p-stat-badge">❤️ ${p.reactions?.heart || 0}</div>
+                    <div class="p-stat-badge">⭐ ${p.reactions?.star || 0}</div>
+                    <div class="p-stat-badge">👍 ${p.reactions?.like || 0}</div>
+                </div>
 
-    if (globalAnalyticsData) {
-        updateMainMap(globalAnalyticsData.locations || []);
+                <div class="p-meta-info">
+                    <span>🗓️ ${timeAgo(p.createdAt)}</span>
+                    <span>📁 ${p.folderName || 'Root'}</span>
+                    ${p.burnAfterRead ? '<span>🔥 Burn on Read</span>' : ''}
+                </div>
+
+                <div class="p-item-actions">
+                    <button class="btn-action copy" onclick="copyPasteLink('${p.id}')">🔗 Copy Link</button>
+                    <button class="btn-action" onclick="openNodeEdits('${p.id}')">⚙️ Metrics</button>
+                    <button class="btn-action" onclick="openNodeAnalytics('${p.id}')">📊 Analytics</button>
+                    <button class="btn-action" onclick="editPaste('${p.id}')">✏️ Edit</button>
+                    <button class="btn-action delete" onclick="deletePaste('${p.id}')">🗑️ Delete</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = `<div class="error-state">Failed to sync repository: ${e.message}</div>`;
     }
 }
 
-function updateMainMap(locations) {
-    if (!mainMap) return;
-    mainMapMarkers.forEach(m => m.remove());
-    mainMapMarkers = [];
+// --- CREATION / EDITING ---
+async function editPaste(id) {
+    try {
+        const p = await api.getPaste(id, false);
+        if (!p) return;
 
-    locations.forEach(loc => {
-        const lat = parseFloat(loc.lat);
-        const lon = parseFloat(loc.lon);
-        if (!isNaN(lat) && !isNaN(lon)) {
-            const size = 10 + Math.log(loc.count || 1) * 6;
-            const ring = L.circleMarker([lat, lon], {
-                radius: size,
-                fillColor: '#8B5CF6',
-                color: '#8B5CF6',
-                weight: 1,
-                opacity: 0.3,
-                fillOpacity: 0.15
-            }).addTo(mainMap);
+        activeEditId = id;
+        document.getElementById('editorTitle').textContent = `Editing Paste: ${id}`;
+        document.getElementById('pasteTitle').value = p.title || '';
+        document.getElementById('pasteLanguage').value = p.language || 'plaintext';
+        document.getElementById('pasteContent').value = p.content || '';
+        document.getElementById('pasteFolder').value = p.folderId || '';
+        document.getElementById('isPublic').checked = p.isPublic === 1;
+        document.getElementById('burnAfterRead').checked = p.burnAfterRead === 1;
+        document.getElementById('pasteEmbed').value = p.embedUrl || '';
 
-            const dot = L.circleMarker([lat, lon], {
-                radius: 2,
-                fillColor: '#fff',
-                color: '#fff',
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 1
-            }).addTo(mainMap);
+        const btn = document.getElementById('createPasteBtn');
+        btn.textContent = 'Update Paste';
+        btn.classList.add('updating');
 
-            mainMapMarkers.push(ring, dot);
+        // Scroll to top of editor if needed
+        document.querySelector('.editor-section').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+function clearEditor() {
+    activeEditId = null;
+    document.getElementById('editorTitle').textContent = 'Create New Paste';
+    document.getElementById('pasteTitle').value = '';
+    document.getElementById('pasteContent').value = '';
+    document.getElementById('pastePassword').value = '';
+    document.getElementById('pasteEmbed').value = '';
+    const btn = document.getElementById('createPasteBtn');
+    btn.textContent = 'Create Paste';
+    btn.classList.remove('updating');
+}
+
+document.getElementById('createPasteBtn').onclick = async () => {
+    const title = document.getElementById('pasteTitle').value.trim();
+    const content = document.getElementById('pasteContent').value.trim();
+    const language = document.getElementById('pasteLanguage').value;
+    const isPublic = document.getElementById('isPublic').checked;
+    const burnAfterRead = document.getElementById('burnAfterRead').checked;
+    const folderId = document.getElementById('pasteFolder').value;
+    const password = document.getElementById('pastePassword').value;
+    const embedUrl = document.getElementById('pasteEmbed').value;
+    const exp = document.getElementById('pasteExpiration').value;
+
+    if (!content) return showToast('Payload container cannot be empty', 'error');
+
+    const config = {
+        title: title || 'Untitled',
+        language,
+        isPublic: isPublic ? 1 : 0,
+        burnAfterRead: burnAfterRead ? 1 : 0,
+        folderId,
+        password: password || null,
+        embedUrl: embedUrl || null,
+        expiresAt: calculateExpiration(exp)
+    };
+
+    try {
+        if (activeEditId) {
+            await api.updatePaste(activeEditId, content, config);
+            showToast('Paste Updated Successfully', 'success');
+        } else {
+            const id = await api.createPaste(content, config);
+            showToast(`New Paste Propagated: ${id}`, 'success');
         }
+        clearEditor();
+        await populateActiveNodes();
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+};
+
+function calculateExpiration(val) {
+    if (val === 'never') return null;
+    const now = new Date();
+    const map = { '1h': 3600000, '1d': 86400000, '1w': 604800000 };
+    return new Date(now.getTime() + (map[val] || 0)).toISOString();
+}
+
+// --- ANALYTICS TAB: GLOBAL ---
+function updateGlobalAnalyticsUI(data) {
+    document.getElementById('totalHits').textContent = data.totalVisits || 0;
+    document.getElementById('uniqueReaders').textContent = data.uniqueVisitors || 0;
+    document.getElementById('geoReach').textContent = data.uniqueLocations || 0;
+
+    // Total Pastes fetch
+    fetch('/api/pastes/stats/summary').then(r => r.json()).then(d => {
+        document.getElementById('totalPastes').textContent = d.totalPastes || 0;
     });
 
-    if (mainMapMarkers.length > 0 && !mainMap._fitted) {
-        const group = new L.featureGroup(mainMapMarkers);
-        mainMap.fitBounds(group.getBounds().pad(0.1));
-        mainMap._fitted = true;
-    }
+    const body = document.getElementById('trafficLogBody');
+    const activity = [...(data.recentViews || []), ...(data.pageAccesses?.recent || [])]
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .slice(0, 100);
+
+    body.innerHTML = activity.map(h => `
+        <tr>
+            <td style="color:var(--text-secondary); font-size:11px">${timeAgo(h.timestamp)}</td>
+            <td style="color:var(--accent-purple); font-weight:700">${h.pasteId ? '/v/' + h.pasteId : h.path}</td>
+            <td>${h.city || 'Private'}, ${h.countryCode || '??'}</td>
+            <td style="font-size:11px; opacity:0.6">${(h.isp || 'Reserved').substring(0, 25)}</td>
+            <td style="font-family:var(--font-mono); font-size:11px">${h.ip}</td>
+            <td>
+                <button class="btn-danger-slim" onclick="purgeHit('${h.ip}')">Purge</button>
+            </td>
+        </tr>
+    `).join('');
+
+    populateIntelList('browserList', data.browsers || []);
+    updateTrafficChart(data);
+}
+
+function populateIntelList(id, items) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = items.slice(0, 10).map(i => `
+        <div class="intel-item-v4">
+            <span class="label">${i.name.toUpperCase()}</span>
+            <span class="val">${i.count}</span>
+        </div>
+    `).join('');
 }
 
 function initChart() {
     const ctx = document.getElementById('trafficChart');
     if (!ctx) return;
-
     trafficChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'line',
         data: {
-            labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+            labels: Array(12).fill(''),
             datasets: [{
-                label: 'System Load',
-                data: [45, 12, 67, 34, 89, 56, 23],
-                backgroundColor: 'rgba(139, 92, 246, 0.5)',
-                borderWidth: 0,
-                borderRadius: 8,
-                barThickness: 15
+                data: Array(12).fill(0),
+                borderColor: '#3b82f6',
+                borderWidth: 3,
+                tension: 0.4,
+                pointRadius: 0,
+                fill: true,
+                backgroundColor: 'rgba(59, 130, 246, 0.05)'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: {
-                x: { display: false },
-                y: { display: false }
-            }
+            scales: { x: { display: false }, y: { display: false } }
         }
     });
 }
 
 function updateTrafficChart(data) {
     if (!trafficChart) return;
-    const counts = (data.browsers || []).map(b => b.count).slice(0, 7);
+    const counts = (data.isps || []).map(i => i.count).slice(0, 12);
     if (counts.length > 0) {
         trafficChart.data.datasets[0].data = counts;
         trafficChart.update();
     }
 }
 
-function updateTopPastes(pages) {
-    const container = document.getElementById('topPastesList');
-    if (!container) return;
-    const filtered = pages.filter(p => p.name.startsWith('/v/') || p.name.includes('paste')).slice(0, 5);
-    container.innerHTML = filtered.map(p => `
-        <div class="payload-node-item" onclick="window.open('${p.name}', '_blank')">
-            <div class="node-info">
-                <span class="node-name">${p.name.split('/').pop().toUpperCase() || 'ROOT'}</span>
-                <span class="node-meta">${p.count} PROPAGATIONS</span>
-            </div>
-            <div class="node-charge">${Math.floor((p.count / (globalAnalyticsData?.totalVisits || 1)) * 100)}%</div>
-        </div>
-    `).join('') || '<div style="opacity:0.2; padding:20px; text-align:center;">NO NODES ACTIVE</div>';
+// --- MAP ---
+function initMainMap() {
+    if (mainMap) return;
+    mainMap = L.map('mainHeatmap', {
+        center: [20, 0],
+        zoom: 2,
+        zoomControl: false,
+        attributionControl: false
+    });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(mainMap);
+    if (globalAnalytics) updateMainMap(globalAnalytics.locations || []);
 }
 
-function populateIntelList(id, items) {
-    const container = typeof id === 'string' ? document.getElementById(id) : id;
-    if (!container) return;
-    container.innerHTML = items.slice(0, 8).map(item => `
-        <div class="intel-item">
-            <span class="name">${item.name.toUpperCase()}</span>
-            <span class="count">${item.count}</span>
-        </div>
-    `).join('') || '<span style="opacity:0.2">DATA_IDLE</span>';
+function updateMainMap(locations) {
+    if (!mainMap) return;
+    mainMapMarkers.forEach(m => m.remove());
+    mainMapMarkers = [];
+    locations.forEach(loc => {
+        const lat = parseFloat(loc.lat);
+        const lon = parseFloat(loc.lon);
+        if (!isNaN(lat) && !isNaN(lon)) {
+            const m = L.circleMarker([lat, lon], {
+                radius: 4 + Math.log(loc.count) * 4,
+                fillColor: '#3b82f6',
+                color: '#3b82f6',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.3
+            }).addTo(mainMap);
+            mainMapMarkers.push(m);
+        }
+    });
 }
 
-function populateTrafficLog(activity) {
-    if (!els.trafficLogBody) return;
-    els.trafficLogBody.innerHTML = activity.map(item => `
-        <tr>
-            <td style="color:var(--text-secondary)">${timeAgo(item.timestamp)}</td>
-            <td style="color:var(--accent-purple); font-weight:700">${item.pasteId ? '/p/' + item.pasteId : item.path}</td>
-            <td style="color:var(--accent-green)">${item.city || '??'}, ${item.countryCode || '??'}</td>
-            <td>${(item.isp || 'PRIVATE').substring(0, 20)}</td>
-            <td style="font-family:var(--font-mono); opacity:0.6">${item.ip || '---'}</td>
-        </tr>
-    `).join('');
-}
-
-// TAB POPULATION LOGIC
-async function populateActiveNodes() {
-    if (!els.fullNodesBody) return;
+// --- MODAL: PASTE ANALYTICS ---
+async function openNodeAnalytics(id) {
     try {
-        const pastes = await storage.getAllPastes();
-        els.fullNodesBody.innerHTML = pastes.map(p => `
+        const stats = await api.getAnalytics(id);
+        const p = await api.getPaste(id, false);
+
+        document.getElementById('pModalTitle').textContent = p.title || 'Untitled';
+        document.getElementById('pModalId').textContent = id;
+        document.getElementById('pModalUrl').value = `https://${window.location.host}/v/${id}`;
+
+        document.getElementById('pTotalViews').textContent = stats.totalViews;
+        document.getElementById('pUniqueIPs').textContent = stats.uniqueIPs;
+        document.getElementById('pCountryCount').textContent = (stats.topLocations || []).length;
+
+        // Populate Data Lists
+        const renderList = (id, items) => {
+            document.getElementById(id).innerHTML = items.slice(0, 5).map(i => `
+                <div class="data-item">
+                    <span>${i.name}</span>
+                    <span class="count">${i.count}</span>
+                </div>
+            `).join('') || '<div style="opacity:0.2">No telemetry available</div>';
+        };
+        renderList('pTopLocations', stats.topLocations || []);
+        renderList('pTopISPs', stats.topISPs || []);
+
+        // Log Body
+        document.getElementById('pLogBody').innerHTML = (stats.recentViews || []).map(v => `
             <tr>
-                <td style="font-family:var(--font-mono); font-size:10px; opacity:0.6">${p.id}</td>
-                <td style="font-weight:700">
-                    <div style="display:flex; flex-direction:column">
-                        <span>${p.title.toUpperCase()}</span>
-                        <span style="font-size:9px; color:var(--accent-purple); letter-spacing:1px">${p.language.toUpperCase()}</span>
-                    </div>
-                </td>
-                <td style="font-size:11px; color:var(--text-secondary)">${new Date(p.createdAt).toLocaleDateString()}</td>
-                <td style="color:var(--accent-green); font-weight:800; font-size:1.1rem">${p.views}</td>
-                <td>
-                    <div style="display:flex; gap:8px; font-size:14px">
-                        <span>❤️ ${p.hearts || 0}</span>
-                        <span>⭐ ${p.stars || 0}</span>
-                        <span>👍 ${p.likes || 0}</span>
-                    </div>
-                </td>
-                <td>
-                    <div style="display:flex; gap:8px">
-                        <button onclick="window.open('/v/${p.id}', '_blank')" class="btn-outline" style="padding:4px 8px; font-size:9px">VIEW</button>
-                        <button onclick="editNode('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px">EDIT</button>
-                        <button onclick="openNodeEdits('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px">METRICS</button>
-                        <button onclick="openNodeAnalytics('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px; border-color:var(--accent-purple); color:var(--accent-purple)">INTEL</button>
-                        <button onclick="deleteNode('${p.id}')" class="btn-outline" style="padding:4px 8px; font-size:9px; border-color:#FF5E5E; color:#FF5E5E">WIPE</button>
-                    </div>
-                </td>
+                <td>${new Date(v.timestamp).toLocaleString()}</td>
+                <td>${v.ip}</td>
+                <td>${v.city || '??'}, ${v.countryCode || '??'}</td>
+                <td>${v.userAgent?.split(' ')[0] || 'Unknown'} / ${v.isp?.substring(0, 15) || '---'}</td>
             </tr>
-        `).join('') || '<tr><td colspan="6" style="text-align:center; opacity:0.3; padding:40px">NO_NODES_FOUND</td></tr>';
+        `).join('') || '<tr><td colspan="4" style="text-align:center; opacity:0.2">No activity logged</td></tr>';
+
+        // Reactions
+        document.getElementById('pHearts').textContent = p.reactions?.heart || 0;
+        document.getElementById('pStars').textContent = p.reactions?.star || 0;
+        document.getElementById('pLikes').textContent = p.reactions?.like || 0;
+
+        // Render Reactions Log
+        const reactBody = document.getElementById('pReactionsLog');
+        if (reactBody) {
+            const reactions = (stats.reactions || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            reactBody.innerHTML = reactions.map(r => `
+                <tr>
+                    <td style="color:var(--accent-blue)">${r.username || r.ip.substring(0, 8)}</td>
+                    <td style="font-weight:800">${r.type.toUpperCase()}</td>
+                    <td style="opacity:0.6; font-size:11px">${r.city || '??'}, ${r.countryCode || '??'}</td>
+                    <td style="opacity:0.6; font-size:11px">${timeAgo(r.timestamp)}</td>
+                    <td><button class="btn-danger-slim" onclick="removeSpecificReaction('${id}', '${r.id}')">Drop</button></td>
+                </tr>
+             `).join('') || '<tr><td colspan="5" style="text-align:center; opacity:0.2">No reactions logged</td></tr>';
+        }
+
+        document.getElementById('analyticsModal').classList.add('active');
+
+        // Setup Purge Button
+        document.getElementById('pClearLogsBtn').onclick = async () => {
+            if (!confirm(`ERASE ALL TELEMETRY FOR ${id}?`)) return;
+            await fetch(`/api/pastes/${id}/analytics`, { method: 'DELETE' });
+            showToast('Logs Wiped', 'success');
+            openNodeAnalytics(id);
+            await populateActiveNodes();
+        };
+
+        document.getElementById('pResetViewsBtn').onclick = async () => {
+            if (!confirm(`RESET VIEW COUNTER FOR ${id}?`)) return;
+            await fetch(`/api/pastes/${id}/reset-views`, { method: 'POST' });
+            showToast('Counter Reset', 'success');
+            openNodeAnalytics(id);
+            await populateActiveNodes();
+        };
+
     } catch (e) {
-        console.error('Failed to load nodes:', e);
+        showToast(e.message, 'error');
     }
 }
 
-async function editNode(id) {
+let editMetricsId = null;
+function openNodeEdits(id) {
+    editMetricsId = id;
+    fetch(`/api/pastes/${id}`).then(r => r.json()).then(p => {
+        document.getElementById('adjViews').value = p.views || 0;
+        document.getElementById('adjHearts').value = p.reactions?.heart || 0;
+        document.getElementById('adjStars').value = p.reactions?.star || 0;
+        document.getElementById('adjLikes').value = p.reactions?.like || 0;
+        document.getElementById('adjustStatsModal').classList.add('active');
+    });
+}
+
+document.getElementById('saveStatsBtn').onclick = async () => {
+    if (!editMetricsId) return;
+    const id = editMetricsId;
     try {
-        const paste = await storage.getPaste(id, false);
-        if (!paste) return;
-
-        els.pasteTitle.value = paste.title;
-        els.pasteContent.value = paste.content;
-        els.pasteLanguage.value = paste.language;
-        // Tracking ID for update
-        els.createPasteBtn.dataset.editId = id;
-        els.createPasteBtn.textContent = 'UPDATE PAYLOAD';
-
-        toggleEditor(true);
-    } catch (e) { alert(e.message); }
-}
-
-async function openNodeAnalytics(id) {
-    try {
-        const data = await storage.getAnalytics(id);
-        els.pTotalViews.textContent = data.totalViews;
-        els.pUniqueIPs.textContent = data.uniqueIPs;
-
-        populateIntelList(els.pTopLocations, data.topLocations || []);
-        populateIntelList(els.pTopISPs, data.topISPs || []);
-
-        els.pLogBody.innerHTML = (data.recentViews || []).map(v => `
-            <tr>
-                <td style="font-size:10px">${timeAgo(v.timestamp)}</td>
-                <td style="font-size:10px">${v.city || '??'}, ${v.countryCode || '??'}</td>
-                <td style="font-size:9px; opacity:0.5">${(v.isp || 'PRIVATE').substring(0, 15)}</td>
-            </tr>
-        `).join('');
-
-        document.getElementById('analyticsModal').classList.add('active');
-    } catch (e) { alert(e.message); }
-}
-
-let activeEditId = null;
-async function openNodeEdits(id) {
-    activeEditId = id;
-    const paste = await storage.getPaste(id, false);
-    if (!paste) return;
-
-    els.adjViews.value = paste.views;
-    els.adjHearts.value = paste.reactions?.heart || 0;
-    els.adjStars.value = paste.reactions?.star || 0;
-    els.adjLikes.value = paste.reactions?.like || 0;
-
-    document.getElementById('adjustStatsModal').classList.add('active');
-}
-
-if (els.saveStatsBtn) {
-    els.saveStatsBtn.onclick = async () => {
-        if (!activeEditId) return;
-        try {
-            const id = activeEditId;
-            // Update Views
-            await fetch(`/api/pastes/${id}/views`, {
+        await fetch(`/api/pastes/${id}/views`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ views: parseInt(document.getElementById('adjViews').value) })
+        });
+        const reactions = ['heart', 'star', 'like'];
+        for (const type of reactions) {
+            await fetch(`/api/pastes/${id}/reactions/${type}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ views: parseInt(els.adjViews.value) })
+                body: JSON.stringify({ count: parseInt(document.getElementById(`adj${type.charAt(0).toUpperCase() + type.slice(1)}s`).value) })
             });
-            // Update Reactions
-            const types = ['heart', 'star', 'like'];
-            const vals = { heart: els.adjHearts.value, star: els.adjStars.value, like: els.adjLikes.value };
-            for (const t of types) {
-                await fetch(`/api/pastes/${id}/reactions/${t}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ count: parseInt(vals[t]) })
-                });
-            }
-            alert('METRICS PROPAGATED');
-            closeModal('adjustStatsModal');
-            await populateActiveNodes();
-        } catch (e) { alert(e.message); }
-    };
+        }
+        showToast('Metrics Overridden', 'success');
+        closeModal('adjustStatsModal');
+        await populateActiveNodes();
+    } catch (e) { showToast(e.message, 'error'); }
+};
+
+// --- SECURITY & KEYS ---
+async function populateSecurityTab() {
+    const keys = await api.getAllAccessKeys();
+    document.getElementById('accessKeyList').innerHTML = keys.map(k => `
+        <div class="intel-item-v4">
+            <div style="display:flex; flex-direction:column">
+                <span style="font-weight:800; color:white">${k.key}</span>
+                <span style="font-size:10px; color:var(--text-secondary)">${k.userEmail || 'UNCLAIMED'}</span>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center">
+                <span style="font-size:10px; font-weight:900; color:${k.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)'}">[${k.status.toUpperCase()}]</span>
+                <button class="btn-danger-slim" onclick="revokeKey('${k.id}')">Revoke</button>
+            </div>
+        </div>
+    `).join('') || '<div style="opacity:0.2">No keys found</div>';
+
+    const users = await api.getAllUsers();
+    document.getElementById('adminUsersList').innerHTML = users.map(u => `
+        <div class="intel-item-v4">
+            <span class="label">${u.username || u.email}</span>
+            <span class="val" style="color:var(--accent-purple)">${u.isAdmin ? 'ADMIN' : 'OPERATOR'}</span>
+        </div>
+    `).join('');
+}
+
+document.getElementById('generateKeyBtn').onclick = async () => {
+    try {
+        const res = await api.generateAccessKey();
+        prompt('NEW SECURITY ACCESS KEY GENERATED:', res.key);
+        await populateSecurityTab();
+    } catch (e) { showToast(e.message, 'error'); }
+};
+
+async function revokeKey(id) {
+    if (!confirm('TERMINATE ACCESS PRIVILEGES?')) return;
+    await api.revokeAccessKey(id);
+    await populateSecurityTab();
+}
+
+// --- UTILS ---
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    return Math.floor(hours / 24) + "d ago";
+}
+
+function showToast(msg, type = 'info') {
+    // Basic alert for now, can be upgraded to toast
+    console.log(`[${type.toUpperCase()}] ${msg}`);
+    if (type === 'error') alert(msg);
 }
 
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-async function populateSecurityTab() {
-    try {
-        // Access Keys
-        const keys = await storage.getAllAccessKeys();
-        if (els.accessKeyList) {
-            els.accessKeyList.innerHTML = keys.map(k => `
-                <div class="intel-item" style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.02)">
-                    <div style="display:flex; flex-direction:column">
-                        <span class="name" style="font-family:var(--font-mono); color:white">${k.key}</span>
-                        <span style="font-size:10px; color:var(--text-secondary)">${k.userEmail || 'UNCLAIMED'}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:15px">
-                        <span class="count" style="color:${k.status === 'active' ? 'var(--accent-green)' : '#FF5E5E'}">${k.status.toUpperCase()}</span>
-                        <button onclick="revokeKey('${k.id}')" class="btn-outline" style="padding:2px 8px; font-size:9px; border-color:#FF5E5E; color:#FF5E5E">REVOKE</button>
-                    </div>
-                </div>
-            `).join('') || '<span style="opacity:0.2">NO_KEYS_GENERATED</span>';
-        }
-
-        // Admin Users
-        const users = await storage.getAllUsers();
-        if (els.adminUsersList) {
-            els.adminUsersList.innerHTML = users.map(u => `
-                <div class="intel-item">
-                    <span class="name">${u.username || u.email}</span>
-                    <span class="count" style="color:var(--accent-purple)">${u.isAdmin ? 'ADMIN' : 'USER'}</span>
-                </div>
-            `).join('') || '<span style="opacity:0.2">NO_USERS_FOUND</span>';
-        }
-    } catch (e) {
-        console.error('Security tab error:', e);
-    }
-}
-
-function populateNetworkTab(data) {
-    populateIntelList(els.browserDetailList, data.browsers || []);
-    populateIntelList(els.ispDetailList, data.isps || []);
-    populateIntelList(els.referrerList, data.referrers || []);
-}
-
-function timeAgo(date) {
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    if (seconds < 60) return seconds + "s";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return minutes + "m";
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return hours + "h";
-    return Math.floor(hours / 24) + "d";
-}
-
-// Sidebar Navigation
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.onclick = async (e) => {
-        e.preventDefault();
-        const tab = item.dataset.tab;
-        currentTab = tab;
-
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
-
-        // Update titles
-        if (tab === 'overview') { els.tabTitle.textContent = 'Energy Terminal'; els.tabSub.textContent = 'System-wide traffic monitoring and node propagation.'; }
-        if (tab === 'active') { els.tabTitle.textContent = 'Payload Repository'; els.tabSub.textContent = 'Inventory of all active content nodes.'; await populateActiveNodes(); }
-        if (tab === 'security') { els.tabTitle.textContent = 'Security Core'; els.tabSub.textContent = 'Management of access protocols and encryption keys.'; await populateSecurityTab(); }
-        if (tab === 'network') { els.tabTitle.textContent = 'Propagation Network'; els.tabSub.textContent = 'Detailed analysis of traffic carriers and origins.'; if (globalAnalyticsData) populateNetworkTab(globalAnalyticsData); }
-    };
-});
-
-window.deleteNode = async (id) => {
-    if (!confirm(`WIPE NODE ${id}?`)) return;
-    await storage.deletePaste(id);
+async function deletePaste(id) {
+    if (!confirm(`CONFIRM DESTRUCTION OF NODE ${id}?`)) return;
+    await api.deletePaste(id);
     await populateActiveNodes();
+}
+
+async function removeSpecificReaction(pasteId, reactionId) {
+    if (!confirm('RESCIND THIS REACTION?')) return;
+    await fetch(`/api/pastes/${pasteId}/reactions/${reactionId}`, { method: 'DELETE' });
+    showToast('Reaction Removed', 'success');
+    openNodeAnalytics(pasteId);
+}
+
+function copyPasteLink(id) {
+    const url = `https://${window.location.host}/v/${id}`;
+    navigator.clipboard.writeText(url);
+    showToast('Link copied to clipboard', 'success');
+}
+
+function copyModalUrl() {
+    const url = document.getElementById('pModalUrl').value;
+    navigator.clipboard.writeText(url);
+    showToast('Link copied', 'success');
+}
+
+async function wipeAllLogs() {
+    if (!confirm('PERMANENTLY ERASE THE ENTIRE TRAFFIC HISTORY? THIS CANNOT BE UNDONE.')) return;
+    await fetch('/api/pastes/analytics/all', { method: 'DELETE' });
+    showToast('Total History Erased', 'success');
+    await refreshData();
+}
+
+async function purgeHit(ip) {
+    // Current API doesn't have purge by IP, but we can add or use one of the existing ones
+    // For now, let's just toast
+    showToast(`Purging data for ${ip} is handled through granular city/ISP wiping.`, 'info');
+}
+
+document.getElementById('logoutBtn').onclick = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/';
 };
-
-// Key Management
-if (els.generateKeyBtn) {
-    els.generateKeyBtn.onclick = async () => {
-        try {
-            const res = await storage.generateAccessKey();
-            alert('NEW KEY PROPAGATED:\n' + res.key);
-            await populateSecurityTab();
-        } catch (e) { alert(e.message); }
-    };
-}
-
-window.revokeKey = async (id) => {
-    if (!confirm('TERMINATE ACCESS KEY?')) return;
-    try {
-        await storage.revokeAccessKey(id);
-        await populateSecurityTab();
-    } catch (e) { alert(e.message); }
-};
-
-// Logout
-if (document.getElementById('logoutBtn')) {
-    document.getElementById('logoutBtn').onclick = async () => {
-        if (!confirm('TERMINATE SESSION?')) return;
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.reload();
-    };
-}
-
-// Modal Toggle Logic
-function toggleEditor(show = true) {
-    if (els.editorOverlay) {
-        show ? els.editorOverlay.classList.add('active') : els.editorOverlay.classList.remove('active');
-    }
-}
-window.toggleEditor = toggleEditor;
-
-if (els.closeEditorBtn) els.closeEditorBtn.onclick = () => toggleEditor(false);
-
-if (els.createPasteBtn) {
-    els.createPasteBtn.onclick = async () => {
-        const content = els.pasteContent.value.trim();
-        if (!content) return alert('Payload empty');
-
-        const editId = els.createPasteBtn.dataset.editId;
-        const config = {
-            title: els.pasteTitle.value || 'Untitled',
-            language: els.pasteLanguage.value,
-            expiresAt: calculateExpiration(els.pasteExpiration.value)
-        };
-
-        try {
-            if (editId) {
-                await storage.updatePaste(editId, content, config);
-                alert('PAYLOAD UPDATED');
-                els.createPasteBtn.dataset.editId = "";
-                els.createPasteBtn.textContent = "DEPLOY PAYLOAD";
-            } else {
-                const id = await storage.createPaste(content, config);
-                alert('PAYLOAD PROPAGATED: ' + id);
-            }
-            toggleEditor(false);
-            if (currentTab === 'active') await populateActiveNodes();
-        } catch (e) { alert(e.message); }
-    };
-}
-
-function calculateExpiration(val) {
-    if (val === 'never') return null;
-    const now = new Date();
-    const map = { '1h': 3600000, '1d': 86400000 };
-    return new Date(now.getTime() + (map[val] || 0)).toISOString();
-}
