@@ -12,98 +12,123 @@ if (!fs.existsSync(dataDir)) {
 
 const db = new Database(path.join(dataDir, 'database.sqlite'));
 
-// Realistic Schema
-db.exec(`
-    CREATE TABLE IF NOT EXISTS folders (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
+// Initial Schema Creation - Broken down for better resilience
+const initialTables = [
+    {
+        name: 'folders',
+        sql: `CREATE TABLE IF NOT EXISTS folders (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`
+    },
+    {
+        name: 'pastes',
+        sql: `CREATE TABLE IF NOT EXISTS pastes (
+            id TEXT PRIMARY KEY,
+            title TEXT,
+            content TEXT,
+            language TEXT DEFAULT 'plaintext',
+            views INTEGER DEFAULT 0,
+            isPublic INTEGER DEFAULT 1,
+            burnAfterRead INTEGER DEFAULT 0,
+            expiresAt DATETIME,
+            folderId TEXT,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(folderId) REFERENCES folders(id) ON DELETE SET NULL
+        )`
+    },
+    {
+        name: 'paste_views',
+        sql: `CREATE TABLE IF NOT EXISTS paste_views (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pasteId TEXT,
+            ip TEXT,
+            country TEXT,
+            countryCode TEXT,
+            region TEXT,
+            regionName TEXT,
+            city TEXT,
+            zip TEXT,
+            lat REAL,
+            lon REAL,
+            isp TEXT,
+            org TEXT,
+            asName TEXT,
+            userAgent TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(pasteId) REFERENCES pastes(id) ON DELETE CASCADE
+        )`
+    },
+    {
+        name: 'paste_reactions',
+        sql: `CREATE TABLE IF NOT EXISTS paste_reactions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pasteId TEXT,
+            type TEXT,
+            ip TEXT,
+            country TEXT,
+            countryCode TEXT,
+            region TEXT,
+            regionName TEXT,
+            city TEXT,
+            zip TEXT,
+            lat REAL,
+            lon REAL,
+            isp TEXT,
+            org TEXT,
+            asName TEXT,
+            userAgent TEXT,
+            discordId TEXT,
+            userId TEXT,
+            username TEXT,
+            avatarUrl TEXT,
+            createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(pasteId) REFERENCES pastes(id) ON DELETE CASCADE
+        )`
+    },
+    {
+        name: 'page_accesses',
+        sql: `CREATE TABLE IF NOT EXISTS page_accesses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            path TEXT NOT NULL,
+            method TEXT DEFAULT 'GET',
+            ip TEXT,
+            country TEXT,
+            countryCode TEXT,
+            region TEXT,
+            regionName TEXT,
+            city TEXT,
+            zip TEXT,
+            lat REAL,
+            lon REAL,
+            isp TEXT,
+            org TEXT,
+            asName TEXT,
+            userAgent TEXT,
+            referrer TEXT,
+            hostname TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`
+    }
+];
 
-    CREATE TABLE IF NOT EXISTS pastes (
-        id TEXT PRIMARY KEY,
-        title TEXT,
-        content TEXT,
-        language TEXT DEFAULT 'plaintext',
-        views INTEGER DEFAULT 0,
-        isPublic INTEGER DEFAULT 1,
-        burnAfterRead INTEGER DEFAULT 0,
-        expiresAt DATETIME,
-        folderId TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(folderId) REFERENCES folders(id) ON DELETE SET NULL
-    );
+initialTables.forEach(t => {
+    try {
+        db.exec(t.sql);
+    } catch (e) {
+        console.error(`❌ Failed to create table ${t.name}:`, e.message);
+    }
+});
 
-    CREATE TABLE IF NOT EXISTS paste_views (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        pasteId TEXT,
-        ip TEXT,
-        country TEXT,
-        countryCode TEXT,
-        region TEXT,
-        regionName TEXT,
-        city TEXT,
-        zip TEXT,
-        lat REAL,
-        lon REAL,
-        isp TEXT,
-        org TEXT,
-        asName TEXT,
-        userAgent TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(pasteId) REFERENCES pastes(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS paste_reactions (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        pasteId TEXT,
-        type TEXT,
-        ip TEXT,
-        country TEXT,
-        countryCode TEXT,
-        region TEXT,
-        regionName TEXT,
-        city TEXT,
-        zip TEXT,
-        lat REAL,
-        lon REAL,
-        isp TEXT,
-        org TEXT,
-        asName TEXT,
-        userAgent TEXT,
-        discordId TEXT,
-        userId TEXT,
-        username TEXT,
-        avatarUrl TEXT,
-        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(pasteId) REFERENCES pastes(id) ON DELETE CASCADE
-    );
-
-    CREATE TABLE IF NOT EXISTS page_accesses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        path TEXT NOT NULL,
-        method TEXT DEFAULT 'GET',
-        ip TEXT,
-        country TEXT,
-        countryCode TEXT,
-        region TEXT,
-        regionName TEXT,
-        city TEXT,
-        zip TEXT,
-        lat REAL,
-        lon REAL,
-        isp TEXT,
-        org TEXT,
-        asName TEXT,
-        userAgent TEXT,
-        referrer TEXT,
-        hostname TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_page_accesses_path ON page_accesses(path);
-    CREATE INDEX IF NOT EXISTS idx_page_accesses_timestamp ON page_accesses(timestamp);
-`);
+// Create Missing Indices
+try {
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_page_accesses_path ON page_accesses(path)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_page_accesses_timestamp ON page_accesses(timestamp)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_paste_views_pasteId ON paste_views(pasteId)`);
+} catch (e) {
+    console.error('❌ Failed to create indices:', e.message);
+}
 
 // Migration Helper
 function migrateTable(tableName, columns) {
@@ -146,6 +171,13 @@ migrateTable('paste_views', [
     { name: 'asName', type: 'TEXT' },
     { name: 'userAgent', type: 'TEXT' },
     { name: 'hostname', type: 'TEXT' }
+]);
+
+// Ensure all index columns exist
+migrateTable('page_accesses', [
+    { name: 'hostname', type: 'TEXT' },
+    { name: 'referrer', type: 'TEXT' },
+    { name: 'userAgent', type: 'TEXT' }
 ]);
 
 // Ensure all paste columns exist

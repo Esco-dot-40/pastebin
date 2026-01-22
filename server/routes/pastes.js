@@ -29,8 +29,13 @@ async function fetchGeolocation(ip) {
         }
 
         // Using a more robust backup API if the first fails
-        console.log(`🌐 Geo-Lookup: ${ip}`);
-        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as,query`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as,query`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         const data = await response.json();
 
         if (data.status === 'success') {
@@ -200,8 +205,10 @@ router.get('/:id', async (req, res) => {
         const isAdmin = req.session && req.session.isAdmin;
         const isAdminPanel = req.headers.referer && req.headers.referer.includes('/admin');
 
-        // Only track if NOT admin OR NOT from admin panel
-        if (!isAdmin && !isAdminPanel) {
+        // Only track if NOT admin OR NOT from admin panel (unless LOG_ADMINS is true)
+        const shouldSkipTracking = (isAdmin || isAdminPanel) && process.env.LOG_ADMINS !== 'true';
+
+        if (!shouldSkipTracking) {
             const ip = getClientIP(req);
             const userAgent = req.headers['user-agent'] || '';
 

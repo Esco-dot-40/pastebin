@@ -4,14 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DeadDrop - Escos Drops (Rule Controlled)</title>
-    <meta name="description" content="Create and manage your pastes with advanced configuration options">
+    <title>veroe.space | Premium Admin Console</title>
+    <meta name="description" content="Secure administrative console for veroe.space">
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <link rel="icon" type="image/png" href="/public/favicon.png">
 </head>
 
@@ -19,12 +23,12 @@
     <div class="background-gradient"></div>
     <div class="grain-overlay"></div>
 
-    <div class="container">
+    <div class="container-fluid">
         <!-- Header -->
         <header class="header">
             <div class="logo">
                 <div class="logo-icon">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
                         <path
                             d="M8 4L24 4C26.2091 4 28 5.79086 28 8V24C28 26.2091 26.2091 28 24 28H8C5.79086 28 4 26.2091 4 24V8C4 5.79086 5.79086 4 8 4Z"
                             stroke="url(#gradient1)" stroke-width="2" />
@@ -43,202 +47,219 @@
                     </svg>
                 </div>
                 <div class="logo-text">
-                    <h1>veroe.space Admin</h1>
-                    <span class="badge">🔒 Secure Console</span>
+                    <h1>veroe.space <span class="accent">Admin</span></h1>
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        <span id="activeVisitors">0 Active Visitors</span>
+                    </div>
                 </div>
             </div>
             <div class="header-actions">
-                <button id="viewPublicBtn" class="btn btn-secondary">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path
-                            d="M10 3C5 3 1.73 7.11 1 10c.73 2.89 4 7 9 7s8.27-4.11 9-7c-.73-2.89-4-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
-                            fill="currentColor" />
+                <button id="viewPublicBtn" class="btn btn-glass">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
                     </svg>
-                    View Public
+                    Live Site
                 </button>
-                <button id="statsBtn" class="btn btn-glass" onclick="window.location.href='/adminperm/analytics.html'">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path d="M3 17V11M10 17V7M17 17V3" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" />
-                    </svg>
-                    Analytics
-                </button>
-                <button id="accessBtn" class="btn btn-glass" style="border-color: #ff0050; color: #ff0050;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                <div class="action-divider"></div>
+                <button id="accessBtn" class="btn btn-glass btn-glow-pink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path
                             d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
                         </path>
                     </svg>
-                    Keys
+                    Access Keys
                 </button>
-                <button id="usersBtn" class="btn btn-glass" style="border-color: #00ff88; color: #00ff88;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
+                <button id="usersBtn" class="btn btn-glass btn-glow-green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                         <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     Users
+                </button>
+                <button id="logoutBtn" class="btn btn-glass btn-glow-orange">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
                 </button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Create Paste Section -->
-            <section class="paste-editor">
-                <div class="editor-header">
-                    <h2>Create New Paste</h2>
-                    <div class="quick-actions">
-                        <button id="clearBtn" class="btn-icon" title="Clear">
-                            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                                <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2"
-                                    stroke-linecap="round" />
+        <!-- Dashboard Dashboard stats -->
+        <section class="dashboard-stats glass-card">
+            <div class="stat-group">
+                <div class="stat-box">
+                    <span class="stat-label">Total Hits</span>
+                    <span id="totalHits" class="stat-value">0</span>
+                    <div class="stat-trend up">↑ 12% today</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Unique Readers</span>
+                    <span id="uniqueReaders" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Avg Session</span>
+                    <span class="stat-value">4.2m</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Geo Reach</span>
+                    <span id="geoReach" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <h3>Global View Interaction</h3>
+                    <div class="heatmap-legend">
+                        <span class="legend-item"><span class="dot pink"></span> High Intensity</span>
+                        <span class="legend-item"><span class="dot blue"></span> Low Intensity</span>
+                    </div>
+                </div>
+                <div id="mainHeatmap" class="map-frame"></div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <main class="main-grid">
+            <!-- Left Column: Recent Pastes -->
+            <section class="paste-list glass-card">
+                <div class="section-header">
+                    <h2>Recent Interactions</h2>
+                    <div class="header-tools">
+                        <div class="search-box">
+                            <input type="text" id="pasteSearch" placeholder="Search pastes...">
+                        </div>
+                        <button id="refreshBtn" class="btn-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                             </svg>
                         </button>
                     </div>
                 </div>
+                <div id="pasteListContainer" class="paste-items-v2">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
 
-                <div class="editor-body">
-                    <div class="form-group">
-                        <label for="pasteTitle">Title</label>
-                        <input type="text" id="pasteTitle" placeholder="Untitled Paste" class="input-field">
-                    </div>
+            <!-- Right Column: Editor -->
+            <section class="paste-editor glass-card">
+                <div class="section-header">
+                    <h2>Deploy New Content</h2>
+                    <button id="clearBtn" class="btn-mini-icon">Reset</button>
+                </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="pasteLanguage">Language</label>
-                            <select id="pasteLanguage" class="select-field">
-                                <option value="plaintext">Plain Text</option>
-                                <option value="javascript">JavaScript</option>
-                                <option value="python">Python</option>
-                                <option value="java">Java</option>
-                                <option value="cpp">C++</option>
-                                <option value="csharp">C#</option>
-                                <option value="php">PHP</option>
-                                <option value="ruby">Ruby</option>
-                                <option value="go">Go</option>
-                                <option value="rust">Rust</option>
-                                <option value="sql">SQL</option>
-                                <option value="html">HTML</option>
-                                <option value="css">CSS</option>
-                                <option value="json">JSON</option>
-                                <option value="yaml">YAML</option>
-                                <option value="markdown">Markdown</option>
-                                <option value="bash">Bash</option>
-                            </select>
+                <div class="editor-v2">
+                    <div class="editor-main">
+                        <div class="input-container">
+                            <label>Title</label>
+                            <input type="text" id="pasteTitle" placeholder="Untitled Drop" class="neon-input">
                         </div>
 
-                        <div class="form-group">
-                            <label for="pasteExpiration">Expiration</label>
-                            <select id="pasteExpiration" class="select-field">
-                                <option value="never">Never</option>
-                                <option value="10m">10 Minutes</option>
-                                <option value="1h">1 Hour</option>
-                                <option value="1d">1 Day</option>
-                                <option value="1w">1 Week</option>
-                                <option value="1M">1 Month</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="pasteFolder">Folder</label>
-                            <div style="display: flex; gap: 8px;">
-                                <select id="pasteFolder" class="select-field">
-                                    <option value="">No Folder</option>
-                                    <!-- Populated dynamically -->
+                        <div class="grid-2">
+                            <div class="input-container">
+                                <label>Language</label>
+                                <select id="pasteLanguage" class="neon-select">
+                                    <option value="plaintext">Plain Text</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="python">Python</option>
+                                    <option value="java">Java</option>
+                                    <option value="cpp">C++</option>
+                                    <option value="csharp">C#</option>
+                                    <option value="php">PHP</option>
+                                    <option value="ruby">Ruby</option>
+                                    <option value="go">Go</option>
+                                    <option value="rust">Rust</option>
+                                    <option value="sql">SQL</option>
+                                    <option value="html">HTML</option>
+                                    <option value="css">CSS</option>
+                                    <option value="json">JSON</option>
+                                    <option value="yaml">YAML</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="bash">Bash</option>
                                 </select>
-                                <button id="manageFoldersBtn" class="btn btn-glass btn-icon" title="Manage Folders"
-                                    type="button">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2">
-                                        <path
-                                            d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z">
-                                        </path>
-                                    </svg>
-                                </button>
+                            </div>
+                            <div class="input-container">
+                                <label>Expiration</label>
+                                <select id="pasteExpiration" class="neon-select">
+                                    <option value="never">Permanent</option>
+                                    <option value="10m">10 Minutes</option>
+                                    <option value="1h">1 Hour</option>
+                                    <option value="1d">1 Day</option>
+                                    <option value="1w">1 Week</option>
+                                    <option value="1M">1 Month</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-container">
+                            <label>Folder Collection</label>
+                            <div class="folder-select-group">
+                                <select id="pasteFolder" class="neon-select">
+                                    <option value="">Ungrouped</option>
+                                </select>
+                                <button id="manageFoldersBtn" class="btn-plus">+</button>
+                            </div>
+                        </div>
+
+                        <div class="input-container">
+                            <label>Content Payload</label>
+                            <div class="textarea-wrapper">
+                                <div class="textarea-toolbar">
+                                    <button id="uploadImageBtn">🖼️ Insert Media</button>
+                                    <button id="uploadEmbedBtn">📸 Discord Image</button>
+                                    <input type="file" id="imageInput" style="display: none;" accept="image/*,video/*">
+                                    <input type="file" id="embedInput" style="display: none;" accept="image/*">
+                                </div>
+                                <textarea id="pasteContent" placeholder="Enter source code or markdown payload..."
+                                    class="neon-textarea"></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="pastePassword">Password (Optional)</label>
-                        <input type="password" id="pastePassword" placeholder="Protect with password..."
-                            class="input-field" autocomplete="new-password">
-                    </div>
+                    <div class="editor-sidebar">
+                        <div class="config-panel">
+                            <h3>Security Config</h3>
+                            <div class="input-container">
+                                <label>Access Password</label>
+                                <input type="password" id="pastePassword" placeholder="Optional Lock"
+                                    class="neon-input-sm">
+                            </div>
+                            <div class="input-container">
+                                <label>Embed Override</label>
+                                <input type="text" id="embedUrl" placeholder="Direct Image URL" class="neon-input-sm">
+                            </div>
 
-                    <div class="form-group">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label for="embedUrl">Embed Image URL (Optional)</label>
-                            <button id="uploadEmbedBtn" class="btn-small btn-glass" title="Upload Embed Image">
-                                🖼️ Upload
-                                <input type="file" id="embedInput" style="display: none;" accept="image/*">
-                            </button>
+                            <div class="toggle-list">
+                                <label class="neon-toggle">
+                                    <input type="checkbox" id="burnAfterRead">
+                                    <span class="slider"></span>
+                                    <span class="label">Self-Destruct</span>
+                                </label>
+                                <label class="neon-toggle">
+                                    <input type="checkbox" id="isPublic" checked>
+                                    <span class="slider"></span>
+                                    <span class="label">Public View</span>
+                                </label>
+                            </div>
                         </div>
-                        <input type="text" id="embedUrl" placeholder="https://... (Image for Discord Embed)"
-                            class="input-field">
+
+                        <button id="createPasteBtn" class="btn btn-primary-neon">
+                            <span>Deploy Payload</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
                     </div>
-
-                    <div class="form-group">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <label for="pasteContent">Content</label>
-                            <button id="uploadImageBtn" class="btn-small btn-glass" title="Upload Media">
-                                🖼️ Add Media
-                                <input type="file" id="imageInput" style="display: none;" accept="image/*,video/*">
-                            </button>
-                        </div>
-                        <textarea id="pasteContent"
-                            placeholder="Paste your code here... (Markdown supported for images)"
-                            class="textarea-field"></textarea>
-                    </div>
-
-                    <div class="options-grid">
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="burnAfterRead">
-                            <span class="checkbox-custom"></span>
-                            <span class="checkbox-text">
-                                Burn After Read
-                                <small>Delete after first view</small>
-                            </span>
-                        </label>
-
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="isPublic" checked>
-                            <span class="checkbox-custom"></span>
-                            <span class="checkbox-text">
-                                Public
-                                <small>Visible on public domain</small>
-                            </span>
-                        </label>
-                    </div>
-
-                    <button id="createPasteBtn" class="btn btn-primary btn-large">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        </svg>
-                        Create Paste
-                    </button>
-                </div>
-            </section>
-
-            <!-- Paste List Section -->
-            <section class="paste-list">
-                <div class="list-header">
-                    <h2>Recent Pastes</h2>
-                    <button id="refreshBtn" class="btn-icon">
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                            <path
-                                d="M15 9C15 12.3137 12.3137 15 9 15C5.68629 15 3 12.3137 3 9C3 5.68629 5.68629 3 9 3C10.8885 3 12.5634 3.88766 13.6313 5.25M13.6313 5.25V3M13.6313 5.25H11.25"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="pasteListContainer" class="paste-items">
-                    <!-- Dynamically populated -->
                 </div>
             </section>
         </main>

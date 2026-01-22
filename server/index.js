@@ -52,8 +52,9 @@ app.use(async (req, res, next) => {
     const isApi = req.path.startsWith('/api/');
     const isAdminPath = req.path.startsWith('/adminperm/');
     const isAdminUser = req.session && req.session.isAdmin;
+    const shouldSkip = (isAdminPath || isAdminUser) && process.env.LOG_ADMINS !== 'true';
 
-    if (!isStatic && !isApi && !isAdminPath && !isAdminUser && req.method === 'GET') {
+    if (!isStatic && !isApi && !shouldSkip && req.method === 'GET') {
         // Async tracking - don't block the request
         setImmediate(async () => {
             try {
@@ -71,7 +72,13 @@ app.use(async (req, res, next) => {
                 if (cleanIP !== '127.0.0.1' && !cleanIP.startsWith('192.168.') && !cleanIP.startsWith('10.')) {
                     try {
                         const fetch = (await import('node-fetch')).default;
-                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as`);
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=status,country,countryCode,region,regionName,city,zip,lat,lon,isp,org,as`, {
+                            signal: controller.signal
+                        });
+                        clearTimeout(timeoutId);
                         const data = await response.json();
                         if (data.status === 'success') {
                             geoData = data;
@@ -127,6 +134,8 @@ app.use(async (req, res, next) => {
                 console.error('Page tracking error:', err.message);
             }
         });
+    } else if (!isStatic && !isApi && isAdminUser && req.method === 'GET') {
+        console.log(`📊 [SKIP] Admin accessing ${req.path} - not tracking to analytics`);
     }
 
     next();

@@ -10,6 +10,9 @@ const burnAfterRead = document.getElementById('burnAfterRead');
 const isPublic = document.getElementById('isPublic');
 const pastePassword = document.getElementById('pastePassword');
 let currentLocalPasteId = null;
+let mainMap = null;
+let mainMapMarkers = [];
+let globalAnalyticsData = null;
 
 const createPasteBtn = document.getElementById('createPasteBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -57,12 +60,28 @@ const embedUrl = document.getElementById('embedUrl');
 const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
 const embedInput = document.getElementById('embedInput');
 
+// Dashboard Elements
+const totalHitsEl = document.getElementById('totalHits');
+const uniqueReadersEl = document.getElementById('uniqueReaders');
+const geoReachEl = document.getElementById('geoReach');
+const activeVisitorsEl = document.getElementById('activeVisitors');
+const pasteSearchInput = document.getElementById('pasteSearch');
+const logoutBtn = document.getElementById('logoutBtn');
+
 // Initialize
 window.addEventListener('DOMContentLoaded', async () => {
+    // Initial data load
     await Promise.all([
         loadPasteList(),
-        loadFolderList()
+        loadFolderList(),
+        loadGlobalAnalytics()
     ]);
+
+    // Initialize Map
+    initMainMap();
+
+    // Set refresh intervals
+    setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
 });
 
 // Event Listeners
@@ -106,6 +125,24 @@ if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
 if (usersModal) {
     usersModal.addEventListener('click', (e) => {
         if (e.target === usersModal) usersModal.classList.remove('active');
+    });
+}
+
+if (pasteSearchInput) {
+    pasteSearchInput.addEventListener('input', () => {
+        loadPasteList(pasteSearchInput.value);
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        if (!confirm('Log out of secure console?')) return;
+        try {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/adminperm/login.html';
+        } catch (e) {
+            window.location.href = '/adminperm/login.html';
+        }
     });
 }
 
@@ -310,7 +347,7 @@ function clearForm() {
     if (qc) qc.remove();
 }
 
-async function loadPasteList() {
+async function loadPasteList(searchQuery = '') {
     try {
         const [pastes, folders] = await Promise.all([
             storage.getAllPastes(),
@@ -341,67 +378,77 @@ async function loadPasteList() {
             return;
         }
 
-        pasteListContainer.innerHTML = pastes.map(paste => `
+        const filteredPastes = searchQuery
+            ? pastes.filter(p =>
+                p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.content.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            : pastes;
+
+        pasteListContainer.innerHTML = filteredPastes.map(paste => `
             <div class="paste-item" onclick="viewPaste('${paste.id}')">
                 <div class="paste-item-header">
                     <div class="paste-item-title">${escapeHtml(paste.title)}</div>
                     <div class="paste-item-id">${paste.id}</div>
                 </div>
                 <div class="paste-item-meta">
-                    <span class="language-tag">${paste.language}</span>
-                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="meta-pill" style="color: var(--primary-start); border-color: rgba(0, 245, 255, 0.2);">
+                        <span class="language-tag">${paste.language}</span>
+                    </div>
+                    
+                    <div class="meta-pill">
                         <span title="Views">👁️</span>
                         <input type="number" value="${paste.views}" 
                             onclick="event.stopPropagation()" 
                             onchange="updatePasteViews('${paste.id}', this.value)"
-                            style="width: 50px; background: none; border: none; color: white; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield;">
+                            style="width: 45px; background: none; border: none; color: white; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield;">
                     </div>
                     
-                    <!-- Reaction Controls for Admin -->
-                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="meta-pill">
                         <span title="Hearts">❤️</span>
                         <input type="number" value="${paste.hearts || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'heart', this.value)"
-                            style="width: 50px; background: none; border: none; color: #ff006e; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
+                            style="width: 40px; background: none; border: none; color: #ff006e; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
-                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="meta-pill">
                         <span title="Stars">⭐</span>
                         <input type="number" value="${paste.stars || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'star', this.value)"
-                            style="width: 50px; background: none; border: none; color: #ffd700; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
+                            style="width: 40px; background: none; border: none; color: #ffd700; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
-                    <div style="display: inline-flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <div class="meta-pill">
                         <span title="Likes">👍</span>
                         <input type="number" value="${paste.likes || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'like', this.value)"
-                            style="width: 50px; background: none; border: none; color: #00f5ff; font-family: inherit; font-size: 0.9rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
+                            style="width: 40px; background: none; border: none; color: #00f5ff; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
 
-                    <span>📅 ${formatDate(paste.createdAt)}</span>
-                    ${paste.folderId ? `<span>📁 ${escapeHtml(folderMap[paste.folderId] || 'Unknown')}</span>` : ''}
-                    ${paste.burnAfterRead ? '<span>🔥 Burn</span>' : ''}
-                    ${!paste.isPublic ? '<span>🔒 Private</span>' : ''}
+                    <div class="meta-pill">📅 ${formatDate(paste.createdAt)}</div>
+                    ${paste.folderId ? `<div class="meta-pill">📁 ${escapeHtml(folderMap[paste.folderId] || 'Unknown')}</div>` : ''}
+                    ${paste.burnAfterRead ? '<div class="meta-pill" style="color: #ff3366; border-color: rgba(255, 51, 102, 0.2);">🔥 Burn</div>' : ''}
+                    ${!paste.isPublic ? '<div class="meta-pill" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.2);">🔒 Private</div>' : ''}
                 </div>
                 <div class="paste-item-actions">
-                    <button onclick="event.stopPropagation(); copyPasteUrl('${paste.id}')" class="btn-small btn-glass" title="Copy Public URL" style="border-color: var(--primary-start); color: var(--primary-start);">
-                        🔗 Copy Link
+                    <button onclick="event.stopPropagation(); copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: var(--primary-start); color: var(--primary-start); padding: 5px 10px;">
+                        🔗 Link
                     </button>
-                    <button onclick="toggleVisibility('${paste.id}', event)" class="btn-small btn-glass" title="${paste.isPublic ? 'Make Private' : 'Make Public'}">
+                    <button onclick="toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="${paste.isPublic ? 'Make Private' : 'Make Public'}" style="padding: 5px 12px;">
                         ${paste.isPublic ? '🔒' : '🌍'}
                     </button>
-                    <button onclick="event.stopPropagation(); showAnalytics('${paste.id}')" class="btn-small btn-glass" title="View Analytics">
-                        📈 Analytics
+                    <button onclick="event.stopPropagation(); showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics" style="padding: 5px 12px;">
+                        📈
                     </button>
-                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn-small btn-glass" title="Edit">
-                        ✏️ Edit
+                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="padding: 5px 12px;">
+                        ✏️
                     </button>
-                    <button onclick="event.stopPropagation(); deletePaste('${paste.id}')" class="btn-small btn-glass" title="Delete" style="color: #ff006e">
-                        🗑️ Delete
+                    <button onclick="event.stopPropagation(); deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; padding: 5px 12px;">
+                        🗑️
                     </button>
                 </div>
             </div>
@@ -1167,6 +1214,110 @@ async function deleteKey(id) {
     } catch (e) { alert('Failed to delete'); }
 }
 
+// Integrated Analytics Logic
+function initMainMap() {
+    try {
+        const heatmapContainer = document.getElementById('mainHeatmap');
+        if (!heatmapContainer) return;
+
+        mainMap = L.map('mainHeatmap', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: true,
+            attributionControl: false
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mainMap);
+
+        console.log('✅ Dashboard Map initialized');
+    } catch (e) {
+        console.error('❌ Main map init failed:', e);
+    }
+}
+
+async function loadGlobalAnalytics() {
+    try {
+        const data = await storage.getGlobalAnalytics();
+        globalAnalyticsData = data;
+
+        updateDashboardStats(data);
+        updateMainMap(data.locations || []);
+
+        // Update active visitors in header
+        if (activeVisitorsEl) {
+            activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
+        }
+    } catch (e) {
+        console.error('Failed to load global analytics:', e);
+    }
+}
+
+function updateDashboardStats(data) {
+    if (totalHitsEl) totalHitsEl.textContent = data.totalVisits || 0;
+    if (uniqueReadersEl) uniqueReadersEl.textContent = data.uniqueVisitors || 0;
+    if (geoReachEl) geoReachEl.textContent = data.uniqueLocations || 0;
+}
+
+function updateMainMap(locations) {
+    if (!mainMap) return;
+
+    // Clear existing
+    mainMapMarkers.forEach(m => m.remove());
+    mainMapMarkers = [];
+
+    locations.forEach(loc => {
+        const lat = parseFloat(loc.lat);
+        const lon = parseFloat(loc.lon);
+
+        if (!isNaN(lat) && !isNaN(lon)) {
+            const marker = L.circleMarker([lat, lon], {
+                radius: 6 + Math.log(loc.count || 1) * 3,
+                fillColor: '#ff006e',
+                color: '#fff',
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.5
+            }).addTo(mainMap);
+
+            marker.bindPopup(`<b>${loc.city || 'Unknown'}</b><br>Hits: ${loc.count}`);
+            mainMapMarkers.push(marker);
+        }
+    });
+
+    if (mainMapMarkers.length > 0 && !mainMap.initialized) {
+        try {
+            const group = new L.featureGroup(mainMapMarkers);
+            mainMap.fitBounds(group.getBounds().pad(0.1));
+            mainMap.initialized = true;
+        } catch (e) { }
+    }
+}
+
+async function deleteLogsByISP(ispName) {
+    if (!confirm(`Delete all logs from ISP: ${ispName}?`)) return;
+    try {
+        await fetch(`/api/pastes/analytics/isp/${encodeURIComponent(ispName)}`, { method: 'DELETE', credentials: 'include' });
+        loadGlobalAnalytics();
+        if (analyticsModal.classList.contains('active')) {
+            // If the analytics modal is open, we might need to refresh it
+            // but these are global deletions, so maybe just refresh stats?
+            alert('ISP logs deleted');
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function deleteLogsFromCity(cityName) {
+    if (!confirm(`Delete logs for ${cityName}?`)) return;
+    try {
+        await fetch(`/api/pastes/analytics/city/${encodeURIComponent(cityName)}`, { method: 'DELETE', credentials: 'include' });
+        loadGlobalAnalytics();
+        alert('City logs deleted');
+    } catch (e) { console.error(e); }
+}
+
 // Global scope binding for inline onclick
 window.deleteKey = deleteKey;
 window.toggleVisibility = toggleVisibility;
@@ -1175,20 +1326,25 @@ window.loadPasteForEdit = loadPasteForEdit;
 window.deletePaste = deletePaste;
 window.viewPaste = viewPaste;
 window.resetViews = resetViews;
+window.updatePasteViews = updatePasteViews;
+window.updateReactionCount = updateReactionCount;
+window.injectReaction = injectReaction;
+window.deleteReaction = deleteReaction;
+window.deleteAnalyticsLogs = deleteAnalyticsLogs;
+window.deleteLogsByISP = deleteLogsByISP;
+window.deleteLogsFromCity = deleteLogsFromCity;
+
 window.copyPasteUrl = function (id) {
     if (!id) return;
     const url = `${window.location.origin}/v/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-        // Find the button and give feedback
         const btn = event?.currentTarget || document.activeElement;
         if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN')) {
             const originalContent = btn.innerHTML;
-            const isSpan = btn.tagName === 'SPAN';
-            btn.innerHTML = isSpan ? '✅ Copied!' : '✅ Copied';
+            btn.innerHTML = '✅ Copied';
             setTimeout(() => btn.innerHTML = originalContent, 1500);
         }
     }).catch(err => {
-        // Fallback for non-secure contexts if any
         const input = document.createElement('input');
         input.value = url;
         document.body.appendChild(input);
@@ -1206,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const clearAnalyticsBtn = document.getElementById('clearAnalyticsBtn');
     if (clearAnalyticsBtn) clearAnalyticsBtn.addEventListener('click', async () => {
-        if (!confirm('⚠️ ARE YOU SURE? \n\nThis will wipe ALL analytics data from the database.\nThis cannot be undone.')) return;
+        if (!confirm('⚠️ ARE YOU SURE? \n\nThis will wipe ALL analytics data from the database.')) return;
 
         clearAnalyticsBtn.disabled = true;
         clearAnalyticsBtn.textContent = 'Clearing...';
@@ -1215,8 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await res.json();
             if (data.success) {
                 alert('Analytics Database Cleared.');
-                // Refresh stats if open
-                if (typeof showStats === 'function') showStats();
+                loadGlobalAnalytics();
             } else {
                 alert('Failed: ' + (data.error || 'Unknown'));
             }
