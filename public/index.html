@@ -829,246 +829,48 @@
 
     <!-- View: ENTRY -->
     <div id="view-entry">
-        <!-- <div class="bg-grid"></div> --> <!-- Replaced by Video -->
-
-        <div class="main-card">
-            <h1 class="animated-title">veroe.space</h1>
-
-            <style>
-                .animated-title {
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 3.5rem;
-                    color: white;
-                    text-transform: lowercase;
-                    margin-bottom: 2rem;
-                    text-shadow: 0 0 20px rgba(0, 245, 255, 0.5);
-                }
-
-                @media (max-width: 768px) {
-                    .animated-title {
-                        font-size: 2.2rem;
-                        margin-bottom: 1.5rem;
-                    }
-
-                    .button-container {
-                        gap: 1rem !important;
-                    }
-
-                    .entry-btn {
-                        padding: 1.2rem 2rem !important;
-                        min-width: 100% !important;
-                        font-size: 1.1rem !important;
-                    }
-
-                    .website-links {
-                        gap: 0.5rem !important;
-                        margin-top: 2rem !important;
-                    }
-
-                    .website-link {
-                        padding: 0.6rem 1rem !important;
-                        font-size: 0.8rem !important;
-                        flex: 1 1 40%;
-                        text-align: center;
-                    }
-
-                    .discord-promo div {
-                        width: 60px !important;
-                        height: 60px !important;
-                    }
-
-                    .discord-promo svg {
-                        width: 35px !important;
-                        height: 35px !important;
-                    }
-                }
-
-                /* End of animated-title */
-            </style>
-
-            <!-- Animated Discord Icon -->
-            <div class="discord-promo" style="margin-bottom: 2.5rem; text-align: center;">
-                <a href="https://discord.gg/v5kkq6nYBt" target="_blank"
-                    style="display: inline-block; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-                    <div style="
-                        width: 80px; 
-                        height: 80px; 
-                        background: #5865F2; 
-                        border-radius: 50%; 
-                        display: flex; 
-                        align-items: center; 
-                        justify-content: center; 
-                        box-shadow: 0 0 30px rgba(88, 101, 242, 0.4);
-                        animation: discordPulse 2s infinite;
-                    ">
-                        <svg width="45" height="45" viewBox="0 0 24 24" fill="white">
-                            <path
-                                d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
-                        </svg>
-                    </div>
+        <div class="esco-profile-card">
+            <img src="/public/favicon.png" class="esco-avatar" alt="Esco">
+            <div class="esco-name">Ξ s c o</div>
+            <div class="esco-title">Lead Architect // veroe.space</div>
+            <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.6; margin-bottom: 20px;">
+                Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
+            </p>
+            <div class="esco-socials">
+                <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+                    </svg>
+                </a>
+                <a href="https://github.com/Esco-lessgo" target="_blank" class="social-link">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
                 </a>
             </div>
+        </div>
 
-            <style>
-                @keyframes discordPulse {
-                    0% {
-                        box-shadow: 0 0 0 0 rgba(88, 101, 242, 0.7);
-                        transform: scale(1);
-                    }
-
-                    50% {
-                        box-shadow: 0 0 0 15px rgba(88, 101, 242, 0);
-                        transform: scale(1.05);
-                    }
-
-                    100% {
-                        box-shadow: 0 0 0 0 rgba(88, 101, 242, 0);
-                        transform: scale(1);
-                    }
-                }
-
-                .discord-promo a:hover div {
-                    background: #4752C4 !important;
-                    transform: scale(1.1);
-                }
-            </style>
-
-            <div class="button-container" style="position: relative; z-index: 2147483647;">
-                <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
-                    onclick="console.log('Public Clicked'); event.preventDefault(); navigateTo('/public');"
-                    style="pointer-events: auto; display: inline-block; text-decoration: none; text-align: center; cursor: pointer; position: relative; z-index: 2147483647;">
-                    Public Access
-                </a>
-                <a href="#" id="btnPrivateAccess" class="entry-btn btn-private"
-                    onclick="console.log('Private Clicked'); openKeyModal(); return false;"
-                    style="pointer-events: auto; display: inline-block; text-decoration: none; text-align: center; cursor: pointer; position: relative; z-index: 2147483647;">
-                    Private Access
-                    <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">Access Key Required</div>
-                </a>
-                <a href="mailto:admin@velarixsolutions.nl" class="entry-btn btn-contact"
-                    style="pointer-events: auto; display: inline-block; text-decoration: none; text-align: center; cursor: pointer; position: relative; z-index: 2147483647;">
-                    Contact Admin
-                    <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">admin@velarixsolutions.nl</div>
-                </a>
-            </div>
-
-            <!-- Website Links Footer -->
-            <div class="website-links" style="
-                position: relative;
-                z-index: 2147483647;
-                margin-top: 3rem;
-                display: flex;
-                justify-content: center;
-                gap: 1rem;
-                flex-wrap: wrap;
-                padding: 0 2rem;
-            ">
-                <a href="https://esco.veroe.fun" target="_blank" rel="noopener noreferrer" class="website-link" style="
-                    color: rgba(255, 255, 255, 0.9);
-                    text-decoration: none;
-                    padding: 0.75rem 1.5rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    backdrop-filter: blur(10px);
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    pointer-events: auto;
-                    cursor: pointer;
-                " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 20px rgba(0,245,255,0.3)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    esco.veroe.fun
-                </a>
-
-                <a href="https://velarixsolutions.nl" target="_blank" rel="noopener noreferrer" class="website-link"
-                    style="
-                    color: rgba(255, 255, 255, 0.9);
-                    text-decoration: none;
-                    padding: 0.75rem 1.5rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    backdrop-filter: blur(10px);
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    pointer-events: auto;
-                    cursor: pointer;
-                " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 20px rgba(123,66,255,0.3)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    velarixsolutions.nl
-                </a>
-
-                <a href="https://farkle.velarixsolutions.nl" target="_blank" rel="noopener noreferrer"
-                    class="website-link" style="
-                    color: rgba(255, 255, 255, 0.9);
-                    text-decoration: none;
-                    padding: 0.75rem 1.5rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    backdrop-filter: blur(10px);
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    pointer-events: auto;
-                    cursor: pointer;
-                " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 20px rgba(255,190,11,0.3)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    farkle.velarixsolutions.nl
-                </a>
-
-                <a href="https://spell.velarixsolutions.nl" target="_blank" rel="noopener noreferrer"
-                    class="website-link" style="
-                    color: rgba(255, 255, 255, 0.9);
-                    text-decoration: none;
-                    padding: 0.75rem 1.5rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    backdrop-filter: blur(10px);
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    pointer-events: auto;
-                    cursor: pointer;
-                " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 20px rgba(255,0,110,0.3)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    spell.velarixsolutions.nl
-                </a>
-
-                <a href="https://squareup.velarixsolutions.nl" target="_blank" rel="noopener noreferrer"
-                    class="website-link" style="
-                    color: rgba(255, 255, 255, 0.9);
-                    text-decoration: none;
-                    padding: 0.75rem 1.5rem;
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 12px;
-                    backdrop-filter: blur(10px);
-                    font-size: 0.9rem;
-                    font-weight: 500;
-                    transition: all 0.3s ease;
-                    pointer-events: auto;
-                    cursor: pointer;
-                " onmouseover="this.style.background='rgba(255,255,255,0.15)'; this.style.borderColor='rgba(255,255,255,0.3)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 20px rgba(0,255,136,0.3)';"
-                    onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.borderColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    squareup.velarixsolutions.nl
-                </a>
-            </div>
-
-            <script>
-                document.addEventListener('click', function (e) {
-                    console.log('Clicked element:', e.target);
-                    console.log('Coordinates:', e.clientX, e.clientY);
-                }, true);
-            </script>
-
-            <a href="#" id="btnRequestAccess" class="tech-hint" onclick="openRequestModal(); return false;"
-                style="z-index: 10002; position: relative; display: inline-block; pointer-events: auto; text-decoration: none;">
-                Request an access key from Esco to view his private posts.
+        <div class="button-container" style="position: relative; z-index: 1001;">
+            <a href="/public" id="btnPublicAccess" class="entry-btn btn-public"
+                onclick="navigateTo('/public'); return false;">
+                Global Propagations
             </a>
+            <a href="#" id="btnPrivateAccess" class="entry-btn btn-private" onclick="openKeyModal(); return false;">
+                Secure Access
+                <div style="font-size: 0.7rem; opacity: 0.7; margin-top: 0.5rem;">Access Key Required</div>
+            </a>
+        </div>
+
+        <div style="margin-top: 40px; text-align: center; position: relative; z-index: 1001;">
+            <a href="#" id="btnRequestAccess" class="tech-hint" onclick="openRequestModal(); return false;">
+                Request Access Key from Esco
+            </a>
+            <div style="margin-top: 20px;">
+                <a href="mailto:admin@velarixsolutions.nl"
+                    style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.8rem; font-family: 'JetBrains Mono';">admin@velarixsolutions.nl</a>
+            </div>
         </div>
     </div>
 
@@ -1076,112 +878,75 @@
     <!-- View: VIEWER (Carousel) -->
     <div id="view-viewer"
         style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent;">
-
-        <!-- Fixed Home Button -->
-        <button onclick="navigateTo('/')" style="
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            font-family: var(--font-sans);
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        " onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.transform='scale(1.05)';"
-            onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='scale(1)';">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-            Back
-        </button>
-
-        <!-- Gallery List -->
         <div id="listView" class="gallery">
-            <ul class="cards"></ul>
-            <div class="actions">
-                <button class="nav-btn prev">&larr; Prev</button>
-                <button class="nav-btn next">Next &rarr;</button>
-            </div>
-
-            <div id="dragHint" class="drag-hint">
-                <div class="hand-anim">👆</div>
-                <span>Try clicking and dragging the slides for quicker viewing!</span>
-            </div>
+            <!-- Populated via JS -->
         </div>
+    </div>
 
-        <!-- Detail View Overlay -->
-        <div id="detailView"
-            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 50; overflow-y: auto;">
-            <div class="container" style="max-width: 900px; margin: 0 auto; padding: 4rem 2rem;">
-                <header class="header">
-                    <div class="logo">
-                        <div class="logo-text">
-                            <h1 style="font-size: 1.5rem;">PasteBin Pro</h1>
-                            <span class="badge">Detail View</span>
-                        </div>
-                    </div>
-                    <div class="header-actions">
-                        <button id="backBtn" class="btn btn-secondary">Back to Gallery</button>
-                        <button id="rawBtn" class="btn btn-glass">Raw</button>
-                        <button id="copyBtn" class="btn btn-secondary">Copy</button>
-                    </div>
-                </header>
-                <div id="reactionsPanel" class="detail-reactions" style="display: none;">
-                    <button class="reaction-btn" onclick="handleReaction('heart')">
-                        <span>❤️</span>
-                        <span class="reaction-count" id="count-heart">0</span>
-                    </button>
-                    <button class="reaction-btn" onclick="handleReaction('star')">
-                        <span>⭐</span>
-                        <span class="reaction-count" id="count-star">0</span>
-                    </button>
-                    <button class="reaction-btn" onclick="handleReaction('like')">
-                        <span>👍</span>
-                        <span class="reaction-count" id="count-like">0</span>
-                    </button>
-                    <div id="reactionStatus"
-                        style="font-size: 0.8rem; opacity: 0.5; margin-left: auto; align-self: center;">
-                        Log in with Discord to react
+    <!-- Detail View Overlay -->
+    <div id="detailView"
+        style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 50; overflow-y: auto;">
+        <div class="container" style="max-width: 900px; margin: 0 auto; padding: 4rem 2rem;">
+            <header class="header">
+                <div class="logo">
+                    <div class="logo-text">
+                        <h1 style="font-size: 1.5rem;">PasteBin Pro</h1>
+                        <span class="badge">Detail View</span>
                     </div>
                 </div>
-                <main id="mainContent" style="margin-top: 2rem;">
-                    <div id="detailLoading" class="state-container" style="display: none;">
-                        <div class="loader"></div>
-                        <p>Loading paste...</p>
-                    </div>
-                    <div id="notFoundState" class="state-container" style="display: none;">
-                        <h2>Paste Not Found</h2>
-                    </div>
-                    <div id="pasteViewContent" style="display: none;">
-                        <div class="paste-header">
-                            <div class="paste-info">
-                                <h2 id="pasteTitle">Loading...</h2>
-                                <div class="paste-meta">
-                                    <span class="language-tag" id="pasteLanguage">plaintext</span>
-                                    <span class="meta-item" id="pasteViews">0 views</span>
-                                    <span class="meta-item" id="pasteDate">Just now</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="code-container">
-                            <div class="code-header">
-                                <div class="code-title" id="codeTitle">code.txt</div>
-                            </div>
-                            <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
-                        </div>
-                    </div>
-                </main>
+                <div class="header-actions">
+                    <button id="backBtn" class="btn btn-secondary">Back to Gallery</button>
+                    <button id="rawBtn" class="btn btn-glass">Raw</button>
+                    <button id="copyBtn" class="btn btn-secondary">Copy</button>
+                </div>
+            </header>
+            <div id="reactionsPanel" class="detail-reactions" style="display: none;">
+                <button class="reaction-btn" onclick="handleReaction('heart')">
+                    <span>❤️</span>
+                    <span class="reaction-count" id="count-heart">0</span>
+                </button>
+                <button class="reaction-btn" onclick="handleReaction('star')">
+                    <span>⭐</span>
+                    <span class="reaction-count" id="count-star">0</span>
+                </button>
+                <button class="reaction-btn" onclick="handleReaction('like')">
+                    <span>👍</span>
+                    <span class="reaction-count" id="count-like">0</span>
+                </button>
+                <div id="reactionStatus"
+                    style="font-size: 0.8rem; opacity: 0.5; margin-left: auto; align-self: center;">
+                    Log in with Discord to react
+                </div>
             </div>
+            <main id="mainContent" style="margin-top: 2rem;">
+                <div id="detailLoading" class="state-container" style="display: none;">
+                    <div class="loader"></div>
+                    <p>Loading paste...</p>
+                </div>
+                <div id="notFoundState" class="state-container" style="display: none;">
+                    <h2>Paste Not Found</h2>
+                </div>
+                <div id="pasteViewContent" style="display: none;">
+                    <div class="paste-header">
+                        <div class="paste-info">
+                            <h2 id="pasteTitle">Loading...</h2>
+                            <div class="paste-meta">
+                                <span class="language-tag" id="pasteLanguage">plaintext</span>
+                                <span class="meta-item" id="pasteViews">0 views</span>
+                                <span class="meta-item" id="pasteDate">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-title" id="codeTitle">code.txt</div>
+                        </div>
+                        <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
+                    </div>
+                </div>
+            </main>
         </div>
+    </div>
     </div>
 
     <!-- Key Entry Modal -->
@@ -1606,12 +1371,12 @@
                         const thumb = p.embedUrl || '/public/preview.png';
                         return `
                         <div onclick="navigateTo('/v/${p.id}')" class="product-card">
-                            <img src="${thumb}" class="product-card-image" alt="${p.title}">
+                            <img src="${thumb}" class="product-card-image" alt="${p.title}" onerror="this.src='/public/preview.png'">
                             <div class="product-card-info">
                                 <span class="product-tag">${p.isPublic === 0 ? '🔒 Private' : '🌍 Public'}</span>
                                 <h3 class="product-title">${p.title || 'Untitled'}</h3>
                                 <div class="product-meta">
-                                    <span>${p.language.toUpperCase()}</span>
+                                    <span>${(p.language || 'text').toUpperCase()}</span>
                                     <span>•</span>
                                     <span>${p.views || 0} PROPAGATIONS</span>
                                 </div>
@@ -1642,27 +1407,27 @@
                         `;
                     }
 
-                    const listViewContainer = document.getElementById('listView');
-                    if (listViewContainer) {
-                        listViewContainer.innerHTML = `
+                    if (listView) {
+                        listView.innerHTML = `
                             <div class="category-tabs">
-                                <div class="category-tab active">GLOBAL STREAM</div>
-                                <div class="category-tab">TRENDING</div>
-                                <div class="category-tab">ENCRYPTED</div>
+                                <div class="category-tab active" onclick="showToast('Filtering for Global Stream...', 'info')">GLOBAL STREAM</div>
+                                <div class="category-tab" onclick="showToast('Filtering for Trending Nodes...', 'info')">TRENDING</div>
+                                <div class="category-tab" onclick="showToast('Restricted Access Required', 'error')">ENCRYPTED</div>
                             </div>
-                            <div class="folder-container" style="padding: 2.5rem; max-width: 1400px; margin: 0 auto;">
+                            <div class="folder-container" style="padding: 2.5rem; max-width: 1440px; margin: 0 auto;">
                                 ${html}
                             </div>
                         `;
                     }
 
-                    if (window.gsap) {
-                        gsap.from('.cards li', {
-                            duration: 0.6,
-                            y: 40,
+                    // Animation
+                    if (window.gsap && document.querySelectorAll('.product-card').length > 0) {
+                        gsap.from('.product-card', {
+                            duration: 0.8,
+                            y: 50,
                             opacity: 0,
-                            stagger: 0.08,
-                            ease: 'power3.out',
+                            stagger: 0.1,
+                            ease: 'power4.out',
                             clearProps: 'all'
                         });
                     }
