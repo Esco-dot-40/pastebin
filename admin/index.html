@@ -100,6 +100,39 @@
                     <!-- Dynamically populated Cluster items -->
                 </div>
             </div>
+
+            <!-- Detailed Intelligence Grid -->
+            <div class="intelligence-grid">
+                <div class="intel-module glass-card">
+                    <div class="intel-header">
+                        <span class="intel-label">SYSTEM ARCHITECTURE</span>
+                        <span class="intel-sub">BROWSER DISTRIBUTION</span>
+                    </div>
+                    <div id="browserList" class="intel-list">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <div class="intel-module glass-card">
+                    <div class="intel-header">
+                        <span class="intel-label">NUCLEUS OS</span>
+                        <span class="intel-sub">PLATFORM METRICS</span>
+                    </div>
+                    <div id="platformList" class="intel-list">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+
+                <div class="intel-module glass-card">
+                    <div class="intel-header">
+                        <span class="intel-label">CARRIER NETWORK</span>
+                        <span class="intel-sub">ISP INFRASTRUCTURE</span>
+                    </div>
+                    <div id="ispList" class="intel-list">
+                        <!-- Loaded via JS -->
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Main Content -->
@@ -183,6 +216,33 @@
                 </div>
             </section>
         </main>
+
+        <!-- Live Intelligence Stream -->
+        <section class="live-stream-section glass-card">
+            <div class="section-header">
+                <div class="matrix-title">
+                    <span class="matrix-label">LIVE INTELLIGENCE STREAM</span>
+                    <span class="matrix-sub">REAL-TIME TRAFFIC ANALYSIS</span>
+                </div>
+            </div>
+            <div class="log-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>TIME</th>
+                            <th>ENDPOINT</th>
+                            <th>LOCATION</th>
+                            <th>ISP / NETWORK</th>
+                            <th>PLATFORM</th>
+                            <th>IP ADDRESS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trafficLogBody">
+                        <!-- Loaded via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 
     <!-- Modals -->

@@ -400,6 +400,66 @@ body {
     transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Intelligence Grid */
+.intelligence-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+
+.intel-module {
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.intel-header {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.intel-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+}
+
+.intel-sub {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-top: 4px;
+}
+
+.intel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.intel-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-mono);
+}
+
+.intel-name {
+    font-size: 0.8rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.intel-val {
+    font-size: 0.8rem;
+    color: var(--accent);
+    font-weight: 800;
+}
+
 /* Main Grid */
 .main-grid {
     display: grid;
@@ -513,6 +573,85 @@ body {
 .modal-large {
     max-width: 1200px;
     max-height: 92vh;
+    overflow-y: auto;
+}
+
+/* Live Stream Section */
+.live-stream-section {
+    margin-top: 35px;
+    margin-bottom: 50px;
+}
+
+.log-table-wrapper {
+    padding: 20px 30px 40px;
+    overflow-x: auto;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+}
+
+.log-table th {
+    text-align: left;
+    padding: 15px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-dim);
+    letter-spacing: 1.5px;
+    border-bottom: 2px solid var(--border);
+}
+
+.log-table td {
+    padding: 15px;
+    font-size: 0.75rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+}
+
+.log-table tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.log-table .path {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.log-table .ip {
+    color: var(--accent);
+    opacity: 0.8;
+}
+
+.log-table .location {
+    color: #00ff88;
+}
+
+.log-table .time {
+    color: var(--text-dim);
+}
+
+/* Detailed Stats for Modals */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+    margin-top: 25px;
+}
+
+.detail-box h4 {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.detail-list {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    max-height: 300px;
     overflow-y: auto;
 }
 

@@ -73,6 +73,17 @@ async function loadGlobalAnalytics() {
         updateMainMap(data.locations || []);
         updateClusterSummary(data.locations || []);
 
+        // Populate Intelligence Modules
+        populateIntelList('browserList', data.browsers || []);
+        populateIntelList('platformList', data.platforms || []);
+        populateIntelList('ispList', data.isps || []);
+
+        // Populate Live Traffic Log (Combine paste views and page accesses)
+        const recentActivity = [...(data.recentViews || []), ...(data.pageAccesses?.recent || [])]
+            .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+            .slice(0, 50);
+        populateTrafficLog(recentActivity);
+
         // Packet counter animation
         const packetEl = document.getElementById('packetCounter');
         if (packetEl) {
@@ -200,6 +211,45 @@ function updateClusterSummary(locations) {
     `).join('');
 }
 
+function populateIntelList(containerId, items) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const topItems = items.slice(0, 8); // Top 8 items
+    if (topItems.length === 0) {
+        container.innerHTML = '<span style="font-size:0.7rem; color:rgba(255,255,255,0.2)">NO DATA COLLECTED</span>';
+        return;
+    }
+
+    container.innerHTML = topItems.map(item => `
+        <div class="intel-item">
+            <span class="intel-name">${item.name.toUpperCase()}</span>
+            <span class="intel-val">${item.count}</span>
+        </div>
+    `).join('');
+}
+
+function populateTrafficLog(activity) {
+    const logBody = document.getElementById('trafficLogBody');
+    if (!logBody) return;
+
+    if (activity.length === 0) {
+        logBody.innerHTML = '<tr><td colspan="6" style="text-align:center; opacity:0.3; padding:40px;">NO RECENT ACTIVITY DETECTED</td></tr>';
+        return;
+    }
+
+    logBody.innerHTML = activity.map(item => `
+        <tr>
+            <td class="time">${timeAgo(item.timestamp)}</td>
+            <td class="path">${item.pasteId ? '/v/' + item.pasteId : item.path}</td>
+            <td class="location">${item.city || 'Unknown'}, ${item.countryCode || '??'}</td>
+            <td>${(item.isp || 'Private Network').substring(0, 30)}</td>
+            <td>${item.platform || 'System'}</td>
+            <td class="ip">${item.ip || 'Masked'}</td>
+        </tr>
+    `).join('');
+}
+
 async function loadPasteList(query = '') {
     if (!els.list) return;
     try {
@@ -267,21 +317,95 @@ async function showAnalytics(id) {
     try {
         const data = await storage.getAnalytics(id);
         const content = document.getElementById('analyticsContent');
+
         content.innerHTML = `
-            <h3>Analytics for ${id}</h3>
-            <div class="stat-group" style="margin-top:20px">
+            <div class="matrix-header" style="margin-bottom:30px">
+                <div class="matrix-title">
+                    <span class="matrix-label">NODE ANALYSIS: ${id}</span>
+                    <span class="matrix-sub">CRITICAL METRIC OVERVIEW</span>
+                </div>
+            </div>
+
+            <div class="stat-group">
                 <div class="stat-box">
-                    <span class="stat-label">Total Views</span>
-                    <span class="stat-value">${data.totalViews}</span>
+                    <span class="stat-label">Total Volume</span>
+                    <span class="stat-value">${data.totalViews || 0}</span>
                 </div>
                 <div class="stat-box">
-                    <span class="stat-label">Unique IPs</span>
-                    <span class="stat-value">${data.uniqueIPs}</span>
+                    <span class="stat-label">Unique Nodes</span>
+                    <span class="stat-value">${data.uniqueIPs || 0}</span>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+                <div class="detail-box">
+                    <h4>GEOGRAPHIC ORIGINS</h4>
+                    <div class="intel-list detail-list">
+                        ${(data.locations || []).slice(0, 5).map(l => `
+                            <div class="intel-item">
+                                <span class="intel-name">${l.name.toUpperCase()}</span>
+                                <span class="intel-val">${l.count}</span>
+                            </div>
+                        `).join('') || '<span style="opacity:0.3">No Logged Locations</span>'}
+                    </div>
+                </div>
+                <div class="detail-box">
+                    <h4>NETWORK INFRASTRUCTURE</h4>
+                    <div class="intel-list detail-list">
+                        ${(data.isps || []).slice(0, 5).map(i => `
+                            <div class="intel-item">
+                                <span class="intel-name">${i.name.toUpperCase()}</span>
+                                <span class="intel-val">${i.count}</span>
+                            </div>
+                        `).join('') || '<span style="opacity:0.3">No Network Data</span>'}
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-box" style="margin-top:30px">
+                <h4>RECENT ACCESS LOGS</h4>
+                <div class="detail-list" style="padding:0">
+                    <table class="log-table" style="font-size: 0.7rem">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>LOCATION</th>
+                                <th>IP</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${(data.recentViews || []).slice(0, 10).map(v => `
+                                <tr>
+                                    <td>${timeAgo(v.timestamp)}</td>
+                                    <td class="location">${v.city || 'Unknown'}</td>
+                                    <td class="ip">${v.ip}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         `;
         document.getElementById('analyticsModal').classList.add('active');
-    } catch (e) { alert(e.message); }
+    } catch (e) {
+        console.error(e);
+        alert('Failed to load detailed analytics');
+    }
+}
+
+function timeAgo(date) {
+    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "y";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "mo";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "d";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "h";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "m";
+    return Math.floor(seconds) + "s";
 }
 
 function escapeHtml(text) {
