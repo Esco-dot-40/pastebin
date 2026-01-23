@@ -512,6 +512,28 @@ body {
     overflow-y: auto;
 }
 
+/* Modal Actions */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: 0.2s;
+    line-height: 1;
+    padding: 0 5px;
+}
+
+.close-btn:hover {
+    color: var(--accent-red);
+    transform: scale(1.1);
+}
+
 /* --- TABLE VIEW FOR REPOSITORY --- */
 .table-responsive {
     overflow-x: auto;

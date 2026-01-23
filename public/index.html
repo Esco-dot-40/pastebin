@@ -1706,11 +1706,11 @@
             if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
 
-        // Show loading for 2.5 seconds to hit the "few seconds" target
+        // Show loading for 0.8 seconds (reduced from 2.5s for speed)
         setTimeout(() => {
             window.history.pushState({}, '', path);
             handleRoute();
-        }, 2500);
+        }, 800);
     }
 
     window.hideLoader = function () {
@@ -1719,7 +1719,7 @@
         ls.classList.add('fade-out');
         setTimeout(() => {
             ls.style.display = 'none';
-        }, 800);
+        }, 500);
     };
 
     function handleRoute() {
@@ -2196,8 +2196,16 @@
 </script>
 <script>
     // Initial / Fallback Loading Hider
-    window.addEventListener('load', () => setTimeout(window.hideLoader, 800));
-    setTimeout(window.hideLoader, 4000); // Conservative fallback
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            window.hideLoader();
+            handleRoute(); // Ensure route logic runs on load!
+        }, 500);
+    });
+    setTimeout(() => {
+        window.hideLoader();
+        if (document.getElementById('loadingState').style.display !== 'none') handleRoute();
+    }, 4000); // Conservative fallback
 </script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
