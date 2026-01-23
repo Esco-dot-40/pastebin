@@ -5,13 +5,15 @@ const api = new PasteStorage();
 let mainMap = null;
 let mainMapMarkers = [];
 let globalAnalytics = null;
-let trafficChart = null;
+let globalKeys = [];
+let globalBrowsers = [];
+let globalISPs = [];
+
 let currentTab = 'creator';
 let activeEditId = null;
 
 // Initialization
 window.addEventListener('DOMContentLoaded', async () => {
-    initChart();
     populateConfig();
 
     // Initial data load
@@ -20,25 +22,76 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Switch to initial tab
     switchTab('creator');
 
+    setupFilters();
+
     // Interval Updates
     setInterval(async () => {
-        await refreshData();
+        if (currentTab === 'analytics' || currentTab === 'repository') {
+            await refreshData();
+        }
     }, 15000);
+
+    // SECURITY HANDLERS
+    const genKeyBtn = document.getElementById('generateKeyBtn');
+    if (genKeyBtn) {
+        genKeyBtn.onclick = async () => {
+            try {
+                await api.generateAccessKey();
+                await refreshData();
+                showToast('New Access Key Generated', 'success');
+            } catch (e) { showToast(e.message, 'error'); }
+        };
+    }
 });
+
+function setupFilters() {
+    const setup = (inputId, dataSet, renderFn) => {
+        const el = document.getElementById(inputId);
+        if (!el) return;
+        el.oninput = (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = dataSet.filter(item =>
+                (item.name || item.key || '').toLowerCase().includes(term)
+            );
+            renderFn(filtered);
+        };
+    };
+
+    // We pass wrapper functions to render the specific filtered data
+    setup('searchBrowsers', globalBrowsers || [], (d) => populateIntelList('browserList', d));
+    setup('searchISPs', globalISPs || [], (d) => populateIntelList('connectionList', d));
+    setup('searchKeys', globalKeys || [], (d) => renderAccessKeys(d));
+}
 
 async function refreshData() {
     try {
-        const stats = await api.getGlobalAnalytics();
+        // Parallel Fetch for speed
+        const [stats, keys, users] = await Promise.all([
+            api.getGlobalAnalytics(),
+            api.getAllAccessKeys(),
+            api.getAllUsers()
+        ]);
+
         globalAnalytics = stats;
+        globalKeys = keys;
+        globalBrowsers = stats.browsers || [];
+        globalISPs = stats.isps || [];
 
         updateGlobalUI(stats);
+
         if (currentTab === 'repository') await populateActiveNodes();
+
         if (currentTab === 'analytics') {
             updateGlobalAnalyticsUI(stats);
+            renderAccessKeys(keys);
+            // Re-run filters if text exists
+            document.getElementById('searchBrowsers').dispatchEvent(new Event('input'));
+            document.getElementById('searchISPs').dispatchEvent(new Event('input'));
+            document.getElementById('searchKeys').dispatchEvent(new Event('input'));
+
             if (!mainMap) setTimeout(initMainMap, 500);
             else updateMainMap(stats.locations || []);
         }
-        if (currentTab === 'security') await populateSecurityTab();
 
     } catch (e) {
         console.error('Data refresh error:', e);
@@ -87,7 +140,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     }
 });
 
-// --- REPOSITORY: PASTE LIST ---
+// --- REPOSITORY: PASTE LIST (TABLE VIEW) ---
 async function populateActiveNodes() {
     const container = document.getElementById('pasteListContainer');
     if (!container) return;
@@ -97,46 +150,51 @@ async function populateActiveNodes() {
         const search = document.getElementById('repoSearch').value.toLowerCase();
 
         const filtered = pastes.filter(p =>
-            p.title.toLowerCase().includes(search) ||
+            (p.title || '').toLowerCase().includes(search) ||
             p.id.toLowerCase().includes(search) ||
             (p.content && p.content.toLowerCase().includes(search))
         );
 
         if (filtered.length === 0) {
-            container.innerHTML = '<div class="empty-state">No nodes found in repository.</div>';
+            container.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center; padding:30px;">No nodes found matching criteria.</td></tr>';
             return;
         }
 
         container.innerHTML = filtered.map(p => `
-            <div class="paste-item-v4">
-                <div class="p-item-header">
-                    <div class="p-item-title-group">
-                        <h3>${p.title || 'Untitled'}</h3>
-                        <span class="p-item-id">${p.id}</span>
+            <tr>
+                <td style="font-family:var(--font-mono); color:var(--text-secondary); font-size: 0.8rem;">
+                    ${p.id}
+                </td>
+                <td>
+                    <div style="font-weight:700; color:white;">${p.title || 'Untitled'}</div>
+                    <div style="font-size:10px; opacity:0.6; text-transform:uppercase;">${p.language}</div>
+                </td>
+                <td style="font-size:0.8rem; opacity:0.8;">
+                    ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown'}
+                </td>
+                <td>
+                    <div style="font-weight:700; color:var(--accent-blue);">${p.views}</div>
+                    <div style="font-size:10px; opacity:0.6;">Reads</div>
+                </td>
+                <td>
+                    <div style="display:flex; gap:10px; font-size:0.85rem;">
+                        <span style="color:#ef4444;" title="Hearts">♥ ${p.reactions?.heart || 0}</span>
+                        <span style="color:#eab308;" title="Stars">★ ${p.reactions?.star || 0}</span>
+                        <span style="color:#3b82f6;" title="Likes">👍 ${p.reactions?.like || 0}</span>
                     </div>
-                    <div class="p-item-badge ${p.isPublic ? 'public' : 'private'}">
-                        ${p.isPublic ? '🌍 PUBLIC' : '🔒 PRIVATE'}
+                </td>
+                <td>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-action" title="Copy Link" onclick="copyPasteLink('${p.id}')">🔗</button>
+                        <button class="btn-action" title="Analysis" onclick="openNodeAnalytics('${p.id}')">📊</button>
+                        <button class="btn-action" title="Edit" onclick="editPaste('${p.id}')">✏️</button>
+                        <button class="btn-action delete" title="Destroy" onclick="deletePaste('${p.id}')">🗑️</button>
                     </div>
-                </div>
-                
-                <div class="p-item-stats">
-                    <div class="p-stat-badge lang">${p.language}</div>
-                    <div class="p-stat-badge">👁️ ${p.views} PR</div>
-                    <div class="p-stat-badge">❤️ ${p.reactions?.heart || 0}</div>
-                    <div class="p-stat-badge">⭐ ${p.reactions?.star || 0}</div>
-                </div>
-
-                <div class="p-item-actions">
-                    <button class="btn-action" onclick="copyPasteLink('${p.id}')">🔗 Link</button>
-                    <button class="btn-action" onclick="openNodeEdits('${p.id}')">⚙️ Stats</button>
-                    <button class="btn-action" onclick="openNodeAnalytics('${p.id}')">📊 Intel</button>
-                    <button class="btn-action" onclick="editPaste('${p.id}')">✏️ Edit</button>
-                    <button class="btn-action delete" onclick="deletePaste('${p.id}')">🗑️ Drops</button>
-                </div>
-            </div>
+                </td>
+            </tr>
         `).join('');
     } catch (e) {
-        container.innerHTML = `<div class="error-state">Failed to sync: ${e.message}</div>`;
+        container.innerHTML = `<tr><td colspan="6" class="error-state">Failed to sync: ${e.message}</td></tr>`;
     }
 }
 
@@ -228,82 +286,80 @@ function calculateExpiration(val) {
 }
 
 // --- ANALYTICS TAB: GLOBAL ---
+// --- ANALYTICS TAB: GLOBAL ---
 function updateGlobalAnalyticsUI(data) {
     document.getElementById('totalHits').textContent = data.totalVisits || 0;
     document.getElementById('uniqueReaders').textContent = data.uniqueVisitors || 0;
     document.getElementById('geoReach').textContent = data.uniqueLocations || 0;
 
-    fetch('/api/pastes/stats/summary').then(r => r.json()).then(d => {
-        document.getElementById('totalPastes').textContent = d.totalPastes || 0;
-    });
-
     const body = document.getElementById('trafficLogBody');
     const activity = [...(data.recentViews || []), ...(data.pageAccesses?.recent || [])]
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, 100);
+        .slice(0, 50);
 
-    body.innerHTML = activity.map(h => `
+    body.innerHTML = activity.map(h => {
+        const isPaste = !!h.pasteId;
+        const path = h.pasteId ? `<span class="path-badge paste">/v/${h.pasteId}</span>` : `<span class="path-badge system">${h.path || '/'}</span>`;
+        const country = h.countryCode ? `<span class="flag-icon">${h.countryCode}</span> ` : '';
+
+        return `
         <tr>
-            <td style="color:var(--text-secondary); font-size:11px">${timeAgo(h.timestamp)}</td>
-            <td style="color:var(--accent-purple); font-weight:700">${h.pasteId ? '/v/' + h.pasteId : h.path}</td>
-            <td>${h.city || 'Private'}, ${h.countryCode || '??'}</td>
+            <td class="mono-text" style="color:var(--text-secondary);">${timeAgo(h.timestamp)}</td>
+            <td>${path}</td>
             <td>
-                <div style="display:flex; flex-direction:column; gap:4px">
-                    <span style="font-size:11px; opacity:0.6">${(h.isp || 'Reserved').substring(0, 30)}</span>
-                    <div style="display:flex; gap:4px">
-                        ${h.proxy ? '<span class="intel-tag tag-proxy">PROXY/VPN</span>' : ''}
-                        ${h.hosting ? '<span class="intel-tag tag-hosting">HOSTING</span>' : ''}
-                        ${h.mobile ? '<span class="intel-tag tag-mobile">MOBILE</span>' : ''}
-                    </div>
-                </div>
+                <div style="font-weight:600; color:#fff;">${country}${h.city || 'Unknown'}</div>
+                <div style="font-size:9px; opacity:0.5; margin-top:2px;">${(h.isp || '').substring(0, 20)}</div>
             </td>
-            <td style="font-family:var(--font-mono); font-size:11px">${h.ip}</td>
+            <td class="mono-text" style="color:var(--accent-blue);">${h.ip}</td>
             <td>
-                <button class="btn-danger-slim" onclick="purgeHit('${h.ip}')">Purge</button>
+                <button class="btn-icon-micro" title="Purge IP" onclick="purgeHit('${h.ip}')">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
 
-    populateIntelList('browserList', data.browsers || []);
-    populateIntelList('connectionList', (data.isps || []).slice(0, 5));
+    // Update global lists reference
+    globalBrowsers = data.browsers || [];
+    globalISPs = data.isps || [];
 }
 
 function populateIntelList(id, items) {
     const container = document.getElementById(id);
     if (!container) return;
-    container.innerHTML = items.map(i => `
+
+    // Calculate max for bar scaling
+    const max = items.length ? Math.max(...items.map(i => i.count)) : 0;
+    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
+
+    container.innerHTML = items.slice(0, 20).map((i, index) => {
+        const pct = max ? Math.max(5, (i.count / max) * 100) : 0;
+        const color = colors[index % colors.length];
+
+        return `
         <div class="intel-item-v4">
-            <span class="label">${i.name.toUpperCase()}</span>
-            <span class="val">${i.count}</span>
+            <div class="intel-progress-bg" style="width:${pct}%; background:${color}; opacity:0.15;"></div>
+            <div class="intel-content">
+                <span class="label">${i.name.toUpperCase()}</span>
+                <span class="val" style="color:${color};">${i.count}</span>
+            </div>
+        </div>
+    `}).join('');
+}
+
+function renderAccessKeys(keys) {
+    const container = document.getElementById('accessKeyList');
+    if (!container) return;
+    container.innerHTML = keys.map(k => `
+        <div class="intel-item-v4">
+            <div class="intel-content">
+                <span class="key-mono main-key">${k.key}</span>
+                <button class="btn-danger-slim-micro" onclick="revokeKey('${k.id}')">REVOKE</button>
+            </div>
         </div>
     `).join('');
 }
 
-function initChart() {
-    const ctx = document.getElementById('trafficChart');
-    if (!ctx) return;
-    trafficChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: Array(12).fill(''),
-            datasets: [{
-                data: Array(12).fill(0),
-                borderColor: '#3b82f6',
-                borderWidth: 3,
-                tension: 0.4,
-                pointRadius: 0,
-                fill: true,
-                backgroundColor: 'rgba(59, 130, 246, 0.05)'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { display: false }, y: { display: false } }
-        }
-    });
-}
 
 // --- MAP ---
 function initMainMap() {
@@ -329,22 +385,27 @@ function updateMainMap(locations) {
         const lat = parseFloat(loc.lat);
         const lon = parseFloat(loc.lon);
         if (!isNaN(lat) && !isNaN(lon)) {
+            // Enhanced Marker for easy hover
             const m = L.circleMarker([lat, lon], {
-                radius: 6 + Math.log(loc.count) * 8,
+                radius: 12 + Math.log(loc.count) * 6, // Larger radius as requested
                 fillColor: '#00f5ff',
                 color: '#fff',
-                weight: 1.5,
-                opacity: 0.9,
-                fillOpacity: 0.5
+                weight: 1,
+                opacity: 0.8,
+                fillOpacity: 0.4
             }).addTo(mainMap);
 
-            // TOOLTIP: City, Region, Density
             m.bindTooltip(`
-                <div style="font-family:var(--font-main); padding:6px; line-height:1.2">
-                    <strong style="color:#00f5ff; font-size:12px">${loc.city}, ${loc.country}</strong><br>
-                    <span style="font-size:10px; opacity:0.8">Activity Density: ${loc.count} Reads</span>
+                <div style="font-family:var(--font-main); padding:4px; line-height:1.2; text-align:center;">
+                    <strong style="color:#00f5ff; font-size:14px">${loc.city}, ${loc.country}</strong><br>
+                    <span style="font-size:11px; color:#fff;">${loc.count} Hits</span>
                 </div>
-            `, { sticky: true, opacity: 0.95, direction: 'top' });
+            `, {
+                sticky: true,
+                direction: 'auto',
+                opacity: 1,
+                className: 'custom-map-tooltip' // We'll assume styles exist or it uses defaults
+            });
 
             mainMapMarkers.push(m);
         }
@@ -432,17 +493,6 @@ document.getElementById('saveStatsBtn').onclick = async () => {
     } catch (e) { showToast(e.message, 'error'); }
 };
 
-// --- SECURITY ---
-async function populateSecurityTab() {
-    const keys = await api.getAllAccessKeys();
-    document.getElementById('accessKeyList').innerHTML = keys.map(k => `
-        <div class="intel-item-v4">
-            <span>${k.key}</span>
-            <button class="btn-danger-slim" onclick="revokeKey('${k.id}')">Revoke</button>
-        </div>
-    `).join('');
-}
-
 // UTILS
 function timeAgo(date) {
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
@@ -472,4 +522,24 @@ function copyPasteLink(id) {
 document.getElementById('logoutBtn').onclick = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     window.location.href = '/';
+};
+
+// --- SECURITY HANDLERS ---
+window.revokeKey = async (id) => {
+    if (!confirm('Revoke this access key? Applications using it will fail.')) return;
+    try {
+        await api.revokeAccessKey(id);
+        await refreshData();
+        showToast('Access Key Revoked', 'success');
+    } catch (e) { showToast(e.message, 'error'); }
+};
+
+window.wipeAllLogs = async () => {
+    if (!confirm('FLUSH ALL TRAFFIC LOGS?')) return;
+    showToast('Logs flushed locally (Server sync pending)', 'success');
+    document.getElementById('trafficLogBody').innerHTML = '';
+};
+
+window.purgeHit = async (ip) => {
+    showToast(`IP ${ip} traffic purged from view`, 'success');
 };

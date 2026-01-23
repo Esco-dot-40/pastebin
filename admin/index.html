@@ -25,7 +25,6 @@
                     <a href="#" class="nav-link active" data-tab="creator">Creator</a>
                     <a href="#" class="nav-link" data-tab="repository">Repository</a>
                     <a href="#" class="nav-link" data-tab="analytics">Analytics</a>
-                    <a href="#" class="nav-link" data-tab="security">Security</a>
                 </div>
             </div>
             <div class="nav-right">
@@ -115,7 +114,7 @@
                 </div>
             </div>
 
-            <!-- TAB: REPOSITORY (FULL WIDTH) -->
+            <!-- TAB: REPOSITORY (TABLE WIDTH) -->
             <div id="tab-repository" class="tab-pane">
                 <div class="full-page-section">
                     <div class="glass-card repository-card">
@@ -127,17 +126,41 @@
                                 <button class="btn-primary-slim" onclick="refreshData()">Sync Repository</button>
                             </div>
                         </div>
-                        <div id="pasteListContainer" class="repo-grid-v5">
-                            <div class="loading-state">Syncing Repository...</div>
+                        <div class="table-responsive">
+                            <table class="repo-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>PAYLOAD TITLE</th>
+                                        <th>DEPLOYED</th>
+                                        <th>PROPAGATIONS</th>
+                                        <th>REACTIONS</th>
+                                        <th>CONTROL CENTER</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pasteListContainer">
+                                    <tr>
+                                        <td colspan="6" class="loading-state">Syncing Repository...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: ANALYTICS -->
+            <!-- TAB: ANALYTICS (REARRANGED) -->
             <div id="tab-analytics" class="tab-pane">
                 <div class="analytics-dashboard-v4">
-                    <div class="stats-row-v4">
+
+                    <!-- 1. MAP (TOP) -->
+                    <div class="glass-card map-card-v4" style="margin-bottom: 20px;">
+                        <label>GLOBAL TRAFFIC MATRIX</label>
+                        <div id="mainHeatmap" class="heatmap-v4"></div>
+                    </div>
+
+                    <!-- 2. STATS (BELOW MAP) -->
+                    <div class="stats-row-v4" style="margin-bottom: 20px;">
                         <div class="stat-card-v4">
                             <label>TOTAL HITS</label>
                             <div id="totalHits" class="val">0</div>
@@ -153,79 +176,67 @@
                             <div id="geoReach" class="val">0</div>
                             <div class="trend success">Countries</div>
                         </div>
-                        <div class="stat-card-v4">
-                            <label>TOTAL NODES</label>
-                            <div id="totalPastes" class="val">0</div>
-                            <div class="trend success">Propagated</div>
-                        </div>
                     </div>
 
-                    <div class="analytics-main-v4">
-                        <div class="analytics-left-v4">
-                            <div class="glass-card map-card-v4">
-                                <label>GLOBAL TRAFFIC MATRIX</label>
-                                <div id="mainHeatmap" class="heatmap-v4"></div>
+                    <!-- 3. NETWORK & SECURITY (CONSOLIDATED) -->
+                    <div class="network-security-grid">
+
+                        <!-- Col 1: Browsers -->
+                        <div class="glass-card intel-col-card">
+                            <div class="card-header-slim">
+                                <label>BROWSER ARCHITECTURE</label>
+                                <input type="text" id="searchBrowsers" class="admin-input-micro"
+                                    placeholder="Filter...">
                             </div>
-                            <div class="glass-card log-card-v4" style="margin-top: 20px;">
-                                <div class="card-header-v4">
-                                    <label>LIVE INTELLIGENCE STREAM</label>
-                                    <button class="btn-danger-slim" onclick="wipeAllLogs()">WIPE ALL LOGS</button>
-                                </div>
-                                <div class="mini-table-wrapper" style="max-height: 500px;">
-                                    <table class="admin-table">
-                                        <thead>
-                                            <tr>
-                                                <th>TIME</th>
-                                                <th>PATH</th>
-                                                <th>LOCATION / ISP</th>
-                                                <th>DEEP INTEL</th>
-                                                <th>IP</th>
-                                                <th>ACTION</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="trafficLogBody"></tbody>
-                                    </table>
-                                </div>
+                            <div id="browserList" class="intel-list-v4"></div>
+                        </div>
+
+                        <!-- Col 2: ISP Nodes (Network) -->
+                        <div class="glass-card intel-col-card">
+                            <div class="card-header-slim">
+                                <label>ISP NODES</label>
+                                <input type="text" id="searchISPs" class="admin-input-micro" placeholder="Filter...">
+                            </div>
+                            <div id="connectionList" class="intel-list-v4"></div>
+                        </div>
+
+                        <!-- Col 3: Access Protocols (Security) -->
+                        <div class="glass-card intel-col-card">
+                            <div class="card-header-slim">
+                                <label>ACCESS PROTOCOLS</label>
+                                <button id="generateKeyBtn" class="btn-micro-faint">+ NEW</button>
+                            </div>
+                            <input type="text" id="searchKeys" class="admin-input-micro" placeholder="Filter Keys..."
+                                style="margin-top:5px; margin-bottom:10px; width:100%;">
+                            <div id="accessKeyList" class="intel-list-v4"></div>
+                        </div>
+
+                        <!-- Col 4: Traffic Log (Live) -->
+                        <div class="glass-card intel-col-card double-width">
+                            <div class="card-header-slim">
+                                <label>LIVE INTELLIGENCE STREAM</label>
+                                <button class="btn-danger-slim-micro" onclick="wipeAllLogs()">WIPE LOGS</button>
+                            </div>
+                            <div class="mini-table-wrapper" style="height: 300px;">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>TIME</th>
+                                            <th>PATH</th>
+                                            <th>LOC / ISP</th>
+                                            <th>IP</th>
+                                            <th>ACT</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trafficLogBody"></tbody>
+                                </table>
                             </div>
                         </div>
-                        <div class="analytics-right-v4">
-                            <div class="glass-card intel-card-v4">
-                                <label>DISTRIBUTION INTEL</label>
-                                <div class="chart-container-v4">
-                                    <canvas id="trafficChart"></canvas>
-                                </div>
-                                <div class="intel-lists-v4">
-                                    <div class="intel-col-v4">
-                                        <label>Top Browsers</label>
-                                        <div id="browserList" class="intel-list-v4"></div>
-                                    </div>
-                                    <div class="intel-col-v4">
-                                        <label>Connectivity</label>
-                                        <div id="connectionList" class="intel-list-v4"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- TAB: SECURITY -->
-            <div id="tab-security" class="tab-pane">
-                <div class="security-grid-v4">
-                    <div class="glass-card">
-                        <div class="card-header-v4">
-                            <label>ACCESS PROTOCOLS</label>
-                            <button id="generateKeyBtn" class="btn-primary-slim">NEW KEY</button>
-                        </div>
-                        <div id="accessKeyList" class="intel-list-v4"></div>
-                    </div>
-                    <div class="glass-card">
-                        <label>OPERATOR LOG</label>
-                        <div id="adminUsersList" class="intel-list-v4"></div>
-                    </div>
-                </div>
-            </div>
         </main>
     </div>
 
