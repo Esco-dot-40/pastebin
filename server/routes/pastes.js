@@ -196,11 +196,27 @@ router.get('/public-list', (req, res) => {
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccess = validateAccessKey(key) || isAdmin;
 
-    // If admin or has key, 1=1 (all), otherwise only isPublic
     // FORCING ALL VISIBLE PER USER REQUEST (DEBUG MODE)
     const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE 1=1 ORDER BY p.createdAt DESC`;
     const list = db.prepare(query).all();
-    res.json(list.map(p => ({ ...p, hasPassword: !!p.password, password: undefined })));
+
+    // Aggregate reactions for each paste
+    const enrichedList = list.map(p => {
+        const reactions = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(p.id);
+        const reactionCounts = { heart: 0, star: 0, like: 0 };
+        reactions.forEach(r => {
+            if (reactionCounts[r.type] !== undefined) reactionCounts[r.type] = r.count;
+        });
+
+        return {
+            ...p,
+            reactions: reactionCounts,
+            hasPassword: !!p.password,
+            password: undefined
+        };
+    });
+
+    res.json(enrichedList);
 });
 
 router.post('/', requireAuth, async (req, res) => {
