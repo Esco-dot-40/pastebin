@@ -1346,13 +1346,13 @@
     document.addEventListener('DOMContentLoaded', () => {
         console.log("Initializing Direct Interaction Handlers...");
 
-        // 1. Force Z-Index layers
-        const containers = document.querySelectorAll('.button-container, .tech-hint, .esco-profile-card');
-        containers.forEach(el => {
-            el.style.zIndex = '10000';
-            el.style.position = 'relative';
-            el.style.pointerEvents = 'auto'; // Force interaction
-        });
+        // 1. Ensure profile interaction
+        const profile = document.querySelector('.esco-profile-card');
+        if (profile) {
+            profile.style.zIndex = '100';
+            profile.style.position = 'relative';
+            profile.style.pointerEvents = 'auto';
+        }
 
         // 2. Manual Event Binding (The "Nuclear Option" for interactions)
         const bindClick = (id, fn) => {
@@ -1413,13 +1413,14 @@
 <div id="view-viewer"
     style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
     <div id="listView"
-        style="min-height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 40px; background: rgba(10, 10, 15, 0.95);">
-        <div id="pasteGalleryApp" style="width: 100%; min-height: 50vh;">
+        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(5, 5, 10, 0.98); overflow: hidden;">
+        <div id="pasteGalleryApp" style="width: 100%;">
             <div
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; opacity:0.5;">
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.3;">
                 <div class="loader"></div>
-                <p style="margin-top:20px; font-family:'JetBrains Mono'; letter-spacing:2px;">SYNCHRONIZING WITH
-                    STREAM...</p>
+                <p
+                    style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
+                    ESTABLISHING UPLINK...</p>
             </div>
         </div>
     </div>
@@ -2342,19 +2343,18 @@
         }, []);
 
         if (pastes.length === 0) {
-            const hasKey = !!localStorage.getItem('private_access_key');
             return (
-                <div className="flex flex-col justify-center items-center h-[60vh] text-center p-8">
-                    <h2 className="text-4xl font-black mb-4 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent uppercase tracking-tight">Empty Network</h2>
-                    <p className="opacity-60 max-w-lg mb-8 text-white leading-relaxed">
-                        {hasKey ? "Connection established but no data packets detected in this sector." : "Unauthorized access. This sector is private. Visitors require a valid security key to view propagation logs."}
+                <div className="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/90">
+                    <div className="w-16 h-16 mb-8 rounded-full border border-cyan-500/20 flex items-center justify-center animate-pulse">
+                        <div className="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_#00f5ff]"></div>
+                    </div>
+                    <h2 className="text-2xl font-black mb-4 text-white uppercase tracking-[0.3em]">No Packets Found</h2>
+                    <p className="opacity-40 max-w-sm mb-8 text-white text-[10px] uppercase font-mono leading-relaxed">
+                        Sector appears to be empty or unauthorized. Check your connection or administrative key permissions.
                     </p>
-                    {!hasKey && (
-                        <div className="flex gap-4">
-                            <button onClick={() => window.navigateTo('/')} className="px-6 py-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">Main Portal</button>
-                            <button onClick={() => window.openRequestModal()} className="px-6 py-2 rounded-full bg-cyan-500 text-black font-bold shadow-lg shadow-cyan-500/20 hover:scale-105 transition-transform">Request Key</button>
-                        </div>
-                    )}
+                    <div className="flex gap-4">
+                        <button onClick={() => window.navigateTo('/')} className="px-8 py-2 rounded-sm border border-white/5 bg-white/5 text-white/40 text-[9px] uppercase tracking-widest hover:bg-white/10 transition-colors">Abort</button>
+                    </div>
                 </div>
             );
         }

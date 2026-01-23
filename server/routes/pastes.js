@@ -273,7 +273,12 @@ router.get('/:id', async (req, res) => {
             : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
         updateHostname('paste_views', res2.lastInsertRowid, ip);
     }
-    res.json(paste);
+    // Aggregate reactions
+    const reactionRows = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(req.params.id);
+    const reactionCounts = { heart: 0, star: 0, like: 0 };
+    reactionRows.forEach(r => { if (reactionCounts[r.type] !== undefined) reactionCounts[r.type] = r.count; });
+
+    res.json({ ...paste, reactions: reactionCounts });
 });
 
 router.post('/:id/react', async (req, res) => {

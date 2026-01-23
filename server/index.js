@@ -60,8 +60,8 @@ app.use(async (req, res, next) => {
         '127.0.0.1';
     const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
 
-    // --- SELF-LEARNING FIREWALL ---
-    // Synchronously check if this IP was previously flagged as proxy/hosting
+    // --- SELF-LEARNING FIREWALL (DISABLED DUE TO USER LOCKOUTS) ---
+    /*
     if (!isStatic && !isAdminUser && cleanIP !== '127.0.0.1') {
         const blacklist = db.prepare('SELECT proxy, hosting FROM page_accesses WHERE ip = ? AND (proxy = 1 OR hosting = 1) LIMIT 1').get(cleanIP);
         if (blacklist) {
@@ -69,6 +69,7 @@ app.use(async (req, res, next) => {
             return res.status(403).send('<h1>403 Forbidden</h1><p>Access Denied: Non-Residential Transit Node Detected.</p>');
         }
     }
+    */
 
     const shouldSkip = (isAdminPath || isAdminUser) && process.env.LOG_ADMINS !== 'true';
 
