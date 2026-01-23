@@ -197,7 +197,8 @@ router.get('/public-list', (req, res) => {
     const hasAccess = validateAccessKey(key) || isAdmin;
 
     // If admin or has key, 1=1 (all), otherwise only isPublic
-    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE ${hasAccess ? '1=1' : 'p.isPublic = 1'} ORDER BY p.createdAt DESC`;
+    // FORCING ALL VISIBLE PER USER REQUEST (DEBUG MODE)
+    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE 1=1 ORDER BY p.createdAt DESC`;
     const list = db.prepare(query).all();
     res.json(list.map(p => ({ ...p, hasPassword: !!p.password, password: undefined })));
 });
