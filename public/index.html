@@ -1224,7 +1224,7 @@
 
 <!-- Background Media Controller -->
 <div id="video-background-container"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.65);">
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.85);">
 </div>
 <script src="/public/video-manager.js?v=8"></script>
 
@@ -2333,110 +2333,129 @@
     const App = () => {
         const [pastes, setPastes] = useState([]);
         const [activeIndex, setActiveIndex] = useState(0);
+        const [subTitles, setSubTitles] = useState(['Newest', 'public', 'private']);
+        const [isInitializing, setIsInitializing] = useState(true);
 
         useEffect(() => {
-            if (window._pendingPastes) {
-                setPastes(window._pendingPastes);
-                window._pendingPastes = null;
-            }
-            window.setPasteData = (data) => {
-                setPastes(data);
-                setActiveIndex(0);
+            const loadData = () => {
+                if (window._pendingPastes) {
+                    setPastes(window._pendingPastes);
+                    window._pendingPastes = null;
+                }
+                window.setPasteData = (data) => {
+                    setPastes(data);
+                    if (data && data.length > 0) setActiveIndex(0);
+                };
             };
+            loadData();
+            const timer = setTimeout(() => setIsInitializing(false), 2000);
+            return () => clearTimeout(timer);
         }, []);
 
-        if (!pastes || pastes.length === 0) {
+        if (isInitializing || !pastes || pastes.length === 0) {
             return html`
-                <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/90">
-                    <div class="w-16 h-16 mb-8 rounded-full border border-cyan-500/20 flex items-center justify-center animate-pulse">
-                        <div class="w-2 h-2 bg-cyan-500 rounded-full shadow-[0_0_10px_#00f5ff]"></div>
+                <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/60 backdrop-blur-md">
+                    <div class="relative w-32 h-32 mb-12">
+                        <div class="absolute inset-0 border-2 border-cyan-500/10 rounded-full animate-ping"></div>
+                        <div class="absolute inset-4 border border-cyan-500/20 rounded-full animate-pulse"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_20px_#00f5ff]"></div>
+                        </div>
                     </div>
-                    <h2 class="text-2xl font-black mb-4 text-white uppercase tracking-[0.3em]">No Packets Found</h2>
-                    <p class="opacity-40 max-w-sm mb-8 text-white text-[10px] uppercase font-mono leading-relaxed">
-                        Sector appears to be empty or unauthorized. Check your connection or administrative key permissions.
+                    <h2 class="text-3xl font-black mb-4 text-white uppercase tracking-[0.5em] leading-none">
+                        ${isInitializing ? 'Decrypting Feed' : 'Sector Empty'}
+                    </h2>
+                    <p class="opacity-30 max-w-sm mb-12 text-white text-[11px] uppercase font-mono tracking-widest leading-relaxed">
+                        ${isInitializing ? 'Establishing secure uplink to node repository...' : 'No active packets detected. Awaiting administrative propagation.'}
                     </p>
-                    <div class="flex gap-4">
-                        <button onClick=${() => window.navigateTo('/')} class="px-8 py-2 rounded-sm border border-white/5 bg-white/5 text-white/40 text-[9px] uppercase tracking-widest hover:bg-white/10 transition-colors">Abort</button>
-                    </div>
+                    ${!isInitializing && html`<button onClick=${() => window.navigateTo('/')} class="px-12 py-3 rounded-full border border-white/10 bg-white/5 text-white/60 text-[10px] uppercase tracking-[0.3em] hover:bg-white/10 hover:text-white transition-all">Abort</button>`}
                 </div>
             `;
         }
 
-        const HEIGHT = 240;
-        const EDGE = 60;
+        const HEIGHT = 500;
+        const EDGE = 150;
 
         const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
         const toNext = () => activeIndex < pastes.length - 1 && setActiveIndex(prev => prev + 1);
 
         return html`
-            <div class="flex flex-col items-center select-none py-10 w-full overflow-hidden">
-                <div class="text-center mb-12">
-                    <div class="text-cyan-400 font-mono text-[10px] tracking-[0.5rem] uppercase opacity-40 mb-3">System Node Dispatcher</div>
-                    <h1 class="text-white text-6xl font-black uppercase tracking-tighter leading-none mb-2">Network Feed</h1>
-                    <div class="w-12 h-1 bg-cyan-500 mx-auto rounded-full opacity-30"></div>
+            <div class="flex flex-col items-center select-none py-10 w-full min-h-screen overflow-hidden relative">
+                <div class="text-center mb-16 relative z-10">
+                    <div class="text-cyan-400 font-mono text-[11px] tracking-[0.2em] uppercase opacity-70 mb-6 bg-cyan-400/10 px-6 py-2 rounded-lg border border-cyan-400/20 inline-block backdrop-blur-xl">
+                        C:\\Users\\Veroe\\Pastes\\Public
+                    </div>
+                    
+                    <${Reorder.Group} axis="y" values=${subTitles} onReorder=${setSubTitles} class="flex flex-col gap-2 items-center cursor-ns-resize">
+                        ${subTitles.map((t, i) => html`
+                            <${Reorder.Item} 
+                                key=${t} 
+                                value=${t} 
+                                class=${`text-white font-black uppercase tracking-[0.6em] leading-none transition-all duration-700 ${i === 0 ? 'text-7xl opacity-100' : i === 1 ? 'text-lg opacity-30 mt-2' : 'text-[10px] opacity-10 mt-1'}`}
+                            >
+                                ${t}
+                            <//>
+                        `)}
+                    <//>
                 </div>
 
-                <div class=${`p-4 transition-all duration-300 ${activeIndex === 0 ? 'opacity-10 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-110 active:scale-95 text-cyan-400'}`} onClick=${toPrev}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+                <div class=${`p-6 mb-2 transition-all duration-300 ${activeIndex === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toPrev}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
                 </div>
 
-                <div class="overflow-hidden w-full max-w-[1100px] perspective-[2500px] transform-3d relative" style=${{ height: HEIGHT + EDGE * 2 }}>
+                <div class="overflow-hidden w-full max-w-[1400px] perspective-[3000px] transform-3d relative" style=${{ height: HEIGHT + EDGE * 2 }}>
                     ${React.createElement(motion.div, {
             className: "flex flex-col items-center",
             animate: { y: activeIndex * -HEIGHT + EDGE },
-            transition: { type: 'spring', damping: 25, stiffness: 120 }
+            transition: { type: 'spring', damping: 28, stiffness: 100 }
         }, pastes.map((p, index) => {
             const thumb = p.embedUrl || '/public/preview.png';
             return html`
-                            <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-5 transform-gpu">
+                            <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-10 transform-gpu">
                                 <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
-                                     class=${`h-full aspect-[16/9] md:aspect-[3.6] rounded-[2.5rem] overflow-hidden relative transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
-                                            ${activeIndex !== index ? 'scale-75 opacity-20 blur-[3px]' : 'scale-100 opacity-100 shadow-[0_40px_100px_rgba(0,0,0,0.6)] ring-1 ring-white/20'}
-                                            ${activeIndex > index ? '[transform:rotateX(35deg)_translateY(-20px)]' : ''}
-                                            ${activeIndex < index ? '[transform:rotateX(-35deg)_translateY(20px)]' : ''}`}>
-                                    <img class="w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110 grayscale-[0.2]"
+                                     class=${`h-full aspect-[16/9] md:aspect-[3.2] rounded-[3.5rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
+                                            ${activeIndex !== index ? 'scale-75 opacity-10 blur-[15px]' : 'scale-100 opacity-100 shadow-[0_80px_200px_rgba(0,0,0,0.9)] ring-1 ring-white/20'}
+                                            ${activeIndex > index ? '[transform:rotateX(45deg)_translateY(-60px)]' : ''}
+                                            ${activeIndex < index ? '[transform:rotateX(-45deg)_translateY(60px)]' : ''}`}>
+                                    <img class="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110 grayscale-[0.3]"
                                          src=${thumb} alt=${p.title} onError=${(e) => { e.target.src = '/public/preview.png'; }} />
-                                    <div class="absolute inset-0 bg-cyan-500/5 mix-blend-overlay"></div>
-                                    <div class="absolute inset-0 flex flex-col justify-end p-10 bg-gradient-to-t from-black via-black/30 to-transparent">
-                                        <div class="translate-y-4 group-hover:translate-y-0 transition-transform duration-700">
-                                            <div class="flex items-center gap-3 mb-3">
-                                                <span class="text-cyan-400 text-[9px] font-black tracking-[0.25em] uppercase bg-cyan-400/10 px-3 py-1 rounded-full border border-cyan-400/20 backdrop-filter blur-md">
-                                                    ${p.isPublic === 0 ? 'Encrypted Core' : 'Global Access'}
+                                    <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/90"></div>
+                                    <div class="absolute inset-0 flex flex-col justify-end p-20">
+                                        <div class="translate-y-8 group-hover:translate-y-0 transition-transform duration-[0.8s]">
+                                            <div class="flex items-center gap-4 mb-6">
+                                                <span class="text-white/30 text-[10px] font-black tracking-[0.4em] uppercase border border-white/10 px-4 py-2 rounded-full backdrop-blur-2xl bg-white/5">
+                                                    ${p.isPublic === 0 ? '🔒 Encrypted' : '🌐 Node Stream'}
                                                 </span>
-                                                ${p.folderName ? html`<span class="text-white/30 text-[9px] uppercase tracking-widest font-mono">:: ${p.folderName}</span>` : ''}
+                                                ${p.folderName ? html`<span class="text-white/10 text-[10px] uppercase tracking-[0.3em] font-mono">:: ${p.folderName}</span>` : ''}
                                             </div>
-                                            <h3 class="text-white text-4xl md:text-5xl font-black uppercase tracking-tighter leading-[0.9] mb-5 group-hover:text-cyan-400 transition-colors duration-500">
-                                                ${p.title || 'Undeclared Node'}
+                                            <h3 class="text-white text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] mb-8 group-hover:text-cyan-400 transition-colors duration-700">
+                                                ${p.title || 'Untitled'}
                                             </h3>
-                                            <div class="flex items-center gap-8 text-white/40 font-mono text-[9px] tracking-[0.2em] uppercase">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_8px_rgba(0,245,255,1)]"></span>
+                                            <div class="flex items-center gap-12 text-white/10 font-mono text-[10px] tracking-[0.6em] uppercase">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="w-2 h-2 rounded-full bg-white/10"></span>
                                                     ${p.language || 'txt'}
                                                 </div>
-                                                <div class="flex items-center gap-2">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z" /><circle cx="12" cy="12" r="3" /></svg>
-                                                    ${p.views || 0} READS
-                                                </div>
-                                                <div class="flex items-center gap-2">
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" /></svg>
+                                                <div class="flex items-center gap-3">
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" /></svg>
                                                     ${new Date(p.createdAt).toLocaleDateString()}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.2),transparent_70%)]"></div>
+                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[1.5s] bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.1),transparent_70%)]"></div>
                                 </div>
                             </div>
                         `;
         }))}
                 </div>
 
-                <div class=${`p-4 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-10 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-110 active:scale-95 text-cyan-400'}`} onClick=${toNext}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                <div class=${`p-6 mt-2 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                 </div>
 
-                <div class="mt-12 text-white/10 font-mono text-[9px] tracking-[0.4rem] uppercase">
-                    Active Stream // Section 0${activeIndex + 1}.${pastes.length}
+                <div class="mt-16 text-white/5 font-mono text-[10px] tracking-[1rem] uppercase">
+                    ${subTitles[0]} // Segment 0${activeIndex + 1}
                 </div>
             </div>
         `;
