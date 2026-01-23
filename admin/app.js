@@ -187,6 +187,7 @@ async function populateActiveNodes() {
                     <div style="display:flex; gap:6px;">
                         <button class="btn-action" title="Copy Link" onclick="copyPasteLink('${p.id}')">🔗</button>
                         <button class="btn-action" title="Analysis" onclick="openNodeAnalytics('${p.id}')">📊</button>
+                        <button class="btn-action" title="Metrics" onclick="openNodeEdits('${p.id}')">⚙️</button>
                         <button class="btn-action" title="Edit" onclick="editPaste('${p.id}')">✏️</button>
                         <button class="btn-action delete" title="Destroy" onclick="deletePaste('${p.id}')">🗑️</button>
                     </div>
@@ -308,7 +309,12 @@ function updateGlobalAnalyticsUI(data) {
             <td>${path}</td>
             <td>
                 <div style="font-weight:600; color:#fff;">${country}${h.city || 'Unknown'}</div>
-                <div style="font-size:9px; opacity:0.5; margin-top:2px;">${(h.isp || '').substring(0, 20)}</div>
+                <div style="font-size:9px; opacity:0.5; margin-top:2px;">${h.hostname || h.isp || '??'}</div>
+                <div style="display:flex; gap:3px; margin-top:4px;">
+                    ${h.proxy ? '<span class="intel-tag tag-proxy">VPN</span>' : ''}
+                    ${h.hosting ? '<span class="intel-tag tag-hosting">HOST</span>' : ''}
+                    ${h.mobile ? '<span class="intel-tag tag-mobile">MOB</span>' : ''}
+                </div>
             </td>
             <td class="mono-text" style="color:var(--accent-blue);">${h.ip}</td>
             <td>
@@ -468,7 +474,7 @@ async function openNodeAnalytics(id) {
 }
 
 let editMetricsId = null;
-function openNodeEdits(id) {
+window.openNodeEdits = function (id) {
     editMetricsId = id;
     fetch(`/api/pastes/${id}`).then(r => r.json()).then(p => {
         document.getElementById('adjViews').value = p.views || 0;
@@ -476,16 +482,25 @@ function openNodeEdits(id) {
         document.getElementById('adjStars').value = p.reactions?.star || 0;
         document.getElementById('adjLikes').value = p.reactions?.like || 0;
         document.getElementById('adjustStatsModal').classList.add('active');
-    });
+    }).catch(err => showToast("Failed to fetch node data", "error"));
 }
 
 document.getElementById('saveStatsBtn').onclick = async () => {
     if (!editMetricsId) return;
+    const payload = {
+        views: parseInt(document.getElementById('adjViews').value) || 0,
+        reactions: {
+            heart: parseInt(document.getElementById('adjHearts').value) || 0,
+            star: parseInt(document.getElementById('adjStars').value) || 0,
+            like: parseInt(document.getElementById('adjLikes').value) || 0
+        }
+    };
+
     try {
-        await fetch(`/api/pastes/${editMetricsId}/views`, {
+        await fetch(`/api/pastes/${editMetricsId}/metrics`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ views: parseInt(document.getElementById('adjViews').value) })
+            body: JSON.stringify(payload)
         });
         showToast('System Stats Overridden', 'success');
         closeModal('adjustStatsModal');

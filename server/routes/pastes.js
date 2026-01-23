@@ -309,6 +309,25 @@ router.put('/:id/views', requireAuth, (req, res) => {
     res.json({ success: true });
 });
 
+router.put('/:id/metrics', requireAuth, (req, res) => {
+    const { id } = req.params;
+    const { views, reactions } = req.body;
+
+    db.prepare('UPDATE pastes SET views = ? WHERE id = ?').run(views, id);
+
+    if (reactions) {
+        for (const [type, count] of Object.entries(reactions)) {
+            // Wipe existing and re-insert synthetic ones
+            db.prepare('DELETE FROM paste_reactions WHERE pasteId = ? AND type = ?').run(id, type);
+            const stmt = db.prepare(`INSERT INTO paste_reactions (pasteId, type, ip, userId, username) VALUES (?, ?, ?, ?, ?)`);
+            for (let i = 0; i < count; i++) {
+                stmt.run(id, type, '0.0.0.0', 'admin-synthetic', 'Admin Override');
+            }
+        }
+    }
+    res.json({ success: true });
+});
+
 router.put('/:id/reactions/:type', requireAuth, (req, res) => {
     const { id, type } = req.params; const { count } = req.body;
     db.prepare('DELETE FROM paste_reactions WHERE pasteId = ? AND type = ?').run(id, type);

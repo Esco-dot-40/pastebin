@@ -1413,8 +1413,15 @@
 <div id="view-viewer"
     style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
     <div id="listView"
-        style="height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div id="pasteGalleryApp" style="width: 100%;"></div>
+        style="min-height: 100vh; width: 100%; display: flex; flex-direction: column; justify-content: flex-start; align-items: center; padding-top: 40px; background: rgba(10, 10, 15, 0.95);">
+        <div id="pasteGalleryApp" style="width: 100%; min-height: 50vh;">
+            <div
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:60vh; opacity:0.5;">
+                <div class="loader"></div>
+                <p style="margin-top:20px; font-family:'JetBrains Mono'; letter-spacing:2px;">SYNCHRONIZING WITH
+                    STREAM...</p>
+            </div>
+        </div>
     </div>
 
     <div id="detailView" class="container" style="display: none; padding-top: 100px; padding-bottom: 100px;">
@@ -1785,19 +1792,30 @@
         };
 
         async function loadPastes() {
+            console.log("Fetching paste stream...");
             try {
                 const headers = { 'Content-Type': 'application/json' };
                 const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
+                if (key) {
+                    console.log("Using stored access key for request");
+                    headers['x-access-key'] = key;
+                }
 
                 const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
                     headers,
                     credentials: 'include'
                 });
+
+                if (!res.ok) {
+                    console.error("API Error:", res.status, res.statusText);
+                    throw new Error(`Server returned ${res.status}`);
+                }
+
                 const pastes = await res.json();
+                console.log(`Stream retrieved: ${pastes.length} nodes found.`);
 
                 if (!Array.isArray(pastes)) {
-                    console.error("Expected array from public-list, got:", pastes);
+                    console.error("Malformed API response, expected array.");
                     return;
                 }
 
@@ -1808,7 +1826,8 @@
                 }
 
             } catch (e) {
-                console.error("Paste load error:", e);
+                console.error("CRITICAL: Stream synchronization failure:", e);
+                if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
             } finally {
                 window.hideLoader();
             }
