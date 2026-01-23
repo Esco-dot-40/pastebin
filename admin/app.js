@@ -469,6 +469,23 @@ async function openNodeAnalytics(id) {
         document.getElementById('pStars').textContent = p.reactions?.star || 0;
         document.getElementById('pLikes').textContent = p.reactions?.like || 0;
 
+        // Reaction Logs
+        const rLog = document.getElementById('pReactionsLog');
+        if (rLog) {
+            rLog.innerHTML = (stats.reactions || []).map(r => `
+                <tr>
+                    <td>
+                        <div style="font-weight:700; color:#fff;">${r.username}</div>
+                        <div style="font-size:9px; opacity:0.5;">ID: ${r.userId || 'Guest'}</div>
+                    </td>
+                    <td><span class="path-badge paste">${r.type.toUpperCase()}</span></td>
+                    <td>${r.city || '??'}, ${r.country || '??'}</td>
+                    <td>${timeAgo(r.timestamp)}</td>
+                    <td>---</td>
+                </tr>
+            `).join('') || '<tr><td colspan="5" style="text-align:center; opacity:0.2; padding:20px;">No reactions recorded yet.</td></tr>';
+        }
+
         document.getElementById('analyticsModal').classList.add('active');
     } catch (e) { showToast(e.message, 'error'); }
 }
@@ -497,19 +514,27 @@ document.getElementById('saveStatsBtn').onclick = async () => {
     };
 
     try {
-        await fetch(`/api/pastes/${editMetricsId}/metrics`, {
+        const res = await fetch(`/api/pastes/${editMetricsId}/metrics`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        showToast('System Stats Overridden', 'success');
+
+        if (!res.ok) throw new Error(`Override failed: ${res.status}`);
+
+        showToast('System Stats Overridden Successfully', 'success');
         closeModal('adjustStatsModal');
         await refreshData();
-    } catch (e) { showToast(e.message, 'error'); }
+        if (currentTab === 'repository') await populateActiveNodes();
+    } catch (e) {
+        console.error(e);
+        showToast(e.message, 'error');
+    }
 };
 
 // UTILS
 function timeAgo(date) {
+    if (!date) return '---';
     const seconds = Math.floor((new Date() - new Date(date)) / 1000);
     if (seconds < 60) return "just now";
     if (seconds < 3600) return Math.floor(seconds / 60) + "m";
@@ -518,8 +543,56 @@ function timeAgo(date) {
 }
 
 function showToast(msg, type = 'info') {
-    console.log(`[${type}] ${msg}`);
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.style.cssText = 'position:fixed; bottom:30px; right:30px; z-index:10000; display:flex; flex-direction:column; gap:10px;';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        info: '#3b82f6',
+        warning: '#f59e0b'
+    };
+
+    toast.style.cssText = `
+        background: rgba(15, 15, 20, 0.95);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 12px;
+        border-left: 4px solid ${colors[type] || colors.info};
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        font-weight: 700;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        min-width: 300px;
+    `;
+
+    toast.innerHTML = msg;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = '0.4s';
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
 }
+
+// Add toast animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes toastIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.9); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+`;
+document.head.appendChild(style);
 
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 

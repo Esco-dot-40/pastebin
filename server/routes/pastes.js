@@ -294,8 +294,52 @@ router.get('/:id/analytics', requireAuth, (req, res) => {
     const paste = db.prepare('SELECT views FROM pastes WHERE id = ?').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
     const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
-    const groupCount = (arr, keyFn) => { const map = {}; arr.forEach(item => { const k = keyFn(item); if (k) { if (!map[k]) map[k] = { name: k, count: 0 }; map[k].count++; } }); return Object.values(map).sort((a, b) => b.count - a.count); };
-    res.json({ totalViews: paste.views, uniqueIPs: new Set(views.map(v => v.ip)).size, topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10), topISPs: groupCount(views, v => v.isp).slice(0, 10), recentViews: views.slice(0, 50) });
+    const reactions = db.prepare('SELECT * FROM paste_reactions WHERE pasteId = ? ORDER BY createdAt DESC').all(req.params.id);
+
+    const groupCount = (arr, keyFn) => {
+        const map = {};
+        arr.forEach(item => {
+            const k = keyFn(item);
+            if (k) {
+                if (!map[k]) map[k] = { name: k, count: 0 };
+                map[k].count++;
+            }
+        });
+        return Object.values(map).sort((a, b) => b.count - a.count);
+    };
+
+    const parseUA = (ua) => {
+        if (!ua) return { os: 'Unknown', browser: 'Unknown' };
+        let os = 'Other';
+        if (ua.includes('Windows')) os = 'Windows';
+        else if (ua.includes('Macintosh')) os = 'macOS';
+        else if (ua.includes('Android')) os = 'Android';
+        else if (ua.includes('iPhone')) os = 'iOS';
+
+        let browser = 'Safari';
+        if (ua.includes('Edg/')) browser = 'Edge';
+        else if (ua.includes('Chrome')) browser = 'Chrome';
+        else if (ua.includes('Firefox')) browser = 'Firefox';
+
+        return { os, browser };
+    };
+
+    res.json({
+        totalViews: paste.views,
+        uniqueIPs: new Set(views.map(v => v.ip)).size,
+        topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10),
+        topISPs: groupCount(views, v => v.isp).slice(0, 10),
+        platforms: groupCount(views.map(v => parseUA(v.userAgent)), u => u.os),
+        browsers: groupCount(views.map(v => parseUA(v.userAgent)), u => u.browser),
+        recentViews: views.slice(0, 100).map(v => ({ ...v, ...parseUA(v.userAgent) })),
+        reactions: reactions.map(r => ({
+            type: r.type,
+            username: r.username || 'Anonymous',
+            timestamp: r.createdAt,
+            city: r.city,
+            country: r.country
+        }))
+    });
 });
 
 router.delete('/:id/analytics', requireAuth, (req, res) => {

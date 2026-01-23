@@ -1034,6 +1034,7 @@
         margin-bottom: 10px;
         background: linear-gradient(135deg, #fff 0%, #00f5ff 100%);
         -webkit-background-clip: text;
+        background-clip: text;
         -webkit-text-fill-color: transparent;
         letter-spacing: -2px;
     }
@@ -2325,7 +2326,7 @@
 <script type="module">
     import React, { useState, useEffect } from "https://esm.sh/react@19";
     import { createRoot } from "https://esm.sh/react-dom@19/client";
-    import { motion } from "https://esm.sh/motion/react";
+    import { motion, Reorder } from "https://esm.sh/framer-motion";
     import htm from "https://esm.sh/htm";
 
     const html = htm.bind(React.createElement);
@@ -2335,22 +2336,46 @@
         const [activeIndex, setActiveIndex] = useState(0);
         const [subTitles, setSubTitles] = useState(['Newest', 'public', 'private']);
         const [isInitializing, setIsInitializing] = useState(true);
+        const [hasError, setHasError] = useState(null);
 
         useEffect(() => {
-            const loadData = () => {
-                if (window._pendingPastes) {
-                    setPastes(window._pendingPastes);
-                    window._pendingPastes = null;
-                }
-                window.setPasteData = (data) => {
-                    setPastes(data);
-                    if (data && data.length > 0) setActiveIndex(0);
+            try {
+                const loadData = () => {
+                    if (window._pendingPastes) {
+                        setPastes(window._pendingPastes);
+                        window._pendingPastes = null;
+                        setIsInitializing(false);
+                    }
+                    window.setPasteData = (data) => {
+                        console.log("React app received stream update", data?.length);
+                        setPastes(data || []);
+                        if (data && data.length > 0) setActiveIndex(0);
+                        setIsInitializing(false);
+                    };
                 };
-            };
-            loadData();
-            const timer = setTimeout(() => setIsInitializing(false), 2000);
-            return () => clearTimeout(timer);
+                loadData();
+
+                // Fallback to stop loader even if no data comes
+                const timer = setTimeout(() => {
+                    setIsInitializing(false);
+                }, 3000);
+
+                return () => clearTimeout(timer);
+            } catch (err) {
+                console.error("Initialization Error:", err);
+                setHasError(err.message);
+            }
         }, []);
+
+        if (hasError) {
+            return html`
+                <div class="flex flex-col justify-center items-center h-[100vh] bg-red-950/20 backdrop-blur-3xl text-red-500 font-mono p-10">
+                    <h2 class="text-2xl font-black mb-4">CRITICAL SYSTEM ERROR</h2>
+                    <p class="opacity-80">${hasError}</p>
+                    <button onClick=${() => window.location.reload()} class="mt-8 px-6 py-2 border border-red-500/50 rounded-full hover:bg-red-500/10">Re-Initialize</button>
+                </div>
+            `;
+        }
 
         if (isInitializing || !pastes || pastes.length === 0) {
             return html`
@@ -2362,36 +2387,48 @@
                             <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full shadow-[0_0_20px_#00f5ff]"></div>
                         </div>
                     </div>
-                    <h2 class="text-3xl font-black mb-4 text-white uppercase tracking-[0.5em] leading-none">
-                        ${isInitializing ? 'Decrypting Feed' : 'Sector Empty'}
-                    </h2>
+                    <div class="overflow-hidden">
+                        <${motion.h2} 
+                            initial=${{ y: 50 }}
+                            animate=${{ y: 0 }}
+                            class="text-3xl font-black mb-4 text-white uppercase tracking-[0.5em] leading-none"
+                        >
+                            ${isInitializing ? 'Decrypting Feed' : 'Sector Empty'}
+                        <//>
+                    </div>
                     <p class="opacity-30 max-w-sm mb-12 text-white text-[11px] uppercase font-mono tracking-widest leading-relaxed">
-                        ${isInitializing ? 'Establishing secure uplink to node repository...' : 'No active packets detected. Awaiting administrative propagation.'}
+                        ${isInitializing ? 'Establishing secure uplink to node repository...' : 'No active packets detected. Awaiting administrative propagation to this sector.'}
                     </p>
-                    ${!isInitializing && html`<button onClick=${() => window.navigateTo('/')} class="px-12 py-3 rounded-full border border-white/10 bg-white/5 text-white/60 text-[10px] uppercase tracking-[0.3em] hover:bg-white/10 hover:text-white transition-all">Abort</button>`}
+                    ${!isInitializing && html`
+                        <div class="flex gap-4">
+                            <button onClick=${() => window.navigateTo('/')} class="px-12 py-3 rounded-full border border-white/10 bg-white/5 text-white/60 text-[10px] uppercase tracking-[0.3em] hover:bg-white/10">Abort</button>
+                            <button onClick=${() => window.location.reload()} class="px-12 py-3 rounded-full border border-cyan-500/30 bg-cyan-500/5 text-cyan-400 text-[10px] uppercase tracking-[0.3em] hover:bg-cyan-500/10">Re-Sync</button>
+                        </div>
+                    `}
                 </div>
             `;
         }
 
-        const HEIGHT = 500;
-        const EDGE = 150;
+        const HEIGHT = 540; // High vertical padding for premium feel
+        const EDGE = 180;
 
         const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
         const toNext = () => activeIndex < pastes.length - 1 && setActiveIndex(prev => prev + 1);
 
         return html`
-            <div class="flex flex-col items-center select-none py-10 w-full min-h-screen overflow-hidden relative">
-                <div class="text-center mb-16 relative z-10">
-                    <div class="text-cyan-400 font-mono text-[11px] tracking-[0.2em] uppercase opacity-70 mb-6 bg-cyan-400/10 px-6 py-2 rounded-lg border border-cyan-400/20 inline-block backdrop-blur-xl">
+            <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative">
+                <!-- Header / System Path -->
+                <div class="text-center mb-24 relative z-10">
+                    <div class="text-cyan-400 font-mono text-[12px] tracking-[0.2em] uppercase opacity-70 mb-8 bg-cyan-400/5 px-6 py-2 rounded-xl border border-cyan-400/10 inline-block backdrop-blur-md">
                         C:\\Users\\Veroe\\Pastes\\Public
                     </div>
                     
-                    <${Reorder.Group} axis="y" values=${subTitles} onReorder=${setSubTitles} class="flex flex-col gap-2 items-center cursor-ns-resize">
+                    <${Reorder.Group} axis="y" values=${subTitles} onReorder=${setSubTitles} class="flex flex-col gap-3 items-center cursor-ns-resize">
                         ${subTitles.map((t, i) => html`
                             <${Reorder.Item} 
                                 key=${t} 
                                 value=${t} 
-                                class=${`text-white font-black uppercase tracking-[0.6em] leading-none transition-all duration-700 ${i === 0 ? 'text-7xl opacity-100' : i === 1 ? 'text-lg opacity-30 mt-2' : 'text-[10px] opacity-10 mt-1'}`}
+                                class=${`text-white font-black uppercase tracking-[0.6em] leading-none transition-all duration-700 ${i === 0 ? 'text-8xl opacity-100' : i === 1 ? 'text-xl opacity-30 mt-3' : 'text-[11px] opacity-10 mt-1'}`}
                             >
                                 ${t}
                             <//>
@@ -2399,71 +2436,93 @@
                     <//>
                 </div>
 
-                <div class=${`p-6 mb-2 transition-all duration-300 ${activeIndex === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toPrev}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
+                <!-- Navigation Controls -->
+                <div class=${`p-8 mb-4 transition-all duration-300 ${activeIndex === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toPrev}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
                 </div>
 
-                <div class="overflow-hidden w-full max-w-[1400px] perspective-[3000px] transform-3d relative" style=${{ height: HEIGHT + EDGE * 2 }}>
-                    ${React.createElement(motion.div, {
-            className: "flex flex-col items-center",
-            animate: { y: activeIndex * -HEIGHT + EDGE },
-            transition: { type: 'spring', damping: 28, stiffness: 100 }
-        }, pastes.map((p, index) => {
+                <!-- Main Carousel -->
+                <div class="overflow-hidden w-full max-w-[1500px] perspective-[3500px] transform-3d relative" style=${{ height: HEIGHT + EDGE * 2 }}>
+                    <${motion.div} 
+                        class="flex flex-col items-center"
+                        animate=${{ y: (activeIndex * -HEIGHT) + EDGE }}
+                        transition=${{ type: 'spring', damping: 30, stiffness: 100 }}
+                    >
+                        ${pastes.map((p, index) => {
             const thumb = p.embedUrl || '/public/preview.png';
             return html`
-                            <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-10 transform-gpu">
-                                <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
-                                     class=${`h-full aspect-[16/9] md:aspect-[3.2] rounded-[3.5rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
-                                            ${activeIndex !== index ? 'scale-75 opacity-10 blur-[15px]' : 'scale-100 opacity-100 shadow-[0_80px_200px_rgba(0,0,0,0.9)] ring-1 ring-white/20'}
-                                            ${activeIndex > index ? '[transform:rotateX(45deg)_translateY(-60px)]' : ''}
-                                            ${activeIndex < index ? '[transform:rotateX(-45deg)_translateY(60px)]' : ''}`}>
-                                    <img class="w-full h-full object-cover transition-transform duration-[3s] group-hover:scale-110 grayscale-[0.3]"
-                                         src=${thumb} alt=${p.title} onError=${(e) => { e.target.src = '/public/preview.png'; }} />
-                                    <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/90"></div>
-                                    <div class="absolute inset-0 flex flex-col justify-end p-20">
-                                        <div class="translate-y-8 group-hover:translate-y-0 transition-transform duration-[0.8s]">
-                                            <div class="flex items-center gap-4 mb-6">
-                                                <span class="text-white/30 text-[10px] font-black tracking-[0.4em] uppercase border border-white/10 px-4 py-2 rounded-full backdrop-blur-2xl bg-white/5">
-                                                    ${p.isPublic === 0 ? '🔒 Encrypted' : '🌐 Node Stream'}
-                                                </span>
-                                                ${p.folderName ? html`<span class="text-white/10 text-[10px] uppercase tracking-[0.3em] font-mono">:: ${p.folderName}</span>` : ''}
-                                            </div>
-                                            <h3 class="text-white text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] mb-8 group-hover:text-cyan-400 transition-colors duration-700">
-                                                ${p.title || 'Untitled'}
-                                            </h3>
-                                            <div class="flex items-center gap-12 text-white/10 font-mono text-[10px] tracking-[0.6em] uppercase">
-                                                <div class="flex items-center gap-3">
-                                                    <span class="w-2 h-2 rounded-full bg-white/10"></span>
-                                                    ${p.language || 'txt'}
+                                <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
+                                    <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
+                                         class=${`h-full aspect-[16/9] md:aspect-[3.5] rounded-[4rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
+                                                ${activeIndex !== index ? 'scale-75 opacity-10 blur-[20px]' : 'scale-100 opacity-100 shadow-[0_100px_250px_rgba(0,0,0,1)] ring-1 ring-white/20'}
+                                                ${activeIndex > index ? '[transform:rotateX(45deg)_translateY(-80px)_scale(0.85)]' : ''}
+                                                ${activeIndex < index ? '[transform:rotateX(-45deg)_translateY(80px)_scale(0.85)]' : ''}`}>
+                                        
+                                        <img class="w-full h-full object-cover transition-transform duration-[4s] group-hover:scale-110 grayscale-[0.4]"
+                                             src=${thumb} alt=${p.title} onError=${(e) => { e.target.src = '/public/preview.png'; }} />
+                                        
+                                        <div class="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/95"></div>
+                                        
+                                        <div class="absolute inset-0 flex flex-col justify-end p-20">
+                                            <div class="translate-y-12 group-hover:translate-y-0 transition-transform duration-[1s] ease-out">
+                                                <div class="flex items-center gap-6 mb-8">
+                                                    <span class="text-white/40 text-[11px] font-black tracking-[0.5em] uppercase border border-white/10 px-5 py-2.5 rounded-full backdrop-blur-2xl bg-white/5">
+                                                        ${p.isPublic === 0 ? '🔒 Encrypted Node' : '🌐 Global Stream'}
+                                                    </span>
+                                                    ${p.folderName ? html`<span class="text-cyan-500/30 text-[11px] uppercase tracking-[0.4em] font-mono">/repo/${p.folderName}</span>` : ''}
                                                 </div>
-                                                <div class="flex items-center gap-3">
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" /></svg>
-                                                    ${new Date(p.createdAt).toLocaleDateString()}
+                                                <h3 class="text-white text-7xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-10 group-hover:text-cyan-400 transition-colors duration-[0.8s]">
+                                                    ${p.title || 'Undeclared'}
+                                                </h3>
+                                                <div class="flex items-center gap-16 text-white/10 font-mono text-[12px] tracking-[0.6em] uppercase">
+                                                    <div class="flex items-center gap-4">
+                                                        <span class="w-2.5 h-2.5 rounded-full bg-white/10"></span>
+                                                        ${p.language || 'txt'}
+                                                    </div>
+                                                    <div class="flex items-center gap-4">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20" /></svg>
+                                                        DECLARED: ${new Date(p.createdAt).toLocaleDateString()}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
+                                        
+                                        <!-- Interactive Inner Glow -->
+                                        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[2s] bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.15),transparent_70%)]"></div>
                                     </div>
-                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[1.5s] bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.1),transparent_70%)]"></div>
                                 </div>
-                            </div>
-                        `;
-        }))}
+                            `;
+        })}
+                    <//>
                 </div>
 
-                <div class=${`p-6 mt-2 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                <div class=${`p-8 mt-4 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                 </div>
 
-                <div class="mt-16 text-white/5 font-mono text-[10px] tracking-[1rem] uppercase">
-                    ${subTitles[0]} // Segment 0${activeIndex + 1}
+                <!-- Footer Identification -->
+                <div class="mt-24 flex items-center gap-10">
+                    <div class="h-[1px] w-32 bg-gradient-to-r from-transparent to-white/10"></div>
+                    <div class="text-white/10 font-mono text-[11px] tracking-[1rem] uppercase">
+                        ${subTitles[0]} // TRANSMISSION ${activeIndex + 1} OF ${pastes.length}
+                    </div>
+                    <div class="h-[1px] w-32 bg-gradient-to-l from-transparent to-white/10"></div>
                 </div>
             </div>
         `;
     }
 
-    const container = document.getElementById("pasteGalleryApp");
-    const root = createRoot(container);
-    root.render(React.createElement(App));
+    try {
+        const container = document.getElementById("pasteGalleryApp");
+        if (container) {
+            const root = createRoot(container);
+            root.render(React.createElement(App));
+        } else {
+            console.error("Mount target 'pasteGalleryApp' not found in DOM.");
+        }
+    } catch (err) {
+        console.error("FATAL: React root creation failed", err);
+    }
 </script>
 <script src="/public/cursor.js"></script>
 <script src="/public/title-rotator.js"></script>
