@@ -1014,3 +1014,84 @@ code.markdown-body {
 .markdown-body li {
     margin-bottom: 0.5rem !important;
 }
+
+/* ============================================
+   REACTIONS MATRIX
+   ============================================ */
+.reactions-matrix {
+    display: none;
+    /* Shown via JS */
+    gap: 15px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px 20px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+}
+
+.reaction-trigger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    color: var(--text-secondary);
+}
+
+.reaction-trigger .icon {
+    font-size: 1.2rem;
+    transition: transform 0.3s;
+}
+
+.reaction-trigger .count {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.reaction-trigger:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.reaction-trigger:active {
+    transform: scale(0.95);
+}
+
+/* Specific States */
+.reaction-trigger.heart:hover .icon {
+    color: #ef4444;
+    filter: drop-shadow(0 0 10px #ef4444);
+}
+
+.reaction-trigger.star:hover .icon {
+    color: #f59e0b;
+    filter: drop-shadow(0 0 10px #f59e0b);
+}
+
+.reaction-trigger.like:hover .icon {
+    color: #3b82f6;
+    filter: drop-shadow(0 0 10px #3b82f6);
+}
+
+/* Responsive Viewer Header */
+@media (min-width: 768px) {
+    .paste-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+}
+
+@media (max-width: 767px) {
+    .reactions-matrix {
+        margin-top: 20px;
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -129,7 +129,10 @@ function switchTab(tab) {
         p.classList.toggle('active', p.id === `tab-${tab}`);
     });
 
-    if (tab === 'repository') populateActiveNodes();
+    if (tab === 'repository') {
+        populateActiveNodes();
+        refreshFolders();
+    }
     if (tab === 'analytics') refreshData();
 }
 
@@ -152,44 +155,59 @@ async function populateActiveNodes() {
         const filtered = pastes.filter(p =>
             (p.title || '').toLowerCase().includes(search) ||
             p.id.toLowerCase().includes(search) ||
-            (p.content && p.content.toLowerCase().includes(search))
+            (p.content && p.content.toLowerCase().includes(search)) ||
+            (p.folderName && p.folderName.toLowerCase().includes(search))
         );
 
         if (filtered.length === 0) {
-            container.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center; padding:30px;">No nodes found matching criteria.</td></tr>';
+            container.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center; padding:50px; opacity:0.3; font-style:italic;">SYSTEM BUFFER EMPTY: NO NODES MATCHING SIGNATURE</td></tr>';
             return;
         }
 
         container.innerHTML = filtered.map(p => `
-            <tr>
-                <td style="font-family:var(--font-mono); color:var(--text-secondary); font-size: 0.8rem;">
-                    ${p.id}
+            <tr class="repo-row-v5">
+                <td class="id-cell">
+                    <span class="hex-id">${p.id.toUpperCase()}</span>
                 </td>
-                <td>
-                    <div style="font-weight:700; color:white;">${p.title || 'Untitled'}</div>
-                    <div style="font-size:10px; opacity:0.6; text-transform:uppercase;">${p.language}</div>
-                </td>
-                <td style="font-size:0.8rem; opacity:0.8;">
-                    ${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : 'Unknown'}
-                </td>
-                <td>
-                    <div style="font-weight:700; color:var(--accent-blue);">${p.views}</div>
-                    <div style="font-size:10px; opacity:0.6;">Reads</div>
-                </td>
-                <td>
-                    <div style="display:flex; gap:10px; font-size:0.85rem;">
-                        <span style="color:#ef4444;" title="Hearts">♥ ${p.reactions?.heart || 0}</span>
-                        <span style="color:#eab308;" title="Stars">★ ${p.reactions?.star || 0}</span>
-                        <span style="color:#3b82f6;" title="Likes">👍 ${p.reactions?.like || 0}</span>
+                <td class="payload-cell">
+                    <div class="payload-title">${p.title || 'Undeclared Payload'}</div>
+                    <div class="payload-meta">
+                        <span class="lang-tag">${p.language}</span>
+                        ${p.folderName ? `<span class="folder-tag">/ ${p.folderName}</span>` : ''}
                     </div>
                 </td>
-                <td>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn-action" title="Copy Link" onclick="copyPasteLink('${p.id}')">🔗</button>
-                        <button class="btn-action" title="Analysis" onclick="openNodeAnalytics('${p.id}')">📊</button>
-                        <button class="btn-action" title="Metrics" onclick="openNodeEdits('${p.id}')">⚙️</button>
-                        <button class="btn-action" title="Edit" onclick="editPaste('${p.id}')">✏️</button>
-                        <button class="btn-action delete" title="Destroy" onclick="deletePaste('${p.id}')">🗑️</button>
+                <td class="date-cell">
+                    <div class="date-val">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '??'}</div>
+                    <div class="date-secondary">${p.createdAt ? timeAgo(p.createdAt) : 'Unknown'}</div>
+                </td>
+                <td class="stats-cell">
+                    <div class="stat-main">${p.views}</div>
+                    <div class="stat-label">PROPAGATIONS</div>
+                </td>
+                <td class="reaction-cell">
+                    <div class="reaction-flex">
+                        <span class="r-item heart ${p.reactions?.heart > 0 ? 'active' : ''}">♥ ${p.reactions?.heart || 0}</span>
+                        <span class="r-item star ${p.reactions?.star > 0 ? 'active' : ''}">★ ${p.reactions?.star || 0}</span>
+                        <span class="r-item like ${p.reactions?.like > 0 ? 'active' : ''}">👍 ${p.reactions?.like || 0}</span>
+                    </div>
+                </td>
+                <td class="action-cell">
+                    <div class="action-buttons-v5">
+                        <button class="btn-repo-v5" title="Copy Stream Link" onclick="copyPasteLink('${p.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                        </button>
+                        <button class="btn-repo-v5" title="Deep Analysis" onclick="openNodeAnalytics('${p.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                        </button>
+                        <button class="btn-repo-v5" title="Metric Override" onclick="openNodeEdits('${p.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        </button>
+                        <button class="btn-repo-v5" title="Edit Payload" onclick="editPaste('${p.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="btn-repo-v5 danger" title="Wipe Node" onclick="deletePaste('${p.id}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -200,6 +218,60 @@ async function populateActiveNodes() {
 }
 
 document.getElementById('repoSearch').oninput = populateActiveNodes;
+
+// --- FOLDER MANAGEMENT ---
+async function refreshFolders() {
+    try {
+        const folders = await api.getAllFolders();
+
+        // 1. Populate Dropdown in Creator
+        const select = document.getElementById('pasteFolder');
+        if (select) {
+            select.innerHTML = '<option value="">Root Sector</option>' +
+                folders.map(f => `<option value="${f.id}">${f.name.toUpperCase()}</option>`).join('');
+        }
+
+        // 2. Populate Chips in Repository
+        const chipContainer = document.getElementById('folderChipContainer');
+        if (chipContainer) {
+            chipContainer.innerHTML = folders.map(f => `
+                <div class="folder-chip-v5">
+                    <span class="name">${f.name}</span>
+                    <button class="del" onclick="deleteFolder('${f.id}')">&times;</button>
+                </div>
+            `).join('');
+        }
+    } catch (e) {
+        console.error("Folder sync failed:", e);
+    }
+}
+
+window.createNewFolder = async () => {
+    const input = document.getElementById('newFolderName');
+    const name = input.value.trim();
+    if (!name) return showToast('ENTER SECTOR NAME', 'error');
+
+    try {
+        await api.createFolder(name);
+        input.value = '';
+        showToast(`NEW SECTOR [${name}] INITIALIZED`, 'success');
+        await refreshFolders();
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
+
+window.deleteFolder = async (id) => {
+    if (!confirm('DESTROY SECTOR? ALL NODES WILL BE REASSIGNED TO ROOT.')) return;
+    try {
+        await api.deleteFolder(id);
+        showToast('SECTOR DECOMMISSIONED', 'success');
+        await refreshFolders();
+        await populateActiveNodes();
+    } catch (e) {
+        showToast(e.message, 'error');
+    }
+}
 
 // --- CREATOR: EDITING ---
 async function editPaste(id) {

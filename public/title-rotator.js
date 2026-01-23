@@ -3,7 +3,20 @@
     // console.log("Title Rotator Initializing...");
     const domains = [
         "veroe.space",
+        "q",
         "veroe.fun",
+        "qu",
+        "quietbin",
+        "qui",
+        "乇丂匚ㄖ 丨丂 匚尺卂乙ㄚ",
+        "quie",
+        "Esco is banished",
+        "quiet",
+        "Esco is lost 🧭",
+        "quietb",
+        "Esco is exiled"
+        "quietbi",
+        "Esco"
         "quietbin"
     ];
     const colors = ["🔴", "🟠", "🟡", "⚪", "🔵", "🟢", "🟣", "⚫"];

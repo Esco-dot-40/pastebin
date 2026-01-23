@@ -119,23 +119,46 @@
                 <div class="full-page-section">
                     <div class="glass-card repository-card">
                         <div class="card-header-v4">
-                            <h2>System Repository</h2>
+                            <h2>Node Repository</h2>
                             <div class="header-actions">
-                                <input type="text" id="repoSearch" placeholder="Filter nodes..."
-                                    class="admin-input-slim">
-                                <button class="btn-primary-slim" onclick="refreshData()">Sync Repository</button>
+                                <div class="search-wrapper-v5">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5">
+                                        <circle cx="11" cy="11" r="8" />
+                                        <path d="m21 21-4.3-4.3" />
+                                    </svg>
+                                    <input type="text" id="repoSearch" placeholder="Filter active nodes..."
+                                        class="admin-input-slim">
+                                </div>
+                                <button class="btn-primary-slim" onclick="refreshData()">Sync Buffer</button>
                             </div>
                         </div>
+
+                        <!-- FOLDER MANAGEMENT SUB-SECTION -->
+                        <div class="management-bar-v5">
+                            <div class="folder-controls">
+                                <label>FOLDER MANAGEMENT</label>
+                                <div class="folder-action-group">
+                                    <input type="text" id="newFolderName" placeholder="New Sector Name..."
+                                        class="admin-input-micro-v5">
+                                    <button class="btn-micro-success" onclick="createNewFolder()">+ CREATE</button>
+                                </div>
+                                <div id="folderChipContainer" class="folder-chip-list">
+                                    <!-- Chips like: [General (X)] -->
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="table-responsive">
-                            <table class="repo-table">
+                            <table class="repo-table-v5">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
-                                        <th>PAYLOAD TITLE</th>
+                                        <th>IDENTIFIER</th>
+                                        <th>PAYLOAD SPECIFICATIONS</th>
                                         <th>DEPLOYED</th>
-                                        <th>PROPAGATIONS</th>
+                                        <th>HITS</th>
                                         <th>REACTIONS</th>
-                                        <th>CONTROL CENTER</th>
+                                        <th style="text-align:right;">CONTROL CENTER</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pasteListContainer">

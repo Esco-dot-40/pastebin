@@ -187,8 +187,23 @@ router.get('/stats/summary', requireAuth, (req, res) => {
 // ==========================================
 
 router.get('/', requireAuth, (req, res) => {
-    const list = db.prepare('SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
-    res.json(list);
+    try {
+        const list = db.prepare('SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
+
+        // Enrich with reaction counts
+        const enrichedList = list.map(p => {
+            const reactions = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(p.id);
+            const reactionCounts = { heart: 0, star: 0, like: 0 };
+            reactions.forEach(r => {
+                if (reactionCounts[r.type] !== undefined) reactionCounts[r.type] = r.count;
+            });
+            return { ...p, reactions: reactionCounts };
+        });
+
+        res.json(enrichedList);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 router.get('/public-list', (req, res) => {

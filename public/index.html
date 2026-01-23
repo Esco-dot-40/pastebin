@@ -1447,6 +1447,22 @@
                             <span class="meta-item" id="pasteDate">Just now</span>
                         </div>
                     </div>
+
+                    <!-- REACTION PANEL -->
+                    <div id="reactionsPanel" class="reactions-matrix">
+                        <button class="reaction-trigger heart" onclick="handleReaction('heart')">
+                            <span class="icon">♥</span>
+                            <span class="count" id="count-heart">0</span>
+                        </button>
+                        <button class="reaction-trigger star" onclick="handleReaction('star')">
+                            <span class="icon">★</span>
+                            <span class="count" id="count-star">0</span>
+                        </button>
+                        <button class="reaction-trigger like" onclick="handleReaction('like')">
+                            <span class="icon">👍</span>
+                            <span class="count" id="count-like">0</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="code-container">
                     <div class="code-header">
@@ -2333,8 +2349,9 @@
 
     const App = () => {
         const [pastes, setPastes] = useState([]);
+        const [filteredPastes, setFilteredPastes] = useState([]);
         const [activeIndex, setActiveIndex] = useState(0);
-        const [subTitles, setSubTitles] = useState(['Newest', 'public', 'private']);
+        const [activeFolder, setActiveFolder] = useState('ALL');
         const [isInitializing, setIsInitializing] = useState(true);
         const [hasError, setHasError] = useState(null);
 
@@ -2343,29 +2360,32 @@
                 const loadData = () => {
                     if (window._pendingPastes) {
                         setPastes(window._pendingPastes);
+                        setFilteredPastes(window._pendingPastes);
                         window._pendingPastes = null;
                         setIsInitializing(false);
                     }
                     window.setPasteData = (data) => {
-                        console.log("React app received stream update", data?.length);
                         setPastes(data || []);
-                        if (data && data.length > 0) setActiveIndex(0);
+                        const folded = activeFolder === 'ALL' ? (data || []) : (data || []).filter(p => p.folderName === activeFolder);
+                        setFilteredPastes(folded);
+                        if (folded.length > 0) setActiveIndex(0);
                         setIsInitializing(false);
                     };
                 };
                 loadData();
-
-                // Fallback to stop loader even if no data comes
-                const timer = setTimeout(() => {
-                    setIsInitializing(false);
-                }, 3000);
-
+                const timer = setTimeout(() => setIsInitializing(false), 3000);
                 return () => clearTimeout(timer);
             } catch (err) {
                 console.error("Initialization Error:", err);
                 setHasError(err.message);
             }
         }, []);
+
+        useEffect(() => {
+            const folded = activeFolder === 'ALL' ? pastes : pastes.filter(p => p.folderName === activeFolder);
+            setFilteredPastes(folded);
+            setActiveIndex(0);
+        }, [activeFolder, pastes]);
 
         if (hasError) {
             return html`
@@ -2377,9 +2397,11 @@
             `;
         }
 
+        const folders = ['ALL', ...new Set(pastes.map(p => p.folderName).filter(Boolean))];
+
         if (isInitializing || !pastes || pastes.length === 0) {
             return html`
-                <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/60 backdrop-blur-md">
+                <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/30 backdrop-blur-sm">
                     <div class="relative w-32 h-32 mb-12">
                         <div class="absolute inset-0 border-2 border-cyan-500/10 rounded-full animate-ping"></div>
                         <div class="absolute inset-4 border border-cyan-500/20 rounded-full animate-pulse"></div>
@@ -2413,27 +2435,26 @@
         const EDGE = 180;
 
         const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
-        const toNext = () => activeIndex < pastes.length - 1 && setActiveIndex(prev => prev + 1);
+        const toNext = () => activeIndex < filteredPastes.length - 1 && setActiveIndex(prev => prev + 1);
 
         return html`
             <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative">
                 <!-- Header / System Path -->
-                <div class="text-center mb-24 relative z-10">
-                    <div class="text-cyan-400 font-mono text-[12px] tracking-[0.2em] uppercase opacity-70 mb-8 bg-cyan-400/5 px-6 py-2 rounded-xl border border-cyan-400/10 inline-block backdrop-blur-md">
-                        C:\\Users\\Veroe\\Pastes\\Public
+                <div class="text-center mb-16 relative z-10 w-full px-10">
+                    <div class="text-cyan-400 font-mono text-[12px] tracking-[0.2em] uppercase opacity-70 mb-10 bg-black/40 px-6 py-2 rounded-xl border border-white/5 inline-block backdrop-blur-xl">
+                        C:\\Users\\Veroe\\Pastes\\Sectors\\${activeFolder}
                     </div>
                     
-                    <${Reorder.Group} axis="y" values=${subTitles} onReorder=${setSubTitles} class="flex flex-col gap-3 items-center cursor-ns-resize">
-                        ${subTitles.map((t, i) => html`
-                            <${Reorder.Item} 
-                                key=${t} 
-                                value=${t} 
-                                class=${`text-white font-black uppercase tracking-[0.6em] leading-none transition-all duration-700 ${i === 0 ? 'text-8xl opacity-100' : i === 1 ? 'text-xl opacity-30 mt-3' : 'text-[11px] opacity-10 mt-1'}`}
+                    <div class="flex justify-center gap-4 flex-wrap max-w-4xl mx-auto">
+                        ${folders.map(f => html`
+                            <button 
+                                onClick=${() => setActiveFolder(f)}
+                                class=${`px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-300 border ${activeFolder === f ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_20px_rgba(0,245,255,0.4)]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}
                             >
-                                ${t}
-                            <//>
+                                ${f}
+                            </button>
                         `)}
-                    <//>
+                    </div>
                 </div>
 
                 <!-- Navigation Controls -->
@@ -2448,7 +2469,11 @@
                         animate=${{ y: (activeIndex * -HEIGHT) + EDGE }}
                         transition=${{ type: 'spring', damping: 30, stiffness: 100 }}
                     >
-                        ${pastes.map((p, index) => {
+                        ${filteredPastes.length === 0 ? html`
+                            <div key="empty" style=${{ height: HEIGHT }} class="flex items-center justify-center text-white/10 font-mono tracking-[1rem] uppercase">
+                                Sector empty // No nodes detected
+                            </div>
+                        ` : filteredPastes.map((p, index) => {
             const thumb = p.embedUrl || '/public/preview.png';
             return html`
                                 <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
@@ -2496,7 +2521,7 @@
                     <//>
                 </div>
 
-                <div class=${`p-8 mt-4 transition-all duration-300 ${activeIndex === pastes.length - 1 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
+                <div class=${`p-8 mt-4 transition-all duration-300 ${activeIndex === filteredPastes.length - 1 || filteredPastes.length === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                 </div>
 
@@ -2504,7 +2529,7 @@
                 <div class="mt-24 flex items-center gap-10">
                     <div class="h-[1px] w-32 bg-gradient-to-r from-transparent to-white/10"></div>
                     <div class="text-white/10 font-mono text-[11px] tracking-[1rem] uppercase">
-                        ${subTitles[0]} // TRANSMISSION ${activeIndex + 1} OF ${pastes.length}
+                        ${activeFolder} // TRANSMISSION ${activeIndex + 1} OF ${filteredPastes.length}
                     </div>
                     <div class="h-[1px] w-32 bg-gradient-to-l from-transparent to-white/10"></div>
                 </div>
