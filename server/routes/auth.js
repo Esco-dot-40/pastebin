@@ -110,26 +110,23 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 const getDiscordRedirectURI = (req) => {
     let host = req.get('host') || '';
     if (process.env.DOMAIN) {
+        // Strip protocols and trailing slashes
         host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
     }
 
-    // Normalize: strip port and whitespace
-    const cleanHost = host.split(':')[0].toLowerCase().trim();
+    // Normalize: strip whitespace (keep port for localhost support)
+    let cleanHost = host.toLowerCase().trim();
 
-    // Protocol: Force HTTPS for live domains
+    // Protocol: Force HTTPS for live domains, allow http for localhost
     let protocol = 'http';
     if (req.secure || req.headers['x-forwarded-proto'] === 'https' ||
         cleanHost.includes('veroe.space') || cleanHost.includes('railway.app') || cleanHost.includes('veroe.fun')) {
         protocol = 'https';
     }
 
-    // Path Logic: Match the registered URI in Discord Developer Portal
-    // veroe.space is registered with /api/access/auth/...
-    // Others use the standard /api/auth/...
-    let path = '/api/auth/discord/callback';
-    if (cleanHost === 'veroe.space' || cleanHost === 'www.veroe.space') {
-        path = '/api/access/auth/discord/callback';
-    }
+    // STRICT STANDARD: All domains use /api/auth/...
+    // Make sure your Discord Dashboard matches this!
+    const path = '/api/auth/discord/callback';
 
     return `${protocol}://${cleanHost}${path}`;
 };
