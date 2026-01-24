@@ -102,25 +102,40 @@ router.post('/link-key', (req, res) => {
     res.json({ success: true });
 });
 
-// DISCORD OAUTH
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn_kWaG51JBEggpQ6jHQiu';
-
-router.get('/discord', (req, res) => {
-    const isLogin = req.query.state === 'login';
-    // --- STANDARD OAUTH INIT ---
-    let host = (req.get('host') || '').toLowerCase().trim();
-    let protocol = (req.secure || req.headers['x-forwarded-proto'] === 'https' || host.includes('veroe.space') || host.includes('railway.app') || host.includes('veroe.fun')) ? 'https' : 'http';
-
+// Helper to generate the exact Redirect URI registered in Discord
+const getDiscordRedirectURI = (req) => {
+    let host = req.get('host') || '';
     if (process.env.DOMAIN) {
-        host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '').toLowerCase().trim();
+        host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
+    }
+
+    // Normalize: strip port and whitespace
+    const cleanHost = host.split(':')[0].toLowerCase().trim();
+
+    // Protocol: Force HTTPS for live domains
+    let protocol = 'http';
+    if (req.secure || req.headers['x-forwarded-proto'] === 'https' ||
+        cleanHost.includes('veroe.space') || cleanHost.includes('railway.app') || cleanHost.includes('veroe.fun')) {
         protocol = 'https';
     }
 
-    // Use standard path for all domains
-    const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
+    // Path Logic: Match the registered URI in Discord Developer Portal
+    // veroe.space is registered with /api/access/auth/...
+    // Others use the standard /api/auth/...
+    let path = '/api/auth/discord/callback';
+    if (cleanHost === 'veroe.space' || cleanHost === 'www.veroe.space') {
+        path = '/api/access/auth/discord/callback';
+    }
 
-    console.log(`[AUTH] Generating Redirect URI: ${callbackURL}`);
+    return `${protocol}://${cleanHost}${path}`;
+};
+
+router.get('/discord', (req, res) => {
+    const isLogin = req.query.state === 'login';
+    const callbackURL = getDiscordRedirectURI(req);
+
+    console.log(`[AUTH] Initiating Discord. Client: ${DISCORD_CLIENT_ID}, URI: ${callbackURL}`);
+
     const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email&state=${isLogin ? 'login' : 'verify'}`;
     res.redirect(url);
 });
@@ -129,18 +144,8 @@ router.get('/discord/callback', async (req, res) => {
     const { code, state } = req.query;
     if (!code) return res.redirect('/?error=no_code');
 
-    // --- STANDARD OAUTH CALLBACK ---
-    let host = (req.get('host') || '').toLowerCase().trim();
-    let protocol = (req.secure || req.headers['x-forwarded-proto'] === 'https' || host.includes('veroe.space') || host.includes('railway.app') || host.includes('veroe.fun')) ? 'https' : 'http';
-
-    if (process.env.DOMAIN) {
-        host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '').toLowerCase().trim();
-        protocol = 'https';
-    }
-
-    const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
-
-    console.log(`[AUTH] Handling Callback for: ${callbackURL}`);
+    const callbackURL = getDiscordRedirectURI(req);
+    console.log(`[AUTH] Processing Callback. URI Match: ${callbackURL}`);
 
     try {
         const response = await fetch('https://discord.com/api/oauth2/token', {
