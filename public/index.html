@@ -1170,24 +1170,11 @@
 <script>
     // -- SPLASH LOGIC --
     function checkSplash() {
-        const lastSeen = localStorage.getItem('splash_last_seen');
-        const now = Date.now();
-        const oneHour = 60 * 60 * 1000;
-
-        // If seen less than 1 hour ago, skip
-        if (lastSeen && (now - parseInt(lastSeen)) < oneHour) {
-            document.getElementById('splash-overlay').style.display = 'none';
-            // Try auto-resume audio if preference was 'on'
-            if (localStorage.getItem('audio_pref') === 'on') {
-                const aud = document.getElementById('bgAudio');
-                if (aud) aud.play().catch(e => console.log('Autoplay blocked'));
-            }
-            return;
-        }
+        // ALWAYS SHOW SPLASH - GATEKEEPER MODE
 
         // Show Splash
         const splash = document.getElementById('splash-overlay');
-        splash.style.display = 'grid'; // Changed from flex to grid for engine layout
+        splash.style.display = 'grid';
 
         // Blur main content
         const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
@@ -1306,15 +1293,26 @@
         --color-background-splash: hsl(180deg 10% 15%);
     }
 
+    .splash-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 99999;
+        transition: opacity 0.8s ease;
+    }
+
     .splash-screen.splash-engine-layout {
         display: grid;
+        /* Force grid by default */
         grid-template-columns: 1fr calc(100vh / 7);
         padding: 0;
-        background: transparent;
-        /* Let backdrop filter handle it or specific background */
-        backdrop-filter: blur(20px);
         background-color: var(--color-background-splash);
-        /* Use requested background */
+        /* Ensure it's opaque and covers everything */
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
     }
 
     .engine-main {
