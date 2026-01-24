@@ -1523,7 +1523,9 @@
                         localStorage.removeItem('private_access_key');
                         if (window.openKeyModal) window.openKeyModal();
                     }
-                }).catch(() => window.navigateTo('/public'));
+                }).catch(() => {
+                    if (window.showToast) window.showToast("Verification synchronization failure.", "error");
+                });
             } else {
                 if (window.openKeyModal) window.openKeyModal();
             }

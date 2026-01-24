@@ -18,8 +18,8 @@ export async function verifyAdminPassword(password) {
     const envPass = process.env.ADMIN_PASSWORD?.trim();
     const hardcoded = 'Poncholove20!!';
 
-    // Check against everything
-    if (input === envPass || input === hardcoded || input === 'admin' || input === 'password' || input === '1234' || input === 'password123' || input === '1125') {
+    // Check against authorized passwords
+    if (input === envPass || input === hardcoded) {
         return true;
     }
 

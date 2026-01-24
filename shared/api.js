@@ -89,8 +89,13 @@ if (!window.PasteAPI) {
                     url += `&password=${encodeURIComponent(password)}`;
                 }
 
+                const headers = {};
+                const key = localStorage.getItem('private_access_key');
+                if (key) headers['x-access-key'] = key;
+
                 const response = await fetch(url, {
                     method: 'GET',
+                    headers,
                     credentials: 'include'
                 });
 
@@ -106,8 +111,13 @@ if (!window.PasteAPI) {
 
         async getAllPastes() {
             try {
+                const headers = {};
+                const key = localStorage.getItem('private_access_key');
+                if (key) headers['x-access-key'] = key;
+
                 const response = await fetch(`${this.apiUrl}/pastes?_t=${Date.now()}`, {
                     method: 'GET',
+                    headers,
                     credentials: 'include'
                 });
 

@@ -211,8 +211,11 @@ router.get('/public-list', (req, res) => {
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccess = validateAccessKey(key) || isAdmin;
 
-    // FORCING ALL VISIBLE PER USER REQUEST (DEBUG MODE)
-    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE 1=1 ORDER BY p.createdAt DESC`;
+    // Respect privacy: Only show private pastes if user hasAccess or is Admin
+    const query = hasAccess
+        ? `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`
+        : `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
+
     const list = db.prepare(query).all();
 
     // Aggregate reactions for each paste
