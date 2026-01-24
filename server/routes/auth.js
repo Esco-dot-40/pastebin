@@ -108,7 +108,17 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 
 router.get('/discord', (req, res) => {
     const isLogin = req.query.state === 'login';
-    const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
+    let host = req.get('host');
+    let protocol = req.protocol;
+
+    if (process.env.DOMAIN) {
+        host = process.env.DOMAIN;
+        protocol = 'https'; // Force https for production
+    } else if (host.includes('railway.app') || host.includes('veroe.space')) {
+        protocol = 'https';
+    }
+
+    const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
     const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email&state=${isLogin ? 'login' : 'verify'}`;
     res.redirect(url);
 });
@@ -116,7 +126,16 @@ router.get('/discord', (req, res) => {
 router.get('/discord/callback', async (req, res) => {
     const { code, state } = req.query;
     if (!code) return res.redirect('/?error=no_code');
-    const callbackURL = `${req.protocol}://${req.get('host')}/api/auth/discord/callback`;
+
+    let host = req.get('host');
+    let protocol = req.protocol;
+    if (process.env.DOMAIN) {
+        host = process.env.DOMAIN;
+        protocol = 'https';
+    } else if (host.includes('railway.app') || host.includes('veroe.space')) {
+        protocol = 'https';
+    }
+    const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
 
     try {
         const response = await fetch('https://discord.com/api/oauth2/token', {
