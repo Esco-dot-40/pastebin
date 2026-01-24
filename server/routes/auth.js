@@ -125,16 +125,18 @@ const getDiscordRedirectURI = (req) => {
         protocol = 'https';
     }
 
-    // --- PERMISSIVE MULTI-SITE PATH LOGIC ---
-    // If the host is any of your project domains (custom or railway), use the LONG PATH.
-    // Only localhost or unknown domains use the SHORT PATH.
+    // --- FINAL SYNC LOGIC ---
+    // Based on your latest screenshot:
+    // 1. veroe.space -> SHORT PATH (/api/auth/...)
+    // 2. farkle-production -> SHORT PATH (/api/auth/...)
+    // 3. dump-production -> SHORT PATH (/api/auth/...)
+    // 4. farkle.velarixsolutions.nl -> LONG PATH (/api/access/auth/...)
+    // 5. localhost -> SHORT PATH (/api/auth/...)
+
     let path = '/api/auth/discord/callback';
 
-    const isProjectDomain = normalizedHost.includes('veroe') ||
-        normalizedHost.includes('farkle') ||
-        normalizedHost.includes('velarix');
-
-    if (isProjectDomain && !normalizedHost.includes('localhost')) {
+    // ONLY velarixsolutions.nl uses the long path now
+    if (normalizedHost.includes('velarixsolutions.nl')) {
         path = '/api/access/auth/discord/callback';
     }
 
