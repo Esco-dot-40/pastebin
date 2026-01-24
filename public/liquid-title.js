@@ -351,11 +351,11 @@ function initLiquidTitle() {
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Handle resizing - IMPROVED FIT
+    // Resize Logic - Robust "Contain"
     function resize() {
         const container = canvas.parentElement;
         const w = container ? container.clientWidth : window.innerWidth;
-        const h = 250;
+        const h = 250; // Fixed height container
 
         const pixelRatio = Math.min(window.devicePixelRatio, 2);
         renderer.setSize(w, h);
@@ -369,20 +369,29 @@ function initLiquidTitle() {
         camera.bottom = -frustumSize / 2;
         camera.updateProjectionMatrix();
 
-        // Scale mesh to fit properly
-        let scale = 1.0;
-        const availableWidth = frustumSize * aspect;
+        // Goal: Fit the text texture (imgAspectRatio) into the camera view (aspect)
+        // Texture width = imgAspectRatio (relative to height 1)
+        // Camera width = frustumSize * aspect = 2 * aspect
+        // Camera height = 2
 
-        // Ensure 80% view width max
-        const maxMeshWidth = availableWidth * 0.8;
-        // Initial mesh width is imgAspectRatio (since scale=1 means height=1, width=ratio)
-        // Wait, PlaneGeometry(imgAspectRatio, 1...) 
+        // If we set mesh scale to (imgAspectRatio, 1, 1), it has height 1 (half screen).
+        // Let's make base height 1.5 to fill more vertical space? 
+        // Or keep it 1.0 relative to Viewport height of 2.
 
-        if (imgAspectRatio > maxMeshWidth) {
-            scale = maxMeshWidth / imgAspectRatio;
-        }
+        // We want the text to roughly fill 80% of width OR height.
 
-        mesh.scale.set(scale, scale, 1);
+        const targetWidth = (2 * aspect) * 0.8;
+        const targetHeight = 2 * 0.8;
+
+        // Calculate scale to fit width
+        let scaleW = targetWidth / imgAspectRatio;
+        // Calculate scale to fit height
+        let scaleH = targetHeight / 1.0;
+
+        // Choose smaller scale to ensure it fits both
+        let finalScale = Math.min(scaleW, scaleH);
+
+        mesh.scale.set(imgAspectRatio * finalScale, finalScale, 1);
     }
     window.addEventListener('resize', resize);
     resize();
@@ -399,18 +408,16 @@ function initLiquidTitle() {
 
     tick();
 
-    // GSAP Animation - Gentle Wipe
-    gsap.fromTo(material.uniforms.uProgress,
-        { value: -0.5 },
-        {
-            value: 1.5,
-            duration: 5,
-            ease: "power2.inOut",
-            repeat: -1,
-            yoyo: true,
-            repeatDelay: 0.2
-        }
-    );
+    // STATIC VISIBILITY - No Wiping
+    // We just want it to be visible and rippling.
+    material.uniforms.uProgress.value = 1.5;
+
+    // Optional: Animate slight entry float? No, keep it simple.
+    gsap.from(mesh.position, {
+        y: -0.5,
+        duration: 1.5,
+        ease: "power3.out"
+    });
 }
 
 // Initialize when DOM is ready
