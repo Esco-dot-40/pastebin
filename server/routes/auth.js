@@ -108,17 +108,19 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 
 router.get('/discord', (req, res) => {
     const isLogin = req.query.state === 'login';
-    let host = req.get('host');
-    let protocol = req.protocol;
+    // --- STANDARD OAUTH INIT ---
+    let host = (req.get('host') || '').toLowerCase().trim();
+    let protocol = (req.secure || req.headers['x-forwarded-proto'] === 'https' || host.includes('veroe.space') || host.includes('railway.app') || host.includes('veroe.fun')) ? 'https' : 'http';
 
     if (process.env.DOMAIN) {
-        host = process.env.DOMAIN;
-        protocol = 'https'; // Force https for production
-    } else if (host.includes('railway.app') || host.includes('veroe.space')) {
+        host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '').toLowerCase().trim();
         protocol = 'https';
     }
 
+    // Use standard path for all domains
     const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
+
+    console.log(`[AUTH] Generating Redirect URI: ${callbackURL}`);
     const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(callbackURL)}&response_type=code&scope=identify%20email&state=${isLogin ? 'login' : 'verify'}`;
     res.redirect(url);
 });
@@ -127,15 +129,18 @@ router.get('/discord/callback', async (req, res) => {
     const { code, state } = req.query;
     if (!code) return res.redirect('/?error=no_code');
 
-    let host = req.get('host');
-    let protocol = req.protocol;
+    // --- STANDARD OAUTH CALLBACK ---
+    let host = (req.get('host') || '').toLowerCase().trim();
+    let protocol = (req.secure || req.headers['x-forwarded-proto'] === 'https' || host.includes('veroe.space') || host.includes('railway.app') || host.includes('veroe.fun')) ? 'https' : 'http';
+
     if (process.env.DOMAIN) {
-        host = process.env.DOMAIN;
-        protocol = 'https';
-    } else if (host.includes('railway.app') || host.includes('veroe.space')) {
+        host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '').toLowerCase().trim();
         protocol = 'https';
     }
+
     const callbackURL = `${protocol}://${host}/api/auth/discord/callback`;
+
+    console.log(`[AUTH] Handling Callback for: ${callbackURL}`);
 
     try {
         const response = await fetch('https://discord.com/api/oauth2/token', {

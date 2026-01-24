@@ -187,9 +187,18 @@ router.post('/generate', (req, res) => {
 
 
 // --- REPLACED WITH CONSOLIDATED AUTH IN auth.js ---
-router.get('/auth/discord', (req, res) => res.redirect('/api/auth/discord?state=verify'));
-router.get('/auth/discord/login', (req, res) => res.redirect('/api/auth/discord?state=login'));
-router.get('/auth/discord/callback', (req, res) => res.redirect('/api/auth/discord/callback'));
+router.get('/auth/discord', (req, res) => {
+    const query = new URLSearchParams(req.query).toString();
+    res.redirect(`/api/auth/discord${query ? '?' + query : ''}`);
+});
+router.get('/auth/discord/login', (req, res) => {
+    const query = new URLSearchParams(req.query).toString();
+    res.redirect(`/api/auth/discord?state=login${query ? '&' + query : ''}`);
+});
+router.get('/auth/discord/callback', (req, res) => {
+    const query = new URLSearchParams(req.query).toString();
+    res.redirect(`/api/auth/discord/callback${query ? '?' + query : ''}`);
+});
 
 // --- Admin Routes ---
 

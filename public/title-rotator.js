@@ -44,4 +44,4 @@
 
     // Initial Trigger
     refreshTitle();
-})(
+})();

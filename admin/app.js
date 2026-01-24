@@ -281,7 +281,9 @@ async function editPaste(id) {
 
         activeEditId = id;
         document.getElementById('editorTitle').textContent = `RE-PROPAGATING NODE: ${id}`;
-        document.getElementById('editStatusBar').style.display = 'flex';
+        const bar = document.getElementById('editStatusBar');
+        bar.style.display = 'flex';
+        bar.classList.add('active-pulse');
         document.getElementById('activeNodeId').textContent = `ID: ${id}`;
 
         document.getElementById('pasteTitle').value = p.title || '';
@@ -307,7 +309,9 @@ async function editPaste(id) {
 function clearEditor() {
     activeEditId = null;
     document.getElementById('editorTitle').textContent = 'Propagate New Node';
-    document.getElementById('editStatusBar').style.display = 'none';
+    const bar = document.getElementById('editStatusBar');
+    bar.style.display = 'none';
+    bar.classList.remove('active-pulse');
 
     document.getElementById('pasteTitle').value = '';
     document.getElementById('pasteContent').value = '';
