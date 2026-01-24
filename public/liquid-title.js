@@ -270,7 +270,7 @@ function initLiquidTitle() {
         ctx.clearRect(0, 0, w, h);
 
         // Font settings
-        ctx.font = '900 220px "Inter", "Arial", sans-serif';
+        ctx.font = '900 150px "Inter", "Arial", sans-serif';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
