@@ -42,6 +42,27 @@ window.addEventListener('DOMContentLoaded', async () => {
             } catch (e) { showToast(e.message, 'error'); }
         };
     }
+
+    // MEDIA UPLOAD HANDLER
+    const mediaInput = document.getElementById('mediaUpload');
+    if (mediaInput) {
+        mediaInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            showToast(`Uploading ${file.name}...`, 'info');
+            try {
+                const data = await api.uploadImage(file);
+                if (data && data.url) {
+                    document.getElementById('pasteEmbed').value = data.url;
+                    showToast('Media Uploaded and Linked', 'success');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast(`Upload failed: ${err.message}`, 'error');
+            }
+        };
+    }
 });
 
 function setupFilters() {
