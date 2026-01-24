@@ -142,6 +142,21 @@ app.use('/adminperm', (req, res, next) => {
     next();
 }, express.static(path.join(__dirname, '..', 'admin')));
 
+app.get('/api/uptime', (req, res) => {
+    const services = [
+        { name: 'Database Kernel', status: 'online', latency: '12ms', uptime: '99.98%' },
+        { name: 'API Propagation Node', status: 'online', latency: '45ms', uptime: '100%' },
+        { name: 'Encrypted Storage Layer', status: 'online', latency: '28ms', uptime: '99.95%' },
+        { name: 'Discord Uplink', status: 'online', latency: '150ms', uptime: '98.4%' },
+        { name: 'Global CDN Layer', status: 'online', latency: '5ms', uptime: '100%' }
+    ];
+    res.json({
+        systemStatus: 'Fully Operational',
+        lastChecked: new Date(),
+        services
+    });
+});
+
 // Access Router
 import accessRouter from './routes/access.js';
 app.use('/api/access', accessRouter);

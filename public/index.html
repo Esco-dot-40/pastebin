@@ -324,6 +324,8 @@
         }
     </style>
     <script src="/shared/api.js?v=6"></script>
+    <!-- Liquid Title Logic -->
+    <script type="module" src="/public/liquid-title.js"></script>
 
     <script type="importmap">
     {
@@ -1135,34 +1137,28 @@
 </head>
 
 <!-- Splash / Audio Gatekeeper -->
-<div id="splash-overlay" class="splash-screen">
-    <div class="splash-content">
-        <div class="splash-logo">veroe.space</div>
-        <p class="splash-subtitle">IMMERSIVE CODING ENVIRONMENT</p>
-
-        <div class="splash-options">
-            <button class="splash-btn enable-audio" onclick="enterSite(true)">
-                <div class="icon-pulse">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                        <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
-                        <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
-                    </svg>
-                </div>
-                <span>ENTER WITH AUDIO</span>
-                <span class="btn-caption">Recommended Experience</span>
-            </button>
-
-            <button class="splash-btn disable-audio" onclick="enterSite(false)">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                    <line x1="23" y1="9" x2="17" y2="15" />
-                    <line x1="17" y1="9" x2="23" y2="15" />
-                </svg>
-                <span>ENTER SILENTLY</span>
-            </button>
+<!-- Splash / Audio Gatekeeper -->
+<div id="splash-overlay" class="splash-screen splash-engine-layout">
+    <div class="engine-main">
+        <button type="button" class="start-stop latch" id="btnEngineStart">
+            <div>Engine Start
+                <hr> Stop
+            </div>
+        </button>
+        <div class="silent-entry-link" onclick="enterSite(false)"
+            style="margin-top: 20px; color: rgba(255,255,255,0.3); font-size: 0.8rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">
+            Enter Silently
         </div>
     </div>
+    <ul id="color-picker">
+        <li><label><input type="radio" name="color" value="aqua"> Aqua</label></li>
+        <li><label><input type="radio" name="color" value="blue"> Blue</label></li>
+        <li><label><input type="radio" name="color" value="chartreuse"> Chartreuse</label></li>
+        <li><label><input type="radio" name="color" value="coral"> Coral</label></li>
+        <li><label><input type="radio" name="color" value="red" checked> Red</label></li>
+        <li><label><input type="radio" name="color" value="deeppink"> Deep Pink</label></li>
+        <li><label><input type="radio" name="color" value="rebeccapurple"> Rebecca Purple</label></li>
+    </ul>
 </div>
 
 <!-- Logic for Splash & Buttons -->
@@ -1186,11 +1182,50 @@
 
         // Show Splash
         const splash = document.getElementById('splash-overlay');
-        splash.style.display = 'flex';
+        splash.style.display = 'grid'; // Changed from flex to grid for engine layout
 
         // Blur main content
         const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
         mainContent.forEach(el => el.style.filter = 'blur(10px)');
+
+        // Initialize Engine Button
+        initEngineButton();
+    }
+
+    function initEngineButton() {
+        const button = document.querySelector("#btnEngineStart");
+        if (button) {
+            button.addEventListener("click", () => {
+                const { classList } = button;
+                classList.toggle("on");
+
+                // If turned on, start vibration and enter sequence
+                if (classList.contains("on")) {
+                    setTimeout(() => {
+                        if (classList.contains("on")) {
+                            classList.add("vibrating");
+
+                            // ENTER SITE AFTER VIBRATION STARTS
+                            setTimeout(() => {
+                                enterSite(true);
+                            }, 1200);
+                        }
+                    }, 500);
+                } else {
+                    classList.remove("vibrating");
+                }
+            });
+        }
+
+        // Color Picker Logic
+        document.querySelectorAll("#color-picker input").forEach((input) => {
+            input.addEventListener("change", () => {
+                if (input.checked) {
+                    const btn = document.querySelector("button.start-stop");
+                    if (btn) btn.style.setProperty("--color", input.value);
+                }
+            });
+        });
     }
 
     window.enterSite = function (withAudio) {
@@ -1262,177 +1297,218 @@
 
 <style>
     /* SPLASH STYLES */
-    .splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
+    :root {
+        --color-background-splash: hsl(180deg 10% 15%);
+    }
+
+    .splash-screen.splash-engine-layout {
+        display: grid;
+        grid-template-columns: 1fr calc(100vh / 7);
+        padding: 0;
+        background: transparent;
+        /* Let backdrop filter handle it or specific background */
+        backdrop-filter: blur(20px);
+        background-color: var(--color-background-splash);
+        /* Use requested background */
+    }
+
+    .engine-main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+    }
+
+    #color-picker {
+        background-color: rgba(0, 0, 0, 0.2);
+        display: flex;
+        margin: 0;
+        padding: 0;
+        gap: 2px;
+        align-content: stretch;
+        flex-direction: column;
+        list-style-type: none;
         height: 100vh;
-        z-index: 99999;
-        background: rgba(5, 5, 8, 0.4);
-        /* Slight tint, mostly relying on backdrop blur */
-        backdrop-filter: blur(15px);
-        /* Heavy blur */
-        -webkit-backdrop-filter: blur(15px);
-        display: none;
-        /* Toggled by JS */
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: opacity 0.8s ease;
     }
 
-    .splash-content {
-        text-align: center;
-        background: rgba(0, 0, 0, 0.6);
-        padding: 60px;
-        border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.8);
-        transform: translateY(0);
-        animation: floatUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    @keyframes floatUp {
-        from {
-            transform: translateY(30px);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateY(0);
-            opacity: 1;
-        }
-    }
-
-    .splash-logo {
-        font-family: 'Inter', sans-serif;
-        font-weight: 900;
-        font-size: 3rem;
-        margin-bottom: 10px;
-        background: linear-gradient(135deg, #fff 0%, #00f5ff 100%);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -2px;
-    }
-
-    .splash-subtitle {
-        font-family: 'JetBrains Mono', monospace;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.8rem;
-        letter-spacing: 4px;
-        margin-bottom: 50px;
-    }
-
-    .splash-options {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-    }
-
-    .splash-btn {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 25px;
-        border-radius: 16px;
-        cursor: pointer;
-        width: 180px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        color: white;
+    #color-picker li {
         position: relative;
+        flex-grow: 1;
+        text-wrap-mode: nowrap;
         overflow: hidden;
     }
 
-    .splash-btn::before {
-        content: '';
+    #color-picker label::after {
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.1), transparent 70%);
+        content: "";
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    #color-picker label:hover::after {
+        transform: scale(1.05);
+        z-index: 1;
+    }
+
+    #color-picker label:has(:checked)::after {
+        box-shadow: inset 2px 2px 5px black;
+    }
+
+    #color-picker label:has([value="aqua"])::after {
+        background-color: aqua;
+    }
+
+    #color-picker label:has([value="blue"])::after {
+        background-color: blue;
+    }
+
+    #color-picker label:has([value="chartreuse"])::after {
+        background-color: chartreuse;
+    }
+
+    #color-picker label:has([value="coral"])::after {
+        background-color: coral;
+    }
+
+    #color-picker label:has([value="red"])::after {
+        background-color: red;
+    }
+
+    #color-picker label:has([value="deeppink"])::after {
+        background-color: deeppink;
+    }
+
+    #color-picker label:has([value="rebeccapurple"])::after {
+        background-color: rebeccapurple;
+    }
+
+    /* Hide radio inputs visually */
+    #color-picker input[type="radio"] {
         opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .splash-btn:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    }
-
-    .splash-btn:hover::before {
-        opacity: 1;
-    }
-
-    .splash-btn svg {
-        color: rgba(255, 255, 255, 0.7);
-        transition: color 0.3s ease;
-    }
-
-    .splash-btn span {
-        font-size: 0.85rem;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-    }
-
-    .btn-caption {
-        font-size: 0.65rem !important;
-        opacity: 0.5;
-        font-weight: 400 !important;
-        text-transform: uppercase;
-    }
-
-    /* Enable Button Specifics */
-    .enable-audio:hover {
-        border-color: #00f5ff;
-    }
-
-    .enable-audio:hover svg {
-        color: #00f5ff;
-        filter: drop-shadow(0 0 8px rgba(0, 245, 255, 0.6));
-    }
-
-    .disable-audio:hover {
-        border-color: #ff0050;
-    }
-
-    .disable-audio:hover svg {
-        color: #ff0050;
-    }
-
-    .icon-pulse {
-        position: relative;
-    }
-
-    .enable-audio:hover .icon-pulse::after {
-        content: '';
+        pointer-events: none;
         position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        border: 1px solid #00f5ff;
-        animation: pulseRing 1.5s infinite;
     }
 
-    @keyframes pulseRing {
+    button.start-stop {
+        --color: red;
+        --color-off: hsl(from var(--color) H calc(S * 0.5) L);
+        /* Fallbacks for color-mix if relative color syntax not supported broadly, but chrome supports it */
+        --shadow: -2px -5px 10px rgba(0, 0, 0, 0.5), 2px 5px 10px rgba(255, 255, 255, 0.1);
+
+        box-shadow: var(--shadow);
+        block-size: 150px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background-color: var(--color-background-splash);
+        border-style: none;
+        box-sizing: border-box;
+        container-type: size;
+        padding: 10px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.1s;
+    }
+
+    button.start-stop::before {
+        position: absolute;
+        border-radius: 50%;
+        inset: 0;
+        border: 12px solid var(--color-off);
+        /* Fallback for cqb */
+        border: 8cqb solid var(--color-off);
+        content: "";
+        z-index: 1;
+        transition: border-color 0.2s;
+    }
+
+    button.start-stop>div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+        font-size: 1.5rem;
+        /* Fallback */
+        font-size: 15cqb;
+        color: var(--color-off);
+        background-color: var(--color-background-splash);
+        text-transform: uppercase;
+        font-weight: bold;
+        transition: color 0.2s, text-shadow 0.2s;
+    }
+
+    button.start-stop hr {
+        border: 0.1em solid var(--color-off);
+        margin: 0.1em 1em;
+        width: 80%;
+        transition: border-color 0.2s;
+    }
+
+    button.start-stop.on {
+        --shadow-on: var(--color) 0 0 10px;
+        box-shadow: var(--shadow), var(--shadow-on) 2px;
+    }
+
+    button.start-stop.on::before {
+        border-color: var(--color);
+        box-shadow: inset 0 0 10px var(--color);
+    }
+
+    button.start-stop.on>div {
+        color: var(--color);
+        text-shadow: 0 0 10px var(--color);
+    }
+
+    button.start-stop.on hr {
+        border-color: var(--color);
+        box-shadow: 0 0 5px var(--color);
+    }
+
+    button.start-stop:active::before {
+        filter: brightness(80%);
+    }
+
+    button.start-stop:active {
+        transform: scale(0.98);
+    }
+
+    @keyframes vibrate {
         0% {
-            width: 30px;
-            height: 30px;
-            opacity: 1;
+            transform: translate(0);
+        }
+
+        20% {
+            transform: translate(-2px, 2px);
+        }
+
+        40% {
+            transform: translate(-2px, -2px);
+        }
+
+        60% {
+            transform: translate(2px, 2px);
+        }
+
+        80% {
+            transform: translate(2px, -2px);
         }
 
         100% {
-            width: 60px;
-            height: 60px;
-            opacity: 0;
+            transform: translate(0);
         }
+    }
+
+    .vibrating {
+        animation: vibrate 0.05s linear infinite;
+    }
+
+    .silent-entry-link:hover {
+        color: white !important;
+        text-shadow: 0 0 8px white;
     }
 </style>
 
@@ -1503,15 +1579,20 @@
 
 <!-- Background Media Controller -->
 <div id="video-background-container"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(1.3);">
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.6);">
 </div>
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
 <div id="view-entry"
     style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; padding-top: 100px; padding-bottom: 50px; z-index: 5;">
-    <div class="landing-text text-top glitch-text" id="parallax-top" data-text="V E R O E . S P A C E">V E R O E . S P A
-        C E</div>
+    <!-- LIQUID TITLE ANIMATION -->
+    <div class="landing-text-container"
+        style="position: absolute; top: 5%; width: 100%; display: flex; justify-content: center; z-index: 10;">
+        <canvas class="webgl" style="width: 100%; height: 250px; outline: none;"></canvas>
+    </div>
+    <!-- <div class="landing-text text-top glitch-text" id="parallax-top" data-text="V E R O E . S P A C E">V E R O E . S P A
+        C E</div> -->
 
     <!-- Announcement Banner (Per Image Request) -->
     <div id="announcement-banner" class="accent-text accent-glow banner-animate"
