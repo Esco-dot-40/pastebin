@@ -34,14 +34,14 @@
     setInterval(() => {
         colorIndex = (colorIndex + 1) % colors.length;
         refreshTitle();
-    }, 100);
+    }, 67);
 
     // Slower Domain Rotation
     setInterval(() => {
         domainIndex = (domainIndex + 1) % domains.length;
         refreshTitle();
-    }, 2000);
+    }, 1333);
 
     // Initial Trigger
     refreshTitle();
-})();
+})(
