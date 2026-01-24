@@ -109,39 +109,37 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 // Helper to generate the exact Redirect URI registered in Discord
 const getDiscordRedirectURI = (req) => {
     let host = req.get('host') || '';
-
-    // Check for explicit DOMAIN override
     if (process.env.DOMAIN) {
         host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
     }
 
-    // Normalize case and trim
     let normalizedHost = host.toLowerCase().trim();
 
-    // Protocol Determination
+    // Protocol Enforcement
     let protocol = 'http';
-    // Force HTTPS for live domains
     if (req.secure || req.headers['x-forwarded-proto'] === 'https' ||
-        normalizedHost.includes('veroe.space') ||
+        normalizedHost.includes('veroe') ||
         normalizedHost.includes('railway.app') ||
-        normalizedHost.includes('velarixsolutions.nl') ||
-        normalizedHost.includes('veroe.fun')) {
+        normalizedHost.includes('velarix') ||
+        normalizedHost.includes('farkle')) {
         protocol = 'https';
     }
 
-    // --- MULTI-SITE PATH CONFIGURATION ---
-    // veroe.space & velarixsolutions.nl -> LONG PATH (/api/access/auth/...)
-    // railway.app, localhost, & others -> SHORT PATH (/api/auth/...)
+    // --- PERMISSIVE MULTI-SITE PATH LOGIC ---
+    // If the host is any of your project domains (custom or railway), use the LONG PATH.
+    // Only localhost or unknown domains use the SHORT PATH.
     let path = '/api/auth/discord/callback';
 
-    // We check the "base" domain (ignoring ports for this specific check)
-    const baseHost = normalizedHost.split(':')[0];
-    if (baseHost === 'veroe.space' || baseHost === 'www.veroe.space' || baseHost === 'farkle.velarixsolutions.nl' || baseHost === 'velarixsolutions.nl') {
+    const isProjectDomain = normalizedHost.includes('veroe') ||
+        normalizedHost.includes('farkle') ||
+        normalizedHost.includes('velarix');
+
+    if (isProjectDomain && !normalizedHost.includes('localhost')) {
         path = '/api/access/auth/discord/callback';
     }
 
     const uri = `${protocol}://${normalizedHost}${path}`;
-    console.log(`[AUTH] Multi-Site Redirect Sync: ${uri} (Host: ${normalizedHost}, Protocol: ${protocol})`);
+    console.log(`[AUTH] SYNC -> Client: ${DISCORD_CLIENT_ID}, URI: ${uri}`);
     return uri;
 };
 
