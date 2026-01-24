@@ -209,16 +209,21 @@ router.get('/', requireAuth, (req, res) => {
 router.get('/public-list', (req, res) => {
     const isAdmin = req.session && req.session.isAdmin;
     const key = req.headers['x-access-key'] || req.query.key;
-    const hasAccess = validateAccessKey(key) || isAdmin;
+    const hasAccessKey = validateAccessKey(key);
+    const isAuthorized = isAdmin || hasAccessKey;
 
-    // MANDATORY ACCESS: If no key/admin, return empty sector
-    if (!hasAccess) {
-        return res.json([]);
+    let query;
+    let params = [];
+
+    if (isAuthorized) {
+        // Return ALL pastes (Public + Private)
+        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
+    } else {
+        // Return ONLY Public pastes
+        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
     }
 
-    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
-
-    const list = db.prepare(query).all();
+    const list = db.prepare(query).all(params);
 
     // Aggregate reactions for each paste
     const enrichedList = list.map(p => {
@@ -232,7 +237,8 @@ router.get('/public-list', (req, res) => {
             ...p,
             reactions: reactionCounts,
             hasPassword: !!p.password,
-            password: undefined
+            password: undefined,
+            isPrivate: p.isPublic === 0
         };
     });
 
@@ -271,14 +277,13 @@ router.get('/:id', async (req, res) => {
     const isAuthorized = isAdmin || hasAccessKey;
     const isOwner = req.session && req.session.user && paste.userId === req.session.user.id;
 
-    // MANDATORY ACCESS: Everything requires a signature/key
-    if (!isAuthorized && !isOwner) {
-        return res.status(403).json({ error: 'Access Denied: Authorized signature required.' });
-    }
-
     // Check Privacy Access
     if (paste.isPublic === 0 && !isAuthorized && !isOwner) {
-        return res.status(403).json({ error: 'This paste is private. Authorized access only.' });
+        return res.status(403).json({
+            error: 'Access Denied: Authorized signature required.',
+            isPrivate: true,
+            needsKey: true
+        });
     }
 
     if (paste.password && (req.headers['x-paste-password'] || req.query.password) !== paste.password && !(isAdmin && req.query.track === 'false')) {

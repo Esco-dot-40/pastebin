@@ -169,6 +169,159 @@
                 transform: translate(2px, 2px);
             }
         }
+
+        /* 3D Red Text for Access Denied */
+        .text-3d-red {
+            color: #ff0000;
+            text-shadow:
+                0 1px 0 #8b0000,
+                0 2px 0 #7e0000,
+                0 3px 0 #710000,
+                0 4px 0 #640000,
+                0 5px 0 #570000,
+                0 0 5px rgba(0, 0, 0, .1),
+                0 1px 3px rgba(0, 0, 0, .3),
+                0 3px 5px rgba(0, 0, 0, .2),
+                0 5px 10px rgba(0, 0, 0, .25),
+                0 10px 10px rgba(0, 0, 0, .2),
+                0 20px 20px rgba(0, 0, 0, .15);
+            font-size: 3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            letter-spacing: 2px;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .text-3d-red {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Uptime Monitor Styles */
+        .uptime-monitor {
+            margin-top: 40px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            text-align: left;
+        }
+
+        .uptime-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .uptime-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .uptime-status {
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00ff88;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .service-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .service-name {
+            font-size: 0.8rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        .service-metrics {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Website Cards Grid */
+        .website-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+            margin-top: 25px;
+        }
+
+        .site-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .site-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .site-card h4 {
+            color: white;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        .site-card p {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.65rem;
+            margin: 0;
+        }
     </style>
     <script src="/shared/api.js?v=6"></script>
 
@@ -1355,7 +1508,8 @@
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
-<div id="view-entry">
+<div id="view-entry"
+    style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; padding-top: 100px; padding-bottom: 50px;">
     <div class="landing-text text-top glitch-text" id="parallax-top" data-text="V E R O E . S P A C E">V E R O E . S P A
         C E</div>
 
@@ -1415,1192 +1569,1269 @@
                 style="color: rgba(255,255,255,0.4); text-decoration: none; font-size: 0.75rem; font-family: 'JetBrains Mono';">admin@velarixsolutions.nl</a>
         </div>
     </div>
-</div>
 
-<!-- Mouse Parallax Script -->
-<script>
-    document.addEventListener('mousemove', (e) => {
-        const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
-
-        if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
-
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
-
-        if (card) card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-
-        // Text parallax (Counter-movement for depth)
-        if (topText) {
-            topText.style.transform = `translate(${xAxis * -2}px, ${yAxis * -2}px)`;
-            topText.style.opacity = 0.3 + Math.abs(xAxis / 50);
-        }
-        if (bottomText) {
-            bottomText.style.transform = `translate(${xAxis * 1.5}px, ${yAxis * 1.5}px)`;
-            bottomText.style.opacity = 0.3 + Math.abs(yAxis / 50);
-        }
-    });
-
-    document.addEventListener('mouseleave', () => {
-        const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
-
-        if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-        if (topText) topText.style.transform = `translate(0, 0)`;
-        if (bottomText) bottomText.style.transform = `translate(0, 0)`;
-    });
-</script>
-<!-- Force Interactive Elements & Global Utils -->
-<script>
-    // CRITICAL: Define navigation early
-    window.navigateTo = function (path) {
-        console.log("Navigating to:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-        }
-        setTimeout(() => {
-            window.location.href = path; // Fallback to direct navigation if SPA fails
-        }, 500);
-
-        // Try SPA push if available in history api
-        try {
-            window.history.pushState({}, '', path);
-            // Trigger the route handler if it exists, otherwise manual reload happen above
-            if (window.handleRoute) window.handleRoute();
-        } catch (e) {
-            console.log("SPA Nav error, falling back");
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log("Initializing Direct Interaction Handlers...");
-
-        // 1. Ensure profile interaction
-        const profile = document.querySelector('.esco-profile-card');
-        if (profile) {
-            profile.style.zIndex = '100';
-            profile.style.position = 'relative';
-            profile.style.pointerEvents = 'auto';
-        }
-
-        // 2. Manual Event Binding (The "Nuclear Option" for interactions)
-        const bindClick = (id, fn) => {
-            const el = document.getElementById(id);
-            if (el) {
-                // Remove old clones to clear listeners (optional, but safe)
-                const newEl = el.cloneNode(true);
-                el.parentNode.replaceChild(newEl, el);
-
-                newEl.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Stop bubbling
-                    console.log(`Button Clicked: ${id}`);
-                    fn();
-                });
-                // Force cursor
-                newEl.style.cursor = 'pointer';
-            }
-        };
-
-        // Bind Actions
-        bindClick('btnPublicAccess', () => {
-            const key = localStorage.getItem('private_access_key');
-            if (key) {
-                window.navigateTo('/public');
-            } else {
-                const notif = document.getElementById('accessNotification');
-                if (notif) {
-                    notif.textContent = "Sector locked. Signature required for synchronization.";
-                    notif.classList.add('active');
-                    setTimeout(() => notif.classList.remove('active'), 3000);
-                }
-                if (window.openKeyModal) window.openKeyModal();
-            }
-        });
-
-        bindClick('btnPrivateAccess', () => {
-            const key = localStorage.getItem('private_access_key');
-            if (key) {
-                // Quick Verify
-                fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key })
-                }).then(r => r.json()).then(d => {
-                    if (d.success) window.navigateTo('/public');
-                    else {
-                        localStorage.removeItem('private_access_key');
-                        if (window.openKeyModal) window.openKeyModal();
-                    }
-                }).catch(() => {
-                    if (window.showToast) window.showToast("Verification synchronization failure.", "error");
-                });
-            } else {
-                if (window.openKeyModal) window.openKeyModal();
-            }
-        });
-
-        bindClick('btnRequestAccess', () => {
-            if (window.openRequestModal) window.openRequestModal();
-            else console.error("Request Modal function missing");
-        });
-
-        // Fix Parallax Interruption
-        // Ensure overlays pass events
-        document.querySelectorAll('.landing-text, .immersive-overlay, .noise-overlay').forEach(el => {
-            el.style.pointerEvents = 'none';
-        });
-    });
-
-    // --- ACCENT COLOR PROPAGATION ---
-    (function () {
-        // Settings: mode 'fixed' or 'rotate'
-        const mode = 'rotate';
-        const cycleSpeed = 3000; // ms
-        const colors = [
-            { main: "#00f5ff", glow: "rgba(0, 245, 255, 0.4)" }, // Cyan
-            { main: "#ff006e", glow: "rgba(255, 0, 110, 0.4)" }, // Pink
-            { main: "#00ff88", glow: "rgba(0, 255, 136, 0.4)" }, // Green
-            { main: "#7b42ff", glow: "rgba(123, 66, 255, 0.4)" }, // Purple
-            { main: "#ff9900", glow: "rgba(255, 153, 0, 0.4)" }  // Gold
-        ];
-
-        let currentIndex = 0;
-
-        function updateAccent(colorObj) {
-            document.documentElement.style.setProperty('--accent-color', colorObj.main);
-            document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
-        }
-
-        if (mode === 'rotate') {
-            setInterval(() => {
-                currentIndex = (currentIndex + 1) % colors.length;
-                updateAccent(colors[currentIndex]);
-            }, cycleSpeed);
-        } else {
-            updateAccent(colors[0]); // Use first as fixed
-        }
-    })();
-</script>
-
-<!-- View: VIEWER -->
-<div id="view-viewer"
-    style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
-    <div id="listView"
-        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: hidden; backdrop-filter: none;">
-        <div id="pasteGalleryApp" style="width: 100%;">
-            <div
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
-                <div class="loader"></div>
-                <p
-                    style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
-                    ESTABLISHING UPLINK...</p>
+    <!-- UPTIME MONITOR -->
+    <div class="uptime-monitor" style="max-width: 480px; width: 90%; margin-bottom: 20px; z-index: 10;">
+        <div class="uptime-header">
+            <div class="uptime-title">System Status</div>
+            <div class="uptime-status">
+                <div class="status-dot"></div>
+                OPERATIONAL
             </div>
+        </div>
+        <div class="service-row">
+            <span class="service-name">Main Gateway</span>
+            <span class="service-metrics">99.9% / 24ms</span>
+        </div>
+        <div class="service-row">
+            <span class="service-name">Database Shards</span>
+            <span class="service-metrics">100% / 12ms</span>
+        </div>
+        <div class="service-row">
+            <span class="service-name">Secure Storage</span>
+            <span class="service-metrics">100% / 45ms</span>
         </div>
     </div>
 
-    <div id="detailView" class="container"
-        style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%;">
-        <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
+    <!-- WEBSITE CARDS -->
+    <div class="website-cards" style="max-width: 480px; width: 90%; margin-bottom: 50px; z-index: 10;">
+        <a href="https://velarixsolutions.nl" target="_blank" class="site-card">
+            <h4>Velarix Solutions</h4>
+            <p>Lead Developer / Corporate Site</p>
+        </a>
+        <a href="https://github.com/EscoLessgo" target="_blank" class="site-card">
+            <h4>GitHub</h4>
+            <p>Open Source Contributions</p>
+        </a>
+        <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="site-card">
+            <h4>Discord</h4>
+            <p>Community & Support</p>
+        </a>
+        <a href="#" class="site-card" style="opacity: 0.5; cursor: not-allowed;">
+            <h4>Dev Blog</h4>
+            <p>Coming Soon</p>
+        </a>
+    </div>
+</div>
 
-        <main id="mainContent">
-            <div id="detailLoading" class="state-container" style="display: none;">
-                <div class="loader"></div>
-                <p>Loading paste...</p>
+<!-- View: ACCESS DENIED -->
+<div id="view-access-denied" class="state-container"
+    style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 200; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
+    <div class="error-icon" style="font-size: 4rem;">🚫</div>
+    <h1 class="text-3d-red">PLEASE ACQUIRE A KEY<br>TO VIEW PRIVATE PASTES</h1>
+    <p style="color: rgba(255,255,255,0.7); max-width: 500px; margin-top: 20px;">
+        This sector is restricted. You must possess a valid cryptographic signature to proceed.
+    </p>
+    <div class="button-container" style="margin-top: 40px;">
+        <button onclick="window.openRequestModal()" class="entry-btn btn-private">Request Key</button>
+        <button onclick="window.location.href='/'" class="entry-btn btn-public">Return Home</button>
+    </div>
+
+    <!-- Mouse Parallax Script -->
+    <script>
+        document.addEventListener('mousemove', (e) => {
+            const card = document.querySelector('.esco-profile-card');
+            const topText = document.getElementById('parallax-top');
+            const bottomText = document.getElementById('parallax-bottom');
+
+            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
+
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+
+            if (card) card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+
+            // Text parallax (Counter-movement for depth)
+            if (topText) {
+                topText.style.transform = `translate(${xAxis * -2}px, ${yAxis * -2}px)`;
+                topText.style.opacity = 0.3 + Math.abs(xAxis / 50);
+            }
+            if (bottomText) {
+                bottomText.style.transform = `translate(${xAxis * 1.5}px, ${yAxis * 1.5}px)`;
+                bottomText.style.opacity = 0.3 + Math.abs(yAxis / 50);
+            }
+        });
+
+        document.addEventListener('mouseleave', () => {
+            const card = document.querySelector('.esco-profile-card');
+            const topText = document.getElementById('parallax-top');
+            const bottomText = document.getElementById('parallax-bottom');
+
+            if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            if (topText) topText.style.transform = `translate(0, 0)`;
+            if (bottomText) bottomText.style.transform = `translate(0, 0)`;
+        });
+    </script>
+    <!-- Force Interactive Elements & Global Utils -->
+    <script>
+        // CRITICAL: Define navigation early
+        window.navigateTo = function (path) {
+            console.log("Navigating to:", path);
+            const ls = document.getElementById('loadingState');
+            if (ls) {
+                ls.style.display = 'flex';
+                ls.classList.remove('fade-out');
+            }
+            setTimeout(() => {
+                window.location.href = path; // Fallback to direct navigation if SPA fails
+            }, 500);
+
+            // Try SPA push if available in history api
+            try {
+                window.history.pushState({}, '', path);
+                // Trigger the route handler if it exists, otherwise manual reload happen above
+                if (window.handleRoute) window.handleRoute();
+            } catch (e) {
+                console.log("SPA Nav error, falling back");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Initializing Direct Interaction Handlers...");
+
+            // 1. Ensure profile interaction
+            const profile = document.querySelector('.esco-profile-card');
+            if (profile) {
+                profile.style.zIndex = '100';
+                profile.style.position = 'relative';
+                profile.style.pointerEvents = 'auto';
+            }
+
+            // 2. Manual Event Binding (The "Nuclear Option" for interactions)
+            const bindClick = (id, fn) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    // Remove old clones to clear listeners (optional, but safe)
+                    const newEl = el.cloneNode(true);
+                    el.parentNode.replaceChild(newEl, el);
+
+                    newEl.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation(); // Stop bubbling
+                        console.log(`Button Clicked: ${id}`);
+                        fn();
+                    });
+                    // Force cursor
+                    newEl.style.cursor = 'pointer';
+                }
+            };
+
+            // Bind Actions
+            bindClick('btnPublicAccess', () => {
+                window.navigateTo('/public');
+            });
+
+            bindClick('btnPrivateAccess', () => {
+                const key = localStorage.getItem('private_access_key');
+                if (key) {
+                    // Quick Verify
+                    fetch('/api/access/verify', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key })
+                    }).then(r => r.json()).then(d => {
+                        if (d.success) window.navigateTo('/public');
+                        else {
+                            localStorage.removeItem('private_access_key');
+                            window.navigateTo('/access-denied');
+                        }
+                    }).catch(() => {
+                        window.navigateTo('/access-denied');
+                    });
+                } else {
+                    window.navigateTo('/access-denied');
+                }
+            });
+
+            bindClick('btnRequestAccess', () => {
+                if (window.openRequestModal) window.openRequestModal();
+                else console.error("Request Modal function missing");
+            });
+
+            // Fix Parallax Interruption
+            // Ensure overlays pass events
+            document.querySelectorAll('.landing-text, .immersive-overlay, .noise-overlay').forEach(el => {
+                el.style.pointerEvents = 'none';
+            });
+        });
+
+        // --- ACCENT COLOR PROPAGATION ---
+        (function () {
+            // Settings: mode 'fixed' or 'rotate'
+            const mode = 'rotate';
+            const cycleSpeed = 3000; // ms
+            const colors = [
+                { main: "#00f5ff", glow: "rgba(0, 245, 255, 0.4)" }, // Cyan
+                { main: "#ff006e", glow: "rgba(255, 0, 110, 0.4)" }, // Pink
+                { main: "#00ff88", glow: "rgba(0, 255, 136, 0.4)" }, // Green
+                { main: "#7b42ff", glow: "rgba(123, 66, 255, 0.4)" }, // Purple
+                { main: "#ff9900", glow: "rgba(255, 153, 0, 0.4)" }  // Gold
+            ];
+
+            let currentIndex = 0;
+
+            function updateAccent(colorObj) {
+                document.documentElement.style.setProperty('--accent-color', colorObj.main);
+                document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
+            }
+
+            if (mode === 'rotate') {
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % colors.length;
+                    updateAccent(colors[currentIndex]);
+                }, cycleSpeed);
+            } else {
+                updateAccent(colors[0]); // Use first as fixed
+            }
+        })();
+    </script>
+
+    <!-- View: VIEWER -->
+    <div id="view-viewer"
+        style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
+        <div id="listView"
+            style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: hidden; backdrop-filter: none;">
+            <div id="pasteGalleryApp" style="width: 100%;">
+                <div
+                    style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
+                    <div class="loader"></div>
+                    <p
+                        style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
+                        ESTABLISHING UPLINK...</p>
+                </div>
             </div>
-            <div id="notFoundState" class="state-container" style="display: none;">
-                <h2>Paste Not Found</h2>
-            </div>
-            <div id="pasteViewContent" style="display: none;">
-                <div class="paste-header">
-                    <div class="paste-info">
-                        <h2 id="pasteTitle">Loading...</h2>
-                        <div class="paste-meta">
-                            <span class="language-tag" id="pasteLanguage">plaintext</span>
-                            <span class="meta-item" id="pasteViews">0 views</span>
-                            <span class="meta-item" id="pasteDate">Just now</span>
+        </div>
+
+        <div id="detailView" class="container"
+            style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%;">
+            <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
+
+            <main id="mainContent">
+                <div id="detailLoading" class="state-container" style="display: none;">
+                    <div class="loader"></div>
+                    <p>Loading paste...</p>
+                </div>
+                <div id="notFoundState" class="state-container" style="display: none;">
+                    <h2>Paste Not Found</h2>
+                </div>
+                <div id="pasteViewContent" style="display: none;">
+                    <div class="paste-header">
+                        <div class="paste-info">
+                            <h2 id="pasteTitle">Loading...</h2>
+                            <div class="paste-meta">
+                                <span class="language-tag" id="pasteLanguage">plaintext</span>
+                                <span class="meta-item" id="pasteViews">0 views</span>
+                                <span class="meta-item" id="pasteDate">Just now</span>
+                            </div>
+                        </div>
+
+                        <!-- REACTION PANEL -->
+                        <div id="reactionsPanel" class="reactions-matrix">
+                            <button class="reaction-trigger heart" onclick="handleReaction('heart')">
+                                <span class="icon">♥</span>
+                                <span class="count" id="count-heart">0</span>
+                            </button>
+                            <button class="reaction-trigger star" onclick="handleReaction('star')">
+                                <span class="icon">★</span>
+                                <span class="count" id="count-star">0</span>
+                            </button>
+                            <button class="reaction-trigger like" onclick="handleReaction('like')">
+                                <span class="icon">👍</span>
+                                <span class="count" id="count-like">0</span>
+                            </button>
+                        </div>
+
+                        <div class="header-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
+                            <button onclick="copyPasteContent()" class="reaction-btn"
+                                style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Payload</button>
+                            <button onclick="copyPasteLink()" class="reaction-btn"
+                                style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Link</button>
                         </div>
                     </div>
-
-                    <!-- REACTION PANEL -->
-                    <div id="reactionsPanel" class="reactions-matrix">
-                        <button class="reaction-trigger heart" onclick="handleReaction('heart')">
-                            <span class="icon">♥</span>
-                            <span class="count" id="count-heart">0</span>
-                        </button>
-                        <button class="reaction-trigger star" onclick="handleReaction('star')">
-                            <span class="icon">★</span>
-                            <span class="count" id="count-star">0</span>
-                        </button>
-                        <button class="reaction-trigger like" onclick="handleReaction('like')">
-                            <span class="icon">👍</span>
-                            <span class="count" id="count-like">0</span>
-                        </button>
-                    </div>
-
-                    <div class="header-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
-                        <button onclick="copyPasteContent()" class="reaction-btn"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Payload</button>
-                        <button onclick="copyPasteLink()" class="reaction-btn"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Link</button>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-title" id="codeTitle">code.txt</div>
+                        </div>
+                        <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
                     </div>
                 </div>
-                <div class="code-container">
-                    <div class="code-header">
-                        <div class="code-title" id="codeTitle">code.txt</div>
-                    </div>
-                    <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
-                </div>
+            </main>
+        </div>
+    </div>
+    <!-- Key Entry Modal -->
+    <div id="keyModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0;">Enter Access Key</h2>
+            <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
+                    placeholder="sk-..."></div><button type="button" class="btn-submit blue"
+                onclick="submitKey()">Unlock</button>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a href="#"
+                    onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
+                    Access</a></p>
+        </div>
+    </div>
+    <!-- Request Access Modal -->
+    <div id="requestModal" class="modal-overlay">
+        <!-- View 1: Auth Selection -->
+        <div id="req-view-1" class="modal-box">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">You must verify your identity
+                before requesting a key. </p>
+            <div class="auth-buttons"><button type="button" class="btn-submit auth-discord"
+                    onclick="startDiscordAuth('request')"><svg width="20" height="20" viewBox="0 0 24 24"
+                        style="margin-right: 10px; vertical-align: bottom;">
+                        <path fill="currentColor"
+                            d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
+                    </svg>Discord </button><button type="button" class="btn-submit auth-google"
+                    onclick="window.loginWithGoogle()" style="background: #EA4335; color: white;">Google
+                </button><button type="button" class="btn-submit auth-manual" onclick="showManualInput()">Manual Request
+                </button></div>
+        </div>
+        <!-- View 2: Manual Request Input -->
+        <div id="req-view-manual" class="modal-box" style="display: none;">
+            <div class="close-modal" onclick="resetRequestModal()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
+            <div class="input-group"><label>Your Identity (Discord User / Email)</label><input type="text"
+                    id="manualIdentity" placeholder="Who are you?"></div>
+            <div class="input-group"><label>Reason</label><textarea id="manualReason" rows="6"
+                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
             </div>
-        </main>
+            <p
+                style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
+                <strong>Note:</strong>You will still be required to confirm your identity later before
+                receiving a key. Verification via Discord is faster and preferred.
+            </p><button type="button" class="btn-submit red" onclick="submitManualRequest()">Send
+                Request</button>
+        </div>
+        <!-- View 4: Request Form -->
+        <div id="req-view-4" class="modal-box" style="display: none;">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
+            <div class="input-group"><label>Verified ID</label><input type="text" id="verifiedId" readonly
+                    style="opacity: 0.5;"></div>
+            <div class="input-group"><label>Reason</label><textarea id="reqReason" rows="6"
+                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+            </div><button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send
+                Request</button>
+        </div>
     </div>
-</div>
-<!-- Key Entry Modal -->
-<div id="keyModal" class="modal-overlay">
-    <div class="modal-box">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0;">Enter Access Key</h2>
-        <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
-                placeholder="sk-..."></div><button type="button" class="btn-submit blue"
-            onclick="submitKey()">Unlock</button>
-        <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a href="#"
-                onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
-                Access</a></p>
-    </div>
-</div>
-<!-- Request Access Modal -->
-<div id="requestModal" class="modal-overlay">
-    <!-- View 1: Auth Selection -->
-    <div id="req-view-1" class="modal-box">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">You must verify your identity
-            before requesting a key. </p>
-        <div class="auth-buttons"><button type="button" class="btn-submit auth-discord"
-                onclick="startDiscordAuth('request')"><svg width="20" height="20" viewBox="0 0 24 24"
-                    style="margin-right: 10px; vertical-align: bottom;">
+    <!-- Success Popup -->
+    <div id="successPopup" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+            <h2>Request Sent !</h2>
+            <p style="color: #ccc; margin-bottom: 2rem;">Your request has been forwarded. <br>For faster
+                approval, join our Discord server: </p><a href="https://discord.gg/YAqe3UvU5E" target="_blank"
+                class="btn-submit auth-discord" style="text-decoration: none; margin-bottom: 1rem;"><svg width="20"
+                    height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
                     <path fill="currentColor"
                         d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-                </svg>Discord </button><button type="button" class="btn-submit auth-google"
-                onclick="window.loginWithGoogle()" style="background: #EA4335; color: white;">Google
-            </button><button type="button" class="btn-submit auth-manual" onclick="showManualInput()">Manual Request
-            </button></div>
-    </div>
-    <!-- View 2: Manual Request Input -->
-    <div id="req-view-manual" class="modal-box" style="display: none;">
-        <div class="close-modal" onclick="resetRequestModal()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
-        <div class="input-group"><label>Your Identity (Discord User / Email)</label><input type="text"
-                id="manualIdentity" placeholder="Who are you?"></div>
-        <div class="input-group"><label>Reason</label><textarea id="manualReason" rows="6"
-                placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+                </svg>Join Discord </a><button type="button" class="btn-submit blue"
+                onclick="window.location.reload()">Return to Home</button>
         </div>
-        <p
-            style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
-            <strong>Note:</strong>You will still be required to confirm your identity later before
-            receiving a key. Verification via Discord is faster and preferred.
-        </p><button type="button" class="btn-submit red" onclick="submitManualRequest()">Send
-            Request</button>
     </div>
-    <!-- View 4: Request Form -->
-    <div id="req-view-4" class="modal-box" style="display: none;">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
-        <div class="input-group"><label>Verified ID</label><input type="text" id="verifiedId" readonly
-                style="opacity: 0.5;"></div>
-        <div class="input-group"><label>Reason</label><textarea id="reqReason" rows="6"
-                placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
-        </div><button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send
-            Request</button>
-    </div>
-</div>
-<!-- Success Popup -->
-<div id="successPopup" class="modal-overlay">
-    <div class="modal-box" style="text-align: center;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-        <h2>Request Sent !</h2>
-        <p style="color: #ccc; margin-bottom: 2rem;">Your request has been forwarded. <br>For faster
-            approval, join our Discord server: </p><a href="https://discord.gg/YAqe3UvU5E" target="_blank"
-            class="btn-submit auth-discord" style="text-decoration: none; margin-bottom: 1rem;"><svg width="20"
-                height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
-                <path fill="currentColor"
-                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-            </svg>Join Discord </a><button type="button" class="btn-submit blue"
-            onclick="window.location.reload()">Return to Home</button>
-    </div>
-</div>
-<!-- Additional Styles for Auth -->
-<style>
-    .auth-discord {
-        background: #5865F2;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-
-    .auth-discord:hover {
-        background: #4752C4;
-    }
-
-    .auth-email {
-        background: #333;
-        color: white;
-    }
-
-    .auth-email:hover {
-        background: #444;
-    }
-</style>
-
-<script type="module">
-    import { initLoadingShader } from '/public/loading-shader.js';
-
-</script>
-
-<script>
-    // --- 1. Audio Logic ---
-    const audio = document.getElementById('bgAudio');
-    const volBtn = document.getElementById('imgVolumeBtn');
-    const iconMuted = document.getElementById('iconMuted');
-    const iconSound = document.getElementById('iconSound');
-    const arrow = document.getElementById('volumeArrow');
-    const slider = document.getElementById('volumeSlider');
-
-    let hasInteracted = false;
-
-    // Restore Volume
-    let storedVolume = localStorage.getItem('audioVolume');
-    let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
-
-    // Restore Time
-    let storedTime = localStorage.getItem('audioCurrentTime');
-    if (storedTime) {
-        audio.currentTime = parseFloat(storedTime);
-    }
-
-    // Restore Paused State
-    let storedPaused = localStorage.getItem('audioIsPaused');
-
-    // Initialize state
-    audio.volume = lastVolume;
-    slider.value = lastVolume;
-
-    // Persist Time Update
-    audio.addEventListener('timeupdate', () => {
-        localStorage.setItem('audioCurrentTime', audio.currentTime);
-    });
-
-    // Persist Volume
-    function setVolume(val) {
-        audio.volume = val;
-        localStorage.setItem('audioVolume', val);
-        if (val > 0) {
-            lastVolume = val;
+    <!-- Additional Styles for Auth -->
+    <style>
+        .auth-discord {
+            background: #5865F2;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
-    }
 
-    function tryPlayAudio() {
-        if (storedPaused === 'true' && !hasInteracted) return;
+        .auth-discord:hover {
+            background: #4752C4;
+        }
 
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
+        .auth-email {
+            background: #333;
+            color: white;
+        }
+
+        .auth-email:hover {
+            background: #444;
+        }
+    </style>
+
+    <script type="module">
+        import { initLoadingShader } from '/public/loading-shader.js';
+
+    </script>
+
+    <script>
+        // --- 1. Audio Logic ---
+        const audio = document.getElementById('bgAudio');
+        const volBtn = document.getElementById('imgVolumeBtn');
+        const iconMuted = document.getElementById('iconMuted');
+        const iconSound = document.getElementById('iconSound');
+        const arrow = document.getElementById('volumeArrow');
+        const slider = document.getElementById('volumeSlider');
+
+        let hasInteracted = false;
+
+        // Restore Volume
+        let storedVolume = localStorage.getItem('audioVolume');
+        let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
+
+        // Restore Time
+        let storedTime = localStorage.getItem('audioCurrentTime');
+        if (storedTime) {
+            audio.currentTime = parseFloat(storedTime);
+        }
+
+        // Restore Paused State
+        let storedPaused = localStorage.getItem('audioIsPaused');
+
+        // Initialize state
+        audio.volume = lastVolume;
+        slider.value = lastVolume;
+
+        // Persist Time Update
+        audio.addEventListener('timeupdate', () => {
+            localStorage.setItem('audioCurrentTime', audio.currentTime);
+        });
+
+        // Persist Volume
+        function setVolume(val) {
+            audio.volume = val;
+            localStorage.setItem('audioVolume', val);
+            if (val > 0) {
+                lastVolume = val;
+            }
+        }
+
+        function tryPlayAudio() {
+            if (storedPaused === 'true' && !hasInteracted) return;
+
+            const playPromise = audio.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    hasInteracted = true;
+                    localStorage.setItem('audioIsPaused', 'false');
+                    updateAudioIcon();
+                    if (audio.currentTime < 5) {
+                        arrow.classList.add('visible');
+                        setTimeout(() => arrow.classList.remove('visible'), 4000);
+                    }
+                }).catch(error => {
+                    console.log("Autoplay prevented. Waiting for interaction.", error);
+                });
+            }
+        }
+
+        function toggleAudio() {
+            if (audio.paused) {
+                audio.play();
                 hasInteracted = true;
                 localStorage.setItem('audioIsPaused', 'false');
-                updateAudioIcon();
-                if (audio.currentTime < 5) {
-                    arrow.classList.add('visible');
-                    setTimeout(() => arrow.classList.remove('visible'), 4000);
+                // If previously volume was 0, restore it
+                if (audio.volume === 0) {
+                    let vol = lastVolume || 0.2;
+                    setVolume(vol);
+                    slider.value = vol;
                 }
-            }).catch(error => {
-                console.log("Autoplay prevented. Waiting for interaction.", error);
-            });
-        }
-    }
-
-    function toggleAudio() {
-        if (audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
-            // If previously volume was 0, restore it
-            if (audio.volume === 0) {
-                let vol = lastVolume || 0.2;
-                setVolume(vol);
-                slider.value = vol;
+            } else {
+                audio.pause();
+                localStorage.setItem('audioIsPaused', 'true');
             }
-        } else {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
-        }
-        updateAudioIcon();
-    }
-
-    function updateAudioIcon() {
-        if (!audio.paused && audio.volume > 0) {
-            iconMuted.style.display = 'none';
-            iconSound.style.display = 'block';
-            volBtn.classList.add('active-volume');
-        } else {
-            iconMuted.style.display = 'block';
-            iconSound.style.display = 'none';
-            volBtn.classList.remove('active-volume');
-        }
-    }
-
-    // Slider Logic
-    slider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        setVolume(val);
-
-        if (val > 0 && audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
-        } else if (val === 0 && !audio.paused) {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
-        }
-        updateAudioIcon();
-    });
-
-    slider.addEventListener('click', (e) => e.stopPropagation());
-
-    volBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleAudio();
-    });
-
-    // Global interaction fallback
-    document.addEventListener('click', () => {
-        if (audio.paused && !hasInteracted && storedPaused !== 'true') {
-            tryPlayAudio();
-        }
-        hasInteracted = true;
-    }, { once: true });
-
-    // Try playing immediately on load
-    tryPlayAudio();
-
-    // Global interaction listeners
-    const interactEvents = ['click', 'keydown', 'touchstart'];
-    interactEvents.forEach(evt =>
-        window.addEventListener(evt, () => {
-            if (!hasInteracted && storedPaused !== 'true') {
-                tryPlayAudio();
-            }
-            hasInteracted = true;
-        }, { once: true, capture: true })
-    );
-
-
-    // --- 2. SPA Navigation ---
-
-    // Handle Back/Forward
-    window.addEventListener('popstate', handleRoute);
-    // Handle Initial Load
-    document.addEventListener('DOMContentLoaded', handleRoute);
-
-    window.navigateTo = function (path) {
-        console.log("Navigating with cinematic transition:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-        }
-
-        // Show loading for 0.8 seconds (reduced from 2.5s for speed)
-        setTimeout(() => {
-            window.history.pushState({}, '', path);
-            handleRoute();
-        }, 800);
-    }
-
-    window.hideLoader = function () {
-        const ls = document.getElementById('loadingState');
-        if (!ls) return;
-        ls.classList.add('fade-out');
-        setTimeout(() => {
-            ls.style.display = 'none';
-        }, 500);
-    };
-
-    function handleRoute() {
-        const path = window.location.pathname;
-
-        // Ensure audio is trying to play on route change (interaction happened)
-        if (audio.paused && hasInteracted) {
-            audio.play().catch(e => console.log('Resume play failed', e));
             updateAudioIcon();
         }
 
-        // Entry Page
-        if (path === '/' || path === '/index.html') {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
-
-            document.getElementById('view-entry').style.display = 'flex';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.body.style.overflow = 'hidden'; // Lock scroll on entry
-            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-        }
-        // Public Viewer
-        else if (path.startsWith('/public') || path.startsWith('/v/')) {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
-
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'block';
-            document.body.style.overflow = 'auto'; // Allow scroll
-            if (window.setBackgroundVideo) window.setBackgroundVideo('public');
-
-            if (path.startsWith('/v/')) {
-                const id = path.split('/')[2];
-                showDetail(id);
+        function updateAudioIcon() {
+            if (!audio.paused && audio.volume > 0) {
+                iconMuted.style.display = 'none';
+                iconSound.style.display = 'block';
+                volBtn.classList.add('active-volume');
             } else {
-                showList();
+                iconMuted.style.display = 'block';
+                iconSound.style.display = 'none';
+                volBtn.classList.remove('active-volume');
             }
         }
-    }
+
+        // Slider Logic
+        slider.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            setVolume(val);
+
+            if (val > 0 && audio.paused) {
+                audio.play();
+                hasInteracted = true;
+                localStorage.setItem('audioIsPaused', 'false');
+            } else if (val === 0 && !audio.paused) {
+                audio.pause();
+                localStorage.setItem('audioIsPaused', 'true');
+            }
+            updateAudioIcon();
+        });
+
+        slider.addEventListener('click', (e) => e.stopPropagation());
+
+        volBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAudio();
+        });
+
+        // Global interaction fallback
+        document.addEventListener('click', () => {
+            if (audio.paused && !hasInteracted && storedPaused !== 'true') {
+                tryPlayAudio();
+            }
+            hasInteracted = true;
+        }, { once: true });
+
+        // Try playing immediately on load
+        tryPlayAudio();
+
+        // Global interaction listeners
+        const interactEvents = ['click', 'keydown', 'touchstart'];
+        interactEvents.forEach(evt =>
+            window.addEventListener(evt, () => {
+                if (!hasInteracted && storedPaused !== 'true') {
+                    tryPlayAudio();
+                }
+                hasInteracted = true;
+            }, { once: true, capture: true })
+        );
 
 
-    // --- 3. Viewer Logic (Isolated Scope) ---
-    (function () {
-        const storage = window.storage = new PasteStorage();
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const pasteListContainer = document.getElementById('pasteList');
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
+        // --- 2. SPA Navigation ---
 
-        // Elements for detail
-        const pTitle = document.getElementById('pasteTitle');
-        const pLang = document.getElementById('pasteLanguage');
-        const pViews = document.getElementById('pasteViews');
-        const pDate = document.getElementById('pasteDate');
-        const pContent = document.getElementById('pasteContent');
+        // Handle Back/Forward
+        window.addEventListener('popstate', handleRoute);
+        // Handle Initial Load
+        document.addEventListener('DOMContentLoaded', handleRoute);
 
-        window.showList = async function () {
-            detailView.style.display = 'none';
-            listView.style.display = 'block';
-            await loadPastes();
+        window.navigateTo = function (path) {
+            console.log("Navigating with cinematic transition:", path);
+            const ls = document.getElementById('loadingState');
+            if (ls) {
+                ls.style.display = 'flex';
+                ls.classList.remove('fade-out');
+                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+            }
+
+            // Show loading for 0.8 seconds (reduced from 2.5s for speed)
+            setTimeout(() => {
+                window.history.pushState({}, '', path);
+                handleRoute();
+            }, 800);
+        }
+
+        window.hideLoader = function () {
+            const ls = document.getElementById('loadingState');
+            if (!ls) return;
+            ls.classList.add('fade-out');
+            setTimeout(() => {
+                ls.style.display = 'none';
+            }, 500);
         };
 
-        async function loadPastes() {
-            console.log("Fetching paste stream...");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) {
-                    console.log("Using stored access key for request");
-                    headers['x-access-key'] = key;
-                }
+        function handleRoute() {
+            const path = window.location.pathname;
 
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                    headers,
-                    credentials: 'include'
-                });
+            // Ensure audio is trying to play on route change (interaction happened)
+            if (audio.paused && hasInteracted) {
+                audio.play().catch(e => console.log('Resume play failed', e));
+                updateAudioIcon();
+            }
 
-                if (!res.ok) {
-                    console.error("API Error:", res.status, res.statusText);
-                    throw new Error(`Server returned ${res.status}`);
-                }
+            // Entry Page
+            if (path === '/' || path === '/index.html') {
+                const ls = document.getElementById('loadingState');
+                if (ls) ls.style.display = 'none'; // Hide loading screen
 
-                const pastes = await res.json();
-                console.log(`Stream retrieved: ${pastes.length} nodes found.`);
+                document.getElementById('view-entry').style.display = 'flex';
+                document.getElementById('view-viewer').style.display = 'none';
+                document.getElementById('view-access-denied').style.display = 'none';
+                document.body.style.overflow = 'hidden'; // Lock scroll on entry
+                if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+                updateUptime();
+            }
+            // Access Denied Page
+            else if (path === '/access-denied') {
+                const ls = document.getElementById('loadingState');
+                if (ls) ls.style.display = 'none';
+                document.getElementById('view-entry').style.display = 'none';
+                document.getElementById('view-viewer').style.display = 'none';
+                document.getElementById('view-access-denied').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+            }
+            // Public Viewer
+            else if (path.startsWith('/public') || path.startsWith('/v/')) {
+                const ls = document.getElementById('loadingState');
+                if (ls) ls.style.display = 'none'; // Hide loading screen
 
-                if (!Array.isArray(pastes)) {
-                    console.error("Malformed API response, expected array.");
-                    return;
-                }
+                document.getElementById('view-entry').style.display = 'none';
+                document.getElementById('view-viewer').style.display = 'block';
+                document.getElementById('view-access-denied').style.display = 'none';
+                document.body.style.overflow = 'auto'; // Allow scroll
+                if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
-                if (window.setPasteData) {
-                    window.setPasteData(pastes);
+                if (path.startsWith('/v/')) {
+                    const id = path.split('/')[2];
+                    showDetail(id);
                 } else {
-                    window._pendingPastes = pastes;
+                    showList();
                 }
+            }
+        }
 
+        async function updateUptime() {
+            try {
+                const res = await fetch('/api/uptime');
+                const data = await res.json();
+                const list = document.getElementById('service-list');
+                if (list && data.services) {
+                    list.innerHTML = data.services.map(s => `
+                    <div class="service-row">
+                        <div class="service-name">${s.name}</div>
+                        <div class="service-metrics"><span>${s.uptime}</span> <span>${s.latency}</span></div>
+                    </div>
+                `).join('');
+                    document.getElementById('system-status-text').textContent = data.systemStatus;
+                }
             } catch (e) {
-                console.error("CRITICAL: Stream synchronization failure:", e);
-                if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
-            } finally {
-                window.hideLoader();
+                console.warn("Uptime fetch failed");
             }
         }
 
-        // Auto-refresh feed every 30 seconds
-        setInterval(loadPastes, 30000);
 
-        window.showDetail = async function (id) {
-            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+        // --- 3. Viewer Logic (Isolated Scope) ---
+        (function () {
+            const storage = window.storage = new PasteStorage();
+            const listView = document.getElementById('listView');
+            const detailView = document.getElementById('detailView');
+            const pasteListContainer = document.getElementById('pasteList');
+            const detailLoading = document.getElementById('detailLoading');
+            const notFoundState = document.getElementById('notFoundState');
+            const pasteViewContent = document.getElementById('pasteViewContent');
 
-            // Switch to detail video background
-            console.log('Switching to detail video background for paste:', id);
-            if (window.setBackgroundVideo) {
-                window.setBackgroundVideo('detail');
-            } else {
-                console.warn('setBackgroundVideo not available yet');
+            // Elements for detail
+            const pTitle = document.getElementById('pasteTitle');
+            const pLang = document.getElementById('pasteLanguage');
+            const pViews = document.getElementById('pasteViews');
+            const pDate = document.getElementById('pasteDate');
+            const pContent = document.getElementById('pasteContent');
+
+            window.showList = async function () {
+                detailView.style.display = 'none';
+                listView.style.display = 'block';
+                await loadPastes();
+            };
+
+            async function loadPastes() {
+                console.log("Fetching paste stream...");
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    const key = localStorage.getItem('private_access_key');
+                    if (key) {
+                        console.log("Using stored access key for request");
+                        headers['x-access-key'] = key;
+                    }
+
+                    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
+                        headers,
+                        credentials: 'include'
+                    });
+
+                    if (!res.ok) {
+                        console.error("API Error:", res.status, res.statusText);
+                        throw new Error(`Server returned ${res.status}`);
+                    }
+
+                    const pastes = await res.json();
+                    console.log(`Stream retrieved: ${pastes.length} nodes found.`);
+
+                    if (!Array.isArray(pastes)) {
+                        console.error("Malformed API response, expected array.");
+                        return;
+                    }
+
+                    if (window.setPasteData) {
+                        window.setPasteData(pastes);
+                    } else {
+                        window._pendingPastes = pastes;
+                    }
+
+                } catch (e) {
+                    console.error("CRITICAL: Stream synchronization failure:", e);
+                    if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
+                } finally {
+                    window.hideLoader();
+                }
             }
 
-            listView.style.display = 'none';
-            detailView.style.display = 'block';
+            // Auto-refresh feed every 30 seconds
+            setInterval(loadPastes, 30000);
 
-            detailLoading.style.display = 'flex';
-            notFoundState.style.display = 'none';
-            pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
+            window.showDetail = async function (id) {
+                if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+
+                // Switch to detail video background
+                console.log('Switching to detail video background for paste:', id);
+                if (window.setBackgroundVideo) {
+                    window.setBackgroundVideo('detail');
+                } else {
+                    console.warn('setBackgroundVideo not available yet');
+                }
+
+                listView.style.display = 'none';
+                detailView.style.display = 'block';
+
+                detailLoading.style.display = 'flex';
+                notFoundState.style.display = 'none';
+                pasteViewContent.style.display = 'none';
+                window.currentPasteId = id;
+
+                try {
+                    let paste = null;
+                    try {
+                        paste = await storage.getPaste(id);
+                    } catch (e) {
+                        if (e.message.includes('401') || e.message.includes('403')) {
+                            const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
+                            if (!pwd) throw new Error('Cancelled');
+                            paste = await storage.getPaste(id, true, pwd);
+                        } else {
+                            throw e;
+                        }
+                    }
+
+                    if (!paste) throw new Error('Not found');
+
+                    renderPasteDetail(paste);
+                    detailLoading.style.display = 'none';
+                    pasteViewContent.style.display = 'block';
+
+                } catch (err) {
+                    console.error(err);
+                    detailLoading.style.display = 'none';
+                    if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+                } finally {
+                    window.hideLoader();
+                }
+            };
+
+            function renderPasteDetail(paste) {
+                pTitle.textContent = paste.title || 'Untitled';
+                pLang.textContent = paste.language;
+                pViews.textContent = `${paste.views} views`;
+                pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+                const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+                const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const container = document.getElementById('pasteContentContainer');
+
+                if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+                    pContent.innerHTML = marked.parse(paste.content);
+                    pContent.classList.add('markdown-body');
+                    if (container) container.classList.add('markdown-body');
+
+                    pContent.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+                } else {
+                    pContent.textContent = paste.content;
+                    pContent.className = `hljs language-${paste.language}`;
+                    if (container) container.classList.remove('markdown-body');
+                    hljs.highlightElement(pContent);
+                }
+
+                // Reactions
+                const panel = document.getElementById('reactionsPanel');
+                if (panel) panel.style.display = 'flex';
+                if (paste.reactions) {
+                    const l = document.getElementById('count-like');
+                    const h = document.getElementById('count-heart');
+                    const s = document.getElementById('count-star');
+                    if (l) l.textContent = paste.reactions.like || 0;
+                    if (h) h.textContent = paste.reactions.heart || 0;
+                    if (s) s.textContent = paste.reactions.star || 0;
+                }
+
+                // Burn Notice
+                const burnNotice = document.getElementById('burnNotice');
+                if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
+
+                // Cleanup active states
+                document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
+
+                window.currentViewedPaste = paste;
+            }
+        })();
+
+        window.handleReaction = async function (type, specificId = null) {
+            const id = specificId || window.currentPasteId;
+            if (!id) return;
 
             try {
-                let paste = null;
-                try {
-                    paste = await storage.getPaste(id);
-                } catch (e) {
-                    if (e.message.includes('401') || e.message.includes('403')) {
-                        const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                        if (!pwd) throw new Error('Cancelled');
-                        paste = await storage.getPaste(id, true, pwd);
+                const res = await storage.toggleReaction(id, type);
+                if (res.success) {
+                    if (specificId) {
+                        loadPastes(); // Refresh list to update count
                     } else {
-                        throw e;
+                        const countEl = document.getElementById(`count-${type}`);
+                        if (countEl) {
+                            let current = parseInt(countEl.textContent) || 0;
+                            countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
+                        }
                     }
+                    showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
                 }
-
-                if (!paste) throw new Error('Not found');
-
-                renderPasteDetail(paste);
-                detailLoading.style.display = 'none';
-                pasteViewContent.style.display = 'block';
-
-            } catch (err) {
-                console.error(err);
-                detailLoading.style.display = 'none';
-                if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
-            } finally {
-                window.hideLoader();
-            }
-        };
-
-        function renderPasteDetail(paste) {
-            pTitle.textContent = paste.title || 'Untitled';
-            pLang.textContent = paste.language;
-            pViews.textContent = `${paste.views} views`;
-            pDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const container = document.getElementById('pasteContentContainer');
-
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                pContent.innerHTML = marked.parse(paste.content);
-                pContent.classList.add('markdown-body');
-                if (container) container.classList.add('markdown-body');
-
-                pContent.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            } else {
-                pContent.textContent = paste.content;
-                pContent.className = `hljs language-${paste.language}`;
-                if (container) container.classList.remove('markdown-body');
-                hljs.highlightElement(pContent);
-            }
-
-            // Reactions
-            const panel = document.getElementById('reactionsPanel');
-            if (panel) panel.style.display = 'flex';
-            if (paste.reactions) {
-                const l = document.getElementById('count-like');
-                const h = document.getElementById('count-heart');
-                const s = document.getElementById('count-star');
-                if (l) l.textContent = paste.reactions.like || 0;
-                if (h) h.textContent = paste.reactions.heart || 0;
-                if (s) s.textContent = paste.reactions.star || 0;
-            }
-
-            // Burn Notice
-            const burnNotice = document.getElementById('burnNotice');
-            if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
-
-            // Cleanup active states
-            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
-
-            window.currentViewedPaste = paste;
-        }
-    })();
-
-    window.handleReaction = async function (type, specificId = null) {
-        const id = specificId || window.currentPasteId;
-        if (!id) return;
-
-        try {
-            const res = await storage.toggleReaction(id, type);
-            if (res.success) {
-                if (specificId) {
-                    loadPastes(); // Refresh list to update count
+            } catch (e) {
+                if (e.message === 'AUTH_REQUIRED') {
+                    showToast('🔐 Login with Discord or Google to react!', 'info');
+                    if (window.openRequestModal) window.openRequestModal();
+                    else storage.loginWithDiscord();
                 } else {
-                    const countEl = document.getElementById(`count-${type}`);
-                    if (countEl) {
-                        let current = parseInt(countEl.textContent) || 0;
-                        countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
-                    }
+                    console.error("Reaction failed", e);
                 }
-                showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
-            }
-        } catch (e) {
-            if (e.message === 'AUTH_REQUIRED') {
-                showToast('🔐 Login with Discord or Google to react!', 'info');
-                if (window.openRequestModal) window.openRequestModal();
-                else storage.loginWithDiscord();
-            } else {
-                console.error("Reaction failed", e);
             }
         }
-    }
 
-    // Viewer Buttons
-    // Viewer Buttons
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) backBtn.addEventListener('click', () => navigateTo('/public'));
+        // Viewer Buttons
+        // Viewer Buttons
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) backBtn.addEventListener('click', () => navigateTo('/public'));
 
-    const copyBtn = document.getElementById('copyBtn');
-    if (copyBtn) copyBtn.addEventListener('click', () => {
-        if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied to clipboard", "success");
-        }
-    });
-
-    window.copyPasteContent = function () {
-        if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied successfully", "success");
-        }
-    };
-
-    window.copyPasteLink = function () {
-        navigator.clipboard.writeText(window.location.href);
-        showToast("Transmission link copied", "success");
-    };
-
-    const rawBtn = document.getElementById('rawBtn');
-    if (rawBtn) rawBtn.addEventListener('click', () => {
-        if (window.currentViewedPaste) {
-            const win = window.open();
-            win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
-        }
-    });
-
-
-    // --- 4. Auth & Modal Logic (Restored) ---
-    let currentEmail = '';
-    let authMethod = '';
-
-    window.openKeyModal = function () {
-        closeModals();
-        document.getElementById('keyModal').classList.add('active');
-    }
-
-    window.openRequestModal = function () {
-        console.log("Opening request modal");
-        closeModals();
-        resetRequestModal();
-        document.getElementById('requestModal').classList.add('active');
-    }
-
-    window.closeModals = function () {
-        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    }
-
-    window.switchView = function (id) {
-        document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-    }
-
-    window.resetRequestModal = function () {
-        switchView('req-view-1');
-        document.getElementById('manualIdentity').value = '';
-        document.getElementById('manualReason').value = '';
-        document.getElementById('reqReason').value = '';
-    }
-
-    window.startDiscordAuth = function (mode = 'request') {
-        const width = 500;
-        const height = 800;
-        const left = (window.screen.width / 2) - (width / 2);
-        const top = (window.screen.height / 2) - (height / 2);
-
-        // Using the consolidated auth endpoint
-        const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
-        const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
-
-        window.addEventListener('message', function onMessage(e) {
-            if (e.data.type === 'DISCORD_VERIFIED') {
-                window.removeEventListener('message', onMessage);
-
-                if (mode === 'login') {
-                    showToast("✅ Signed in with Discord!", "success");
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
-
-                // FOUND AUTO-KEY?
-                if (e.data.existingKey) {
-                    localStorage.setItem('private_access_key', e.data.existingKey);
-                    closeModals();
-                    // Show quick success visual
-                    const hint = document.querySelector('.tech-hint');
-                    if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
-                    setTimeout(() => navigateTo('/public'), 800);
-                    return;
-                }
-
-                currentEmail = e.data.id;
-                authMethod = 'Discord';
-                document.getElementById('verifiedId').value = currentEmail;
-                switchView('req-view-4');
+        const copyBtn = document.getElementById('copyBtn');
+        if (copyBtn) copyBtn.addEventListener('click', () => {
+            if (window.currentViewedPaste) {
+                navigator.clipboard.writeText(window.currentViewedPaste.content);
+                showToast("Payload copied to clipboard", "success");
             }
         });
-    }
 
-    window.showManualInput = function () {
-        switchView('req-view-manual');
-    }
+        window.copyPasteContent = function () {
+            if (window.currentViewedPaste) {
+                navigator.clipboard.writeText(window.currentViewedPaste.content);
+                showToast("Payload copied successfully", "success");
+            }
+        };
 
-    window.submitManualRequest = async function () {
-        const contact = document.getElementById('manualIdentity').value;
-        const reason = document.getElementById('manualReason').value;
-        const btn = document.querySelector('#req-view-manual .btn-submit');
+        window.copyPasteLink = function () {
+            navigator.clipboard.writeText(window.location.href);
+            showToast("Transmission link copied", "success");
+        };
 
-        if (!contact || !reason) return alert('Please fill in all fields.');
+        const rawBtn = document.getElementById('rawBtn');
+        if (rawBtn) rawBtn.addEventListener('click', () => {
+            if (window.currentViewedPaste) {
+                const win = window.open();
+                win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
+            }
+        });
 
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
 
-        try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact, reason, method: 'Manual' })
+        // --- 4. Auth & Modal Logic (Restored) ---
+        let currentEmail = '';
+        let authMethod = '';
+
+        window.openKeyModal = function () {
+            closeModals();
+            document.getElementById('keyModal').classList.add('active');
+        }
+
+        window.openRequestModal = function () {
+            console.log("Opening request modal");
+            closeModals();
+            resetRequestModal();
+            document.getElementById('requestModal').classList.add('active');
+        }
+
+        window.closeModals = function () {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+        }
+
+        window.switchView = function (id) {
+            document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        }
+
+        window.resetRequestModal = function () {
+            switchView('req-view-1');
+            document.getElementById('manualIdentity').value = '';
+            document.getElementById('manualReason').value = '';
+            document.getElementById('reqReason').value = '';
+        }
+
+        window.startDiscordAuth = function (mode = 'request') {
+            const width = 500;
+            const height = 800;
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+
+            // Using the consolidated auth endpoint
+            const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
+            const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+
+            window.addEventListener('message', function onMessage(e) {
+                if (e.data.type === 'DISCORD_VERIFIED') {
+                    window.removeEventListener('message', onMessage);
+
+                    if (mode === 'login') {
+                        showToast("✅ Signed in with Discord!", "success");
+                        setTimeout(() => window.location.reload(), 1000);
+                        return;
+                    }
+
+                    // FOUND AUTO-KEY?
+                    if (e.data.existingKey) {
+                        localStorage.setItem('private_access_key', e.data.existingKey);
+                        closeModals();
+                        // Show quick success visual
+                        const hint = document.querySelector('.tech-hint');
+                        if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
+                        setTimeout(() => navigateTo('/public'), 800);
+                        return;
+                    }
+
+                    currentEmail = e.data.id;
+                    authMethod = 'Discord';
+                    document.getElementById('verifiedId').value = currentEmail;
+                    switchView('req-view-4');
+                }
             });
-            const data = await res.json();
-
-            if (data.success) {
-                closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
         }
-    }
 
-    window.submitFinalRequest = async function () {
-        const reason = document.getElementById('reqReason').value;
-        const btn = document.querySelector('#req-view-4 .btn-submit');
-
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
-
-        try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
-            });
-            const data = await res.json();
-
-            if (data.success) {
-                closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
+        window.showManualInput = function () {
+            switchView('req-view-manual');
         }
-    }
 
-    window.submitKey = async function () {
-        const key = document.getElementById('accessKeyInput').value.trim();
-        const btn = document.querySelector('#keyModal .btn-submit');
-        if (!key) return alert('Enter a key.');
-        btn.disabled = true;
-        btn.textContent = 'Verifying...';
-        try {
-            const res = await fetch('/api/access/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('private_access_key', data.key);
-                closeModals();
-                navigateTo('/public'); // Changed from window.location.href to SPA nav
-            } else {
-                alert(data.error || 'Invalid key.');
-            }
-        } catch (e) {
-            alert('Verification failed.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Unlock';
-        }
-    }
+        window.submitManualRequest = async function () {
+            const contact = document.getElementById('manualIdentity').value;
+            const reason = document.getElementById('manualReason').value;
+            const btn = document.querySelector('#req-view-manual .btn-submit');
 
-    window.handlePrivateAccess = function () {
-        console.log("Private access requested");
-        const hasKey = localStorage.getItem('private_access_key');
-        if (!hasKey) {
-            const notif = document.getElementById('accessNotification');
-            if (notif) {
-                notif.classList.add('active');
-                setTimeout(() => notif.classList.remove('active'), 3000);
-            }
-            if (window.openKeyModal) window.openKeyModal();
-        } else {
-            window.navigateTo('/public');
-        }
-    };
+            if (!contact || !reason) return alert('Please fill in all fields.');
 
-    // Glitch effect on hint
-    const hint = document.querySelector('.tech-hint');
-    if (hint) {
-        setInterval(() => {
-            if (Math.random() > 0.95) {
-                hint.style.opacity = 0.5;
-                setTimeout(() => hint.style.opacity = 0.8, 50);
-            }
-        }, 100);
-    }
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
 
-    // --- Animated Title ---
-    (function () {
-        const originalTitle = "QuietBin.space";
-        const altTitle = "ERROR // CORRUPTION";
-        let isOriginal = true;
-
-        setInterval(() => {
-            document.title = isOriginal ? originalTitle : altTitle;
-            isOriginal = !isOriginal;
-        }, 2000); // Toggle every 2 seconds
-    })();
-</script>
-<script>
-    async function checkStoredKey() {
-        const storedKey = localStorage.getItem('private_access_key');
-        if (storedKey) {
             try {
-                const res = await fetch('/api/access/verify', {
+                const res = await fetch('/api/access/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ key: storedKey })
+                    body: JSON.stringify({ contact, reason, method: 'Manual' })
                 });
                 const data = await res.json();
 
                 if (data.success) {
-                    console.log("✅ Auto-unlocked with stored key");
-                    const entryView = document.getElementById('view-entry');
-                    if (entryView && entryView.style.display !== 'none') {
-                        navigateTo('/public');
-                    }
+                    closeModals();
+                    document.getElementById('successPopup').classList.add('active');
                 } else {
-                    console.warn("Stored key invalid/expired");
-                    localStorage.removeItem('private_access_key');
+                    alert('Error: ' + (data.error || 'Unknown error'));
                 }
             } catch (e) {
-                console.error("Auto-check failed", e);
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Request';
             }
         }
-    }
-    document.addEventListener('DOMContentLoaded', checkStoredKey);
-</script>
-<script>
-    // Initial / Fallback Loading Hider
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            window.hideLoader();
-            handleRoute(); // Ensure route logic runs on load!
-        }, 500);
-    });
-    setTimeout(() => {
-        window.hideLoader();
-        if (document.getElementById('loadingState').style.display !== 'none') handleRoute();
-    }, 4000); // Conservative fallback
-</script>
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    // Fetch Firebase Config from server
-    async function initFirebase() {
-        try {
-            const configRes = await fetch('/api/auth/firebase-config');
-            const firebaseConfig = await configRes.json();
+        window.submitFinalRequest = async function () {
+            const reason = document.getElementById('reqReason').value;
+            const btn = document.querySelector('#req-view-4 .btn-submit');
 
-            if (!firebaseConfig.apiKey) {
-                console.error("Firebase Config missing! Set variables in Railway Dashboard.");
-                return;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch('/api/access/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    closeModals();
+                    document.getElementById('successPopup').classList.add('active');
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Request';
             }
+        }
 
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const provider = new GoogleAuthProvider();
+        window.submitKey = async function () {
+            const key = document.getElementById('accessKeyInput').value.trim();
+            const btn = document.querySelector('#keyModal .btn-submit');
+            if (!key) return alert('Enter a key.');
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+            try {
+                const res = await fetch('/api/access/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    localStorage.setItem('private_access_key', data.key);
+                    closeModals();
+                    navigateTo('/public'); // Changed from window.location.href to SPA nav
+                } else {
+                    alert(data.error || 'Invalid key.');
+                }
+            } catch (e) {
+                alert('Verification failed.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Unlock';
+            }
+        }
 
-            window.loginWithGoogle = async () => {
+        window.handlePrivateAccess = function () {
+            console.log("Private access requested");
+            const hasKey = localStorage.getItem('private_access_key');
+            if (!hasKey) {
+                const notif = document.getElementById('accessNotification');
+                if (notif) {
+                    notif.classList.add('active');
+                    setTimeout(() => notif.classList.remove('active'), 3000);
+                }
+                if (window.openKeyModal) window.openKeyModal();
+            } else {
+                window.navigateTo('/public');
+            }
+        };
+
+        // Glitch effect on hint
+        const hint = document.querySelector('.tech-hint');
+        if (hint) {
+            setInterval(() => {
+                if (Math.random() > 0.95) {
+                    hint.style.opacity = 0.5;
+                    setTimeout(() => hint.style.opacity = 0.8, 50);
+                }
+            }, 100);
+        }
+
+        // --- Animated Title ---
+        (function () {
+            const originalTitle = "QuietBin.space";
+            const altTitle = "ERROR // CORRUPTION";
+            let isOriginal = true;
+
+            setInterval(() => {
+                document.title = isOriginal ? originalTitle : altTitle;
+                isOriginal = !isOriginal;
+            }, 2000); // Toggle every 2 seconds
+        })();
+    </script>
+    <script>
+        async function checkStoredKey() {
+            const storedKey = localStorage.getItem('private_access_key');
+            if (storedKey) {
                 try {
-                    const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
-                    const response = await fetch('/api/auth/google', {
+                    const res = await fetch('/api/access/verify', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: user.email,
-                            uid: user.uid,
-                            photoURL: user.photoURL
-                        })
+                        credentials: 'include',
+                        body: JSON.stringify({ key: storedKey })
                     });
-                    const data = await response.json();
+                    const data = await res.json();
+
                     if (data.success) {
-                        showToast("✅ Signed in with Google!", "success");
-                        setTimeout(() => window.location.reload(), 1000);
+                        console.log("✅ Auto-unlocked with stored key");
+                        const entryView = document.getElementById('view-entry');
+                        if (entryView && entryView.style.display !== 'none') {
+                            navigateTo('/public');
+                        }
+                    } else {
+                        console.warn("Stored key invalid/expired");
+                        localStorage.removeItem('private_access_key');
                     }
-                } catch (error) {
-                    console.error("Google login failed", error);
-                    showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
+                } catch (e) {
+                    console.error("Auto-check failed", e);
                 }
-            };
-        } catch (e) {
-            console.error("Failed to initialize Firebase:", e);
-        }
-    }
-
-    initFirebase();
-
-    // Toast Helper
-    window.showToast = (message, type = 'info') => {
-        let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
-    };
-
-
-    // Check Auth on load
-    document.addEventListener('DOMContentLoaded', async () => {
-        const api = window.storage || new PasteStorage();
-        const user = await api.getMe();
-        const loggedInView = document.getElementById('userLoggedIn');
-        const loggedOutView = document.getElementById('userLoggedOut');
-        const reactionStatus = document.getElementById('reactionStatus');
-
-        if (user) {
-            loggedInView.style.display = 'flex';
-            loggedOutView.style.display = 'none';
-            document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
-            document.getElementById('userName').textContent = user.displayName || user.username || 'User';
-            if (reactionStatus) reactionStatus.style.display = 'none';
-            window.currentUser = user;
-        } else {
-            loggedInView.style.display = 'none';
-            loggedOutView.style.display = 'flex';
-            if (reactionStatus) reactionStatus.style.display = 'block';
-        }
-    });
-</script>
-<!-- app.js removed to prevent SPA conflicts -->
-<script type="module">
-    import React, { useState, useEffect } from "https://esm.sh/react@19";
-    import { createRoot } from "https://esm.sh/react-dom@19/client";
-    import { motion, Reorder } from "https://esm.sh/framer-motion";
-    import htm from "https://esm.sh/htm";
-
-    const html = htm.bind(React.createElement);
-
-    const App = () => {
-        const [pastes, setPastes] = useState([]);
-        const [filteredPastes, setFilteredPastes] = useState([]);
-        const [activeIndex, setActiveIndex] = useState(0);
-        const [activeFolder, setActiveFolder] = useState('ALL');
-        const [isInitializing, setIsInitializing] = useState(true);
-        const [hasError, setHasError] = useState(null);
-
-        useEffect(() => {
-            try {
-                const loadData = () => {
-                    if (window._pendingPastes) {
-                        setPastes(window._pendingPastes);
-                        setFilteredPastes(window._pendingPastes);
-                        window._pendingPastes = null;
-                        setIsInitializing(false);
-                    }
-                    window.setPasteData = (data) => {
-                        setPastes(data || []);
-                        const folded = activeFolder === 'ALL' ? (data || []) : (data || []).filter(p => p.folderName === activeFolder);
-                        setFilteredPastes(folded);
-                        if (folded.length > 0) setActiveIndex(0);
-                        setIsInitializing(false);
-                    };
-                };
-                loadData();
-                const timer = setTimeout(() => setIsInitializing(false), 3000);
-                return () => clearTimeout(timer);
-            } catch (err) {
-                console.error("Initialization Error:", err);
-                setHasError(err.message);
             }
-        }, []);
+        }
+        document.addEventListener('DOMContentLoaded', checkStoredKey);
+    </script>
+    <script>
+        // Initial / Fallback Loading Hider
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                window.hideLoader();
+                handleRoute(); // Ensure route logic runs on load!
+            }, 500);
+        });
+        setTimeout(() => {
+            window.hideLoader();
+            if (document.getElementById('loadingState').style.display !== 'none') handleRoute();
+        }, 4000); // Conservative fallback
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        useEffect(() => {
-            const folded = activeFolder === 'ALL' ? pastes : pastes.filter(p => p.folderName === activeFolder);
-            setFilteredPastes(folded);
-            setActiveIndex(0);
-        }, [activeFolder, pastes]);
+        // Fetch Firebase Config from server
+        async function initFirebase() {
+            try {
+                const configRes = await fetch('/api/auth/firebase-config');
+                const firebaseConfig = await configRes.json();
 
-        if (hasError) {
-            return html`
+                if (!firebaseConfig.apiKey) {
+                    console.error("Firebase Config missing! Set variables in Railway Dashboard.");
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const provider = new GoogleAuthProvider();
+
+                window.loginWithGoogle = async () => {
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const user = result.user;
+                        const response = await fetch('/api/auth/google', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: user.email,
+                                uid: user.uid,
+                                photoURL: user.photoURL
+                            })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            showToast("✅ Signed in with Google!", "success");
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } catch (error) {
+                        console.error("Google login failed", error);
+                        showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
+                    }
+                };
+            } catch (e) {
+                console.error("Failed to initialize Firebase:", e);
+            }
+        }
+
+        initFirebase();
+
+        // Toast Helper
+        window.showToast = (message, type = 'info') => {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        };
+
+
+        // Check Auth on load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const api = window.storage || new PasteStorage();
+            const user = await api.getMe();
+            const loggedInView = document.getElementById('userLoggedIn');
+            const loggedOutView = document.getElementById('userLoggedOut');
+            const reactionStatus = document.getElementById('reactionStatus');
+
+            if (user) {
+                loggedInView.style.display = 'flex';
+                loggedOutView.style.display = 'none';
+                document.getElementById('userAvatar').src = user.avatarUrl || '/public/favicon.png';
+                document.getElementById('userName').textContent = user.displayName || user.username || 'User';
+                if (reactionStatus) reactionStatus.style.display = 'none';
+                window.currentUser = user;
+            } else {
+                loggedInView.style.display = 'none';
+                loggedOutView.style.display = 'flex';
+                if (reactionStatus) reactionStatus.style.display = 'block';
+            }
+        });
+    </script>
+    <!-- app.js removed to prevent SPA conflicts -->
+    <script type="module">
+        import React, { useState, useEffect } from "https://esm.sh/react@19";
+        import { createRoot } from "https://esm.sh/react-dom@19/client";
+        import { motion, Reorder } from "https://esm.sh/framer-motion";
+        import htm from "https://esm.sh/htm";
+
+        const html = htm.bind(React.createElement);
+
+        const App = () => {
+            const [pastes, setPastes] = useState([]);
+            const [filteredPastes, setFilteredPastes] = useState([]);
+            const [activeIndex, setActiveIndex] = useState(0);
+            const [activeFolder, setActiveFolder] = useState('ALL');
+            const [isInitializing, setIsInitializing] = useState(true);
+            const [hasError, setHasError] = useState(null);
+
+            useEffect(() => {
+                try {
+                    const loadData = () => {
+                        if (window._pendingPastes) {
+                            setPastes(window._pendingPastes);
+                            setFilteredPastes(window._pendingPastes);
+                            window._pendingPastes = null;
+                            setIsInitializing(false);
+                        }
+                        window.setPasteData = (data) => {
+                            setPastes(data || []);
+                            const folded = activeFolder === 'ALL' ? (data || []) : (data || []).filter(p => p.folderName === activeFolder);
+                            setFilteredPastes(folded);
+                            if (folded.length > 0) setActiveIndex(0);
+                            setIsInitializing(false);
+                        };
+                    };
+                    loadData();
+                    const timer = setTimeout(() => setIsInitializing(false), 3000);
+                    return () => clearTimeout(timer);
+                } catch (err) {
+                    console.error("Initialization Error:", err);
+                    setHasError(err.message);
+                }
+            }, []);
+
+            useEffect(() => {
+                const folded = activeFolder === 'ALL' ? pastes : pastes.filter(p => p.folderName === activeFolder);
+                setFilteredPastes(folded);
+                setActiveIndex(0);
+            }, [activeFolder, pastes]);
+
+            if (hasError) {
+                return html`
                 <div class="flex flex-col justify-center items-center h-[100vh] bg-red-950/20 backdrop-blur-3xl text-red-500 font-mono p-10">
                     <h2 class="text-2xl font-black mb-4">CRITICAL SYSTEM ERROR</h2>
                     <p class="opacity-80">${hasError}</p>
                     <button onClick=${() => window.location.reload()} class="mt-8 px-6 py-2 border border-red-500/50 rounded-full hover:bg-red-500/10">Re-Initialize</button>
                 </div>
             `;
-        }
+            }
 
-        const folders = ['ALL', ...new Set(pastes.map(p => p.folderName).filter(Boolean))];
+            const folders = ['ALL', ...new Set(pastes.map(p => p.folderName).filter(Boolean))];
 
-        if (isInitializing || !pastes || pastes.length === 0) {
-            return html`
+            if (isInitializing || !pastes || pastes.length === 0) {
+                return html`
                 <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/30 backdrop-blur-sm">
                     <div class="relative w-32 h-32 mb-12">
                         <div class="absolute inset-0 border-2 border-cyan-500/10 rounded-full animate-ping"></div>
@@ -2629,15 +2860,15 @@
                     `}
                 </div>
             `;
-        }
+            }
 
-        const HEIGHT = 540; // High vertical padding for premium feel
-        const EDGE = 180;
+            const HEIGHT = 540; // High vertical padding for premium feel
+            const EDGE = 180;
 
-        const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
-        const toNext = () => activeIndex < filteredPastes.length - 1 && setActiveIndex(prev => prev + 1);
+            const toPrev = () => activeIndex > 0 && setActiveIndex(prev => prev - 1);
+            const toNext = () => activeIndex < filteredPastes.length - 1 && setActiveIndex(prev => prev + 1);
 
-        return html`
+            return html`
             <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative bg-transparent">
                 <!-- Header / System Path -->
                 <div class="text-center mb-16 relative z-10 w-full px-10">
@@ -2680,8 +2911,8 @@
                                 Sector empty // No nodes detected
                             </div>
                         ` : filteredPastes.map((p, index) => {
-            const thumb = p.embedUrl || '/public/preview.png';
-            return html`
+                const thumb = p.embedUrl || '/public/preview.png';
+                return html`
                                 <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
                                     <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
                                          class=${`h-full aspect-[16/9] md:aspect-[3.5] rounded-[4rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
@@ -2723,7 +2954,7 @@
                                     </div>
                                 </div>
                             `;
-        })}
+            })}
                     <//>
                 </div>
 
@@ -2741,22 +2972,22 @@
                 </div>
             </div>
         `;
-    }
-
-    try {
-        const container = document.getElementById("pasteGalleryApp");
-        if (container) {
-            const root = createRoot(container);
-            root.render(React.createElement(App));
-        } else {
-            console.error("Mount target 'pasteGalleryApp' not found in DOM.");
         }
-    } catch (err) {
-        console.error("FATAL: React root creation failed", err);
-    }
-</script>
-<script src="/public/cursor.js"></script>
-<script src="/public/title-rotator.js?v=999"></script>
-</body>
+
+        try {
+            const container = document.getElementById("pasteGalleryApp");
+            if (container) {
+                const root = createRoot(container);
+                root.render(React.createElement(App));
+            } else {
+                console.error("Mount target 'pasteGalleryApp' not found in DOM.");
+            }
+        } catch (err) {
+            console.error("FATAL: React root creation failed", err);
+        }
+    </script>
+    <script src="/public/cursor.js"></script>
+    <script src="/public/title-rotator.js?v=999"></script>
+    </body>
 
 </html>
