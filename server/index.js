@@ -159,8 +159,8 @@ app.get('/', (req, res) => {
     }
 
     // Default Meta Data for Home
-    const title = 'veroe.space';
-    const description = 'Share code and text content securely.';
+    const title = 'veroe.space // encrypted transmissions';
+    const description = 'Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.';
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
     const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
@@ -224,8 +224,8 @@ app.get('/v/:id', (req, res) => {
 
     // 3. Construct Meta Data
     // Default values if paste not found (SPA will handle 404 UI)
-    let title = 'veroe.space';
-    let description = 'Share code and text content securely.';
+    let title = 'veroe.space // node missing';
+    let description = 'Transmission not found or purged from the ephemeral repository.';
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
     let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
