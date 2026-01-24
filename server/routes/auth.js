@@ -109,33 +109,39 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 // Helper to generate the exact Redirect URI registered in Discord
 const getDiscordRedirectURI = (req) => {
     let host = req.get('host') || '';
+
+    // Check for explicit DOMAIN override
     if (process.env.DOMAIN) {
         host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
     }
 
-    let cleanHost = host.toLowerCase().trim();
+    // Normalize case and trim
+    let normalizedHost = host.toLowerCase().trim();
 
-    // Protocol Enforcement
+    // Protocol Determination
     let protocol = 'http';
+    // Force HTTPS for live domains
     if (req.secure || req.headers['x-forwarded-proto'] === 'https' ||
-        cleanHost.includes('veroe.space') || cleanHost.includes('railway.app') || cleanHost.includes('velarix') || cleanHost.includes('veroe.fun')) {
+        normalizedHost.includes('veroe.space') ||
+        normalizedHost.includes('railway.app') ||
+        normalizedHost.includes('velarixsolutions.nl') ||
+        normalizedHost.includes('veroe.fun')) {
         protocol = 'https';
     }
 
-    // --- MULTI-SITE PATH LOGIC (EXACT DASHBOARD MATCH) ---
-    // According to your dashboard:
-    // 1. veroe.space & velarixsolutions.nl -> LONG PATH (/api/access/auth/...)
-    // 2. railway.app & localhost -> SHORT PATH (/api/auth/...)
-
+    // --- MULTI-SITE PATH CONFIGURATION ---
+    // veroe.space & velarixsolutions.nl -> LONG PATH (/api/access/auth/...)
+    // railway.app, localhost, & others -> SHORT PATH (/api/auth/...)
     let path = '/api/auth/discord/callback';
 
-    const useLongPath = cleanHost.includes('veroe.space') || cleanHost.includes('velarixsolutions.nl');
-    if (useLongPath) {
+    // We check the "base" domain (ignoring ports for this specific check)
+    const baseHost = normalizedHost.split(':')[0];
+    if (baseHost === 'veroe.space' || baseHost === 'www.veroe.space' || baseHost === 'farkle.velarixsolutions.nl' || baseHost === 'velarixsolutions.nl') {
         path = '/api/access/auth/discord/callback';
     }
 
-    const uri = `${protocol}://${cleanHost}${path}`;
-    console.log(`[AUTH] Multi-Site Redirect Sync: ${uri}`);
+    const uri = `${protocol}://${normalizedHost}${path}`;
+    console.log(`[AUTH] Multi-Site Redirect Sync: ${uri} (Host: ${normalizedHost}, Protocol: ${protocol})`);
     return uri;
 };
 
