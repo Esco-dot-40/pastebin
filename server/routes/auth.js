@@ -110,25 +110,31 @@ const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn
 const getDiscordRedirectURI = (req) => {
     let host = req.get('host') || '';
     if (process.env.DOMAIN) {
-        // Strip protocols and trailing slashes
         host = process.env.DOMAIN.replace(/^https?:\/\//i, '').replace(/\/+$/, '');
     }
 
-    // Normalize: strip whitespace (keep port for localhost support)
     let cleanHost = host.toLowerCase().trim();
 
-    // Protocol: Force HTTPS for live domains, allow http for localhost
+    // Protocol Enforcement
     let protocol = 'http';
     if (req.secure || req.headers['x-forwarded-proto'] === 'https' ||
-        cleanHost.includes('veroe.space') || cleanHost.includes('railway.app') || cleanHost.includes('veroe.fun')) {
+        cleanHost.includes('veroe.space') || cleanHost.includes('railway.app') || cleanHost.includes('velarix') || cleanHost.includes('veroe.fun')) {
         protocol = 'https';
     }
 
-    // STRICT STANDARD: All domains use /api/auth/...
-    // Make sure your Discord Dashboard matches this!
-    const path = '/api/auth/discord/callback';
+    // --- MULTI-SITE PATH LOGIC ---
+    // Some of your sites use the /api/access/ prefix, others don't.
+    // We detect the domain and use the path that matches your Discord Dashboard.
+    let path = '/api/auth/discord/callback';
 
-    return `${protocol}://${cleanHost}${path}`;
+    const longPathDomains = ['veroe.space', 'velarixsolutions.nl', 'farkle-production'];
+    if (longPathDomains.some(d => cleanHost.includes(d))) {
+        path = '/api/access/auth/discord/callback';
+    }
+
+    const uri = `${protocol}://${cleanHost}${path}`;
+    console.log(`[AUTH] Multi-Site URI Detection: ${uri}`);
+    return uri;
 };
 
 router.get('/discord', (req, res) => {
