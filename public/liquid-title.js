@@ -3,44 +3,42 @@ import { gsap } from 'https://cdn.skypack.dev/gsap';
 
 // Configuration
 const params = {
-    // Distortion
-    distortionIntensity: 0.258,
-    distortionSpeed: 1.0,
-    distortionScale: 8.0,
+    // Distortion - REDUCED for clarity
+    distortionIntensity: 0.1,
+    distortionSpeed: 0.4,
+    distortionScale: 1.0,
     noise1Weight: 0.5,
     noise2Weight: 0.3,
     noise3Weight: 0.2,
     noise2Scale: 2.0,
     noise3Scale: 4.0,
-    noise2Speed: 0.7,
-    noise3Speed: 0.5,
+    noise2Speed: 0.2,
+    noise3Speed: 0.1,
 
     // Animation
     animationEnabled: true,
     animationDuration: 3.8,
     animationDelay: 0.5,
-    edgeWidth: 0.15,
+    edgeWidth: 0.2,
     manualProgress: 0,
 
     // Effects
-    chromaticAberration: 0.003,
-    edgeFog: 0.15,
+    chromaticAberration: 0.005,
+    edgeFog: 0.1,
     vignetteIntensity: 0.2,
-    normalMapInfluence: 0.02,
-
-    // Normal Map
-    normalMapScale: 4.0,
-    normalMapOffset: 0.001,
+    normalMapInfluence: 0.05,
+    normalMapScale: 2.0,
+    normalMapOffset: 0.002,
 
     // Flow
-    flowSpeed: 1.0,
-    flowStrength: 0.87,
+    flowSpeed: 0.2,
+    flowStrength: 0.2,
 
-    // FBM (Fractal Brownian Motion)
-    fbmOctaves: 5,
-    fbmSpeed: 0.5,
-    fbmAmplitude: 0.5,
-    fbmFrequency: 5.0,
+    // FBM
+    fbmOctaves: 4,
+    fbmSpeed: 0.1,
+    fbmAmplitude: 0.3,
+    fbmFrequency: 2.0,
     fbmLacunarity: 2.0,
     fbmGain: 0.5,
 };
@@ -353,18 +351,16 @@ function initLiquidTitle() {
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
 
-    // Handle resizing
+    // Handle resizing - IMPROVED FIT
     function resize() {
         const container = canvas.parentElement;
         const w = container ? container.clientWidth : window.innerWidth;
-        const h = 250; // Match container height
+        const h = 250;
 
-        // Update renderer
         const pixelRatio = Math.min(window.devicePixelRatio, 2);
         renderer.setSize(w, h);
         renderer.setPixelRatio(pixelRatio);
 
-        // Update Camera Aspect
         const aspect = w / h;
 
         camera.left = -frustumSize * aspect / 2;
@@ -373,28 +369,23 @@ function initLiquidTitle() {
         camera.bottom = -frustumSize / 2;
         camera.updateProjectionMatrix();
 
-        // Scale mesh to fit
-        // We want the mesh (width = imgAspectRatio, height = 1) to fit within the view.
-        // Frustum height is 2. Frustum width is 2*aspect.
-
-        // Fit by width or height?
-        // If mesh width (imgAspectRatio) > canvas width (2*aspect), we need to scale down.
-        // But usually we want it to check bounds.
-
-        let scale = 1.2; // Base scale
-
-        // Check if width is constrained
+        // Scale mesh to fit properly
+        let scale = 1.0;
         const availableWidth = frustumSize * aspect;
-        const meshWidth = imgAspectRatio * scale;
 
-        if (meshWidth > availableWidth * 0.9) {
-            scale = (availableWidth * 0.9) / imgAspectRatio;
+        // Ensure 80% view width max
+        const maxMeshWidth = availableWidth * 0.8;
+        // Initial mesh width is imgAspectRatio (since scale=1 means height=1, width=ratio)
+        // Wait, PlaneGeometry(imgAspectRatio, 1...) 
+
+        if (imgAspectRatio > maxMeshWidth) {
+            scale = maxMeshWidth / imgAspectRatio;
         }
 
         mesh.scale.set(scale, scale, 1);
     }
     window.addEventListener('resize', resize);
-    resize(); // Initial resize
+    resize();
 
     // Animation Loop
     const clock = new THREE.Clock();
@@ -408,15 +399,18 @@ function initLiquidTitle() {
 
     tick();
 
-    // GSAP Animation
-    gsap.to(material.uniforms.uProgress, {
-        value: 1.5,
-        duration: 4,
-        ease: "power2.inOut",
-        repeat: -1,
-        yoyo: true,
-        repeatDelay: 0.5
-    });
+    // GSAP Animation - Gentle Wipe
+    gsap.fromTo(material.uniforms.uProgress,
+        { value: -0.5 },
+        {
+            value: 1.5,
+            duration: 5,
+            ease: "power2.inOut",
+            repeat: -1,
+            yoyo: true,
+            repeatDelay: 0.2
+        }
+    );
 }
 
 // Initialize when DOM is ready
