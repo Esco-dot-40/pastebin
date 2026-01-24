@@ -103,7 +103,8 @@ router.post('/link-key', (req, res) => {
 });
 
 // DISCORD OAUTH
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
+// FORCE CORRECT ID: Ignoring process.env because Railway has the wrong one set
+const DISCORD_CLIENT_ID = '1455588853254717510';
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn_kWaG51JBEggpQ6jHQiu';
 
 // Helper to generate the exact Redirect URI registered in Discord
@@ -161,6 +162,7 @@ router.get('/discord/callback', async (req, res) => {
 
     const callbackURL = getDiscordRedirectURI(req);
     console.log(`[AUTH] Processing Callback. URI Match: ${callbackURL}`);
+    console.log(`[AUTH] Exchange Creds -> ID: ${DISCORD_CLIENT_ID}, Secret: ${DISCORD_CLIENT_SECRET ? '***Pars3d***' : 'MISSING'}`);
 
     try {
         const response = await fetch('https://discord.com/api/oauth2/token', {
