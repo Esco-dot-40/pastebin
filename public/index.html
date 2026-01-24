@@ -2814,9 +2814,22 @@
         }, []);
 
         useEffect(() => {
-            const folded = activeFolder === 'ALL' ? pastes : pastes.filter(p => p.folderName === activeFolder);
+            const activeKey = localStorage.getItem('private_access_key');
+            let visiblePastes = pastes;
+
+            // CLIENT-SIDE PRIVACY MASK
+            // If no key, hide any folder named "PRIV" or "Private" even if pastes are public
+            if (!activeKey) {
+                visiblePastes = pastes.filter(p => !['PRIV', 'Private', 'priv', 'private'].includes(p.folderName));
+            }
+
+            const folded = activeFolder === 'ALL' ? visiblePastes : visiblePastes.filter(p => p.folderName === activeFolder);
             setFilteredPastes(folded);
-            setActiveIndex(0);
+
+            // If active folder became empty/hidden, switch to ALL
+            if (activeFolder !== 'ALL' && activeFolder !== 'Public' && !visiblePastes.find(p => p.folderName === activeFolder)) {
+                setActiveFolder('ALL');
+            }
         }, [activeFolder, pastes]);
 
         if (hasError) {
@@ -2829,7 +2842,13 @@
             `;
         }
 
-        const folders = ['ALL', ...new Set(pastes.map(p => p.folderName).filter(Boolean))];
+        // Calculate folders based on VISIBLE pastes only
+        const activeKey = localStorage.getItem('private_access_key');
+        let visiblePastesForFolders = pastes;
+        if (!activeKey) {
+            visiblePastesForFolders = pastes.filter(p => !['PRIV', 'Private', 'priv', 'private'].includes(p.folderName));
+        }
+        const folders = ['ALL', ...new Set(visiblePastesForFolders.map(p => p.folderName).filter(Boolean))];
 
         if (isInitializing || !pastes || pastes.length === 0) {
             return html`
