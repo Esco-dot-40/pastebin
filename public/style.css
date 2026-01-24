@@ -57,8 +57,7 @@
 
 html {
     font-size: 16px;
-    background-color: #050505 !important;
-    /* Force dark background always */
+    background-color: transparent !important;
 }
 
 body {

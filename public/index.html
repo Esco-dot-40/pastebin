@@ -39,6 +39,26 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <link rel="stylesheet" href="/public/loader.css?v=6">
     <link rel="stylesheet" href="/public/design-refresh.css">
+    <style>
+        :root {
+            --accent-color: #00f5ff;
+            /* Default cinematic cyan */
+            --accent-glow: rgba(0, 245, 255, 0.4);
+        }
+
+        .accent-text {
+            color: var(--accent-color) !important;
+            transition: color 0.4s ease, text-shadow 0.4s ease;
+        }
+
+        .accent-border {
+            border-color: var(--accent-color) !important;
+        }
+
+        .accent-glow {
+            text-shadow: 0 0 20px var(--accent-glow) !important;
+        }
+    </style>
     <script src="/shared/api.js?v=6"></script>
 
     <script type="importmap">
@@ -769,35 +789,7 @@
             }
         }
 
-        /* Immersive Enhancements */
-        .immersive-overlay {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at 50% 50%, transparent 10%, rgba(0, 0, 0, 0.6) 100%);
-            pointer-events: none;
-            z-index: 5;
-            mix-blend-mode: multiply;
-        }
 
-        .noise-overlay {
-            position: fixed;
-            inset: 0;
-            background: url('https://grainy-gradients.vercel.app/noise.svg');
-            opacity: 0.05;
-            pointer-events: none;
-            z-index: 6;
-            animation: noiseAnim 0.2s infinite steps(2);
-        }
-
-        @keyframes noiseAnim {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(-10px, -10px);
-            }
-        }
 
         #view-entry {
             display: flex;
@@ -859,10 +851,10 @@
 
         .text-top {
             top: 10%;
-            background: linear-gradient(to right, transparent, #00f5ff, transparent);
+            background: linear-gradient(to right, transparent, var(--accent-color), transparent);
             -webkit-background-clip: text;
             background-clip: text;
-            text-shadow: 0 0 20px rgba(0, 245, 255, 0.4);
+            text-shadow: 0 0 20px var(--accent-glow);
         }
 
         .text-bottom {
@@ -1247,18 +1239,24 @@
 
 <!-- Background Media Controller -->
 <div id="video-background-container"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.85);">
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(1.3);">
 </div>
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
 <div id="view-entry">
-    <div class="landing-text text-top" id="parallax-top">veroe.space</div>
+    <div class="landing-text text-top" id="parallax-top">V E R O E . S P A C E</div>
+
+    <!-- Announcement Banner (Per Image Request) -->
+    <div id="announcement-banner" class="accent-text accent-glow"
+        style="position: absolute; top: 18%; width: 100%; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; z-index: 100; pointer-events: none; opacity: 0.8;">
+        CONFLICT RESOLUTION; LOVENSE UPDATES; QUIETBIN REACTIONS AND GOOGLE AUTH.
+    </div>
 
     <div class="esco-profile-card">
         <img src="/public/favicon.png" class="esco-avatar" alt="Esco">
         <div class="esco-name">Ξ s c o</div>
-        <div class="esco-title">Lead Architect // veroe.space</div>
+        <div class="esco-title accent-text">LEAD ARCHITECT // VEROE.SPACE</div>
         <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; line-height: 1.6; margin-bottom: 30px;">
             Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
         </p>
@@ -1430,16 +1428,46 @@
             el.style.pointerEvents = 'none';
         });
     });
+
+    // --- ACCENT COLOR PROPAGATION ---
+    (function () {
+        // Settings: mode 'fixed' or 'rotate'
+        const mode = 'rotate';
+        const cycleSpeed = 3000; // ms
+        const colors = [
+            { main: "#00f5ff", glow: "rgba(0, 245, 255, 0.4)" }, // Cyan
+            { main: "#ff006e", glow: "rgba(255, 0, 110, 0.4)" }, // Pink
+            { main: "#00ff88", glow: "rgba(0, 255, 136, 0.4)" }, // Green
+            { main: "#7b42ff", glow: "rgba(123, 66, 255, 0.4)" }, // Purple
+            { main: "#ff9900", glow: "rgba(255, 153, 0, 0.4)" }  // Gold
+        ];
+
+        let currentIndex = 0;
+
+        function updateAccent(colorObj) {
+            document.documentElement.style.setProperty('--accent-color', colorObj.main);
+            document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
+        }
+
+        if (mode === 'rotate') {
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % colors.length;
+                updateAccent(colors[currentIndex]);
+            }, cycleSpeed);
+        } else {
+            updateAccent(colors[0]); // Use first as fixed
+        }
+    })();
 </script>
 
 <!-- View: VIEWER -->
 <div id="view-viewer"
     style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
     <div id="listView"
-        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(5, 5, 10, 0.98); overflow: hidden;">
+        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: hidden; backdrop-filter: none;">
         <div id="pasteGalleryApp" style="width: 100%;">
             <div
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.3;">
+                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
                 <div class="loader"></div>
                 <p
                     style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
@@ -1448,7 +1476,8 @@
         </div>
     </div>
 
-    <div id="detailView" class="container" style="display: none; padding-top: 100px; padding-bottom: 100px;">
+    <div id="detailView" class="container"
+        style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%;">
         <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
 
         <main id="mainContent">
@@ -2460,11 +2489,17 @@
         const toNext = () => activeIndex < filteredPastes.length - 1 && setActiveIndex(prev => prev + 1);
 
         return html`
-            <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative">
+            <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative bg-transparent">
                 <!-- Header / System Path -->
                 <div class="text-center mb-16 relative z-10 w-full px-10">
-                    <div class="text-cyan-400 font-mono text-[12px] tracking-[0.2em] uppercase opacity-70 mb-10 bg-black/40 px-6 py-2 rounded-xl border border-white/5 inline-block backdrop-blur-xl">
-                        C:\\Users\\Veroe\\Pastes\\Sectors\\${activeFolder}
+                    <div class="flex justify-between items-center max-w-6xl mx-auto mb-10">
+                        <button onClick=${() => window.navigateTo('/')} class="accent-text font-black text-[10px] uppercase tracking-[0.4em] hover:scale-110 transition-transform">
+                            ← BACK TO SYSTEM CORE
+                        </button>
+                        <div class="text-cyan-400 font-mono text-[12px] tracking-[0.2em] uppercase opacity-70 bg-black/20 px-6 py-2 rounded-xl border border-white/5 inline-block backdrop-blur-xl">
+                            C:\\Users\\Veroe\\Pastes\\Sectors\\${activeFolder}
+                        </div>
+                        <div class="w-24"></div> <!-- Spacer for alignment -->
                     </div>
                     
                     <div class="flex justify-center gap-4 flex-wrap max-w-4xl mx-auto">
@@ -2480,7 +2515,7 @@
                 </div>
 
                 <!-- Navigation Controls -->
-                <div class=${`p-8 mb-4 transition-all duration-300 ${activeIndex === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toPrev}>
+                <div class=${`p-8 mb-4 transition-all duration-300 ${activeIndex === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 accent-text'}`} onClick=${toPrev}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6" /></svg>
                 </div>
 
@@ -2518,7 +2553,7 @@
                                                     </span>
                                                     ${p.folderName ? html`<span class="text-cyan-500/30 text-[11px] uppercase tracking-[0.4em] font-mono">/repo/${p.folderName}</span>` : ''}
                                                 </div>
-                                                <h3 class="text-white text-7xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-10 group-hover:text-cyan-400 transition-colors duration-[0.8s]">
+                                                <h3 class="text-white text-7xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-10 group-hover:accent-text transition-colors duration-[0.8s]">
                                                     ${p.title || 'Undeclared'}
                                                 </h3>
                                                 <div class="flex items-center gap-16 text-white/10 font-mono text-[12px] tracking-[0.6em] uppercase">
@@ -2543,7 +2578,7 @@
                     <//>
                 </div>
 
-                <div class=${`p-8 mt-4 transition-all duration-300 ${activeIndex === filteredPastes.length - 1 || filteredPastes.length === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 text-cyan-400'}`} onClick=${toNext}>
+                <div class=${`p-8 mt-4 transition-all duration-300 ${activeIndex === filteredPastes.length - 1 || filteredPastes.length === 0 ? 'opacity-5 scale-75 cursor-not-allowed' : 'cursor-pointer hover:scale-125 active:scale-90 accent-text'}`} onClick=${toNext}>
                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6" /></svg>
                 </div>
 
@@ -2572,7 +2607,7 @@
     }
 </script>
 <script src="/public/cursor.js"></script>
-<script src="/public/title-rotator.js"></script>
+<script src="/public/title-rotator.js?v=999"></script>
 </body>
 
 </html>

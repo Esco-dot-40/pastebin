@@ -15,7 +15,7 @@
     padding: 40px;
     border-radius: 28px;
     background: var(--card-bg);
-    backdrop-filter: blur(25px) saturate(180%);
+    backdrop-filter: blur(8px) saturate(120%);
     border: 1px solid var(--border-light);
     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
     text-align: center;

@@ -1,6 +1,6 @@
 // Rotating Title Script
 (function () {
-    // console.log("Title Rotator Initializing...");
+    console.log("Terminal Title Rotator Online...");
     const domains = [
         "veroe.space",
         "q",
@@ -14,9 +14,9 @@
         "quiet",
         "Esco is lost 🧭",
         "quietb",
-        "Esco is exiled"
+        "Esco is exiled",
         "quietbi",
-        "Esco"
+        "Esco is banished",
         "quietbin"
     ];
     const colors = ["🔴", "🟠", "🟡", "⚪", "🔵", "🟢", "🟣", "⚫"];
@@ -24,18 +24,24 @@
     let domainIndex = 0;
     let colorIndex = 0;
 
-    // Fast Color Rotation (Flow Effect)
-    setInterval(() => {
+    function refreshTitle() {
         const color = colors[colorIndex];
         const domain = domains[domainIndex];
-
         document.title = `${color} ${domain}`;
+    }
 
+    // Fast Color Rotation (Flow Effect)
+    setInterval(() => {
         colorIndex = (colorIndex + 1) % colors.length;
-    }, 100); // Updates every 200ms for "flashing" effect
+        refreshTitle();
+    }, 100);
 
     // Slower Domain Rotation
     setInterval(() => {
         domainIndex = (domainIndex + 1) % domains.length;
-    }, 2000); // Changes text every 3 seconds
+        refreshTitle();
+    }, 2000);
+
+    // Initial Trigger
+    refreshTitle();
 })();

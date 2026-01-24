@@ -40,6 +40,13 @@
                     <div class="glass-card creator-card">
                         <div class="card-header-v4">
                             <h2 id="editorTitle">Propagate New Node</h2>
+                            <div id="editStatusBar"
+                                style="display: none; background: rgba(0, 245, 255, 0.1); border: 1px solid var(--primary-neon); padding: 5px 15px; border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 11px; align-items: center; gap: 10px;">
+                                <span style="color: var(--primary-neon); font-weight: 800;">[ NODE EDITING MODE ]</span>
+                                <span id="activeNodeId" style="color: white; opacity: 0.8;">ID: ---</span>
+                                <button class="btn-micro-faint" onclick="clearEditor()" style="margin-left: 10px;">ABORT
+                                    EDIT</button>
+                            </div>
                             <div class="header-actions">
                                 <button class="btn-secondary-slim" onclick="clearEditor()">Reset Terminal</button>
                                 <button id="createPasteBtn" class="btn-primary-v4">Initiate Propagation</button>

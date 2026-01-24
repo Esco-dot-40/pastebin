@@ -281,6 +281,9 @@ async function editPaste(id) {
 
         activeEditId = id;
         document.getElementById('editorTitle').textContent = `RE-PROPAGATING NODE: ${id}`;
+        document.getElementById('editStatusBar').style.display = 'flex';
+        document.getElementById('activeNodeId').textContent = `ID: ${id}`;
+
         document.getElementById('pasteTitle').value = p.title || '';
         document.getElementById('pasteLanguage').value = p.language || 'plaintext';
         document.getElementById('pasteContent').value = p.content || '';
@@ -294,6 +297,7 @@ async function editPaste(id) {
         btn.classList.add('updating');
 
         switchTab('creator');
+        showToast(`SYNCING NODE [${id}] TO TERMINAL`, 'info');
 
     } catch (e) {
         showToast(e.message, 'error');
@@ -303,10 +307,13 @@ async function editPaste(id) {
 function clearEditor() {
     activeEditId = null;
     document.getElementById('editorTitle').textContent = 'Propagate New Node';
+    document.getElementById('editStatusBar').style.display = 'none';
+
     document.getElementById('pasteTitle').value = '';
     document.getElementById('pasteContent').value = '';
     document.getElementById('pastePassword').value = '';
     document.getElementById('pasteEmbed').value = '';
+
     const btn = document.getElementById('createPasteBtn');
     btn.textContent = 'Initiate Propagation';
     btn.classList.remove('updating');
