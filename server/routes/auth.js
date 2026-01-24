@@ -102,6 +102,10 @@ router.post('/link-key', (req, res) => {
     res.json({ success: true });
 });
 
+// DISCORD OAUTH
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || '1455588853254717510';
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || '133HZ9V2Tlpn_kWaG51JBEggpQ6jHQiu';
+
 // Helper to generate the exact Redirect URI registered in Discord
 const getDiscordRedirectURI = (req) => {
     let host = req.get('host') || '';
