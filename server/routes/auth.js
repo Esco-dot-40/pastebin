@@ -122,18 +122,20 @@ const getDiscordRedirectURI = (req) => {
         protocol = 'https';
     }
 
-    // --- MULTI-SITE PATH LOGIC ---
-    // Some of your sites use the /api/access/ prefix, others don't.
-    // We detect the domain and use the path that matches your Discord Dashboard.
+    // --- MULTI-SITE PATH LOGIC (EXACT DASHBOARD MATCH) ---
+    // According to your dashboard:
+    // 1. veroe.space & velarixsolutions.nl -> LONG PATH (/api/access/auth/...)
+    // 2. railway.app & localhost -> SHORT PATH (/api/auth/...)
+
     let path = '/api/auth/discord/callback';
 
-    const longPathDomains = ['veroe.space', 'velarixsolutions.nl', 'farkle-production'];
-    if (longPathDomains.some(d => cleanHost.includes(d))) {
+    const useLongPath = cleanHost.includes('veroe.space') || cleanHost.includes('velarixsolutions.nl');
+    if (useLongPath) {
         path = '/api/access/auth/discord/callback';
     }
 
     const uri = `${protocol}://${cleanHost}${path}`;
-    console.log(`[AUTH] Multi-Site URI Detection: ${uri}`);
+    console.log(`[AUTH] Multi-Site Redirect Sync: ${uri}`);
     return uri;
 };
 
