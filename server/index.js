@@ -209,12 +209,7 @@ app.get('/v/:id', (req, res) => {
         return res.status(500).send('Error loading frontend.');
     }
 
-    // 2. Fetch Paste Metadata (Synchronously for simplicity/speed in this context or use async)
-    // Since we are in an async handler, better to be safe. But `better-sqlite3` is synchronous! 
-    // `db` in `index.js` comes from `./db/index.js`. Check if it's better-sqlite3.
-    // server/index.js line 12: `import sqlite3SessionStore from 'better-sqlite3-session-store';`
-    // It's likely better-sqlite3.
-
+    // 2. Fetch Paste Metadata
     let paste = null;
     try {
         paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ?').get(pasteId);
@@ -223,80 +218,72 @@ app.get('/v/:id', (req, res) => {
     }
 
     // 3. Construct Meta Data
-    // Default values if paste not found (SPA will handle 404 UI)
     let title = 'veroe.space // node missing';
     let description = 'Transmission not found or purged from the ephemeral repository.';
     const siteName = 'veroe.space';
-    const themeColor = '#00f5ff'; // Cyan/Neon Blue from your theme
+    const themeColor = '#00f5ff';
     let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
     let videoUrl = null;
     let videoType = 'text/html';
 
     if (paste) {
-        title = paste.title || 'Untitled Paste';
+        const isPrivate = paste.isPublic === 0;
+        const key = req.query.key;
+        const isAdmin = req.session && req.session.isAdmin;
 
-        // Handle image vs video in embedUrl
-        if (paste.embedUrl) {
-            let fullEmbedUrl = paste.embedUrl;
-            if (!fullEmbedUrl.startsWith('http')) {
-                fullEmbedUrl = `${req.protocol}://${req.get('host')}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
-            }
-
-            // Simple extension detection
-            if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
-                videoUrl = fullEmbedUrl;
-                videoType = 'video/mp4';
-                // For direct video, also provide a thumbnail if we can
-                imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
-            } else {
-                imageUrl = fullEmbedUrl;
-            }
-        }
-
-        if (paste.password) {
-            description = '🔒 This paste is password protected.';
-        } else if (paste.isPublic === 0) {
-            description = '🔒 Private Paste.';
+        if (isPrivate && !isAdmin && !key) {
+            title = 'veroe.space // sector locked';
+            description = 'Authorized signature required for node synchronization.';
         } else {
-            // Check for iframe in content
-            const iframeMatch = paste.content?.match(/<iframe.*?src=["'](.*?)["']/i);
-            if (iframeMatch && iframeMatch[1]) {
-                videoUrl = iframeMatch[1];
-                videoType = 'text/html';
+            title = paste.title || 'Untitled Paste';
+
+            if (paste.embedUrl) {
+                let fullEmbedUrl = paste.embedUrl;
+                if (!fullEmbedUrl.startsWith('http')) {
+                    fullEmbedUrl = `${req.protocol}://${req.get('host')}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
+                }
+                if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
+                    videoUrl = fullEmbedUrl;
+                    videoType = 'video/mp4';
+                    imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
+                } else {
+                    imageUrl = fullEmbedUrl;
+                }
             }
 
-            // Truncate content for description AND STRIP HTML/Code
-            let rawContent = paste.content || '';
-
-            // Decode common HTML entities (case insensitive)
-            rawContent = rawContent
-                .replace(/&lt;/gi, '<')
-                .replace(/&gt;/gi, '>')
-                .replace(/&quot;/gi, '"')
-                .replace(/&#39;/gi, "'")
-                .replace(/&nbsp;/gi, ' ')
-                .replace(/&amp;/gi, '&');
-
-            const strippedContent = rawContent
-                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
-                .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')   // Remove styles
-                .replace(/<\/?[^>]+(>|$)/g, ' ')                                    // Strip tags
-                .replace(/[=-]{3,}/g, '')                                          // Remove separators
-                .replace(/\s+/g, ' ')                                              // Collapse spaces
-                .trim();
-
-            const maxDesc = 200;
-            if (strippedContent.length > 3) {
-                description = strippedContent.length > maxDesc
-                    ? strippedContent.substring(0, maxDesc) + '...'
-                    : strippedContent;
+            if (paste.password) {
+                description = '🔒 This paste is password protected.';
             } else {
-                description = 'Interactive content hosted on veroe.space';
+                const iframeMatch = paste.content?.match(/<iframe.*?src=["'](.*?)["']/i);
+                if (iframeMatch && iframeMatch[1]) {
+                    videoUrl = iframeMatch[1];
+                    videoType = 'text/html';
+                }
+
+                let rawContent = paste.content || '';
+                rawContent = rawContent
+                    .replace(/&lt;/gi, '<')
+                    .replace(/&gt;/gi, '>')
+                    .replace(/&quot;/gi, '"')
+                    .replace(/&#39;/gi, "'")
+                    .replace(/&nbsp;/gi, ' ')
+                    .replace(/&amp;/gi, '&');
+
+                const strippedContent = rawContent
+                    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                    .replace(/<\/?[^>]+(>|$)/g, ' ')
+                    .replace(/[=-]{3,}/g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+
+                const maxDesc = 200;
+                description = strippedContent.length > 3
+                    ? (strippedContent.length > maxDesc ? strippedContent.substring(0, maxDesc) + '...' : strippedContent)
+                    : 'Interactive content hosted on veroe.space';
             }
         }
     }
-
-
 
     // 4. Escape HTML Helpers
     const escape = (str) => String(str || '')
@@ -310,8 +297,6 @@ app.get('/v/:id', (req, res) => {
     const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
 
     // 5. Inject Meta Tags
-    // We replace the existing <title> and append meta tags to <head>
-
     let metaTags = `
     <meta property="og:site_name" content="${siteName}">
     <meta property="og:type" content="website">
@@ -321,14 +306,12 @@ app.get('/v/:id', (req, res) => {
     <meta name="theme-color" content="${themeColor}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
-    <meta name="twitter:description" content="${safeDesc}">
-    `;
+    <meta name="twitter:description" content="${safeDesc}">`;
 
     if (imageUrl) {
         metaTags += `
     <meta property="og:image" content="${imageUrl}">
-    <meta name="twitter:image" content="${imageUrl}">
-        `;
+    <meta name="twitter:image" content="${imageUrl}">`;
     }
 
     if (videoUrl) {
@@ -338,16 +321,11 @@ app.get('/v/:id', (req, res) => {
     <meta property="og:video:secure_url" content="${videoUrl}">
     <meta property="og:video:type" content="${videoType}">
     <meta property="og:video:width" content="1280">
-    <meta property="og:video:height" content="720">
-        `;
+    <meta property="og:video:height" content="720">`;
     }
 
-    // Replace title
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
-
-    // Inject before closing head
     html = html.replace('</head>', `${metaTags}\n</head>`);
-
     res.send(html);
 });
 

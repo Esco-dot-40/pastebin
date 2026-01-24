@@ -1507,7 +1507,20 @@
         };
 
         // Bind Actions
-        bindClick('btnPublicAccess', () => window.navigateTo('/public'));
+        bindClick('btnPublicAccess', () => {
+            const key = localStorage.getItem('private_access_key');
+            if (key) {
+                window.navigateTo('/public');
+            } else {
+                const notif = document.getElementById('accessNotification');
+                if (notif) {
+                    notif.textContent = "Sector locked. Signature required for synchronization.";
+                    notif.classList.add('active');
+                    setTimeout(() => notif.classList.remove('active'), 3000);
+                }
+                if (window.openKeyModal) window.openKeyModal();
+            }
+        });
 
         bindClick('btnPrivateAccess', () => {
             const key = localStorage.getItem('private_access_key');

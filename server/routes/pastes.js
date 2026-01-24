@@ -211,10 +211,12 @@ router.get('/public-list', (req, res) => {
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccess = validateAccessKey(key) || isAdmin;
 
-    // Respect privacy: Only show private pastes if user hasAccess or is Admin
-    const query = hasAccess
-        ? `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`
-        : `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
+    // MANDATORY ACCESS: If no key/admin, return empty sector
+    if (!hasAccess) {
+        return res.json([]);
+    }
+
+    const query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
 
     const list = db.prepare(query).all();
 
@@ -264,11 +266,18 @@ router.get('/:id', async (req, res) => {
     if (!paste) return res.status(404).json({ error: 'Not found' });
 
     const isAdmin = req.session && req.session.isAdmin;
-    const hasAccessKey = validateAccessKey(req.headers['x-access-key']);
+    const key = req.headers['x-access-key'] || req.query.key;
+    const hasAccessKey = validateAccessKey(key);
     const isAuthorized = isAdmin || hasAccessKey;
+    const isOwner = req.session && req.session.user && paste.userId === req.session.user.id;
+
+    // MANDATORY ACCESS: Everything requires a signature/key
+    if (!isAuthorized && !isOwner) {
+        return res.status(403).json({ error: 'Access Denied: Authorized signature required.' });
+    }
 
     // Check Privacy Access
-    if (paste.isPublic === 0 && !isAuthorized) {
+    if (paste.isPublic === 0 && !isAuthorized && !isOwner) {
         return res.status(403).json({ error: 'This paste is private. Authorized access only.' });
     }
 
