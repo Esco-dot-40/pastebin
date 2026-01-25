@@ -706,7 +706,8 @@
 
         body {
             margin: 0;
-            overflow: hidden;
+            overflow: hidden !important;
+            /* Force no scroll on body/landing */
             background: transparent;
             display: block;
             height: 100vh;
@@ -1641,9 +1642,12 @@
 <!-- User Profile (Top Right) -->
 <div class="user-profile" id="topProfile">
     <!-- Logged Out State -->
-    <button onclick="window.location.href='/adminperm/login.html'" class="auth-btn" id="loginBtn">Admin</button>
+    <button onclick="window.location.href='/adminperm/login.html'" class="auth-btn" id="btnAdmin"
+        style="background: rgba(255,255,255,0.1);">Admin</button>
     <button onclick="window.startDiscordAuth('login')" class="auth-btn"
-        style="background: #5865F2; border-color: #5865F2;">Login</button>
+        style="background: #5865F2; border-color: #5865F2;">Discord</button>
+    <button onclick="window.loginWithGoogle()" class="auth-btn"
+        style="background: #EA4335; border-color: #EA4335;">Google</button>
 </div>
 <!-- Logged In State Template (Hidden by default, populated by JS) -->
 <div class="user-profile" id="loggedInProfile" style="display: none;">
@@ -1963,6 +1967,29 @@
             document.documentElement.style.setProperty('--accent-color', colorObj.main);
             document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
         }
+
+        // Initialize Session & UI State
+        (async function checkSession() {
+            try {
+                const user = await storage.getMe();
+                const topProfile = document.getElementById('topProfile');
+                const loggedInProfile = document.getElementById('loggedInProfile');
+
+                if (user) {
+                    if (topProfile) topProfile.style.display = 'none';
+                    if (loggedInProfile) {
+                        loggedInProfile.style.display = 'flex';
+                        document.getElementById('navUsername').textContent = user.displayName || user.username || 'User';
+                        if (user.avatarUrl) document.getElementById('navAvatar').src = user.avatarUrl;
+                    }
+                } else {
+                    if (topProfile) topProfile.style.display = 'flex';
+                    if (loggedInProfile) loggedInProfile.style.display = 'none';
+                }
+            } catch (e) {
+                console.warn('Session check failed', e);
+            }
+        })();
 
         if (mode === 'rotate') {
             setInterval(() => {
