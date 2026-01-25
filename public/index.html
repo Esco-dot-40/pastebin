@@ -1187,11 +1187,11 @@
             const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
             mainContent.forEach(el => el.style.filter = '');
 
-            // Hide loader after a brief delay for a premium feel
+            // Keep loader for 2 seconds to ensure high performance feel
             setTimeout(() => {
                 const loader = document.getElementById('loadingState');
                 if (loader) loader.classList.add('fade-out');
-            }, 1000);
+            }, 2000);
 
             // Try enabling audio
             const aud = document.getElementById('bgAudio');
@@ -1202,7 +1202,7 @@
             return;
         }
 
-        // Show Splash, but keep loader until interaction or ready
+        // Show Splash, but keep loader until user is really seeing it
         const splash = document.getElementById('splash-overlay');
         if (splash) splash.style.display = 'grid';
 
@@ -1210,11 +1210,11 @@
         const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
         mainContent.forEach(el => el.style.filter = 'blur(10px)');
 
-        // Hide loader so splash is visible
+        // Keep loader for 1.5s then fade out to splash
         setTimeout(() => {
             const loader = document.getElementById('loadingState');
             if (loader) loader.classList.add('fade-out');
-        }, 500);
+        }, 1500);
 
         // Initialize Engine Button
         initEngineButton();
