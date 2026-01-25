@@ -2,16 +2,9 @@ import * as THREE from 'three';
 
 // Configuration
 const params = {
-  distortionIntensity: 0.25,
-  distortionSpeed: 0.4,
-  distortionScale: 0.8,
-  noise1Weight: 0.6,
-  noise2Weight: 0.3,
-  noise3Weight: 0.1,
-  chromaticAberration: 0.012,
-  edgeFog: 0.05,
-  normalMapInfluence: 0.15,
-  uProgress: 1.5 // Start fully progressed for now to avoid reveal issues
+  distortionIntensity: 0.6, // Increased for "waves"
+  uProgress: 1.5,
+  chromaticAberration: 0.02
 };
 
 const vertexShader = `
@@ -31,32 +24,59 @@ uniform float uChromaticAberration;
 
 varying vec2 vUv;
 
-float random(vec2 p) {
-  return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453123);
+// ========== GRADIENT NOISE ==========
+vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec2 mod289_2(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+float gradientNoise(vec2 v) {
+  const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  vec2 i  = floor(v + dot(v, C.yy) );
+  vec2 x0 = v -   i + dot(i, C.xx);
+  vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+  vec4 x12 = x0.xyxy + C.xxzz;
+  x12.xy -= i1;
+  i = mod289_2(i);
+  vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+  vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+  m = m*m*m*m;
+  vec3 x = 2.0 * fract(p * C.www) - 1.0;
+  vec3 h = abs(x) - 0.5;
+  vec3 ox = floor(x + 0.5);
+  vec3 a0 = x - ox;
+  m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+  vec3 g;
+  g.x  = a0.x  * x0.x  + h.x  * x0.y;
+  g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+  return 130.0 * dot(m, g);
 }
 
-float noise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  float a = random(i);
-  float b = random(i + vec2(1.0, 0.0));
-  float c = random(i + vec2(0.0, 1.0));
-  float d = random(i + vec2(1.0, 1.0));
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+float fbm(vec2 p, float time) {
+  float value = 0.0;
+  float amplitude = 0.5;
+  float frequency = 1.0;
+  for(int i = 0; i < 5; i++) {
+    value += amplitude * gradientNoise(p * frequency + time * 0.3);
+    frequency *= 2.0;
+    amplitude *= 0.5;
+  }
+  return value;
 }
 
 void main() {
   vec2 uv = vUv;
   
-  // Ripple Effect
-  float n = noise(uv * 3.0 + uTime * 0.5);
-  vec2 distortion = vec2(
-    noise(uv * 4.0 + uTime * 0.3),
-    noise(uv * 4.0 + uTime * 0.2 + 10.0)
-  ) * uDistortionIntensity;
+  // Progress Mask (Force visible if progress is high)
+  float pMask = 1.0;
+  if (uProgress < 1.3) {
+      pMask = smoothstep(uProgress - 0.3, uProgress, uv.x);
+  }
+
+  // Wave/Liquid Distortion (FBM)
+  float ripple = fbm(uv * 1.2, uTime * 0.4);
+  vec2 distortion = vec2(ripple) * uDistortionIntensity * 0.15;
   
-  vec2 distortedUv = uv + distortion * 0.1;
+  vec2 distortedUv = uv + distortion;
   
   // Chromatic Aberration
   float r = texture2D(uTexture, distortedUv + vec2(uChromaticAberration, 0.0)).r;
@@ -64,7 +84,13 @@ void main() {
   float b = texture2D(uTexture, distortedUv - vec2(uChromaticAberration, 0.0)).b;
   float alpha = texture2D(uTexture, distortedUv).a;
   
-  gl_FragColor = vec4(r, g, b, alpha);
+  vec3 color = vec3(r, g, b);
+  
+  // Enhance the glow color (Veroe Cyan)
+  vec3 glowColor = vec4(0.0, 0.96, 1.0, 1.0).rgb;
+  color = mix(color, glowColor, (1.0 - alpha) * 0.15);
+
+  gl_FragColor = vec4(color, alpha * pMask);
 }
 `;
 
@@ -74,24 +100,28 @@ function initInstance(canvas) {
   const scene = new THREE.Scene();
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 
-  // High quality text texture
   const txtCanvas = document.createElement('canvas');
   const ctx = txtCanvas.getContext('2d');
-  txtCanvas.width = 1024;
-  txtCanvas.height = 256;
-  ctx.clearRect(0, 0, txtCanvas.width, txtCanvas.height);
-  ctx.font = '900 80px "Inter", "Outfit", sans-serif';
+  const w = 2000;
+  const h = 500;
+  txtCanvas.width = w;
+  txtCanvas.height = h;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = '900 180px "Inter", "Arial", sans-serif';
   ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.letterSpacing = '12px';
-  // Subtle glow
-  ctx.shadowColor = 'rgba(0, 245, 255, 0.5)';
-  ctx.shadowBlur = 15;
-  ctx.fillText('VEROE.SPACE', txtCanvas.width / 2, txtCanvas.height / 2);
+  ctx.letterSpacing = '1.2rem';
+
+  // Strong Neon Glow
+  ctx.shadowColor = '#00f5ff';
+  ctx.shadowBlur = 45;
+  ctx.fillText('VEROE.SPACE', w / 2, h / 2);
 
   const texture = new THREE.CanvasTexture(txtCanvas);
   texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
 
   const material = new THREE.ShaderMaterial({
     vertexShader,
@@ -103,34 +133,48 @@ function initInstance(canvas) {
       uDistortionIntensity: { value: params.distortionIntensity },
       uChromaticAberration: { value: params.chromaticAberration }
     },
-    transparent: true
+    transparent: true,
+    side: THREE.DoubleSide
   });
 
-  const geometry = new THREE.PlaneGeometry(4, 1);
+  const imgAspectRatio = w / h;
+  const geometry = new THREE.PlaneGeometry(imgAspectRatio, 1, 64, 64);
   const mesh = new THREE.Mesh(geometry, material);
   scene.add(mesh);
 
-  const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
-  camera.position.z = 3;
+  const frustumSize = 2;
+  const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+  camera.position.z = 1;
 
   function resize() {
-    const w = canvas.parentElement.clientWidth;
-    const h = canvas.parentElement.clientHeight || 150;
-    renderer.setSize(w, h);
-    camera.aspect = w / h;
+    const container = canvas.parentElement;
+    if (!container) return;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight || 200;
+
+    renderer.setSize(cw, ch);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const aspect = cw / ch;
+    camera.left = -frustumSize * aspect / 2;
+    camera.right = frustumSize * aspect / 2;
+    camera.top = frustumSize / 2;
+    camera.bottom = -frustumSize / 2;
     camera.updateProjectionMatrix();
 
-    // Fit mesh to view
-    const dist = camera.position.z;
-    const height = 2 * Math.tan((camera.fov * Math.PI) / 360) * dist;
-    const width = height * camera.aspect;
+    // Scale: Ensure it's prominent
+    const targetWidth = (frustumSize * aspect) * 0.85; // Fill 85% of width
+    const targetHeight = frustumSize * 0.6;
 
-    // SCALE DOWN: Make the logo smaller within its space
-    const scale = 0.35;
-    mesh.scale.set(width * scale, (width * scale) / 4, 1);
+    let scaleW = targetWidth / imgAspectRatio;
+    let scaleH = targetHeight / 1.0;
+    let finalScale = Math.min(scaleW, scaleH);
+
+    mesh.scale.set(finalScale, finalScale, 1);
   }
 
   window.addEventListener('resize', resize);
+  setTimeout(resize, 0);
   resize();
 
   const clock = new THREE.Clock();
@@ -140,6 +184,17 @@ function initInstance(canvas) {
     requestAnimationFrame(animate);
   }
   animate();
+
+  if (window.gsap) {
+    material.uniforms.uProgress.value = 0;
+    window.gsap.to(material.uniforms.uProgress, {
+      value: 1.5,
+      duration: 3.5,
+      ease: "power2.out"
+    });
+  } else {
+    material.uniforms.uProgress.value = 1.5;
+  }
 }
 
 function start() {
@@ -147,8 +202,11 @@ function start() {
   canvases.forEach(initInstance);
 }
 
+// Global hook for re-init if needed
+window.initVeroeLogo = start;
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', start);
 } else {
-  start();
+  setTimeout(start, 100);
 }
