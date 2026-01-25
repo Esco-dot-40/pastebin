@@ -1679,7 +1679,11 @@
 
 <script>
     // Engine Start Logic
+    let isEntering = false;
     window.enterSite = function () {
+        if (isEntering) return;
+        isEntering = true;
+
         const btn = document.getElementById('btnStartEngine');
         if (btn) {
             btn.classList.add('on');
@@ -1698,9 +1702,15 @@
             if (ls) {
                 ls.style.transition = 'opacity 0.8s ease';
                 ls.style.opacity = '0';
+                ls.style.pointerEvents = 'none'; // Immediately stop interaction
+
                 setTimeout(() => {
-                    ls.style.display = 'none';
+                    // Force removal
+                    ls.style.setProperty('display', 'none', 'important');
                     if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+
+                    // Also enable body scroll if needed, though we set it to hidden elsewhere for landing
+                    // document.body.style.overflow = 'auto'; 
                 }, 800);
             }
         }, 800);
