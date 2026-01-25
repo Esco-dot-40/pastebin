@@ -16,7 +16,7 @@ export async function verifyAdminPassword(password) {
 
     const input = password.trim();
     const envPass = process.env.ADMIN_PASSWORD?.trim();
-    const hardcoded = 'Poncholove20!!';
+    const hardcoded = '8wMX?4+3}g49';
 
     // Check against authorized passwords
     if (input === envPass || input === hardcoded) {
