@@ -1678,42 +1678,68 @@
 </div>
 
 <script>
-    // Engine Start Logic
-    let isEntering = false;
+    // Engine Start Logic - ROBUST V3
     window.enterSite = function () {
-        if (isEntering) return;
-        isEntering = true;
+        console.log("Enter site triggered");
 
+        // 1. Visual Feedback Immediately
         const btn = document.getElementById('btnStartEngine');
+        const text = document.querySelector('.loader-text');
+
         if (btn) {
             btn.classList.add('on');
             btn.classList.add('vibrating');
+            // Disable button immediately
+            btn.style.pointerEvents = 'none';
         }
 
-        // Play Audio
-        const audio = document.getElementById('bgAudio');
-        if (audio) {
-            audio.volume = 0.2;
-            audio.play().catch(e => console.log("Audio start error", e));
+        if (text) {
+            text.textContent = "ACCESS GRANTED";
+            text.style.color = "#00ff88";
+            text.style.textShadow = "0 0 20px #00ff88";
         }
 
+        // 2. Play Audio Safely
+        try {
+            const audio = document.getElementById('bgAudio');
+            if (audio) {
+                audio.volume = 0.2;
+                audio.play().catch(e => console.warn("Audio autoplay blocked/failed:", e));
+            }
+        } catch (e) {
+            console.warn("Audio system error:", e);
+        }
+
+        // 3. Force Remove Loader Sequence
         setTimeout(() => {
             const ls = document.getElementById('loadingState');
             if (ls) {
-                ls.style.transition = 'opacity 0.8s ease';
+                // Fade out
+                ls.style.transition = 'opacity 0.8s ease, filter 0.8s ease';
                 ls.style.opacity = '0';
-                ls.style.pointerEvents = 'none'; // Immediately stop interaction
+                ls.style.filter = 'blur(10px)';
 
-                setTimeout(() => {
-                    // Force removal
-                    ls.style.setProperty('display', 'none', 'important');
+                // Trigger Background Video
+                try {
                     if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+                } catch (e) { console.warn("Video set failed:", e); }
 
-                    // Also enable body scroll if needed, though we set it to hidden elsewhere for landing
-                    // document.body.style.overflow = 'auto'; 
+                // Hard Remove from DOM
+                setTimeout(() => {
+                    try {
+                        if (ls && ls.parentNode) {
+                            ls.parentNode.removeChild(ls);
+                            console.log("Loader removed from DOM");
+                        } else if (ls) {
+                            ls.style.display = 'none';
+                        }
+                    } catch (e) {
+                        // Last resort
+                        if (ls) ls.setAttribute('style', 'display: none !important');
+                    }
                 }, 800);
             }
-        }, 800);
+        }, 600); // Slightly faster trigger
     }
 </script>
 
