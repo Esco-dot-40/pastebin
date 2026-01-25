@@ -1120,22 +1120,22 @@
             bottom: -35px;
         }
 
-        .text-top {
-            top: 10%;
-            background: linear-gradient(to right, transparent, var(--accent-color), transparent);
-            -webkit-background-clip: text;
-            background-clip: text;
-            text-shadow: 0 0 20px var(--accent-glow);
+        .landing-text-container {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 100;
         }
 
-        .text-bottom {
-            bottom: 15%;
-            font-size: 0.9rem;
-            letter-spacing: 1.2rem;
-            background: linear-gradient(to right, transparent, #ff006e, transparent);
-            -webkit-background-clip: text;
-            background-clip: text;
-            text-shadow: 0 0 20px rgba(255, 0, 110, 0.4);
+        .webgl,
+        .webgl-splash {
+            width: 100%;
+            height: 100%;
+            max-width: 1200px;
         }
     </style>
     <link rel="stylesheet" href="/public/cursor.css">
@@ -1181,13 +1181,19 @@
         if (lastSeen && (now - parseInt(lastSeen) < thirtyMinutes)) {
             // Skip splash
             const splash = document.getElementById('splash-overlay');
-            splash.style.display = 'none';
+            if (splash) splash.style.display = 'none';
 
             // Ensure no blur on main content
             const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
             mainContent.forEach(el => el.style.filter = '');
 
-            // Try enabling audio if previously allowed (optional, browser may block)
+            // Hide loader after a brief delay for a premium feel
+            setTimeout(() => {
+                const loader = document.getElementById('loadingState');
+                if (loader) loader.classList.add('fade-out');
+            }, 1000);
+
+            // Try enabling audio
             const aud = document.getElementById('bgAudio');
             if (localStorage.getItem('audio_pref') === 'on' && aud) {
                 aud.volume = 0.3;
@@ -1196,13 +1202,19 @@
             return;
         }
 
-        // Show Splash
+        // Show Splash, but keep loader until interaction or ready
         const splash = document.getElementById('splash-overlay');
-        splash.style.display = 'grid';
+        if (splash) splash.style.display = 'grid';
 
         // Blur main content
         const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
         mainContent.forEach(el => el.style.filter = 'blur(10px)');
+
+        // Hide loader so splash is visible
+        setTimeout(() => {
+            const loader = document.getElementById('loadingState');
+            if (loader) loader.classList.add('fade-out');
+        }, 500);
 
         // Initialize Engine Button
         initEngineButton();
@@ -1246,6 +1258,7 @@
 
     window.enterSite = function (withAudio) {
         const splash = document.getElementById('splash-overlay');
+        const loader = document.getElementById('loadingState');
         const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
 
         // Save State
@@ -1253,7 +1266,8 @@
         localStorage.setItem('audio_pref', withAudio ? 'on' : 'off');
 
         // Animation
-        splash.style.opacity = '0';
+        if (splash) splash.style.opacity = '0';
+        if (loader) loader.classList.add('fade-out');
         mainContent.forEach(el => {
             el.style.transition = 'filter 0.8s ease';
             el.style.filter = 'blur(0px)';
@@ -1636,9 +1650,8 @@
 <div id="view-entry"
     style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; padding-top: 100px; padding-bottom: 50px; z-index: 5;">
     <!-- LIQUID TITLE ANIMATION -->
-    <div class="landing-text-container"
-        style="position: absolute; top: 5%; width: 100%; display: flex; justify-content: center; z-index: 10;">
-        <canvas class="webgl" style="width: 100%; height: 250px; outline: none;"></canvas>
+    <div class="landing-text-container">
+        <canvas class="webgl"></canvas>
     </div>
     <!-- <div class="landing-text text-top glitch-text" id="parallax-top" data-text="V E R O E . S P A C E">V E R O E . S P A
         C E</div> -->

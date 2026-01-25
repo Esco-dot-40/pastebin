@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { gsap } from 'https://cdn.skypack.dev/gsap';
+// Using global gsap from index.html CDN
+
 
 // Configuration
 const params = {
@@ -291,9 +292,9 @@ function initInstance(canvas) {
     camera.bottom = -frustumSize / 2;
     camera.updateProjectionMatrix();
 
-    // SCALING - User said "Too big", reducing target width to 0.5
-    const targetWidth = (2 * aspect) * 0.5;
-    const targetHeight = 2 * 0.5;
+    // SCALING - User says "Too big", reducing target width to 0.4
+    const targetWidth = (2 * aspect) * 0.4;
+    const targetHeight = 2 * 0.4;
     let scaleW = targetWidth / imgAspectRatio;
     let scaleH = targetHeight / 1.0;
     let finalScale = Math.min(scaleW, scaleH);
@@ -311,11 +312,16 @@ function initInstance(canvas) {
   }
   tick();
 
-  gsap.to(material.uniforms.uProgress, {
-    value: 1.5,
-    duration: 3,
-    ease: "power2.out"
-  });
+  if (window.gsap) {
+    window.gsap.to(material.uniforms.uProgress, {
+      value: 1.5,
+      duration: 3,
+      ease: "power2.out"
+    });
+  } else {
+    // Fallback if GSAP is not loaded
+    material.uniforms.uProgress.value = 1.5;
+  }
 }
 
 function initLiquidTitle() {
