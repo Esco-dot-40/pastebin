@@ -107,6 +107,7 @@ function initInstance(canvas) {
   txtCanvas.width = w;
   txtCanvas.height = h;
 
+  const ctx = txtCanvas.getContext('2d');
   ctx.clearRect(0, 0, w, h);
   // Reduced font size to ensure it fits horizontally in 4096px
   ctx.font = '900 250px "Inter", "Arial", sans-serif';

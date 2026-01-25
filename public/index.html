@@ -2045,23 +2045,29 @@
         // Initialize Session & UI State
         (async function checkSession() {
             try {
+                if (!window.storage) return;
+
                 const user = await storage.getMe();
+
+                // Safe DOM references
                 const topProfile = document.getElementById('topProfile');
                 const loggedInProfile = document.getElementById('loggedInProfile');
+                const navUsername = document.getElementById('navUsername');
+                const navAvatar = document.getElementById('navAvatar');
 
                 if (user) {
                     if (topProfile) topProfile.style.display = 'none';
                     if (loggedInProfile) {
                         loggedInProfile.style.display = 'flex';
-                        document.getElementById('navUsername').textContent = user.displayName || user.username || 'User';
-                        if (user.avatarUrl) document.getElementById('navAvatar').src = user.avatarUrl;
+                        if (navUsername) navUsername.textContent = user.displayName || user.username || 'User';
+                        if (navAvatar && user.avatarUrl) navAvatar.src = user.avatarUrl;
                     }
                 } else {
                     if (topProfile) topProfile.style.display = 'flex';
                     if (loggedInProfile) loggedInProfile.style.display = 'none';
                 }
             } catch (e) {
-                console.warn('Session check failed', e);
+                console.warn('Session check warning:', e);
             }
         })();
 
