@@ -1,57 +1,48 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Create cursor elements
+    // 1. Create the Cursor Structure
+    const cursor = document.createElement('div');
+    cursor.id = 'digital-cursor';
+
+    // Determine the center dot if we want one
     const dot = document.createElement('div');
-    dot.id = 'custom-cursor-dot';
-    document.body.appendChild(dot);
+    dot.className = 'cursor-center-dot';
+    cursor.appendChild(dot);
 
-    const border = document.createElement('div');
-    border.id = 'custom-cursor-border';
-    document.body.appendChild(border);
+    document.body.appendChild(cursor);
 
-    // Initial position off-screen
     let mouseX = -100;
     let mouseY = -100;
-    let dotX = -100;
-    let dotY = -100;
-    let borderX = -100;
-    let borderY = -100;
 
-    // Move cursor
+    // 2. Ultra-Fast Tracking
     document.addEventListener('mousemove', (e) => {
         mouseX = e.clientX;
         mouseY = e.clientY;
+
+        // Direct update for lowest latency feel (no RAF loop lag for position)
+        cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
     });
 
-    // Animation Loop
-    function animate() {
-        // Dot follows instantly/closely
-        dotX += (mouseX - dotX) * 1;
-        dotY += (mouseY - dotY) * 1;
-        dot.style.transform = `translate3d(${dotX - 4}px, ${dotY - 4}px, 0)`; // Center offset
+    // 3. Hover Interaction Logic
+    // We use event delegation for performance and dynamic content support
+    const handleHover = () => cursor.classList.add('active');
+    const handleLeave = () => cursor.classList.remove('active');
 
-        // Border follows smoothly
-        borderX += (mouseX - borderX) * 0.15;
-        borderY += (mouseY - borderY) * 0.15;
-        border.style.transform = `translate3d(${borderX - 20}px, ${borderY - 20}px, 0)`; // Center offset
+    // Attach to common interactive elements
+    const selectors = 'a, button, input, textarea, select, .card, .reaction-btn, .clickable';
 
-        requestAnimationFrame(animate);
-    }
-    animate();
-
-    // Hover effects
-    const interactiveElements = document.querySelectorAll('a, button, input, textarea, select, .card, .reaction-btn');
-
-    interactiveElements.forEach(el => {
-        el.addEventListener('mouseenter', () => border.classList.add('active'));
-        el.addEventListener('mouseleave', () => border.classList.remove('active'));
-    });
-
-    // Handle dynamic elements (optional, via MutationObserver if needed, but simple delegate is better)
     document.body.addEventListener('mouseover', (e) => {
-        if (e.target.closest('a, button, input, textarea, select, .card, .reaction-btn')) {
-            border.classList.add('active');
-        } else {
-            border.classList.remove('active');
+        if (e.target.closest(selectors)) {
+            handleHover();
         }
     });
+
+    document.body.addEventListener('mouseout', (e) => {
+        if (e.target.closest(selectors)) {
+            handleLeave();
+        }
+    });
+
+    // 4. Click Feedback
+    document.addEventListener('mousedown', () => cursor.classList.add('clicking'));
+    document.addEventListener('mouseup', () => cursor.classList.remove('clicking'));
 });

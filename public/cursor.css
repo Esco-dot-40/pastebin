@@ -1,6 +1,5 @@
 body {
     cursor: none !important;
-    /* Hide default cursor */
 }
 
 a,
@@ -9,41 +8,83 @@ input,
 textarea,
 select {
     cursor: none !important;
-    /* Hide default hand cursor on interactive elements */
 }
 
-#custom-cursor-dot {
+/* Main Crosshair Container */
+#digital-cursor {
     position: fixed;
     top: 0;
     left: 0;
-    width: 8px;
-    height: 8px;
-    background-color: white;
-    border-radius: 50%;
+    width: 24px;
+    height: 24px;
     pointer-events: none;
     z-index: 99999;
     transform: translate(-50%, -50%);
-    mix-blend-mode: difference;
+    mix-blend-mode: exclusion;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.1s ease-out;
+    /* Slight smoothing but very fast */
+    will-change: transform;
 }
 
-#custom-cursor-border {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 99998;
-    transform: translate(-50%, -50%);
-    transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
-    mix-blend-mode: difference;
+/* Horizontal Line */
+#digital-cursor::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background-color: #00f5ff;
+    /* Cyan */
+    box-shadow: 0 0 4px #00f5ff;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-#custom-cursor-border.active {
-    width: 60px;
-    height: 60px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border-color: transparent;
+/* Vertical Line */
+#digital-cursor::after {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 2px;
+    background-color: #00f5ff;
+    /* Cyan */
+    box-shadow: 0 0 4px #00f5ff;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Center Dot */
+.cursor-center-dot {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background-color: #fff;
+    z-index: 10;
+    box-shadow: 0 0 2px #fff;
+    opacity: 0.8;
+}
+
+/* Active State (Hover) */
+#digital-cursor.active {
+    transform: translate(-50%, -50%) rotate(45deg);
+    /* Spin it */
+    width: 16px;
+    /* Shrink slightly for precision feel */
+    height: 16px;
+}
+
+#digital-cursor.active::before,
+#digital-cursor.active::after {
+    background-color: #ff006e;
+    /* Pink shift on interaction */
+    box-shadow: 0 0 8px #ff006e;
+    height: 3px;
+    /* Thicker */
+    width: 120%;
+    /* Extend slightly */
+}
+
+/* Click State */
+#digital-cursor.clicking {
+    transform: translate(-50%, -50%) scale(0.8);
 }

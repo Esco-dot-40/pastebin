@@ -101,30 +101,31 @@ function initInstance(canvas) {
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 
   const txtCanvas = document.createElement('canvas');
-  const ctx = txtCanvas.getContext('2d');
-  const w = 4096; // Increased width to prevent clipping
-  const h = 1024; // Increased height
+  /* Adjusted Config for sharper text and SAFE fitting */
+  const w = 4096;
+  const h = 1024;
   txtCanvas.width = w;
   txtCanvas.height = h;
 
   ctx.clearRect(0, 0, w, h);
-  ctx.font = '900 140px "Inter", "Arial", sans-serif'; // Slightly smaller font
+  // Reduced font size to ensure it fits horizontally in 4096px
+  ctx.font = '900 250px "Inter", "Arial", sans-serif';
   ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Safe letter spacing support check not needed for modern chrome, but using px is safer
-  if ('letterSpacing' in ctx) ctx.letterSpacing = '30px';
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '40px';
 
   // Strong Neon Glow
   ctx.shadowColor = '#00f5ff';
-  ctx.shadowBlur = 45;
+  ctx.shadowBlur = 50;
   ctx.fillText('VEROE.SPACE', w / 2, h / 2);
 
   const texture = new THREE.CanvasTexture(txtCanvas);
   texture.minFilter = THREE.LinearFilter;
   texture.magFilter = THREE.LinearFilter;
 
+  // Create material with balanced distortion
   const material = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
@@ -132,8 +133,8 @@ function initInstance(canvas) {
       uTexture: { value: texture },
       uTime: { value: 0 },
       uProgress: { value: params.uProgress },
-      uDistortionIntensity: { value: params.distortionIntensity },
-      uChromaticAberration: { value: params.chromaticAberration }
+      uDistortionIntensity: { value: 0.25 },
+      uChromaticAberration: { value: 0.01 }
     },
     transparent: true,
     side: THREE.DoubleSide

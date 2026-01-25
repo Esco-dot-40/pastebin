@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>veroe.space // heartbeat analytics</title>
+    <link rel="stylesheet" href="/public/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #050508 !important;
+            /* Deep dark background */
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 30px;
+        }
+
+        .brand {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            /* Fallback */
+        }
+
+        .overall-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #00ff88;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .status-dot-large {
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(0, 245, 255, 0.3);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 10px 0;
+            color: #fff;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Component Status */
+        .component-section {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .component-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .component-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .component-row.operational {
+            border-left-color: #00ff88;
+        }
+
+        .component-row.degraded {
+            border-left-color: #ffbe0b;
+        }
+
+        .component-row.outage {
+            border-left-color: #ff0050;
+        }
+
+        .comp-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .comp-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            height: 350px;
+            position: relative;
+        }
+
+        /* Footer */
+        .footer-action {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .btn-return {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-return:hover {
+            border-color: #00f5ff;
+            color: #00f5ff;
+            background: rgba(0, 245, 255, 0.1);
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 255, 136, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 136, 0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div class="brand">veroe.space // system</div>
+            <div class="overall-status">
+                <div class="status-dot-large"></div>
+                All Systems Operational
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Current Load</div>
+                <div class="metric-value" id="val-load">--%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg Response</div>
+                <div class="metric-value" id="val-latency">--ms</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Uptime</div>
+                <div class="metric-value" id="val-uptime">--%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Nodes</div>
+                <div class="metric-value">4/4</div>
+            </div>
+        </div>
+
+        <div class="component-section">
+            <div class="section-title">Component Status</div>
+            <div class="component-list" id="comp-list">
+                <!-- Populated via JS -->
+                <div class="component-row operational"><span class="comp-name">Core API Gateway</span><span
+                        class="comp-status">Operational</span></div>
+                <div class="component-row operational"><span class="comp-name">Database Shard A</span><span
+                        class="comp-status">Operational</span></div>
+                <div class="component-row operational"><span class="comp-name">Database Shard B</span><span
+                        class="comp-status">Operational</span></div>
+                <div class="component-row operational"><span class="comp-name">Static Asset Delivery (CDN)</span><span
+                        class="comp-status">Operational</span></div>
+            </div>
+        </div>
+
+        <div class="section-title">System Latency (24h)</div>
+        <div class="chart-container">
+            <canvas id="latencyChart"></canvas>
+        </div>
+
+        <div class="footer-action">
+            <a href="/" class="btn-return">← Return to Main Console</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Chart
+        const ctx = document.getElementById('latencyChart').getContext('2d');
+
+        // Create gradient
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0, 245, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(0, 245, 255, 0)');
+
+        const latencyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+                datasets: [{
+                    label: 'Response Time (ms)',
+                    data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 40) + 10),
+                    borderColor: '#00f5ff',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#666' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#666' }
+                    }
+                }
+            }
+        });
+
+        // Real-time Data Fetcher
+        async function fetchHeartbeat() {
+            try {
+                const res = await fetch('/api/heartbeat-data');
+                const data = await res.json();
+
+                // Update Text Metrics
+                document.getElementById('val-load').textContent = data.load + '%';
+                document.getElementById('val-latency').textContent = data.latency + 'ms';
+                document.getElementById('val-uptime').textContent = data.uptime + '%';
+
+                // Update Components List
+                const list = document.getElementById('comp-list');
+                list.innerHTML = data.components.map(c => `
+                <div class="component-row ${c.status === 'Operational' ? 'operational' : 'degraded'}">
+                    <span class="comp-name">${c.name}</span>
+                    <span class="comp-status" style="color:${c.status === 'Operational' ? '#00ff88' : '#ffbe0b'}">${c.status}</span>
+                </div>
+            `).join('');
+
+            } catch (e) { console.error("Heartbeat sync failed"); }
+        }
+
+        // Initial Fetch & Interval
+        fetchHeartbeat();
+        setInterval(fetchHeartbeat, 5000);
+    </script>
+
+</body>
+
+</html>
