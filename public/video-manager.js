@@ -1,5 +1,5 @@
 const VIDEO_SOURCES = {
-    main: "/public/uploads/main_bg.mp4",               // Main Entry Screen
+    main: "/public/uploads/19627-304735769_medium.mp4",               // Main Entry Screen (Traffic)
     loading: "/public/uploads/19627-304735769_medium.mp4", // Loading Screen (Highway)
     public: "/public/uploads/19627-304735769_medium.mp4",  // Public Paste List
     detail: "/public/uploads/150883-799711528_medium.mp4"   // Individual Paste View

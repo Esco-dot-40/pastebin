@@ -1145,6 +1145,9 @@
 <!-- Splash / Audio Gatekeeper -->
 <div id="splash-overlay" class="splash-screen splash-engine-layout">
     <div class="engine-main">
+        <div class="splash-logo-container">
+            <canvas class="webgl-splash"></canvas>
+        </div>
         <button type="button" class="start-stop latch" id="btnEngineStart">
             <div>Engine Start
                 <hr> Stop
@@ -1170,7 +1173,28 @@
 <script>
     // -- SPLASH LOGIC --
     function checkSplash() {
-        // ALWAYS SHOW SPLASH - GATEKEEPER MODE
+        const lastSeen = localStorage.getItem('splash_last_seen');
+        const now = Date.now();
+        const thirtyMinutes = 30 * 60 * 1000;
+
+        // Valid cache check
+        if (lastSeen && (now - parseInt(lastSeen) < thirtyMinutes)) {
+            // Skip splash
+            const splash = document.getElementById('splash-overlay');
+            splash.style.display = 'none';
+
+            // Ensure no blur on main content
+            const mainContent = document.querySelectorAll('body > :not(#splash-overlay)');
+            mainContent.forEach(el => el.style.filter = '');
+
+            // Try enabling audio if previously allowed (optional, browser may block)
+            const aud = document.getElementById('bgAudio');
+            if (localStorage.getItem('audio_pref') === 'on' && aud) {
+                aud.volume = 0.3;
+                aud.play().catch(() => { });
+            }
+            return;
+        }
 
         // Show Splash
         const splash = document.getElementById('splash-overlay');
@@ -1290,7 +1314,8 @@
 <style>
     /* SPLASH STYLES */
     :root {
-        --color-background-splash: hsl(180deg 10% 15%);
+        --color-background-splash: rgba(10, 10, 15, 0.4);
+        /* Transparent for video */
     }
 
     .splash-screen {
@@ -1301,6 +1326,9 @@
         height: 100vh;
         z-index: 99999;
         transition: opacity 0.8s ease;
+        backdrop-filter: blur(10px);
+        /* Keep slight blur for legibility */
+        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%);
     }
 
     .splash-screen.splash-engine-layout {
@@ -1308,8 +1336,7 @@
         /* Force grid by default */
         grid-template-columns: 1fr calc(100vh / 7);
         padding: 0;
-        background-color: var(--color-background-splash);
-        /* Ensure it's opaque and covers everything */
+        /* background-color: var(--color-background-splash); Removed to allow gradient */
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
@@ -1321,6 +1348,24 @@
         align-items: center;
         justify-content: center;
         background-color: transparent;
+        position: relative;
+    }
+
+    /* Splash Logo Container */
+    .splash-logo-container {
+        width: 100%;
+        max-width: 800px;
+        height: 250px;
+        margin-bottom: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .webgl-splash {
+        width: 100%;
+        height: 100%;
+        outline: none;
     }
 
     #color-picker {
@@ -1404,7 +1449,8 @@
         block-size: 150px;
         aspect-ratio: 1;
         border-radius: 50%;
-        background-color: var(--color-background-splash);
+        background-color: rgba(0, 0, 0, 0.5);
+        /* Semi-transparent button bg */
         border-style: none;
         box-sizing: border-box;
         container-type: size;
