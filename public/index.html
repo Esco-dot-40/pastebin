@@ -1657,16 +1657,55 @@
     <button onclick="storage.logout()" class="auth-btn" style="padding: 6px 14px; font-size: 0.75rem;">Logout</button>
 </div>
 
-<!-- Original Loader -->
-<div id="loadingState" class="loader-overlay">
-    <video class="loader-bg bg-animate" autoplay loop muted playsinline>
-        <source src="/public/uploads/19627-304735769_medium.mp4" type="video/mp4">
-    </video>
-    <div class="loader-content">
-        <l-pinwheel size="45" stroke="3.5" speed="0.9" color="#00f5ff"></l-pinwheel>
-        <div class="loader-text">Loading System...</div>
+<!-- Original Loader / Engine Start -->
+<div id="loadingState" class="loader-overlay"
+    style="display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; background: #000;">
+
+    <!-- Engine Button Logic -->
+    <div id="color-picker" style="display: none;">
+        <!-- Hidden picker logic for engine colors if needed -->
     </div>
+
+    <button class="start-stop" id="btnStartEngine" onclick="window.enterSite()" style="--color: #00f5ff;">
+        <div>
+            START
+            <hr>
+            ENGINE
+        </div>
+    </button>
+
+    <div class="loader-text" style="margin-top: 20px; opacity: 0.5;">INITIALIZING SYSTEMS...</div>
 </div>
+
+<script>
+    // Engine Start Logic
+    window.enterSite = function () {
+        const btn = document.getElementById('btnStartEngine');
+        if (btn) {
+            btn.classList.add('on');
+            btn.classList.add('vibrating');
+        }
+
+        // Play Audio
+        const audio = document.getElementById('bgAudio');
+        if (audio) {
+            audio.volume = 0.2;
+            audio.play().catch(e => console.log("Audio start error", e));
+        }
+
+        setTimeout(() => {
+            const ls = document.getElementById('loadingState');
+            if (ls) {
+                ls.style.transition = 'opacity 0.8s ease';
+                ls.style.opacity = '0';
+                setTimeout(() => {
+                    ls.style.display = 'none';
+                    if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+                }, 800);
+            }
+        }, 800);
+    }
+</script>
 
 <!-- Bio Card Wrapper for Center Alignment -->
 <!-- Bio Card Wrapper for Center Alignment -->
