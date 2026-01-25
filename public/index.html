@@ -325,18 +325,18 @@
         }
 
         .esco-profile-card {
-            width: 420px;
-            /* Wider profile card */
-            padding: 40px;
-            border-radius: 32px;
+            width: 380px;
+            /* Restored width */
+            padding: 30px;
             background: rgba(5, 5, 8, 0.98);
+            border-radius: 24px;
             border: 1px solid rgba(0, 245, 255, 0.2);
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            /* Ensure internal layout is normal flow */
+            display: block;
             text-align: center;
-            /* Positioning handled by wrapper now */
-            position: relative;
-            margin: 0;
             pointer-events: auto;
+            position: relative;
         }
 
         .site-card {
@@ -1650,19 +1650,20 @@
 </div>
 
 <!-- Bio Card Wrapper for Center Alignment -->
+<!-- Bio Card Wrapper for Center Alignment -->
 <div id="bioCardWrapper"
     style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; display: flex; justify-content: center; align-items: center; width: 100%; pointer-events: none;">
-    <!-- User Profile Controls (Moved inside bio card logic or kept separate?) - Keeping separate for now but this wrapper is for the main card -->
+    <!-- User Profile Controls - Using simple block layout to prevent flex explosions -->
     <div id="userProfile" class="esco-profile-card">
         <div id="userLoggedIn"
-            style="display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px;">
+            style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 15px; width: 100%;">
             <img id="userAvatar" class="esco-avatar" src="" alt="Avatar">
             <h2 id="userName" class="esco-name">User</h2>
             <div class="esco-title">Authorized Personnel</div>
             <button onclick="storage.logout()" class="product-btn"
-                style="margin-top: 20px; font-size: 0.8rem; padding: 10px 24px;">TERMINATE SESSION</button>
+                style="margin-top: 20px; font-size: 0.8rem; padding: 10px 24px; width: auto;">TERMINATE SESSION</button>
         </div>
-        <div id="userLoggedOut">
+        <div id="userLoggedOut" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
             <img class="esco-avatar" src="/public/avatar.jpg" alt="Esco">
             <h2 class="esco-name">ESCO</h2>
             <div class="esco-title">LEAD ARCHITECT // VEROE.SPACE</div>
