@@ -21,8 +21,8 @@
     text-align: center;
     position: relative;
     overflow: hidden;
-    margin: 180px auto 40px;
-    /* Pushed down */
+    margin: 40px auto;
+    /* Reduced top margin to allow flex centering */
     animation: cardEntrance 1s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1000;
 }
