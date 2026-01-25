@@ -11,6 +11,7 @@ import foldersRouter from './routes/folders.js';
 import imagesRouter from './routes/images.js';
 import db from './db/index.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
+import { startAutoBackup } from './services/auto-backup.js';
 const SqliteStore = sqlite3SessionStore(session);
 
 dotenv.config();
@@ -396,4 +397,12 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
     console.log(`🚀 veroe.space Ready on Port ${PORT}!`);
+
+    // Start automatic backup service
+    try {
+        startAutoBackup();
+    } catch (error) {
+        console.error('⚠️  Auto-backup service failed to start:', error.message);
+    }
 });
+
