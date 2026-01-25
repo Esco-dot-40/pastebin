@@ -1679,30 +1679,49 @@
 </div>
 
 <script>
-    // Engine Start Logic - FALLBACK V4 (Instant Entry)
-    window.enterSite = function () {
-        // 1. Visual Feedback
+    <script>
+    // Engine Start Logic - FALLBACK V5 (Scorched Earth)
+        window.forceAccess = function() {
+            console.log("Forcing Access...");
+
+        // 1. Nuke ALL loader overlays by Class
+        document.querySelectorAll('.loader-overlay').forEach(el => el.remove());
+
+        // 2. Nuke ALL loader overlays by ID
+        document.querySelectorAll('#loadingState').forEach(el => el.remove());
+
+        // 3. Ensure View Entry is Visible
+        const viewEntry = document.getElementById('view-entry');
+        if(viewEntry) {
+            viewEntry.style.display = 'flex';
+        viewEntry.style.opacity = '1';
+        viewEntry.style.visibility = 'visible';
+        viewEntry.style.zIndex = '5';
+        }
+
+        // 4. Start Background
+        try {
+            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+        } catch(e) { }
+    };
+
+        window.enterSite = function () {
+        // Visual Feedback
         const btn = document.getElementById('btnStartEngine');
         if (btn) btn.classList.add('on');
 
-        // 2. Play Audio (Best Effort)
+        // Audio
         try {
             const audio = document.getElementById('bgAudio');
-            if (audio) {
-                audio.volume = 0.2;
-                audio.play().catch(() => { });
-            }
+        if (audio) {audio.volume = 0.2; audio.play().catch(() => { }); }
         } catch (e) { }
 
-        // 3. IMMEDIATE REMOVAL (300ms delay for click feel only)
-        setTimeout(() => {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.remove(); // Native DOM removal
+        // Instant Execution
+        window.forceAccess();
 
-            // Ensure main video starts
-            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-        }, 300);
-    }
+        // Redundant Safety Check
+        setTimeout(window.forceAccess, 500);
+    };
 </script>
 
 <!-- Bio Card Wrapper for Center Alignment -->
@@ -1898,35 +1917,35 @@
 <script>
     document.addEventListener('mousemove', (e) => {
         const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
+    const topText = document.getElementById('parallax-top');
+    const bottomText = document.getElementById('parallax-bottom');
 
-        if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
+    if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
 
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+    const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+    const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
 
-        if (card) card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+    if (card) card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
 
-        // Text parallax (Counter-movement for depth)
-        if (topText) {
-            topText.style.transform = `translate(${xAxis * -2}px, ${yAxis * -2}px)`;
-            topText.style.opacity = 0.3 + Math.abs(xAxis / 50);
+    // Text parallax (Counter-movement for depth)
+    if (topText) {
+        topText.style.transform = `translate(${xAxis * -2}px, ${yAxis * -2}px)`;
+    topText.style.opacity = 0.3 + Math.abs(xAxis / 50);
         }
-        if (bottomText) {
-            bottomText.style.transform = `translate(${xAxis * 1.5}px, ${yAxis * 1.5}px)`;
-            bottomText.style.opacity = 0.3 + Math.abs(yAxis / 50);
+    if (bottomText) {
+        bottomText.style.transform = `translate(${xAxis * 1.5}px, ${yAxis * 1.5}px)`;
+    bottomText.style.opacity = 0.3 + Math.abs(yAxis / 50);
         }
     });
 
     document.addEventListener('mouseleave', () => {
         const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
+    const topText = document.getElementById('parallax-top');
+    const bottomText = document.getElementById('parallax-bottom');
 
-        if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-        if (topText) topText.style.transform = `translate(0, 0)`;
-        if (bottomText) bottomText.style.transform = `translate(0, 0)`;
+    if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+    if (topText) topText.style.transform = `translate(0, 0)`;
+    if (bottomText) bottomText.style.transform = `translate(0, 0)`;
     });
 </script>
 <!-- Force Interactive Elements & Global Utils -->
@@ -1934,48 +1953,48 @@
     // CRITICAL: Define navigation early
     window.navigateTo = function (path) {
         console.log("Navigating to:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
+    const ls = document.getElementById('loadingState');
+    if (ls) {
+        ls.style.display = 'flex';
+    ls.classList.remove('fade-out');
         }
         setTimeout(() => {
-            window.location.href = path; // Fallback to direct navigation if SPA fails
+        window.location.href = path; // Fallback to direct navigation if SPA fails
         }, 500);
 
-        // Try SPA push if available in history api
-        try {
-            window.history.pushState({}, '', path);
-            // Trigger the route handler if it exists, otherwise manual reload happen above
-            if (window.handleRoute) window.handleRoute();
+    // Try SPA push if available in history api
+    try {
+        window.history.pushState({}, '', path);
+    // Trigger the route handler if it exists, otherwise manual reload happen above
+    if (window.handleRoute) window.handleRoute();
         } catch (e) {
-            console.log("SPA Nav error, falling back");
+        console.log("SPA Nav error, falling back");
         }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         console.log("Initializing Direct Interaction Handlers...");
 
-        // 1. Ensure profile interaction
-        const profile = document.querySelector('.esco-profile-card');
-        if (profile) {
-            profile.style.zIndex = '100';
-            profile.style.position = 'relative';
-            profile.style.pointerEvents = 'auto';
+    // 1. Ensure profile interaction
+    const profile = document.querySelector('.esco-profile-card');
+    if (profile) {
+        profile.style.zIndex = '100';
+    profile.style.position = 'relative';
+    profile.style.pointerEvents = 'auto';
         }
 
         // 2. Manual Event Binding (The "Nuclear Option" for interactions)
         const bindClick = (id, fn) => {
             const el = document.getElementById(id);
-            if (el) {
+    if (el) {
                 // Remove old clones to clear listeners (optional, but safe)
                 const newEl = el.cloneNode(true);
-                el.parentNode.replaceChild(newEl, el);
+    el.parentNode.replaceChild(newEl, el);
 
                 newEl.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Stop bubbling
-                    console.log(`Button Clicked: ${id}`);
+        e.preventDefault();
+    e.stopPropagation(); // Stop bubbling
+    console.log(`Button Clicked: ${id}`);
                     fn();
                 });
                 // Force cursor
@@ -2254,7 +2273,7 @@
 </style>
 
 <script type="module">
-    import { initLoadingShader } from '/public/loading-shader.js';
+    import {initLoadingShader} from '/public/loading-shader.js';
 
 </script>
 
@@ -2294,91 +2313,91 @@
     // Persist Volume
     function setVolume(val) {
         audio.volume = val;
-        localStorage.setItem('audioVolume', val);
+    localStorage.setItem('audioVolume', val);
         if (val > 0) {
-            lastVolume = val;
+        lastVolume = val;
         }
     }
 
     function tryPlayAudio() {
         if (storedPaused === 'true' && !hasInteracted) return;
 
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                hasInteracted = true;
-                localStorage.setItem('audioIsPaused', 'false');
-                updateAudioIcon();
-                if (audio.currentTime < 5) {
-                    arrow.classList.add('visible');
-                    setTimeout(() => arrow.classList.remove('visible'), 4000);
-                }
-            }).catch(error => {
-                console.log("Autoplay prevented. Waiting for interaction.", error);
-            });
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            hasInteracted = true;
+            localStorage.setItem('audioIsPaused', 'false');
+            updateAudioIcon();
+            if (audio.currentTime < 5) {
+                arrow.classList.add('visible');
+                setTimeout(() => arrow.classList.remove('visible'), 4000);
+            }
+        }).catch(error => {
+            console.log("Autoplay prevented. Waiting for interaction.", error);
+        });
         }
     }
 
     function toggleAudio() {
         if (audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
-            // If previously volume was 0, restore it
-            if (audio.volume === 0) {
-                let vol = lastVolume || 0.2;
-                setVolume(vol);
-                slider.value = vol;
+        audio.play();
+    hasInteracted = true;
+    localStorage.setItem('audioIsPaused', 'false');
+    // If previously volume was 0, restore it
+    if (audio.volume === 0) {
+        let vol = lastVolume || 0.2;
+    setVolume(vol);
+    slider.value = vol;
             }
         } else {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
+        audio.pause();
+    localStorage.setItem('audioIsPaused', 'true');
         }
-        updateAudioIcon();
+    updateAudioIcon();
     }
 
     function updateAudioIcon() {
         if (!audio.paused && audio.volume > 0) {
-            iconMuted.style.display = 'none';
-            iconSound.style.display = 'block';
-            volBtn.classList.add('active-volume');
+        iconMuted.style.display = 'none';
+    iconSound.style.display = 'block';
+    volBtn.classList.add('active-volume');
         } else {
-            iconMuted.style.display = 'block';
-            iconSound.style.display = 'none';
-            volBtn.classList.remove('active-volume');
+        iconMuted.style.display = 'block';
+    iconSound.style.display = 'none';
+    volBtn.classList.remove('active-volume');
         }
     }
 
     // Slider Logic
     slider.addEventListener('input', (e) => {
         const val = parseFloat(e.target.value);
-        setVolume(val);
+    setVolume(val);
 
         if (val > 0 && audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
+        audio.play();
+    hasInteracted = true;
+    localStorage.setItem('audioIsPaused', 'false');
         } else if (val === 0 && !audio.paused) {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
+        audio.pause();
+    localStorage.setItem('audioIsPaused', 'true');
         }
-        updateAudioIcon();
+    updateAudioIcon();
     });
 
     slider.addEventListener('click', (e) => e.stopPropagation());
 
     volBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        toggleAudio();
+    toggleAudio();
     });
 
     // Global interaction fallback
     document.addEventListener('click', () => {
         if (audio.paused && !hasInteracted && storedPaused !== 'true') {
-            tryPlayAudio();
+        tryPlayAudio();
         }
-        hasInteracted = true;
-    }, { once: true });
+    hasInteracted = true;
+    }, {once: true });
 
     // Try playing immediately on load
     tryPlayAudio();
@@ -2388,10 +2407,10 @@
     interactEvents.forEach(evt =>
         window.addEventListener(evt, () => {
             if (!hasInteracted && storedPaused !== 'true') {
-                tryPlayAudio();
+        tryPlayAudio();
             }
-            hasInteracted = true;
-        }, { once: true, capture: true })
+    hasInteracted = true;
+        }, {once: true, capture: true })
     );
 
 
@@ -2404,76 +2423,76 @@
 
     window.navigateTo = function (path) {
         console.log("Navigating with cinematic transition:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+    const ls = document.getElementById('loadingState');
+    if (ls) {
+        ls.style.display = 'flex';
+    ls.classList.remove('fade-out');
+    if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
 
         // Show loading for 0.8 seconds (reduced from 2.5s for speed)
         setTimeout(() => {
-            window.history.pushState({}, '', path);
-            handleRoute();
+        window.history.pushState({}, '', path);
+    handleRoute();
         }, 800);
     }
 
     window.hideLoader = function () {
         const ls = document.getElementById('loadingState');
-        if (!ls) return;
-        ls.classList.add('fade-out');
+    if (!ls) return;
+    ls.classList.add('fade-out');
         setTimeout(() => {
-            ls.style.display = 'none';
+        ls.style.display = 'none';
         }, 500);
     };
 
     function handleRoute() {
         const path = window.location.pathname;
 
-        // Ensure audio is trying to play on route change (interaction happened)
-        if (audio.paused && hasInteracted) {
-            audio.play().catch(e => console.log('Resume play failed', e));
-            updateAudioIcon();
+    // Ensure audio is trying to play on route change (interaction happened)
+    if (audio.paused && hasInteracted) {
+        audio.play().catch(e => console.log('Resume play failed', e));
+    updateAudioIcon();
         }
 
-        // Entry Page
-        if (path === '/' || path === '/index.html') {
+    // Entry Page
+    if (path === '/' || path === '/index.html') {
             const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
+    if (ls) ls.style.display = 'none'; // Hide loading screen
 
-            document.getElementById('view-entry').style.display = 'flex';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'hidden'; // Lock scroll on entry
-            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-            updateUptime();
+    document.getElementById('view-entry').style.display = 'flex';
+    document.getElementById('view-viewer').style.display = 'none';
+    document.getElementById('view-access-denied').style.display = 'none';
+    document.body.style.overflow = 'hidden'; // Lock scroll on entry
+    if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+    updateUptime();
         }
-        // Access Denied Page
-        else if (path === '/access-denied') {
+    // Access Denied Page
+    else if (path === '/access-denied') {
             const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none';
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+    if (ls) ls.style.display = 'none';
+    document.getElementById('view-entry').style.display = 'none';
+    document.getElementById('view-viewer').style.display = 'none';
+    document.getElementById('view-access-denied').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
-        // Public Viewer
-        else if (path.startsWith('/public') || path.startsWith('/v/')) {
+    // Public Viewer
+    else if (path.startsWith('/public') || path.startsWith('/v/')) {
             const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
+    if (ls) ls.style.display = 'none'; // Hide loading screen
 
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'block';
-            document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Allow scroll
-            if (window.setBackgroundVideo) window.setBackgroundVideo('public');
+    document.getElementById('view-entry').style.display = 'none';
+    document.getElementById('view-viewer').style.display = 'block';
+    document.getElementById('view-access-denied').style.display = 'none';
+    document.body.style.overflow = 'auto'; // Allow scroll
+    if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
-            if (path.startsWith('/v/')) {
+    if (path.startsWith('/v/')) {
                 const id = path.split('/')[2];
-                showDetail(id);
+    showDetail(id);
             } else {
-                showList();
+        showList();
             }
         }
     }
@@ -2481,19 +2500,19 @@
     async function updateUptime() {
         try {
             const res = await fetch('/api/uptime');
-            const data = await res.json();
-            const list = document.getElementById('service-list');
-            if (list && data.services) {
-                list.innerHTML = data.services.map(s => `
+    const data = await res.json();
+    const list = document.getElementById('service-list');
+    if (list && data.services) {
+        list.innerHTML = data.services.map(s => `
                     <div class="service-row">
                         <div class="service-name">${s.name}</div>
                         <div class="service-metrics"><span>${s.uptime}</span> <span>${s.latency}</span></div>
                     </div>
                 `).join('');
-                document.getElementById('system-status-text').textContent = data.systemStatus;
+    document.getElementById('system-status-text').textContent = data.systemStatus;
             }
         } catch (e) {
-            console.warn("Uptime fetch failed");
+        console.warn("Uptime fetch failed");
         }
     }
 
@@ -2501,193 +2520,193 @@
     // --- 3. Viewer Logic (Isolated Scope) ---
     (function () {
         const storage = window.storage = new PasteStorage();
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const pasteListContainer = document.getElementById('pasteList');
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
+    const listView = document.getElementById('listView');
+    const detailView = document.getElementById('detailView');
+    const pasteListContainer = document.getElementById('pasteList');
+    const detailLoading = document.getElementById('detailLoading');
+    const notFoundState = document.getElementById('notFoundState');
+    const pasteViewContent = document.getElementById('pasteViewContent');
 
-        // Elements for detail
-        const pTitle = document.getElementById('pasteTitle');
-        const pLang = document.getElementById('pasteLanguage');
-        const pViews = document.getElementById('pasteViews');
-        const pDate = document.getElementById('pasteDate');
-        const pContent = document.getElementById('pasteContent');
+    // Elements for detail
+    const pTitle = document.getElementById('pasteTitle');
+    const pLang = document.getElementById('pasteLanguage');
+    const pViews = document.getElementById('pasteViews');
+    const pDate = document.getElementById('pasteDate');
+    const pContent = document.getElementById('pasteContent');
 
-        window.showList = async function () {
-            detailView.style.display = 'none';
-            listView.style.display = 'block';
-            await loadPastes();
+    window.showList = async function () {
+        detailView.style.display = 'none';
+    listView.style.display = 'block';
+    await loadPastes();
         };
 
-        async function loadPastes() {
-            console.log("Fetching paste stream...");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) {
-                    console.log("Using stored access key for request");
-                    headers['x-access-key'] = key;
+    async function loadPastes() {
+        console.log("Fetching paste stream...");
+    try {
+                const headers = {'Content-Type': 'application/json' };
+    const key = localStorage.getItem('private_access_key');
+    if (key) {
+        console.log("Using stored access key for request");
+    headers['x-access-key'] = key;
                 }
 
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                    headers,
-                    credentials: 'include'
+    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
+        headers,
+        credentials: 'include'
                 });
 
-                if (!res.ok) {
-                    console.error("API Error:", res.status, res.statusText);
-                    throw new Error(`Server returned ${res.status}`);
+    if (!res.ok) {
+        console.error("API Error:", res.status, res.statusText);
+    throw new Error(`Server returned ${res.status}`);
                 }
 
-                const pastes = await res.json();
-                console.log(`Stream retrieved: ${pastes.length} nodes found.`);
+    const pastes = await res.json();
+    console.log(`Stream retrieved: ${pastes.length} nodes found.`);
 
-                if (!Array.isArray(pastes)) {
-                    console.error("Malformed API response, expected array.");
-                    return;
+    if (!Array.isArray(pastes)) {
+        console.error("Malformed API response, expected array.");
+    return;
                 }
 
-                if (window.setPasteData) {
-                    window.setPasteData(pastes);
+    if (window.setPasteData) {
+        window.setPasteData(pastes);
                 } else {
-                    window._pendingPastes = pastes;
+        window._pendingPastes = pastes;
                 }
 
             } catch (e) {
-                console.error("CRITICAL: Stream synchronization failure:", e);
-                if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
+        console.error("CRITICAL: Stream synchronization failure:", e);
+    if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
             } finally {
-                window.hideLoader();
+        window.hideLoader();
             }
         }
 
-        // Auto-refresh feed every 30 seconds
-        setInterval(loadPastes, 30000);
+    // Auto-refresh feed every 30 seconds
+    setInterval(loadPastes, 30000);
 
-        window.showDetail = async function (id) {
+    window.showDetail = async function (id) {
             if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
 
-            // Switch to detail video background
-            console.log('Switching to detail video background for paste:', id);
-            if (window.setBackgroundVideo) {
-                window.setBackgroundVideo('detail');
+    // Switch to detail video background
+    console.log('Switching to detail video background for paste:', id);
+    if (window.setBackgroundVideo) {
+        window.setBackgroundVideo('detail');
             } else {
-                console.warn('setBackgroundVideo not available yet');
+        console.warn('setBackgroundVideo not available yet');
             }
 
-            listView.style.display = 'none';
-            detailView.style.display = 'block';
+    listView.style.display = 'none';
+    detailView.style.display = 'block';
 
-            detailLoading.style.display = 'flex';
-            notFoundState.style.display = 'none';
-            pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
+    detailLoading.style.display = 'flex';
+    notFoundState.style.display = 'none';
+    pasteViewContent.style.display = 'none';
+    window.currentPasteId = id;
 
-            try {
-                let paste = null;
-                try {
-                    paste = await storage.getPaste(id);
+    try {
+        let paste = null;
+    try {
+        paste = await storage.getPaste(id);
                 } catch (e) {
                     if (e.message.includes('401') || e.message.includes('403')) {
                         const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                        if (!pwd) throw new Error('Cancelled');
-                        paste = await storage.getPaste(id, true, pwd);
+    if (!pwd) throw new Error('Cancelled');
+    paste = await storage.getPaste(id, true, pwd);
                     } else {
                         throw e;
                     }
                 }
 
-                if (!paste) throw new Error('Not found');
+    if (!paste) throw new Error('Not found');
 
-                renderPasteDetail(paste);
-                detailLoading.style.display = 'none';
-                pasteViewContent.style.display = 'block';
+    renderPasteDetail(paste);
+    detailLoading.style.display = 'none';
+    pasteViewContent.style.display = 'block';
 
             } catch (err) {
-                console.error(err);
-                detailLoading.style.display = 'none';
-                if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+        console.error(err);
+    detailLoading.style.display = 'none';
+    if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
             } finally {
-                window.hideLoader();
+        window.hideLoader();
             }
         };
 
-        function renderPasteDetail(paste) {
-            pTitle.textContent = paste.title || 'Untitled';
-            pLang.textContent = paste.language;
-            pViews.textContent = `${paste.views} views`;
-            pDate.textContent = new Date(paste.createdAt).toLocaleString();
+    function renderPasteDetail(paste) {
+        pTitle.textContent = paste.title || 'Untitled';
+    pLang.textContent = paste.language;
+    pViews.textContent = `${paste.views} views`;
+    pDate.textContent = new Date(paste.createdAt).toLocaleString();
 
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const container = document.getElementById('pasteContentContainer');
+    const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+    const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+    const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+    const container = document.getElementById('pasteContentContainer');
 
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                pContent.innerHTML = marked.parse(paste.content);
-                pContent.classList.add('markdown-body');
-                if (container) container.classList.add('markdown-body');
+    if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+        pContent.innerHTML = marked.parse(paste.content);
+    pContent.classList.add('markdown-body');
+    if (container) container.classList.add('markdown-body');
 
                 pContent.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
+        hljs.highlightElement(block);
                 });
             } else {
-                pContent.textContent = paste.content;
-                pContent.className = `hljs language-${paste.language}`;
-                if (container) container.classList.remove('markdown-body');
-                hljs.highlightElement(pContent);
+        pContent.textContent = paste.content;
+    pContent.className = `hljs language-${paste.language}`;
+    if (container) container.classList.remove('markdown-body');
+    hljs.highlightElement(pContent);
             }
 
-            // Reactions
-            const panel = document.getElementById('reactionsPanel');
-            if (panel) panel.style.display = 'flex';
-            if (paste.reactions) {
+    // Reactions
+    const panel = document.getElementById('reactionsPanel');
+    if (panel) panel.style.display = 'flex';
+    if (paste.reactions) {
                 const l = document.getElementById('count-like');
-                const h = document.getElementById('count-heart');
-                const s = document.getElementById('count-star');
-                if (l) l.textContent = paste.reactions.like || 0;
-                if (h) h.textContent = paste.reactions.heart || 0;
-                if (s) s.textContent = paste.reactions.star || 0;
+    const h = document.getElementById('count-heart');
+    const s = document.getElementById('count-star');
+    if (l) l.textContent = paste.reactions.like || 0;
+    if (h) h.textContent = paste.reactions.heart || 0;
+    if (s) s.textContent = paste.reactions.star || 0;
             }
 
-            // Burn Notice
-            const burnNotice = document.getElementById('burnNotice');
-            if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
+    // Burn Notice
+    const burnNotice = document.getElementById('burnNotice');
+    if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
 
             // Cleanup active states
             document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
 
-            window.currentViewedPaste = paste;
+    window.currentViewedPaste = paste;
         }
     })();
 
     window.handleReaction = async function (type, specificId = null) {
         const id = specificId || window.currentPasteId;
-        if (!id) return;
+    if (!id) return;
 
-        try {
+    try {
             const res = await storage.toggleReaction(id, type);
-            if (res.success) {
+    if (res.success) {
                 if (specificId) {
-                    loadPastes(); // Refresh list to update count
+        loadPastes(); // Refresh list to update count
                 } else {
                     const countEl = document.getElementById(`count-${type}`);
-                    if (countEl) {
-                        let current = parseInt(countEl.textContent) || 0;
-                        countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
+    if (countEl) {
+        let current = parseInt(countEl.textContent) || 0;
+    countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
                     }
                 }
-                showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
+    showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
             }
         } catch (e) {
             if (e.message === 'AUTH_REQUIRED') {
-                showToast('🔐 Login with Discord or Google to react!', 'info');
-                if (window.openRequestModal) window.openRequestModal();
-                else storage.loginWithDiscord();
+        showToast('🔐 Login with Discord or Google to react!', 'info');
+    if (window.openRequestModal) window.openRequestModal();
+    else storage.loginWithDiscord();
             } else {
-                console.error("Reaction failed", e);
+        console.error("Reaction failed", e);
             }
         }
     }
@@ -2700,28 +2719,28 @@
     const copyBtn = document.getElementById('copyBtn');
     if (copyBtn) copyBtn.addEventListener('click', () => {
         if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied to clipboard", "success");
+        navigator.clipboard.writeText(window.currentViewedPaste.content);
+    showToast("Payload copied to clipboard", "success");
         }
     });
 
     window.copyPasteContent = function () {
         if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied successfully", "success");
+        navigator.clipboard.writeText(window.currentViewedPaste.content);
+    showToast("Payload copied successfully", "success");
         }
     };
 
     window.copyPasteLink = function () {
         navigator.clipboard.writeText(window.location.href);
-        showToast("Transmission link copied", "success");
+    showToast("Transmission link copied", "success");
     };
 
     const rawBtn = document.getElementById('rawBtn');
     if (rawBtn) rawBtn.addEventListener('click', () => {
         if (window.currentViewedPaste) {
             const win = window.open();
-            win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
+    win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
         }
     });
 
@@ -2732,14 +2751,14 @@
 
     window.openKeyModal = function () {
         closeModals();
-        document.getElementById('keyModal').classList.add('active');
+    document.getElementById('keyModal').classList.add('active');
     }
 
     window.openRequestModal = function () {
         console.log("Opening request modal");
-        closeModals();
-        resetRequestModal();
-        document.getElementById('requestModal').classList.add('active');
+    closeModals();
+    resetRequestModal();
+    document.getElementById('requestModal').classList.add('active');
     }
 
     window.closeModals = function () {
@@ -2748,25 +2767,25 @@
 
     window.switchView = function (id) {
         document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
+    document.getElementById(id).style.display = 'block';
     }
 
     window.resetRequestModal = function () {
         switchView('req-view-1');
-        document.getElementById('manualIdentity').value = '';
-        document.getElementById('manualReason').value = '';
-        document.getElementById('reqReason').value = '';
+    document.getElementById('manualIdentity').value = '';
+    document.getElementById('manualReason').value = '';
+    document.getElementById('reqReason').value = '';
     }
 
     window.startDiscordAuth = function (mode = 'request') {
         const width = 500;
-        const height = 800;
-        const left = (window.screen.width / 2) - (width / 2);
-        const top = (window.screen.height / 2) - (height / 2);
+    const height = 800;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
 
-        // Using the consolidated auth endpoint
-        const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
-        const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+    // Using the consolidated auth endpoint
+    const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
+    const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
 
         window.addEventListener('message', function onMessage(e) {
             if (e.data.type === 'DISCORD_VERIFIED') {
@@ -2931,28 +2950,28 @@
 <script>
     async function checkStoredKey() {
         const storedKey = localStorage.getItem('private_access_key');
-        if (storedKey) {
+    if (storedKey) {
             try {
                 const res = await fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ key: storedKey })
+        method: 'POST',
+    headers: {'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({key: storedKey })
                 });
-                const data = await res.json();
+    const data = await res.json();
 
-                if (data.success) {
-                    console.log("✅ Auto-unlocked with stored key");
-                    const entryView = document.getElementById('view-entry');
-                    if (entryView && entryView.style.display !== 'none') {
-                        navigateTo('/public');
+    if (data.success) {
+        console.log("✅ Auto-unlocked with stored key");
+    const entryView = document.getElementById('view-entry');
+    if (entryView && entryView.style.display !== 'none') {
+        navigateTo('/public');
                     }
                 } else {
-                    console.warn("Stored key invalid/expired");
-                    localStorage.removeItem('private_access_key');
+        console.warn("Stored key invalid/expired");
+    localStorage.removeItem('private_access_key');
                 }
             } catch (e) {
-                console.error("Auto-check failed", e);
+        console.error("Auto-check failed", e);
             }
         }
     }
@@ -2968,53 +2987,53 @@
     });
     setTimeout(() => {
         window.hideLoader();
-        if (document.getElementById('loadingState').style.display !== 'none') handleRoute();
+    if (document.getElementById('loadingState').style.display !== 'none') handleRoute();
     }, 4000); // Conservative fallback
 </script>
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import {initializeApp} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {getAuth, GoogleAuthProvider, signInWithPopup} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     // Fetch Firebase Config from server
     async function initFirebase() {
         try {
             const configRes = await fetch('/api/auth/firebase-config');
-            const firebaseConfig = await configRes.json();
+    const firebaseConfig = await configRes.json();
 
-            if (!firebaseConfig.apiKey) {
-                console.error("Firebase Config missing! Set variables in Railway Dashboard.");
-                return;
+    if (!firebaseConfig.apiKey) {
+        console.error("Firebase Config missing! Set variables in Railway Dashboard.");
+    return;
             }
 
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
             window.loginWithGoogle = async () => {
                 try {
                     const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
-                    const response = await fetch('/api/auth/google', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            email: user.email,
-                            uid: user.uid,
-                            photoURL: user.photoURL
+    const user = result.user;
+    const response = await fetch('/api/auth/google', {
+        method: 'POST',
+    headers: {'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        email: user.email,
+    uid: user.uid,
+    photoURL: user.photoURL
                         })
                     });
-                    const data = await response.json();
-                    if (data.success) {
-                        showToast("✅ Signed in with Google!", "success");
+    const data = await response.json();
+    if (data.success) {
+        showToast("✅ Signed in with Google!", "success");
                         setTimeout(() => window.location.reload(), 1000);
                     }
                 } catch (error) {
-                    console.error("Google login failed", error);
-                    showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
+        console.error("Google login failed", error);
+    showToast("❌ Login Failed: " + (error.message || "Unknown Error"), "error");
                 }
             };
         } catch (e) {
-            console.error("Failed to initialize Firebase:", e);
+        console.error("Failed to initialize Firebase:", e);
         }
     }
 
@@ -3023,16 +3042,16 @@
     // Toast Helper
     window.showToast = (message, type = 'info') => {
         let container = document.getElementById('toastContainer');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toastContainer';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
+    if (!container) {
+        container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
         }
 
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `<span>${message}</span>`;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${message}</span>`;
 
         container.appendChild(toast);
 
