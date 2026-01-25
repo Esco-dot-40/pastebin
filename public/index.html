@@ -1679,68 +1679,29 @@
 </div>
 
 <script>
-    // Engine Start Logic - ROBUST V3
+    // Engine Start Logic - FALLBACK V4 (Instant Entry)
     window.enterSite = function () {
-        console.log("Enter site triggered");
-
-        // 1. Visual Feedback Immediately
+        // 1. Visual Feedback
         const btn = document.getElementById('btnStartEngine');
-        const text = document.querySelector('.loader-text');
+        if (btn) btn.classList.add('on');
 
-        if (btn) {
-            btn.classList.add('on');
-            btn.classList.add('vibrating');
-            // Disable button immediately
-            btn.style.pointerEvents = 'none';
-        }
-
-        if (text) {
-            text.textContent = "ACCESS GRANTED";
-            text.style.color = "#00ff88";
-            text.style.textShadow = "0 0 20px #00ff88";
-        }
-
-        // 2. Play Audio Safely
+        // 2. Play Audio (Best Effort)
         try {
             const audio = document.getElementById('bgAudio');
             if (audio) {
                 audio.volume = 0.2;
-                audio.play().catch(e => console.warn("Audio autoplay blocked/failed:", e));
+                audio.play().catch(() => { });
             }
-        } catch (e) {
-            console.warn("Audio system error:", e);
-        }
+        } catch (e) { }
 
-        // 3. Force Remove Loader Sequence
+        // 3. IMMEDIATE REMOVAL (300ms delay for click feel only)
         setTimeout(() => {
             const ls = document.getElementById('loadingState');
-            if (ls) {
-                // Fade out
-                ls.style.transition = 'opacity 0.8s ease, filter 0.8s ease';
-                ls.style.opacity = '0';
-                ls.style.filter = 'blur(10px)';
+            if (ls) ls.remove(); // Native DOM removal
 
-                // Trigger Background Video
-                try {
-                    if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-                } catch (e) { console.warn("Video set failed:", e); }
-
-                // Hard Remove from DOM
-                setTimeout(() => {
-                    try {
-                        if (ls && ls.parentNode) {
-                            ls.parentNode.removeChild(ls);
-                            console.log("Loader removed from DOM");
-                        } else if (ls) {
-                            ls.style.display = 'none';
-                        }
-                    } catch (e) {
-                        // Last resort
-                        if (ls) ls.setAttribute('style', 'display: none !important');
-                    }
-                }, 800);
-            }
-        }, 600); // Slightly faster trigger
+            // Ensure main video starts
+            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+        }, 300);
     }
 </script>
 
