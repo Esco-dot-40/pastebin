@@ -314,12 +314,42 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/:id/react', async (req, res) => {
-    if (!req.session?.user) return res.status(401).json({ error: 'Auth Required' });
-    const { type } = req.body; const ip = getClientIP(req); const user = req.session.user;
-    const loc = await fetchGeolocation(ip); const geo = loc || {};
-    const result = db.prepare(`INSERT INTO paste_reactions (pasteId, type, ip, city, country, isp, userAgent, userId, username, avatarUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, type, ip, geo.city, geo.country, geo.isp, req.headers['user-agent'], user.id, user.username, user.avatarUrl);
-    updateHostname('paste_reactions', result.lastInsertRowid, ip);
-    res.json({ success: true });
+    if (!req.session?.user) return res.status(401).json({ error: 'Auth Required', authRequired: true });
+
+    const { type } = req.body;
+    const pasteId = req.params.id;
+    const user = req.session.user;
+    const ip = getClientIP(req);
+
+    try {
+        // Check for existing reaction by this user on this paste with this type
+        const existing = db.prepare('SELECT id FROM paste_reactions WHERE pasteId = ? AND userId = ? AND type = ?').get(pasteId, user.id, type);
+
+        if (existing) {
+            // Toggle OFF: Remove existing reaction
+            db.prepare('DELETE FROM paste_reactions WHERE id = ?').run(existing.id);
+            return res.json({ success: true, action: 'removed' });
+        } else {
+            // Toggle ON: Add new reaction
+            const loc = await fetchGeolocation(ip);
+            const geo = loc || {};
+
+            const result = db.prepare(`
+                INSERT INTO paste_reactions (
+                    pasteId, type, ip, city, country, isp, userAgent, userId, username, avatarUrl
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(
+                pasteId, type, ip, geo.city, geo.country, geo.isp,
+                req.headers['user-agent'], user.id, user.username, user.avatarUrl
+            );
+
+            updateHostname('paste_reactions', result.lastInsertRowid, ip);
+            return res.json({ success: true, action: 'added' });
+        }
+    } catch (e) {
+        console.error('Reaction Error:', e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 });
 
 router.get('/:id/analytics', requireAuth, (req, res) => {

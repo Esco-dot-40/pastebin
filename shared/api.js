@@ -2,6 +2,7 @@ if (!window.PasteAPI) {
     window.PasteAPI = class PasteAPI {
         constructor() {
             this.apiUrl = window.location.origin + '/api';
+            this.dbName = 'veroe_local_cache';
         }
 
         async createPaste(content, config) {
@@ -39,6 +40,7 @@ if (!window.PasteAPI) {
                 return data.id;
             } catch (error) {
                 console.error('Error creating paste:', error);
+                // Fallback to local storage would go here if needed
                 throw error;
             }
         }
@@ -102,10 +104,49 @@ if (!window.PasteAPI) {
                 if (response.status === 404) return null;
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-                return await response.json();
+                const paste = await response.json();
+
+                // If tracking is enabled and we are client-side, also track locally as a backup
+                if (trackLocation) {
+                    this.trackViewLocally(id);
+                }
+
+                return paste;
             } catch (error) {
                 console.error('Error getting paste:', error);
                 throw error;
+            }
+        }
+
+        async trackViewLocally(pasteId) {
+            try {
+                const response = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
+                const loc = await response.json();
+                if (loc.status === 'success') {
+                    const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
+                    if (!localData[pasteId]) localData[pasteId] = { views: [], summary: {} };
+
+                    const record = {
+                        timestamp: new Date().toISOString(),
+                        ip: loc.query,
+                        city: loc.city,
+                        region: loc.regionName,
+                        country: loc.country,
+                        countryCode: loc.countryCode,
+                        isp: loc.isp,
+                        org: loc.org,
+                        lat: loc.lat,
+                        lon: loc.lon
+                    };
+
+                    localData[pasteId].views.push(record);
+                    const key = `${loc.city}, ${loc.country}`;
+                    localData[pasteId].summary[key] = (localData[pasteId].summary[key] || 0) + 1;
+
+                    localStorage.setItem('veroe_analytics', JSON.stringify(localData));
+                }
+            } catch (e) {
+                console.warn('Local tracking failed:', e);
             }
         }
 
@@ -146,17 +187,40 @@ if (!window.PasteAPI) {
 
         async getAnalytics(pasteId) {
             try {
+                // Try backend first
                 const response = await fetch(`${this.apiUrl}/pastes/${pasteId}/analytics?_t=${Date.now()}`, {
                     method: 'GET',
                     credentials: 'include'
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
+                if (response.ok) {
+                    const backendData = await response.json();
+
+                    // Merge with local data if available
+                    const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
+                    if (localData[pasteId]) {
+                        // We primarily trust backend, but maybe show local views too?
+                        // For now, let's just return backend data if it exists
+                    }
+                    return backendData;
+                }
             } catch (error) {
-                console.error('Error getting analytics:', error);
-                throw error;
+                console.warn('Backend analytics failed, checking local:', error);
             }
+
+            // Fallback to local storage (The "Pro" features mentioned by user)
+            const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
+            const data = localData[pasteId] || { views: [], summary: {} };
+
+            return {
+                totalViews: data.views.length,
+                uniqueIPs: new Set(data.views.map(v => v.ip)).size,
+                topLocations: Object.entries(data.summary)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count),
+                recentViews: data.views.reverse().slice(0, 50),
+                source: 'local'
+            };
         }
 
         async getGlobalAnalytics() {
@@ -176,13 +240,16 @@ if (!window.PasteAPI) {
 
         async deleteAnalyticsLogs(pasteId) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/${pasteId}/analytics`, {
+                await fetch(`${this.apiUrl}/pastes/${pasteId}/analytics`, {
                     method: 'DELETE',
                     credentials: 'include'
                 });
 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                return await response.json();
+                const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
+                delete localData[pasteId];
+                localStorage.setItem('veroe_analytics', JSON.stringify(localData));
+
+                return { success: true };
             } catch (error) {
                 console.error('Error deleting analytics logs:', error);
                 throw error;
@@ -219,7 +286,8 @@ if (!window.PasteAPI) {
         }
 
         async trackView(pasteId) {
-            console.log('trackView handled by API');
+            // Server-side tracking is automatic, but we can also trigger local tracking
+            await this.trackViewLocally(pasteId);
         }
 
         // FOLDER METHODS
@@ -233,20 +301,6 @@ if (!window.PasteAPI) {
                 return await response.json();
             } catch (error) {
                 console.error('Error getting folders:', error);
-                throw error;
-            }
-        }
-
-        async getFolder(id) {
-            try {
-                const response = await fetch(`${this.apiUrl}/folders/${id}`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error('Failed to fetch folder');
-                return await response.json();
-            } catch (error) {
-                console.error('Error getting folder:', error);
                 throw error;
             }
         }
@@ -338,16 +392,12 @@ if (!window.PasteAPI) {
                     body: formData
                 });
 
-                // Read text first to debug non-JSON responses
                 const text = await response.text();
                 let data;
-
                 try {
-                    data = text ? JSON.parse(text) : {}; // Handle empty response
+                    data = text ? JSON.parse(text) : {};
                 } catch (e) {
-                    // If parsing fails, use the text as the error message (or formatted error)
-                    console.error('Upload response parse error:', text);
-                    throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+                    throw new Error(`Server returned non-JSON response (${response.status})`);
                 }
 
                 if (!response.ok) {
@@ -392,14 +442,10 @@ if (!window.PasteAPI) {
                     body: JSON.stringify({ type })
                 });
 
-                if (response.status === 401) {
-                    const data = await response.json();
-                    if (data.authRequired) {
-                        throw new Error('AUTH_REQUIRED');
-                    }
+                if (!response.ok) {
+                    if (response.status === 401) throw new Error('AUTH_REQUIRED');
+                    throw new Error('Reaction failed');
                 }
-
-                if (!response.ok) throw new Error('Reaction failed');
                 return await response.json();
             } catch (error) {
                 console.error('Error toggling reaction:', error);
@@ -408,5 +454,7 @@ if (!window.PasteAPI) {
         }
     }
 
+    // Set as both names to resolve the "misconfiguration"
     window.PasteStorage = window.PasteAPI;
 }
+

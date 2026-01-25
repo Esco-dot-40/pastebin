@@ -102,17 +102,19 @@ function initInstance(canvas) {
 
   const txtCanvas = document.createElement('canvas');
   const ctx = txtCanvas.getContext('2d');
-  const w = 2000;
-  const h = 500;
+  const w = 4096; // Increased width to prevent clipping
+  const h = 1024; // Increased height
   txtCanvas.width = w;
   txtCanvas.height = h;
 
   ctx.clearRect(0, 0, w, h);
-  ctx.font = '900 180px "Inter", "Arial", sans-serif';
+  ctx.font = '900 140px "Inter", "Arial", sans-serif'; // Slightly smaller font
   ctx.fillStyle = 'white';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.letterSpacing = '1.2rem';
+
+  // Safe letter spacing support check not needed for modern chrome, but using px is safer
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '30px';
 
   // Strong Neon Glow
   ctx.shadowColor = '#00f5ff';
@@ -162,15 +164,19 @@ function initInstance(canvas) {
     camera.bottom = -frustumSize / 2;
     camera.updateProjectionMatrix();
 
-    // Scale: Ensure it's prominent
-    const targetWidth = (frustumSize * aspect) * 0.85; // Fill 85% of width
-    const targetHeight = frustumSize * 0.6;
+    // Scale: Ensure it fits properly
+    // We want the text to span about 80-90% of the container width
+    const targetWidth = (frustumSize * aspect) * 0.9;
 
-    let scaleW = targetWidth / imgAspectRatio;
-    let scaleH = targetHeight / 1.0;
-    let finalScale = Math.min(scaleW, scaleH);
+    // Calculate scale based on width primarily since it's text
+    let scale = targetWidth / imgAspectRatio;
 
-    mesh.scale.set(finalScale, finalScale, 1);
+    // Safety check just in case it gets too tall
+    if (scale > frustumSize * 0.8) {
+      scale = frustumSize * 0.8;
+    }
+
+    mesh.scale.set(scale, scale, 1);
   }
 
   window.addEventListener('resize', resize);
