@@ -599,8 +599,8 @@ code.markdown-body {
    REACTIONS MATRIX
    ============================================ */
 .reactions-matrix {
-    display: none;
-    /* Shown via JS */
+    display: flex;
+    /* Force visible by default */
     gap: 15px;
     align-items: center;
     background: rgba(255, 255, 255, 0.03);
