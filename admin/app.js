@@ -1,737 +1,1386 @@
-// VEROE High-Efficiency Admin Console V5
-const api = new PasteStorage();
+// Admin Console Application
+const storage = new PasteStorage();
 
-// State Management
+// DOM Elements
+const pasteTitle = document.getElementById('pasteTitle');
+const pasteLanguage = document.getElementById('pasteLanguage');
+const pasteExpiration = document.getElementById('pasteExpiration');
+const pasteContent = document.getElementById('pasteContent');
+const burnAfterRead = document.getElementById('burnAfterRead');
+const isPublic = document.getElementById('isPublic');
+const pastePassword = document.getElementById('pastePassword');
+let currentLocalPasteId = null;
 let mainMap = null;
 let mainMapMarkers = [];
-let globalAnalytics = null;
-let globalKeys = [];
-let globalBrowsers = [];
-let globalISPs = [];
+let globalAnalyticsData = null;
 
-let currentTab = 'creator';
-let activeEditId = null;
+const createPasteBtn = document.getElementById('createPasteBtn');
+const clearBtn = document.getElementById('clearBtn');
+const refreshBtn = document.getElementById('refreshBtn');
+const viewPublicBtn = document.getElementById('viewPublicBtn');
+const statsBtn = document.getElementById('statsBtn');
+const pasteListContainer = document.getElementById('pasteListContainer');
+const successModal = document.getElementById('successModal');
+const statsModal = document.getElementById('statsModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const closeStatsBtn = document.getElementById('closeStatsBtn');
+const pasteUrl = document.getElementById('pasteUrl');
+const copyUrlBtn = document.getElementById('copyUrlBtn');
+const statsContent = document.getElementById('statsContent');
 
-// Initialization
+// Folder Elements
+const pasteFolder = document.getElementById('pasteFolder');
+const manageFoldersBtn = document.getElementById('manageFoldersBtn');
+const folderModal = document.getElementById('folderModal');
+const closeFolderBtn = document.getElementById('closeFolderBtn');
+const newFolderName = document.getElementById('newFolderName');
+const addFolderBtn = document.getElementById('addFolderBtn');
+const folderList = document.getElementById('folderList');
+
+// Image Elements
+const uploadImageBtn = document.getElementById('uploadImageBtn');
+const imageInput = document.getElementById('imageInput');
+
+// Access Key Elements
+const accessBtn = document.getElementById('accessBtn');
+const accessModal = document.getElementById('accessModal');
+const closeAccessBtn = document.getElementById('closeAccessBtn');
+const generatedKey = document.getElementById('generatedKey');
+const copyKeyBtn = document.getElementById('copyKeyBtn');
+const generateKeyBtn = document.getElementById('generateKeyBtn');
+
+// Users Elements
+const usersBtn = document.getElementById('usersBtn');
+const usersModal = document.getElementById('usersModal');
+const closeUsersBtn = document.getElementById('closeUsersBtn');
+const usersList = document.getElementById('usersList');
+
+// Embed Elements
+const embedUrl = document.getElementById('embedUrl');
+const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
+const embedInput = document.getElementById('embedInput');
+
+// Dashboard Elements
+const totalHitsEl = document.getElementById('totalHits');
+const uniqueReadersEl = document.getElementById('uniqueReaders');
+const geoReachEl = document.getElementById('geoReach');
+const activeVisitorsEl = document.getElementById('activeVisitors');
+const pasteSearchInput = document.getElementById('pasteSearch');
+const logoutBtn = document.getElementById('logoutBtn');
+
+// Initialize
 window.addEventListener('DOMContentLoaded', async () => {
-    populateConfig();
-
     // Initial data load
-    await refreshData();
+    await Promise.all([
+        loadPasteList(),
+        loadFolderList(),
+        loadGlobalAnalytics()
+    ]);
 
-    // Switch to initial tab
-    switchTab('creator');
+    // Initialize Map
+    initMainMap();
 
-    setupFilters();
-
-    // Interval Updates
-    setInterval(async () => {
-        if (currentTab === 'analytics' || currentTab === 'repository') {
-            await refreshData();
-        }
-    }, 15000);
-
-    // SECURITY HANDLERS
-    const genKeyBtn = document.getElementById('generateKeyBtn');
-    if (genKeyBtn) {
-        genKeyBtn.onclick = async () => {
-            try {
-                await api.generateAccessKey();
-                await refreshData();
-                showToast('New Access Key Generated', 'success');
-            } catch (e) { showToast(e.message, 'error'); }
-        };
-    }
-
-    // MEDIA UPLOAD HANDLER
-    const mediaInput = document.getElementById('mediaUpload');
-    if (mediaInput) {
-        mediaInput.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            showToast(`Uploading ${file.name}...`, 'info');
-            try {
-                const data = await api.uploadImage(file);
-                if (data && data.url) {
-                    document.getElementById('pasteEmbed').value = data.url;
-                    showToast('Media Uploaded and Linked', 'success');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast(`Upload failed: ${err.message}`, 'error');
-            }
-        };
-    }
+    // Set refresh intervals
+    setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
 });
 
-function setupFilters() {
-    const setup = (inputId, dataSet, renderFn) => {
-        const el = document.getElementById(inputId);
-        if (!el) return;
-        el.oninput = (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = dataSet.filter(item =>
-                (item.name || item.key || '').toLowerCase().includes(term)
-            );
-            renderFn(filtered);
-        };
+// Event Listeners
+if (createPasteBtn) createPasteBtn.addEventListener('click', createPaste);
+if (clearBtn) clearBtn.addEventListener('click', clearForm);
+if (refreshBtn) refreshBtn.addEventListener('click', loadPasteList);
+if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
+    window.open('/', '_blank');
+});
+if (accessBtn) accessBtn.addEventListener('click', () => {
+    accessModal.classList.add('active');
+    generatedKey.value = ''; // Clear previous
+    loadKeys(); // Load existing keys
+});
+
+if (closeModalBtn) closeModalBtn.addEventListener('click', () => {
+    successModal.classList.remove('active');
+});
+if (closeStatsBtn) closeStatsBtn.addEventListener('click', () => {
+    statsModal.classList.remove('active');
+});
+if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
+    accessModal.classList.remove('active');
+});
+
+if (usersBtn) {
+    usersBtn.addEventListener('click', () => {
+        console.log("Users button clicked");
+        if (usersModal) usersModal.classList.add('active');
+        else console.error("Users modal not found");
+        loadUsers();
+    });
+} else {
+    console.error("Users button not found");
+}
+
+if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
+    usersModal.classList.remove('active');
+});
+
+if (usersModal) {
+    usersModal.addEventListener('click', (e) => {
+        if (e.target === usersModal) usersModal.classList.remove('active');
+    });
+}
+
+if (pasteSearchInput) {
+    pasteSearchInput.addEventListener('input', () => {
+        loadPasteList(pasteSearchInput.value);
+    });
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+        if (!confirm('Log out of secure console?')) return;
+        try {
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/adminperm/login.html';
+        } catch (e) {
+            window.location.href = '/adminperm/login.html';
+        }
+    });
+}
+
+
+console.log('[KEY GEN] generateKeyBtn element:', generateKeyBtn);
+if (generateKeyBtn) {
+    console.log('[KEY GEN] Attaching click listener to button');
+    generateKeyBtn.addEventListener('click', async () => {
+        console.log('[KEY GEN] Button clicked');
+        generateKeyBtn.disabled = true;
+        generateKeyBtn.textContent = 'Generating...';
+        try {
+            console.log('[KEY GEN] Sending request...');
+            const res = await fetch('/api/access/generate', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            console.log('[KEY GEN] Response status:', res.status);
+            const data = await res.json();
+            console.log('[KEY GEN] Response data:', data);
+            if (data.success) {
+                generatedKey.value = data.key;
+                console.log('[KEY GEN] Key generated successfully');
+            } else {
+                console.error('[KEY GEN] Failed:', data.error);
+                alert('Failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (e) {
+            console.error('[KEY GEN] Error:', e);
+            alert('Error: ' + e.message);
+        } finally {
+            generateKeyBtn.disabled = false;
+            generateKeyBtn.textContent = 'Generate New Key';
+        }
+    });
+} else {
+    console.error('[KEY GEN] Button element not found!');
+}
+
+if (copyKeyBtn) copyKeyBtn.addEventListener('click', () => {
+    if (!generatedKey.value) return;
+    generatedKey.select();
+    document.execCommand('copy');
+
+    // Quick visual feedback
+    const originalIcon = copyKeyBtn.innerHTML;
+    copyKeyBtn.innerHTML = '✅';
+    setTimeout(() => copyKeyBtn.innerHTML = originalIcon, 1500);
+});
+
+if (accessModal) {
+    accessModal.addEventListener('click', (e) => {
+        if (e.target === accessModal) accessModal.classList.remove('active');
+    });
+}
+if (copyUrlBtn) copyUrlBtn.addEventListener('click', copyUrl);
+
+// Folder Events
+if (manageFoldersBtn) manageFoldersBtn.addEventListener('click', () => {
+    folderModal.classList.add('active');
+});
+if (closeFolderBtn) closeFolderBtn.addEventListener('click', () => {
+    folderModal.classList.remove('active');
+});
+if (addFolderBtn) addFolderBtn.addEventListener('click', createFolder);
+if (folderModal) {
+    folderModal.addEventListener('click', (e) => {
+        if (e.target === folderModal) folderModal.classList.remove('active');
+    });
+}
+
+// Image Events
+if (uploadImageBtn) uploadImageBtn.addEventListener('click', () => imageInput.click());
+if (imageInput) imageInput.addEventListener('change', handleImageUpload);
+
+// Embed Upload Events
+if (uploadEmbedBtn) uploadEmbedBtn.addEventListener('click', () => embedInput.click());
+if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
+
+// Close modals on background click
+if (successModal) {
+    successModal.addEventListener('click', (e) => {
+        if (e.target === successModal) {
+            successModal.classList.remove('active');
+        }
+    });
+}
+
+if (statsModal) {
+    statsModal.addEventListener('click', (e) => {
+        if (e.target === statsModal) {
+            statsModal.classList.remove('active');
+        }
+    });
+}
+
+// Analytics modal
+const analyticsModal = document.getElementById('analyticsModal');
+const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
+
+if (closeAnalyticsBtn) {
+    closeAnalyticsBtn.addEventListener('click', () => {
+        analyticsModal.classList.remove('active');
+    });
+}
+
+if (analyticsModal) {
+    analyticsModal.addEventListener('click', (e) => {
+        if (e.target === analyticsModal) {
+            analyticsModal.classList.remove('active');
+        }
+    });
+}
+
+// Functions
+async function createPaste() {
+    const content = pasteContent.value.trim();
+
+    if (!content) {
+        alert('Please enter some content!');
+        return;
+    }
+
+    const config = {
+        title: pasteTitle.value.trim() || 'Untitled Paste',
+        language: pasteLanguage.value,
+        isPublic: isPublic.checked,
+        burnAfterRead: burnAfterRead.checked,
+        expiresAt: calculateExpiration(pasteExpiration.value),
+        folderId: pasteFolder.value || null,
+        password: pastePassword.value ? pastePassword.value.trim() : null,
+        embedUrl: embedUrl.value ? embedUrl.value.trim() : null
     };
 
-    // We pass wrapper functions to render the specific filtered data
-    setup('searchBrowsers', globalBrowsers || [], (d) => populateIntelList('browserList', d));
-    setup('searchISPs', globalISPs || [], (d) => populateIntelList('connectionList', d));
-    setup('searchKeys', globalKeys || [], (d) => renderAccessKeys(d));
-}
-
-async function refreshData() {
     try {
-        // Parallel Fetch for speed
-        const [stats, keys, users] = await Promise.all([
-            api.getGlobalAnalytics(),
-            api.getAllAccessKeys(),
-            api.getAllUsers()
-        ]);
-
-        globalAnalytics = stats;
-        globalKeys = keys;
-        globalBrowsers = stats.browsers || [];
-        globalISPs = stats.isps || [];
-
-        updateGlobalUI(stats);
-
-        if (currentTab === 'repository') await populateActiveNodes();
-
-        if (currentTab === 'analytics') {
-            updateGlobalAnalyticsUI(stats);
-            renderAccessKeys(keys);
-            // Re-run filters if text exists
-            document.getElementById('searchBrowsers').dispatchEvent(new Event('input'));
-            document.getElementById('searchISPs').dispatchEvent(new Event('input'));
-            document.getElementById('searchKeys').dispatchEvent(new Event('input'));
-
-            if (!mainMap) setTimeout(initMainMap, 500);
-            else updateMainMap(stats.locations || []);
+        let id;
+        if (currentLocalPasteId) {
+            await storage.updatePaste(currentLocalPasteId, content, config);
+            id = currentLocalPasteId;
+            alert('Paste updated successfully!');
+        } else {
+            id = await storage.createPaste(content, config);
+            // Show success modal only for new pastes
+            const publicUrl = `${window.location.origin}/v/${id}`;
+            pasteUrl.value = publicUrl;
+            successModal.classList.add('active');
         }
 
-    } catch (e) {
-        console.error('Data refresh error:', e);
+        // Add animation to the button
+        createPasteBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            createPasteBtn.style.transform = '';
+        }, 150);
+
+        // Clear form and reload list
+        clearForm();
+        await loadPasteList();
+    } catch (error) {
+        alert('Failed to save paste. Error: ' + error.message);
+        console.error(error);
     }
 }
 
-function updateGlobalUI(data) {
-    const vEl = document.getElementById('activeVisitors');
-    if (vEl) vEl.textContent = `${data.activeNow || 0} Active Visitors`;
+function calculateExpiration(expirationValue) {
+    if (expirationValue === 'never') return null;
+
+    const now = new Date();
+    const expirationMap = {
+        '10m': 10 * 60 * 1000,
+        '1h': 60 * 60 * 1000,
+        '1d': 24 * 60 * 60 * 1000,
+        '1w': 7 * 24 * 60 * 60 * 1000,
+        '1M': 30 * 24 * 60 * 60 * 1000
+    };
+
+    return new Date(now.getTime() + expirationMap[expirationValue]).toISOString();
 }
 
-async function populateConfig() {
-    const langSelect = document.getElementById('pasteLanguage');
-    if (langSelect) {
-        const langs = [
-            { id: 'plaintext', name: 'Plain Text' },
-            { id: 'javascript', name: 'JavaScript' },
-            { id: 'python', name: 'Python' },
-            { id: 'html', name: 'HTML' },
-            { id: 'css', name: 'CSS' },
-            { id: 'json', name: 'JSON' },
-            { id: 'markdown', name: 'Markdown' }
-        ];
-        langSelect.innerHTML = langs.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
-    }
+function clearForm() {
+    currentLocalPasteId = null;
+    pasteTitle.value = '';
+    pasteContent.value = '';
+    pasteLanguage.value = 'plaintext';
+    pasteExpiration.value = 'never';
+    pasteFolder.value = '';
+    if (pastePassword) pastePassword.value = '';
+    if (embedUrl) embedUrl.value = '';
+    burnAfterRead.checked = false;
+    isPublic.checked = true;
+
+    // Reset Button
+    createPasteBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        Create Paste
+    `;
+    createPasteBtn.style.background = '';
+
+    // Remove Quick Copy button if it exists
+    const qc = document.getElementById('quickCopyEdit');
+    if (qc) qc.remove();
 }
 
-// --- TABS ---
-function switchTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll('.nav-link').forEach(l => {
-        l.classList.toggle('active', l.dataset.tab === tab);
-    });
-    document.querySelectorAll('.tab-pane').forEach(p => {
-        p.classList.toggle('active', p.id === `tab-${tab}`);
-    });
-
-    if (tab === 'repository') {
-        populateActiveNodes();
-        refreshFolders();
-    }
-    if (tab === 'analytics') refreshData();
-}
-
-document.querySelectorAll('.nav-link').forEach(link => {
-    link.onclick = (e) => {
-        e.preventDefault();
-        switchTab(link.dataset.tab);
-    }
-});
-
-// --- REPOSITORY: PASTE LIST (TABLE VIEW) ---
-async function populateActiveNodes() {
-    const container = document.getElementById('pasteListContainer');
-    if (!container) return;
-
+async function loadPasteList(searchQuery = '') {
     try {
-        const pastes = await api.getAllPastes();
-        const search = document.getElementById('repoSearch').value.toLowerCase();
+        const [pastes, folders] = await Promise.all([
+            storage.getAllPastes(),
+            storage.getAllFolders()
+        ]);
 
-        const filtered = pastes.filter(p =>
-            (p.title || '').toLowerCase().includes(search) ||
-            p.id.toLowerCase().includes(search) ||
-            (p.content && p.content.toLowerCase().includes(search)) ||
-            (p.folderName && p.folderName.toLowerCase().includes(search))
-        );
+        const folderMap = {};
+        folders.forEach(f => folderMap[f.id] = f.name);
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<tr><td colspan="6" class="empty-state" style="text-align:center; padding:50px; opacity:0.3; font-style:italic;">SYSTEM BUFFER EMPTY: NO NODES MATCHING SIGNATURE</td></tr>';
+        // Add rotation animation to refresh button
+        if (refreshBtn) {
+            refreshBtn.style.transform = 'rotate(360deg)';
+            setTimeout(() => {
+                refreshBtn.style.transform = '';
+            }, 400);
+        }
+
+        if (!pastes || pastes.length === 0) {
+            pasteListContainer.innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                        <path d="M16 8L48 8C51.3137 8 54 10.6863 54 14V50C54 53.3137 51.3137 56 48 56H16C12.6863 56 10 53.3137 10 50V14C10 10.6863 12.6863 8 16 8Z" stroke="currentColor" stroke-width="3"/>
+                        <path d="M20 24H44M20 32H44M20 40H36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                    <p>No pastes yet. Create your first one!</p>
+                </div>
+            `;
             return;
         }
 
-        container.innerHTML = filtered.map(p => `
-            <tr class="repo-row-v5">
-                <td class="id-cell">
-                    <span class="hex-id">${p.id.toUpperCase()}</span>
-                </td>
-                <td class="payload-cell">
-                    <div class="payload-title">${p.title || 'Undeclared Payload'}</div>
-                    <div class="payload-meta">
-                        <span class="lang-tag">${p.language}</span>
-                        ${p.folderName ? `<span class="folder-tag">/ ${p.folderName}</span>` : ''}
+        const filteredPastes = searchQuery
+            ? pastes.filter(p =>
+                p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.content.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            : pastes;
+
+        pasteListContainer.innerHTML = filteredPastes.map(paste => `
+            <div class="paste-item" onclick="viewPaste('${paste.id}')">
+                <div class="paste-item-header">
+                    <div class="paste-item-title">${escapeHtml(paste.title)}</div>
+                    <div class="paste-item-id">${paste.id}</div>
+                </div>
+                <div class="paste-item-meta">
+                    <div class="meta-pill" style="color: var(--primary-start); border-color: rgba(0, 245, 255, 0.2);">
+                        <span class="language-tag">${paste.language}</span>
                     </div>
-                </td>
-                <td class="date-cell">
-                    <div class="date-val">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : '??'}</div>
-                    <div class="date-secondary">${p.createdAt ? timeAgo(p.createdAt) : 'Unknown'}</div>
-                </td>
-                <td class="stats-cell">
-                    <div class="stat-main">${p.views}</div>
-                    <div class="stat-label">PROPAGATIONS</div>
-                </td>
-                <td class="reaction-cell">
-                    <div class="reaction-flex">
-                        <span class="r-item heart ${p.reactions?.heart > 0 ? 'active' : ''}">♥ ${p.reactions?.heart || 0}</span>
-                        <span class="r-item star ${p.reactions?.star > 0 ? 'active' : ''}">★ ${p.reactions?.star || 0}</span>
-                        <span class="r-item like ${p.reactions?.like > 0 ? 'active' : ''}">👍 ${p.reactions?.like || 0}</span>
+                    
+                    <div class="meta-pill">
+                        <span title="Views">👁️</span>
+                        <input type="number" value="${paste.views}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updatePasteViews('${paste.id}', this.value)"
+                            style="width: 45px; background: none; border: none; color: white; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield;">
                     </div>
-                </td>
-                <td class="action-cell">
-                    <div class="action-buttons-v5">
-                        <button class="btn-repo-v5" title="Copy Stream Link" onclick="copyPasteLink('${p.id}')">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                        </button>
-                        <button class="btn-repo-v5" title="Deep Analysis" onclick="openNodeAnalytics('${p.id}')">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
-                        </button>
-                        <button class="btn-repo-v5" title="Metric Override" onclick="openNodeEdits('${p.id}')">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                        </button>
-                        <button class="btn-repo-v5" title="Edit Payload" onclick="editPaste('${p.id}')">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-                        <button class="btn-repo-v5 danger" title="Wipe Node" onclick="deletePaste('${p.id}')">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                        </button>
+                    
+                    <div class="meta-pill">
+                        <span title="Hearts">❤️</span>
+                        <input type="number" value="${paste.hearts || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'heart', this.value)"
+                            style="width: 40px; background: none; border: none; color: #ff006e; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
                     </div>
-                </td>
-            </tr>
+
+                    <div class="meta-pill">
+                        <span title="Stars">⭐</span>
+                        <input type="number" value="${paste.stars || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'star', this.value)"
+                            style="width: 40px; background: none; border: none; color: #ffd700; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
+                    </div>
+
+                    <div class="meta-pill">
+                        <span title="Likes">👍</span>
+                        <input type="number" value="${paste.likes || 0}" 
+                            onclick="event.stopPropagation()" 
+                            onchange="updateReactionCount('${paste.id}', 'like', this.value)"
+                            style="width: 40px; background: none; border: none; color: #00f5ff; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
+                    </div>
+
+                    <div class="meta-pill">📅 ${formatDate(paste.createdAt)}</div>
+                    ${paste.folderId ? `<div class="meta-pill">📁 ${escapeHtml(folderMap[paste.folderId] || 'Unknown')}</div>` : ''}
+                    ${paste.burnAfterRead ? '<div class="meta-pill" style="color: #ff3366; border-color: rgba(255, 51, 102, 0.2);">🔥 Burn</div>' : ''}
+                    ${!paste.isPublic ? '<div class="meta-pill" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.2);">🔒 Private</div>' : ''}
+                </div>
+                <div class="paste-item-actions">
+                    <button onclick="event.stopPropagation(); copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: var(--primary-start); color: var(--primary-start); padding: 5px 10px;">
+                        🔗 Link
+                    </button>
+                    <button onclick="toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="${paste.isPublic ? 'Make Private' : 'Make Public'}" style="padding: 5px 12px;">
+                        ${paste.isPublic ? '🔒' : '🌍'}
+                    </button>
+                    <button onclick="event.stopPropagation(); showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics" style="padding: 5px 12px;">
+                        📈
+                    </button>
+                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="padding: 5px 12px;">
+                        ✏️
+                    </button>
+                    <button onclick="event.stopPropagation(); deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; padding: 5px 12px;">
+                        🗑️
+                    </button>
+                </div>
+            </div>
         `).join('');
-    } catch (e) {
-        container.innerHTML = `<tr><td colspan="6" class="error-state">Failed to sync: ${e.message}</td></tr>`;
+    } catch (error) {
+        console.error('Error loading paste list:', error);
+        pasteListContainer.innerHTML = `<p style="padding: 20px; color: #ff006e">Error: ${error.message}</p>`;
     }
 }
 
-document.getElementById('repoSearch').oninput = populateActiveNodes;
-
-// --- FOLDER MANAGEMENT ---
-async function refreshFolders() {
+async function showAnalytics(pasteId) {
     try {
-        const folders = await api.getAllFolders();
+        const analytics = await storage.getAnalytics(pasteId);
+        const pastes = await storage.getAllPastes();
+        const paste = pastes.find(p => p.id === pasteId);
 
-        // 1. Populate Dropdown in Creator
-        const select = document.getElementById('pasteFolder');
-        if (select) {
-            select.innerHTML = '<option value="">Root Sector</option>' +
-                folders.map(f => `<option value="${f.id}">${f.name.toUpperCase()}</option>`).join('');
+        if (!paste) return;
+
+        const analyticsContent = document.getElementById('analyticsContent');
+
+        // Calculate unique visitors
+        const uniqueIPs = new Set(analytics.recentViews?.map(v => v.ip) || []).size;
+
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
+                <div>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(paste.title)}</h4>
+                    <div style="display: flex; gap: 16px; font-size: 0.875rem; color: var(--text-tertiary)">
+                        <span>ID: <code>${pasteId}</code></span>
+                        <span>Created: ${formatDateTime(paste.createdAt)}</span>
+                    </div>
+                    <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0, 245, 255, 0.2);">
+                        <span style="color: var(--primary-start); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 15px;">${window.location.origin}/v/${pasteId}</span>
+                        <button onclick="copyPasteUrl('${pasteId}')" class="btn-small btn-glass" style="padding: 2px 8px; font-size: 0.7rem; border-color: var(--primary-start); color: var(--primary-start);">Copy Link</button>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                    <button onclick="deleteAnalyticsLogs('${pasteId}')" class="btn-small btn-glass" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.3);">
+                        🗑️ Clear Logs
+                    </button>
+                    <button onclick="resetViews('${pasteId}')" class="btn-small btn-glass" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.3);">
+                        👁️ Reset Views
+                    </button>
+                </div>
+            </div>
+            
+            <div class="stats-grid" style="margin-bottom: 32px">
+                <div class="stat-card">
+                    <div class="stat-value">${analytics.totalViews}</div>
+                    <div class="stat-label">Total Views</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${analytics.uniqueIPs}</div>
+                    <div class="stat-label">Unique Visitors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${analytics.uniqueCountries || 0}</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">📍 Top Cities</h4>
+                    <div class="location-list">
+                        ${(analytics.topLocations || []).map(loc => `
+                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <div style="display: flex; justify-content: space-between; align-items: center">
+                                    <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
+                                    <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start)">${loc.count}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🏢 Top ISPs</h4>
+                    <div class="location-list">
+                        ${(analytics.topISPs || []).map(isp => `
+                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <div style="display: flex; justify-content: space-between; align-items: center">
+                                    <span style="font-weight: 500; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="${escapeHtml(isp.name)}">${escapeHtml(isp.name)}</span>
+                                    <span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start)">${isp.count}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🗺️ Top Regions</h4>
+                    <div class="location-list">
+                        ${(analytics.topRegions || []).map(reg => `
+                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>${escapeHtml(reg.name)}</span>
+                                    <span style="color: var(--text-tertiary)">${reg.count}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">💻 Browsers</h4>
+                    <div class="location-list">
+                        ${(analytics.topBrowsers || []).map(br => `
+                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>${escapeHtml(br.name)}</span>
+                                    <span style="color: var(--text-tertiary)">${br.count}</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            
+            <h4 style="font-size: 1.2rem; margin: 32px 0 16px 0; color: var(--primary-start); border-top: 1px solid var(--border); pt: 24px;">📋 Detailed View Log</h4>
+            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05)">
+                            <th style="text-align: left; padding: 12px; color: var(--text-secondary)">Timestamp</th>
+                            <th style="text-align: left; padding: 12px; color: var(--text-secondary)">Identity</th>
+                            <th style="text-align: left; padding: 12px; color: var(--text-secondary)">Location</th>
+                            <th style="text-align: left; padding: 12px; color: var(--text-secondary)">Device / Network</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(analytics.recentViews || []).map(view => {
+            let platform = 'Unknown Device';
+            const ua = view.userAgent || '';
+            if (ua.includes('Windows')) platform = 'Windows PC';
+            else if (ua.includes('Macintosh')) platform = 'Mac';
+            else if (ua.includes('iPhone')) platform = 'iPhone';
+            else if (ua.includes('iPad')) platform = 'iPad';
+            else if (ua.includes('Android')) platform = 'Android';
+            else if (ua.includes('Linux')) platform = 'Linux';
+
+            if (ua.includes('Chrome/')) platform += ' (Chrome)';
+            else if (ua.includes('Firefox/')) platform += ' (Firefox)';
+            else if (ua.includes('Safari/')) platform += ' (Safari)';
+
+            return `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <td style="padding: 12px; white-space: nowrap">${formatDateTime(view.timestamp)}</td>
+                                <td style="padding: 12px;">
+                                    <div style="font-family: var(--font-mono)">${view.ip}</div>
+                                    ${view.hostname ? `<small style="color: #00f5ff; font-family: monospace; display:block; margin-top:2px;">${escapeHtml(view.hostname)}</small>` : ''}
+                                </td>
+                                <td style="padding: 12px">
+                                    ${getFlagEmoji(view.countryCode)} ${escapeHtml(view.city)}, ${escapeHtml(view.region || view.regionName || '')}
+                                </td>
+                                <td style="padding: 12px">
+                                    <div style="font-weight: 500">${platform}</div>
+                                    <small style="color: var(--text-tertiary)">${escapeHtml(view.isp || view.org || 'Unknown ISP')}</small>
+                                </td>
+                            </tr>
+                        `}).join('')}
+                ${!analytics.recentViews || analytics.recentViews.length === 0 ? '<tr><td colspan="4" style="padding: 20px; text-align: center">No view data available yet.</td></tr>' : ''}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Reactions Section -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 32px 0 16px 0; border-top: 1px solid var(--border); padding-top: 24px;">
+                <h4 style="font-size: 1.2rem; margin: 0; color: #ff006e;">❤️ Reactions</h4>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="injectReaction('${pasteId}', 'heart')" class="btn-small btn-glass" style="color: #ff006e; border-color: #ff006e44">+ ❤️</button>
+                    <button onclick="injectReaction('${pasteId}', 'star')" class="btn-small btn-glass" style="color: #ffd700; border-color: #ffd70044">+ ⭐</button>
+                    <button onclick="injectReaction('${pasteId}', 'like')" class="btn-small btn-glass" style="color: #00f5ff; border-color: #00f5ff44">+ 👍</button>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                <div class="stat-card" style="border-color: #ff006e22">
+                    <div class="stat-value" style="color: #ff006e">${analytics.reactions?.heart || 0}</div>
+                    <div class="stat-label">Hearts</div>
+                </div>
+                <div class="stat-card" style="border-color: #ffd70022">
+                    <div class="stat-value" style="color: #ffd700">${analytics.reactions?.star || 0}</div>
+                    <div class="stat-label">Stars</div>
+                </div>
+                <div class="stat-card" style="border-color: #00f5ff22">
+                    <div class="stat-value" style="color: #00f5ff">${analytics.reactions?.like || 0}</div>
+                    <div class="stat-label">Likes</div>
+                </div>
+            </div>
+
+            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
+                    <thead>
+                        <tr style="background: rgba(255,255,255,0.05)">
+                            <th style="padding: 12px; text-align: left;">User</th>
+                            <th style="padding: 12px; text-align: left;">Type</th>
+                            <th style="padding: 12px; text-align: left;">Location</th>
+                            <th style="padding: 12px; text-align: left;">Timestamp</th>
+                            <th style="padding: 12px; text-align: right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(analytics.recentReactions || []).map(r => `
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05)">
+                                <td style="padding: 12px;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <img src="${r.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:20px; height:20px; border-radius:50%">
+                                        <span>${escapeHtml(r.username || 'Anon')}</span>
+                                    </div>
+                                    <small style="color:#666; font-family:monospace">${r.discordId || r.ip}</small>
+                                </td>
+                                <td style="padding: 12px; font-size:1.2rem;">${r.type === 'heart' ? '❤️' : r.type === 'star' ? '⭐' : '👍'}</td>
+                                <td style="padding: 12px;">
+                                    ${getFlagEmoji(r.countryCode)} ${escapeHtml(r.city || 'Unknown')}<br>
+                                    <small style="color:#666">${r.isp || ''}</small>
+                                </td>
+                                <td style="padding: 12px;">${formatDateTime(r.createdAt)}</td>
+                                <td style="padding: 12px; text-align: right;">
+                                    <button onclick="deleteReaction(${r.id}, '${pasteId}')" class="btn-small btn-glass" style="color: #ff006e; padding: 2px 5px;">🗑️</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        analyticsContent.innerHTML = html;
+        analyticsModal.classList.add('active');
+    } catch (error) {
+        console.error('Error showing analytics:', error);
+        alert('Failed to load analytics: ' + error.message);
+    }
+}
+
+async function deleteAnalyticsLogs(id) {
+    if (!confirm('Are you sure you want to delete all detailed view logs for this paste? This cannot be undone.')) return;
+    try {
+        await storage.deleteAnalyticsLogs(id);
+        alert('Logs deleted successfully');
+        showAnalytics(id); // Refresh
+    } catch (error) {
+        alert('Failed to delete logs: ' + error.message);
+    }
+}
+
+async function resetViews(id) {
+    if (!confirm('Are you sure you want to reset the view counter for this paste to 0?')) return;
+    try {
+        await storage.resetViews(id);
+        alert('View counter reset successfully');
+        if (analyticsModal.classList.contains('active')) {
+            showAnalytics(id); // Refresh analytics view
+        }
+        await loadPasteList(); // Refresh main list
+    } catch (error) {
+        alert('Failed to reset views: ' + error.message);
+    }
+}
+
+async function updatePasteViews(id, views) {
+    try {
+        const res = await fetch(`/api/pastes/${id}/views`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ views: parseInt(views) })
+        });
+        const data = await res.json();
+        if (data.success) {
+            console.log(`Updated views for ${id} to ${views}`);
+        } else {
+            alert('Failed to update views: ' + (data.error || 'Unknown error'));
+            loadPasteList(); // Refresh to original value
+        }
+    } catch (e) {
+        console.error('Error updating views:', e);
+        alert('Error: ' + e.message);
+        loadPasteList(); // Refresh
+    }
+}
+
+async function updateReactionCount(id, type, count) {
+    try {
+        const res = await fetch(`/api/pastes/${id}/reactions/${type}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ count: parseInt(count) })
+        });
+        const data = await res.json();
+        if (data.success) {
+            console.log(`Updated ${type} for ${id} to ${count}`);
+        } else {
+            alert(`Failed to update ${type}: ` + (data.error || 'Unknown error'));
+            loadPasteList(); // Refresh to original value
+        }
+    } catch (e) {
+        console.error(`Error updating ${type}:`, e);
+        alert('Error: ' + e.message);
+        loadPasteList(); // Refresh
+    }
+}
+
+async function injectReaction(pasteId, type, fromList = false) {
+    try {
+        await fetch(`/api/pastes/${pasteId}/react`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type }),
+            credentials: 'include'
+        });
+        if (fromList) loadPasteList();
+        if (analyticsModal.classList.contains('active')) showAnalytics(pasteId);
+    } catch (e) {
+        alert('Failed to add reaction');
+    }
+}
+
+async function removeLastReaction(pasteId, type) {
+    try {
+        const res = await fetch(`/api/pastes/${pasteId}/react/${type}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            loadPasteList();
+            if (analyticsModal.classList.contains('active')) showAnalytics(pasteId);
+        } else {
+            console.error("No reactions to remove");
+        }
+    } catch (e) {
+        alert('Failed to remove reaction');
+    }
+}
+
+async function deleteReaction(reactionId, pasteId) {
+    if (!confirm('Remove this reaction?')) return;
+    try {
+        const res = await fetch(`/api/pastes/reactions/${reactionId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            showAnalytics(pasteId); // Refresh
+        }
+    } catch (e) {
+        alert('Failed to delete reaction');
+    }
+}
+
+async function deletePaste(id) {
+    if (!confirm('Are you sure you want to delete this paste?')) return;
+    try {
+        await storage.deletePaste(id);
+        await loadPasteList();
+    } catch (error) {
+        alert('Failed to delete paste: ' + error.message);
+    }
+}
+
+function getFlagEmoji(countryCode) {
+    if (!countryCode) return '🌍';
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char => 127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
+}
+
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleString();
+}
+
+async function loadPasteForEdit(id) {
+    try {
+        const paste = await storage.getPaste(id, false);
+        if (!paste) return;
+
+        currentLocalPasteId = paste.id;
+        pasteTitle.value = paste.title || '';
+        pasteContent.value = paste.content || '';
+        pasteLanguage.value = paste.language || 'plaintext';
+        pasteFolder.value = paste.folderId || '';
+        isPublic.checked = paste.isPublic !== 0; // 0 is false
+        burnAfterRead.checked = paste.burnAfterRead !== 0;
+        if (pastePassword) pastePassword.value = paste.password || '';
+        if (embedUrl) embedUrl.value = paste.embedUrl || '';
+
+        // Reset expiration to never for editing as default, unless we want to parse logic
+        pasteExpiration.value = 'never';
+
+        createPasteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Update Paste
+        `;
+        createPasteBtn.style.background = 'linear-gradient(135deg, #7b42ff, #00f5ff)';
+
+        // Add a temporary copy link button next to update in quick-actions
+        const quickActions = document.querySelector('.quick-actions');
+        if (!document.getElementById('quickCopyEdit')) {
+            const btn = document.createElement('button');
+            btn.id = 'quickCopyEdit';
+            btn.className = 'btn-icon';
+            btn.title = 'Copy Link';
+            btn.style.color = '#00f5ff';
+            btn.style.borderColor = 'rgba(0, 245, 255, 0.3)';
+            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+            btn.onclick = () => copyPasteUrl(id);
+            quickActions.appendChild(btn);
         }
 
-        // 2. Populate Chips in Repository
-        const chipContainer = document.getElementById('folderChipContainer');
-        if (chipContainer) {
-            chipContainer.innerHTML = folders.map(f => `
-                <div class="folder-chip-v5">
-                    <span class="name">${f.name}</span>
-                    <button class="del" onclick="deleteFolder('${f.id}')">&times;</button>
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (e) {
+        console.error(e);
+        alert('Failed to load paste for editing');
+    }
+}
+
+function viewPaste(id) {
+    window.open(`/v/${id}`, '_blank');
+}
+
+async function showStats() {
+    try {
+        const stats = await storage.getStats();
+
+        const languageCards = Object.entries(stats.languageBreakdown || {})
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([lang, count]) => `
+                <div class="stat-card">
+                    <div class="stat-value">${count}</div>
+                    <div class="stat-label">${lang}</div>
                 </div>
             `).join('');
-        }
-    } catch (e) {
-        console.error("Folder sync failed:", e);
+
+        statsContent.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value">${stats.totalPastes}</div>
+                <div class="stat-label">Total Pastes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${stats.totalViews}</div>
+                <div class="stat-label">Total Views</div>
+            </div>
+            <div class="stat-card" style="border-color: #ff006e22">
+                <div class="stat-value" style="color: #ff006e">${stats.totalReactions || 0}</div>
+                <div class="stat-label">Total Reactions</div>
+            </div>
+            <div class="grid col-3" style="width: 100%; margin-top: 16px">
+                ${languageCards}
+            </div>
+        `;
+
+        statsModal.classList.add('active');
+    } catch (error) {
+        console.error('Error showing stats:', error);
+        alert('Failed to load stats: ' + error.message);
     }
 }
 
-window.createNewFolder = async () => {
-    const input = document.getElementById('newFolderName');
-    const name = input.value.trim();
-    if (!name) return showToast('ENTER SECTOR NAME', 'error');
+function copyUrl() {
+    pasteUrl.select();
+    document.execCommand('copy');
 
-    try {
-        await api.createFolder(name);
-        input.value = '';
-        showToast(`NEW SECTOR [${name}] INITIALIZED`, 'success');
-        await refreshFolders();
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
+    const originalText = copyUrlBtn.textContent;
+    copyUrlBtn.textContent = 'Copied!';
+    copyUrlBtn.style.background = 'linear-gradient(135deg, #00ff88, #00f5ff)';
+
+    setTimeout(() => {
+        copyUrlBtn.textContent = originalText;
+        copyUrlBtn.style.background = '';
+    }, 2000);
 }
 
-window.deleteFolder = async (id) => {
-    if (!confirm('DESTROY SECTOR? ALL NODES WILL BE REASSIGNED TO ROOT.')) return;
-    try {
-        await api.deleteFolder(id);
-        showToast('SECTOR DECOMMISSIONED', 'success');
-        await refreshFolders();
-        await populateActiveNodes();
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-}
-
-// --- CREATOR: EDITING ---
-async function editPaste(id) {
-    try {
-        const p = await api.getPaste(id, false);
-        if (!p) return;
-
-        activeEditId = id;
-        document.getElementById('editorTitle').textContent = `RE-PROPAGATING NODE: ${id}`;
-        const bar = document.getElementById('editStatusBar');
-        bar.style.display = 'flex';
-        bar.classList.add('active-pulse');
-        document.getElementById('activeNodeId').textContent = `ID: ${id}`;
-
-        document.getElementById('pasteTitle').value = p.title || '';
-        document.getElementById('pasteLanguage').value = p.language || 'plaintext';
-        document.getElementById('pasteContent').value = p.content || '';
-        document.getElementById('pasteFolder').value = p.folderId || '';
-        document.getElementById('isPublic').checked = p.isPublic === 1;
-        document.getElementById('burnAfterRead').checked = p.burnAfterRead === 1;
-        document.getElementById('pasteEmbed').value = p.embedUrl || '';
-
-        const btn = document.getElementById('createPasteBtn');
-        btn.textContent = 'Update Node';
-        btn.classList.add('updating');
-
-        switchTab('creator');
-        showToast(`SYNCING NODE [${id}] TO TERMINAL`, 'info');
-
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-}
-
-function clearEditor() {
-    activeEditId = null;
-    document.getElementById('editorTitle').textContent = 'Propagate New Node';
-    const bar = document.getElementById('editStatusBar');
-    bar.style.display = 'none';
-    bar.classList.remove('active-pulse');
-
-    document.getElementById('pasteTitle').value = '';
-    document.getElementById('pasteContent').value = '';
-    document.getElementById('pastePassword').value = '';
-    document.getElementById('pasteEmbed').value = '';
-
-    const btn = document.getElementById('createPasteBtn');
-    btn.textContent = 'Initiate Propagation';
-    btn.classList.remove('updating');
-}
-
-document.getElementById('createPasteBtn').onclick = async () => {
-    const title = document.getElementById('pasteTitle').value.trim();
-    const content = document.getElementById('pasteContent').value.trim();
-    const language = document.getElementById('pasteLanguage').value;
-    const isPublic = document.getElementById('isPublic').checked;
-    const burnAfterRead = document.getElementById('burnAfterRead').checked;
-    const folderId = document.getElementById('pasteFolder').value;
-    const password = document.getElementById('pastePassword').value;
-    const embedUrl = document.getElementById('pasteEmbed').value;
-    const exp = document.getElementById('pasteExpiration').value;
-
-    if (!content) return showToast('DATA BUFFER EMPTY. PROPAGATION ABORTED.', 'error');
-
-    const config = {
-        title: title || 'Untitled',
-        language,
-        isPublic: isPublic ? 1 : 0,
-        burnAfterRead: burnAfterRead ? 1 : 0,
-        folderId,
-        password: password || null,
-        embedUrl: embedUrl || null,
-        expiresAt: calculateExpiration(exp)
-    };
-
-    try {
-        if (activeEditId) {
-            await api.updatePaste(activeEditId, content, config);
-            showToast('Node Updated Successfully', 'success');
-        } else {
-            const id = await api.createPaste(content, config);
-            showToast(`Node ${id} Propagated to System`, 'success');
-        }
-        clearEditor();
-        switchTab('repository');
-    } catch (e) {
-        showToast(e.message, 'error');
-    }
-};
-
-function calculateExpiration(val) {
-    if (val === 'never') return null;
+function formatDate(dateString) {
+    const date = new Date(dateString);
     const now = new Date();
-    const map = { '1h': 3600000, '1d': 86400000, '1w': 604800000 };
-    return new Date(now.getTime() + (map[val] || 0)).toISOString();
+    const diff = now - date;
+
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+
+    return date.toLocaleDateString();
 }
 
-// --- ANALYTICS TAB: GLOBAL ---
-// --- ANALYTICS TAB: GLOBAL ---
-function updateGlobalAnalyticsUI(data) {
-    document.getElementById('totalHits').textContent = data.totalVisits || 0;
-    document.getElementById('uniqueReaders').textContent = data.uniqueVisitors || 0;
-    document.getElementById('geoReach').textContent = data.uniqueLocations || 0;
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-    const body = document.getElementById('trafficLogBody');
-    const activity = [...(data.recentViews || []), ...(data.pageAccesses?.recent || [])]
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .slice(0, 50);
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + Enter to create paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const activeElement = document.activeElement;
+        if (activeElement === pasteContent || activeElement === pasteTitle) {
+            e.preventDefault();
+            createPaste();
+        }
+    }
+});
 
-    body.innerHTML = activity.map(h => {
-        const isPaste = !!h.pasteId;
-        const path = h.pasteId ? `<span class="path-badge paste">/v/${h.pasteId}</span>` : `<span class="path-badge system">${h.path || '/'}</span>`;
-        const country = h.countryCode ? `<span class="flag-icon">${h.countryCode}</span> ` : '';
+// FOLDER MANAGEMENT
+async function loadFolderList() {
+    try {
+        const folders = await storage.getAllFolders();
 
-        return `
-        <tr>
-            <td class="mono-text" style="color:var(--text-secondary);">${timeAgo(h.timestamp)}</td>
-            <td>${path}</td>
-            <td>
-                <div style="font-weight:600; color:#fff;">${country}${h.city || 'Unknown'}</div>
-                <div style="font-size:9px; opacity:0.5; margin-top:2px;">${h.hostname || h.isp || '??'}</div>
-                <div style="display:flex; gap:3px; margin-top:4px;">
-                    ${h.proxy ? '<span class="intel-tag tag-proxy">VPN</span>' : ''}
-                    ${h.hosting ? '<span class="intel-tag tag-hosting">HOST</span>' : ''}
-                    ${h.mobile ? '<span class="intel-tag tag-mobile">MOB</span>' : ''}
-                </div>
-            </td>
-            <td class="mono-text" style="color:var(--accent-blue);">${h.ip}</td>
-            <td>
-                <button class="btn-icon-micro" title="Purge IP" onclick="purgeHit('${h.ip}')">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        // Update dropdown
+        const currentValue = pasteFolder.value;
+        pasteFolder.innerHTML = '<option value="">No Folder</option>' +
+            folders.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+        pasteFolder.value = currentValue;
+
+        // Update modal list
+        folderList.innerHTML = folders.length === 0 ? '<p style="color: var(--text-tertiary); text-align: center; padding: 10px;">No folders yet.</p>' :
+            folders.map(f => `
+            <div class="folder-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--border)">
+                <span>📁 ${escapeHtml(f.name)}</span>
+                <button onclick="deleteFolder('${f.id}')" class="btn-icon" style="color: #ff006e" title="Delete Folder">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
                 </button>
-            </td>
-        </tr>
-    `}).join('');
-
-    // Update global lists reference
-    globalBrowsers = data.browsers || [];
-    globalISPs = data.isps || [];
-}
-
-function populateIntelList(id, items) {
-    const container = document.getElementById(id);
-    if (!container) return;
-
-    // Calculate max for bar scaling
-    const max = items.length ? Math.max(...items.map(i => i.count)) : 0;
-    const colors = ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
-
-    container.innerHTML = items.slice(0, 20).map((i, index) => {
-        const pct = max ? Math.max(5, (i.count / max) * 100) : 0;
-        const color = colors[index % colors.length];
-
-        return `
-        <div class="intel-item-v4">
-            <div class="intel-progress-bg" style="width:${pct}%; background:${color}; opacity:0.15;"></div>
-            <div class="intel-content">
-                <span class="label">${i.name.toUpperCase()}</span>
-                <span class="val" style="color:${color};">${i.count}</span>
             </div>
-        </div>
-    `}).join('');
+        `).join('');
+    } catch (error) {
+        console.error('Error loading folders:', error);
+    }
 }
 
-function renderAccessKeys(keys) {
-    const container = document.getElementById('accessKeyList');
-    if (!container) return;
-    container.innerHTML = keys.map(k => `
-        <div class="intel-item-v4">
-            <div class="intel-content">
-                <span class="key-mono main-key">${k.key}</span>
-                <button class="btn-danger-slim-micro" onclick="revokeKey('${k.id}')">REVOKE</button>
+async function createFolder() {
+    const name = newFolderName.value.trim();
+    if (!name) return;
+
+    try {
+        await storage.createFolder(name);
+        newFolderName.value = '';
+        await loadFolderList();
+    } catch (error) {
+        alert('Failed to create folder: ' + error.message);
+    }
+}
+
+async function deleteFolder(id) {
+    if (!confirm('Are you sure you want to delete this folder? Pastes in this folder will NOT be deleted, but will become folder-less.')) return;
+    try {
+        await storage.deleteFolder(id);
+        await loadFolderList();
+    } catch (error) {
+        alert('Failed to delete folder: ' + error.message);
+    }
+}
+
+async function loadUsers() {
+    try {
+        usersList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-tertiary)">Loading users...</div>';
+
+        const res = await fetch('/api/access/users', { credentials: 'include' });
+        const users = await res.json();
+
+        if (!users || users.length === 0) {
+            usersList.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-tertiary)">No users found.</div>';
+            return;
+        }
+
+        usersList.innerHTML = `
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem">
+                <thead>
+                    <tr style="background: rgba(255,255,255,0.05); text-align: left;">
+                        <th style="padding: 12px; color: var(--text-secondary)">User</th>
+                        <th style="padding: 12px; color: var(--text-secondary)">Identity</th>
+                        <th style="padding: 12px; color: var(--text-secondary)">First Seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${users.map(u => `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05)">
+                            <td style="padding: 12px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <img src="${u.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:32px; height:32px; border-radius:50%">
+                                    <div>
+                                        <div style="font-weight:600; color:white;">${escapeHtml(u.displayName || u.username || 'Unknown')}</div>
+                                        <div style="font-size:0.75rem; color:var(--text-tertiary)">${escapeHtml(u.username || '')}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 12px;">
+                                <div style="font-family:monospace; color:var(--primary-start)">${u.discordId}</div>
+                                <div style="font-size:0.75rem; color:var(--text-tertiary)">${escapeHtml(u.email || 'No Email')}</div>
+                            </td>
+                            <td style="padding: 12px; color:var(--text-tertiary)">
+                                ${formatDateTime(u.createdAt)}
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+
+    } catch (e) {
+        console.error("Load Users Error:", e);
+        usersList.innerHTML = `<div style="padding:20px; color:#ff006e">Error loading users: ${e.message}</div>`;
+    }
+}
+
+// IMAGE UPLOAD
+async function handleImageUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show loading state on button
+    const originalText = uploadImageBtn.innerHTML;
+    uploadImageBtn.innerHTML = '⏳ Uploading...';
+    uploadImageBtn.disabled = true;
+
+    try {
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            // Append markdown to content
+            const isVideo = file.type.startsWith('video/');
+            const markdown = isVideo ?
+                `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px;"></video>\n` :
+                `\n![${file.name}](${res.url})\n`;
+
+            pasteContent.value += markdown;
+
+            // Visual feedback
+            uploadImageBtn.innerHTML = '✅ Added!';
+            setTimeout(() => {
+                uploadImageBtn.innerHTML = originalText;
+                uploadImageBtn.disabled = false;
+            }, 1000);
+        } else {
+            alert('Upload failed: ' + res.error);
+            uploadImageBtn.innerHTML = originalText;
+            uploadImageBtn.disabled = false;
+        }
+    } catch (e) {
+        console.error(e);
+        alert('Upload Error: ' + e.message);
+        uploadImageBtn.innerHTML = originalText;
+        uploadImageBtn.disabled = false;
+    }
+}
+
+async function handleEmbedUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const originalText = uploadEmbedBtn.innerHTML;
+    uploadEmbedBtn.innerHTML = '⏳';
+    uploadEmbedBtn.disabled = true;
+
+    try {
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            embedUrl.value = window.location.origin + res.url;
+            uploadEmbedBtn.innerHTML = '✅';
+        } else {
+            alert('Upload failed');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        setTimeout(() => {
+            uploadEmbedBtn.innerHTML = originalText;
+            uploadEmbedBtn.disabled = false;
+        }, 1500);
+    }
+}
+
+
+
+async function toggleVisibility(id, e) {
+    if (e) e.stopPropagation();
+    const btn = e ? e.currentTarget : null;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳';
+    }
+
+    try {
+        // Fetch full paste data (pass false to trackView to avoid incrementing views)
+        const paste = await storage.getPaste(id, false);
+        if (!paste) throw new Error('Paste not found');
+
+        const config = {
+            title: paste.title,
+            language: paste.language,
+            isPublic: !paste.isPublic, // TOGGLE
+            burnAfterRead: paste.burnAfterRead,
+            expiresAt: paste.expiresAt,
+            folderId: paste.folderId,
+            password: paste.password
+        };
+
+        // We use updatePaste which calls PUT /:id
+        await storage.updatePaste(id, paste.content, config);
+        await loadPasteList();
+    } catch (e) {
+        console.error(e);
+        alert('Toggle failed: ' + e.message);
+        if (btn) {
+            btn.disabled = false;
+        }
+    }
+}
+
+// --- NEW ADMIN FEATURES ---
+
+async function loadKeys() {
+    const keyList = document.getElementById('keyList');
+    if (!keyList) return;
+
+    keyList.innerHTML = '<p style="padding:10px; color:#666;">Loading...</p>';
+
+    try {
+        const res = await fetch('/api/access/keys');
+        const keys = await res.json();
+
+        if (!keys.length) {
+            keyList.innerHTML = '<p style="padding:10px; color:#666;">No keys found.</p>';
+            return;
+        }
+
+        keyList.innerHTML = keys.map(k => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                    <div style="color: #fff; font-family: monospace;">${k.key}</div>
+                    <div style="color: #666; font-size: 0.75rem;">
+                        ${k.userEmail ? k.userEmail : (k.userId || (k.claimedIp ? `Claimed (${k.claimedIp})` : 'Unclaimed'))} • ${new Date(k.createdAt).toLocaleDateString()}
+                    </div>
+                </div>
+                <button onclick="deleteKey('${k.id}')" class="btn-icon" style="color: #ff0050; opacity: 0.7;" title="Revoke">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+    } catch (e) {
+        keyList.innerHTML = '<p style="padding:10px; color:red;">Error loading keys.</p>';
+    }
 }
 
+async function deleteKey(id) {
+    if (!confirm('Revoke this access key? User will lose access immediately.')) return;
+    try {
+        await fetch(`/api/access/keys/${id}`, { method: 'DELETE' });
+        loadKeys();
+    } catch (e) { alert('Failed to delete'); }
+}
 
-// --- MAP ---
+// Integrated Analytics Logic
 function initMainMap() {
-    if (mainMap) return;
-    mainMap = L.map('mainHeatmap', {
-        center: [20, 0],
-        zoom: 2,
-        zoomControl: false,
-        attributionControl: false
-    });
-    // High Contrast Dark Theme
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        opacity: 0.95
-    }).addTo(mainMap);
-    if (globalAnalytics) updateMainMap(globalAnalytics.locations || []);
+    try {
+        const heatmapContainer = document.getElementById('mainHeatmap');
+        if (!heatmapContainer) return;
+
+        mainMap = L.map('mainHeatmap', {
+            center: [20, 0],
+            zoom: 2,
+            zoomControl: true,
+            attributionControl: false
+        });
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(mainMap);
+
+        console.log('✅ Dashboard Map initialized');
+    } catch (e) {
+        console.error('❌ Main map init failed:', e);
+    }
+}
+
+async function loadGlobalAnalytics() {
+    try {
+        const data = await storage.getGlobalAnalytics();
+        globalAnalyticsData = data;
+
+        updateDashboardStats(data);
+        updateMainMap(data.locations || []);
+
+        // Update active visitors in header
+        if (activeVisitorsEl) {
+            activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
+        }
+    } catch (e) {
+        console.error('Failed to load global analytics:', e);
+    }
+}
+
+function updateDashboardStats(data) {
+    if (totalHitsEl) totalHitsEl.textContent = data.totalVisits || 0;
+    if (uniqueReadersEl) uniqueReadersEl.textContent = data.uniqueVisitors || 0;
+    if (geoReachEl) geoReachEl.textContent = data.uniqueLocations || 0;
 }
 
 function updateMainMap(locations) {
     if (!mainMap) return;
+
+    // Clear existing
     mainMapMarkers.forEach(m => m.remove());
     mainMapMarkers = [];
+
     locations.forEach(loc => {
         const lat = parseFloat(loc.lat);
         const lon = parseFloat(loc.lon);
+
         if (!isNaN(lat) && !isNaN(lon)) {
-            // Enhanced Marker for easy hover
-            const m = L.circleMarker([lat, lon], {
-                radius: 12 + Math.log(loc.count) * 6, // Larger radius as requested
-                fillColor: '#00f5ff',
+            const marker = L.circleMarker([lat, lon], {
+                radius: 6 + Math.log(loc.count || 1) * 3,
+                fillColor: '#ff006e',
                 color: '#fff',
                 weight: 1,
                 opacity: 0.8,
-                fillOpacity: 0.4
+                fillOpacity: 0.5
             }).addTo(mainMap);
 
-            m.bindTooltip(`
-                <div style="font-family:var(--font-main); padding:4px; line-height:1.2; text-align:center;">
-                    <strong style="color:#00f5ff; font-size:14px">${loc.city}, ${loc.country}</strong><br>
-                    <span style="font-size:11px; color:#fff;">${loc.count} Hits</span>
-                </div>
-            `, {
-                sticky: true,
-                direction: 'auto',
-                opacity: 1,
-                className: 'custom-map-tooltip' // We'll assume styles exist or it uses defaults
-            });
-
-            mainMapMarkers.push(m);
+            marker.bindPopup(`<b>${loc.city || 'Unknown'}</b><br>Hits: ${loc.count}`);
+            mainMapMarkers.push(marker);
         }
     });
+
+    if (mainMapMarkers.length > 0 && !mainMap.initialized) {
+        try {
+            const group = new L.featureGroup(mainMapMarkers);
+            mainMap.fitBounds(group.getBounds().pad(0.1));
+            mainMap.initialized = true;
+        } catch (e) { }
+    }
 }
 
-// --- MODAL: ANALYTICS ---
-async function openNodeAnalytics(id) {
+async function deleteLogsByISP(ispName) {
+    if (!confirm(`Delete all logs from ISP: ${ispName}?`)) return;
     try {
-        const stats = await api.getAnalytics(id);
-        const p = await api.getPaste(id, false);
-
-        document.getElementById('pModalTitle').textContent = p.title || 'Untitled';
-        document.getElementById('pModalId').textContent = id;
-        document.getElementById('pModalUrl').value = `https://${window.location.host}/v/${id}`;
-
-        document.getElementById('pTotalViews').textContent = stats.totalViews;
-        document.getElementById('pUniqueIPs').textContent = stats.uniqueIPs;
-        document.getElementById('pCountryCount').textContent = (stats.topLocations || []).length;
-
-        const renderList = (id, items) => {
-            document.getElementById(id).innerHTML = items.slice(0, 5).map(i => `
-                <div class="data-item">
-                    <span>${i.name}</span>
-                    <span class="count">${i.count}</span>
-                </div>
-            `).join('') || '<div style="opacity:0.2">No telemetry</div>';
-        };
-        renderList('pTopLocations', stats.topLocations || []);
-        renderList('pTopISPs', stats.topISPs || []);
-
-        document.getElementById('pLogBody').innerHTML = (stats.recentViews || []).map(v => `
-            <tr>
-                <td>${timeAgo(v.timestamp)}</td>
-                <td style="font-family:var(--font-mono); font-size:11px">${v.ip}</td>
-                <td>
-                    <div style="font-weight:700">${v.city || '??'}, ${v.countryCode || '??'}</div>
-                    <div style="font-size:10px; opacity:0.6">${v.district || ''} ${v.timezone || ''}</div>
-                </td>
-                <td>
-                    <div style="font-size:11px; display:flex; flex-direction:column; gap:2px">
-                        <span>🏢 ${v.isp?.substring(0, 20)}</span>
-                        <div style="display:flex; gap:4px">
-                            ${v.proxy ? '<span class="intel-tag tag-proxy">PROXY</span>' : ''}
-                            ${v.hosting ? '<span class="intel-tag tag-hosting">HOST</span>' : ''}
-                            ${v.mobile ? '<span class="intel-tag tag-mobile">MOB</span>' : ''}
-                        </div>
-                        <span style="font-size:9px; opacity:0.4">AS: ${v.asName || '---'} | Currency: ${v.currency || '---'}</span>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-
-        document.getElementById('pHearts').textContent = p.reactions?.heart || 0;
-        document.getElementById('pStars').textContent = p.reactions?.star || 0;
-        document.getElementById('pLikes').textContent = p.reactions?.like || 0;
-
-        // Reaction Logs
-        const rLog = document.getElementById('pReactionsLog');
-        if (rLog) {
-            rLog.innerHTML = (stats.reactions || []).map(r => `
-                <tr>
-                    <td>
-                        <div style="font-weight:700; color:#fff;">${r.username}</div>
-                        <div style="font-size:9px; opacity:0.5;">ID: ${r.userId || 'Guest'}</div>
-                    </td>
-                    <td><span class="path-badge paste">${r.type.toUpperCase()}</span></td>
-                    <td>${r.city || '??'}, ${r.country || '??'}</td>
-                    <td>${timeAgo(r.timestamp)}</td>
-                    <td>---</td>
-                </tr>
-            `).join('') || '<tr><td colspan="5" style="text-align:center; opacity:0.2; padding:20px;">No reactions recorded yet.</td></tr>';
+        await fetch(`/api/pastes/analytics/isp/${encodeURIComponent(ispName)}`, { method: 'DELETE', credentials: 'include' });
+        loadGlobalAnalytics();
+        if (analyticsModal.classList.contains('active')) {
+            // If the analytics modal is open, we might need to refresh it
+            // but these are global deletions, so maybe just refresh stats?
+            alert('ISP logs deleted');
         }
-
-        document.getElementById('analyticsModal').classList.add('active');
-    } catch (e) { showToast(e.message, 'error'); }
+    } catch (e) { console.error(e); }
 }
 
-let editMetricsId = null;
-window.openNodeEdits = function (id) {
-    editMetricsId = id;
-    fetch(`/api/pastes/${id}`).then(r => r.json()).then(p => {
-        document.getElementById('adjViews').value = p.views || 0;
-        document.getElementById('adjHearts').value = p.reactions?.heart || 0;
-        document.getElementById('adjStars').value = p.reactions?.star || 0;
-        document.getElementById('adjLikes').value = p.reactions?.like || 0;
-        document.getElementById('adjustStatsModal').classList.add('active');
-    }).catch(err => showToast("Failed to fetch node data", "error"));
+async function deleteLogsFromCity(cityName) {
+    if (!confirm(`Delete logs for ${cityName}?`)) return;
+    try {
+        await fetch(`/api/pastes/analytics/city/${encodeURIComponent(cityName)}`, { method: 'DELETE', credentials: 'include' });
+        loadGlobalAnalytics();
+        alert('City logs deleted');
+    } catch (e) { console.error(e); }
 }
 
-document.getElementById('saveStatsBtn').onclick = async () => {
-    if (!editMetricsId) return;
-    const payload = {
-        views: parseInt(document.getElementById('adjViews').value) || 0,
-        reactions: {
-            heart: parseInt(document.getElementById('adjHearts').value) || 0,
-            star: parseInt(document.getElementById('adjStars').value) || 0,
-            like: parseInt(document.getElementById('adjLikes').value) || 0
+// Global scope binding for inline onclick
+window.deleteKey = deleteKey;
+window.toggleVisibility = toggleVisibility;
+window.showAnalytics = showAnalytics;
+window.loadPasteForEdit = loadPasteForEdit;
+window.deletePaste = deletePaste;
+window.viewPaste = viewPaste;
+window.resetViews = resetViews;
+window.updatePasteViews = updatePasteViews;
+window.updateReactionCount = updateReactionCount;
+window.injectReaction = injectReaction;
+window.deleteReaction = deleteReaction;
+window.deleteAnalyticsLogs = deleteAnalyticsLogs;
+window.deleteLogsByISP = deleteLogsByISP;
+window.deleteLogsFromCity = deleteLogsFromCity;
+
+window.copyPasteUrl = function (id) {
+    if (!id) return;
+    const url = `${window.location.origin}/v/${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+        const btn = event?.currentTarget || document.activeElement;
+        if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN')) {
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '✅ Copied';
+            setTimeout(() => btn.innerHTML = originalContent, 1500);
         }
-    };
-
-    try {
-        const res = await fetch(`/api/pastes/${editMetricsId}/metrics`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) throw new Error(`Override failed: ${res.status}`);
-
-        showToast('System Stats Overridden Successfully', 'success');
-        closeModal('adjustStatsModal');
-        await refreshData();
-        if (currentTab === 'repository') await populateActiveNodes();
-    } catch (e) {
-        console.error(e);
-        showToast(e.message, 'error');
-    }
+    }).catch(err => {
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('Link Copied!');
+    });
 };
 
-// UTILS
-function timeAgo(date) {
-    if (!date) return '---';
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    if (seconds < 60) return "just now";
-    if (seconds < 3600) return Math.floor(seconds / 60) + "m";
-    if (seconds < 86400) return Math.floor(seconds / 3600) + "h";
-    return Math.floor(seconds / 86400) + "d";
-}
+// Bind Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const refreshKeysBtn = document.getElementById('refreshKeysBtn');
+    if (refreshKeysBtn) refreshKeysBtn.addEventListener('click', loadKeys);
 
-function showToast(msg, type = 'info') {
-    let container = document.getElementById('toastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.style.cssText = 'position:fixed; bottom:30px; right:30px; z-index:10000; display:flex; flex-direction:column; gap:10px;';
-        document.body.appendChild(container);
-    }
+    const clearAnalyticsBtn = document.getElementById('clearAnalyticsBtn');
+    if (clearAnalyticsBtn) clearAnalyticsBtn.addEventListener('click', async () => {
+        if (!confirm('⚠️ ARE YOU SURE? \n\nThis will wipe ALL analytics data from the database.')) return;
 
-    const toast = document.createElement('div');
-    const colors = {
-        success: '#10b981',
-        error: '#ef4444',
-        info: '#3b82f6',
-        warning: '#f59e0b'
-    };
+        clearAnalyticsBtn.disabled = true;
+        clearAnalyticsBtn.textContent = 'Clearing...';
+        try {
+            const res = await fetch('/api/pastes/analytics/all', { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                alert('Analytics Database Cleared.');
+                loadGlobalAnalytics();
+            } else {
+                alert('Failed: ' + (data.error || 'Unknown'));
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
+        } finally {
+            clearAnalyticsBtn.disabled = false;
+            clearAnalyticsBtn.textContent = '⚠️ Clear All Analytics DB';
+        }
+    });
 
-    toast.style.cssText = `
-        background: rgba(15, 15, 20, 0.95);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        border-left: 4px solid ${colors[type] || colors.info};
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        font-weight: 700;
-        font-size: 0.9rem;
-        backdrop-filter: blur(10px);
-        animation: toastIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        min-width: 300px;
-    `;
-
-    toast.innerHTML = msg;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
-        toast.style.transition = '0.4s';
-        setTimeout(() => toast.remove(), 400);
-    }, 4000);
-}
-
-// Add toast animation
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes toastIn {
-        from { opacity: 0; transform: translateY(20px) scale(0.9); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-`;
-document.head.appendChild(style);
-
-window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-
-async function deletePaste(id) {
-    if (!confirm(`CONFIRM NODE DESTRUCTION: ${id}`)) return;
-    await api.deletePaste(id);
-    await refreshData();
-}
-
-function copyPasteLink(id) {
-    const url = `https://${window.location.host}/v/${id}`;
-    navigator.clipboard.writeText(url);
-}
-
-document.getElementById('logoutBtn').onclick = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/';
-};
-
-// --- SECURITY HANDLERS ---
-window.revokeKey = async (id) => {
-    if (!confirm('Revoke this access key? Applications using it will fail.')) return;
-    try {
-        await api.revokeAccessKey(id);
-        await refreshData();
-        showToast('Access Key Revoked', 'success');
-    } catch (e) { showToast(e.message, 'error'); }
-};
-
-window.wipeAllLogs = async () => {
-    if (!confirm('FLUSH ALL TRAFFIC LOGS?')) return;
-    showToast('Logs flushed locally (Server sync pending)', 'success');
-    document.getElementById('trafficLogBody').innerHTML = '';
-};
-
-window.purgeHit = async (ip) => {
-    showToast(`IP ${ip} traffic purged from view`, 'success');
-};
+});
