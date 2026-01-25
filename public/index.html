@@ -1715,16 +1715,49 @@
 <div id="view-entry"
     style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; padding-top: 100px; padding-bottom: 50px; z-index: 5;">
     <!-- LIQUID TITLE ANIMATION -->
-    <div class="landing-text-container">
-        <canvas class="webgl"></canvas>
+    <style>
+        .landing-text {
+            position: absolute;
+            top: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            text-align: center;
+            font-size: 5rem;
+            font-weight: 900;
+            letter-spacing: 1rem;
+            z-index: 10;
+            white-space: nowrap;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            color: white;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .landing-text {
+                font-size: 2.5rem;
+                letter-spacing: 0.5rem;
+                top: 10%;
+            }
+
+            #announcement-banner {
+                top: 22% !important;
+                font-size: 0.9rem !important;
+                padding: 0 20px;
+            }
+        }
+    </style>
+
+    <!-- RESTORED STATIC TITLE -->
+    <div class="landing-text glitch-text" id="parallax-top" data-text="VEROE.SPACE">
+        VEROE.SPACE
     </div>
-    <!-- <div class="landing-text text-top glitch-text" id="parallax-top" data-text="V E R O E . S P A C E">V E R O E . S P A
-        C E</div> -->
 
     <!-- Announcement Banner (Per Image Request) -->
     <div id="announcement-banner" class="accent-text accent-glow banner-animate"
         style="position: absolute; top: 18%; width: 100%; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; z-index: 100; pointer-events: none;">
-        CONFLICT RESOLUTION; LOVENSE UPDATES; QUIETBIN REACTIONS AND GOOGLE AUTH.
+        CONFLICT RESOLUTION: LOVENSE UPDATES UPDATE & GOOGLE AUTH.
     </div>
 
     <div class="esco-profile-card">
