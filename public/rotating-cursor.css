@@ -1,0 +1,25 @@
+/* Rotating SVG Cursor Styles */
+body {
+    cursor: none;
+}
+
+body * {
+    cursor: inherit !important;
+}
+
+#cursor {
+    position: fixed;
+    left: -28px;
+    top: -34px;
+    will-change: transform;
+    transform: translate(-999px, -999px);
+    pointer-events: none;
+    z-index: 999999;
+}
+
+#cursor img {
+    will-change: transform;
+    transition: transform .1s linear;
+    width: 56px;
+    height: 68px;
+}
