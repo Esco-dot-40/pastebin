@@ -14,8 +14,8 @@
     width: 380px;
     padding: 20px;
     border-radius: 28px;
-    background: rgba(5, 5, 8, 0.98);
-    /* Almost solid opaque */
+    background: rgb(5, 5, 8);
+    /* Fully opaque to prevent bleed-through */
     border: 1px solid rgba(0, 245, 255, 0.2);
     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
     text-align: center;
@@ -25,6 +25,8 @@
     /* Reduced top margin to allow flex centering */
     animation: cardEntrance 1s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1000;
+    backdrop-filter: blur(15px) saturate(160%);
+    -webkit-backdrop-filter: blur(15px) saturate(160%);
 }
 
 @keyframes cardEntrance {

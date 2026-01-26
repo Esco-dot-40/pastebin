@@ -1,6 +1,6 @@
 /**
  * Rotating SVG Cursor
- * High-performance custom cursor with smooth rotation
+ * Re-implemented exactly from the CodePen by wottpal (qBPmOqG)
  */
 
 var rotatingCursor = (function () {
@@ -12,6 +12,7 @@ var rotatingCursor = (function () {
     let currentCursorPos = { x: -999, y: -999 };
     let lastCursorAngle = 0, cursorAngle = 0;
     let cursorEl, cursorImageEl;
+
 
     /* Local Functions */
 
@@ -55,6 +56,7 @@ var rotatingCursor = (function () {
             lastCursorAngle = cursorAngle;
         }, INTERVAL_ROTATION);
     }
+
 
     /* Public Functions */
 

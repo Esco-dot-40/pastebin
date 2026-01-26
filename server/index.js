@@ -9,6 +9,7 @@ import pastesRouter from './routes/pastes.js';
 import authRouter from './routes/auth.js';
 import foldersRouter from './routes/folders.js';
 import imagesRouter from './routes/images.js';
+import bannerRouter from './routes/banner.js';
 import db from './db/index.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
 import { startAutoBackup } from './services/auto-backup.js';
@@ -121,6 +122,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/pastes', pastesRouter);
 app.use('/api/folders', foldersRouter);
 app.use('/api/images', imagesRouter);
+app.use('/api/admin', bannerRouter);
 
 // Static Folders
 app.use('/shared', express.static(path.join(__dirname, '..', 'shared')));

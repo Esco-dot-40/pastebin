@@ -13,6 +13,8 @@ let currentLocalPasteId = null;
 let mainMap = null;
 let mainMapMarkers = [];
 let globalAnalyticsData = null;
+const bannerText = document.getElementById('bannerText');
+const updateBannerBtn = document.getElementById('updateBannerBtn');
 
 const createPasteBtn = document.getElementById('createPasteBtn');
 const clearBtn = document.getElementById('clearBtn');
@@ -74,7 +76,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     await Promise.all([
         loadPasteList(),
         loadFolderList(),
-        loadGlobalAnalytics()
+        loadGlobalAnalytics(),
+        loadBanner()
     ]);
 
     // Initialize Map
@@ -127,6 +130,8 @@ if (usersModal) {
         if (e.target === usersModal) usersModal.classList.remove('active');
     });
 }
+
+if (updateBannerBtn) updateBannerBtn.addEventListener('click', updateBanner);
 
 if (pasteSearchInput) {
     pasteSearchInput.addEventListener('input', () => {
@@ -972,7 +977,7 @@ async function loadFolderList() {
 
         // Update dropdown
         const currentValue = pasteFolder.value;
-        pasteFolder.innerHTML = '<option value="">No Folder</option>' +
+        pasteFolder.innerHTML = '<option value="">Ungrouped</option>' +
             folders.map(f => `<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
         pasteFolder.value = currentValue;
 
@@ -1384,3 +1389,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+// Banner Management
+async function loadBanner() {
+    try {
+        const response = await fetch('/api/admin/banner');
+        if (response.ok) {
+            const data = await response.json();
+            if (bannerText) bannerText.value = data.text;
+        }
+    } catch (error) {
+        console.error('Failed to load banner:', error);
+    }
+}
+
+async function updateBanner() {
+    if (!bannerText) return;
+    const text = bannerText.value;
+
+    updateBannerBtn.innerText = 'Updating...';
+    updateBannerBtn.disabled = true;
+
+    try {
+        const response = await fetch('/api/admin/banner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+
+        if (response.ok) {
+            alert('Banner updated successfully!');
+        } else {
+            const err = await response.json();
+            alert('Failed to update banner: ' + err.error);
+        }
+    } catch (error) {
+        console.error('Error updating banner:', error);
+        alert('Error updating banner. Check console.');
+    } finally {
+        updateBannerBtn.innerText = 'Update Banner';
+        updateBannerBtn.disabled = false;
+    }
+}
