@@ -412,7 +412,7 @@ async function loadPasteList(searchQuery = '') {
                     
                     <div class="meta-pill">
                         <span title="Hearts">❤️</span>
-                        <input type="number" value="${paste.hearts || 0}" 
+                        <input type="number" value="${(paste.reactions && paste.reactions.heart) || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'heart', this.value)"
                             style="width: 40px; background: none; border: none; color: #ff006e; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
@@ -420,7 +420,7 @@ async function loadPasteList(searchQuery = '') {
 
                     <div class="meta-pill">
                         <span title="Stars">⭐</span>
-                        <input type="number" value="${paste.stars || 0}" 
+                        <input type="number" value="${(paste.reactions && paste.reactions.star) || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'star', this.value)"
                             style="width: 40px; background: none; border: none; color: #ffd700; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
@@ -428,7 +428,7 @@ async function loadPasteList(searchQuery = '') {
 
                     <div class="meta-pill">
                         <span title="Likes">👍</span>
-                        <input type="number" value="${paste.likes || 0}" 
+                        <input type="number" value="${(paste.reactions && paste.reactions.like) || 0}" 
                             onclick="event.stopPropagation()" 
                             onchange="updateReactionCount('${paste.id}', 'like', this.value)"
                             style="width: 40px; background: none; border: none; color: #00f5ff; font-family: inherit; font-size: 0.85rem; text-align: center; outline: none; -moz-appearance: textfield; font-weight: bold;">
@@ -656,18 +656,18 @@ async function showAnalytics(pasteId) {
                         </tr>
                     </thead>
                     <tbody>
-                        ${(analytics.recentReactions || []).map(r => `
+                        ${(analytics.detailedReactions || []).map(r => `
                             <tr style="border-bottom: 1px solid rgba(255,255,255,0.05)">
                                 <td style="padding: 12px;">
                                     <div style="display:flex; align-items:center; gap:8px;">
                                         <img src="${r.avatarUrl || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:20px; height:20px; border-radius:50%">
-                                        <span>${escapeHtml(r.username || 'Anon')}</span>
+                                        <span>${escapeHtml(r.username || r.userId || 'Anon')}</span>
                                     </div>
                                     <small style="color:#666; font-family:monospace">${r.discordId || r.ip}</small>
                                 </td>
                                 <td style="padding: 12px; font-size:1.2rem;">${r.type === 'heart' ? '❤️' : r.type === 'star' ? '⭐' : '👍'}</td>
                                 <td style="padding: 12px;">
-                                    ${getFlagEmoji(r.countryCode)} ${escapeHtml(r.city || 'Unknown')}<br>
+                                    ${r.countryCode ? getFlagEmoji(r.countryCode) : ''} ${escapeHtml(r.city || 'Unknown')}<br>
                                     <small style="color:#666">${r.isp || ''}</small>
                                 </td>
                                 <td style="padding: 12px;">${formatDateTime(r.createdAt)}</td>
@@ -676,6 +676,7 @@ async function showAnalytics(pasteId) {
                                 </td>
                             </tr>
                         `).join('')}
+                        ${!analytics.detailedReactions || analytics.detailedReactions.length === 0 ? '<tr><td colspan="5" style="padding: 20px; text-align: center">No reaction logs.</td></tr>' : ''}
                     </tbody>
                 </table>
             </div>

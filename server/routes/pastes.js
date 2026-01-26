@@ -386,6 +386,10 @@ router.get('/:id/analytics', requireAuth, (req, res) => {
         return { os, browser };
     };
 
+    // Reaction Summary
+    const reactionCounts = { heart: 0, star: 0, like: 0 };
+    reactions.forEach(r => { if (reactionCounts[r.type] !== undefined) reactionCounts[r.type]++; });
+
     res.json({
         totalViews: paste.views,
         uniqueIPs: new Set(views.map(v => v.ip)).size,
@@ -394,12 +398,19 @@ router.get('/:id/analytics', requireAuth, (req, res) => {
         platforms: groupCount(views.map(v => parseUA(v.userAgent)), u => u.os),
         browsers: groupCount(views.map(v => parseUA(v.userAgent)), u => u.browser),
         recentViews: views.slice(0, 100).map(v => ({ ...v, ...parseUA(v.userAgent) })),
-        reactions: reactions.map(r => ({
+        reactions: reactionCounts, // Summary for the cards
+        detailedReactions: reactions.map(r => ({ // Rename or keep as log
+            id: r.id,
             type: r.type,
             username: r.username || 'Anonymous',
-            timestamp: r.createdAt,
+            avatarUrl: r.avatarUrl,
+            discordId: r.discordId,
+            ip: r.ip,
+            createdAt: r.createdAt,
             city: r.city,
-            country: r.country
+            country: r.country,
+            countryCode: r.countryCode,
+            isp: r.isp
         }))
     });
 });

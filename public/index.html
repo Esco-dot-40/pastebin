@@ -59,20 +59,38 @@
 
         html,
         body {
-            overflow: hidden;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
             width: 100%;
-            height: 100%;
+            min-height: 100vh;
             margin: 0;
             padding: 0;
         }
 
-        .no-scrollbar::-webkit-scrollbar {
+        /* Hide scrollbar globally */
+        html {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        html::-webkit-scrollbar {
             display: none;
         }
 
+        /* Global scrollbar hiding */
+        html,
+        body,
         .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        .no-scrollbar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
         @keyframes pulse {
@@ -1769,8 +1787,8 @@
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
-<div id="view-entry" class="no-scrollbar"
-    style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; height: 100vh; width: 100%; position: absolute; top: 0; left: 0; overflow-y: auto; overflow-x: hidden; padding-top: 60px; padding-bottom: 50px; z-index: 5; scroll-behavior: smooth;">
+<div id="view-entry"
+    style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; position: relative; padding-top: 60px; padding-bottom: 50px; z-index: 5;">
     <!-- LIQUID TITLE ANIMATION -->
     <style>
         .landing-text {
@@ -1899,7 +1917,7 @@
 
 <!-- View: ACCESS DENIED -->
 <div id="view-access-denied" class="state-container"
-    style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 200; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
+    style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 200; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
     <div class="error-icon" style="font-size: 4rem;">🚫</div>
     <h1 class="text-3d-red">PLEASE ACQUIRE A KEY<br>TO VIEW PRIVATE PASTES</h1>
     <p style="color: rgba(255,255,255,0.7); max-width: 500px; margin-top: 20px;">
@@ -2101,9 +2119,9 @@
 
 <!-- View: VIEWER -->
 <div id="view-viewer"
-    style="display: none; position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif;">
+    style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif; overflow: visible !important;">
     <div id="listView"
-        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: hidden; backdrop-filter: none;">
+        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: visible; backdrop-filter: none;">
         <div id="pasteGalleryApp" style="width: 100%;">
             <div
                 style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
@@ -2116,7 +2134,7 @@
     </div>
 
     <div id="detailView" class="container"
-        style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%;">
+        style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%; overflow: visible !important;">
         <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
 
         <main id="mainContent">
@@ -2461,7 +2479,7 @@
             document.getElementById('view-entry').style.display = 'flex';
             document.getElementById('view-viewer').style.display = 'none';
             document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'hidden'; // Lock scroll on entry
+            document.body.style.overflow = 'auto'; // Reset
             if (window.setBackgroundVideo) window.setBackgroundVideo('main');
             updateUptime();
         }
@@ -2472,7 +2490,7 @@
             document.getElementById('view-entry').style.display = 'none';
             document.getElementById('view-viewer').style.display = 'none';
             document.getElementById('view-access-denied').style.display = 'flex';
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Lock for restricted view
             if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
         // Public Viewer
@@ -2483,7 +2501,7 @@
             document.getElementById('view-entry').style.display = 'none';
             document.getElementById('view-viewer').style.display = 'block';
             document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Allow scroll
+            document.body.style.setProperty('overflow', 'auto', 'important');
             if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
             if (path.startsWith('/v/')) {

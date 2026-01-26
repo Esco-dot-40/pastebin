@@ -238,16 +238,4 @@
     transform: scale(1.05);
 }
 
-/* 4. Scrollbar Fix */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-::-webkit-scrollbar-track {
-    background: #000;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--primary-neon);
-    border-radius: 5px;
-}
+/* 4. Scrollbar Hidden (Handled in index.html) */
