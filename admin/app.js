@@ -859,7 +859,7 @@ async function loadPasteForEdit(id) {
 
         // Add a temporary copy link button next to update in quick-actions
         const quickActions = document.querySelector('.quick-actions');
-        if (!document.getElementById('quickCopyEdit')) {
+        if (quickActions && !document.getElementById('quickCopyEdit')) {
             const btn = document.createElement('button');
             btn.id = 'quickCopyEdit';
             btn.className = 'btn-icon';
