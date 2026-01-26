@@ -74,7 +74,12 @@ app.use(async (req, res, next) => {
     }
     */
 
-    const shouldSkip = (isAdminPath || isAdminUser) && process.env.LOG_ADMINS !== 'true';
+    // --- EXCLUSION LOGIC ---
+    // 3. Skip if IP is in the ignore list
+    const ignoreIPs = (process.env.IGNORE_IPS || '').split(',').map(i => i.trim());
+    const isIgnoredIP = ignoreIPs.includes(cleanIP);
+    // 4. Skip based on explicit env flag
+    const shouldSkip = (isAdminPath || isAdminUser || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true';
 
     if (!isStatic && !isApi && !shouldSkip && req.method === 'GET') {
         setImmediate(async () => {
@@ -83,7 +88,10 @@ app.use(async (req, res, next) => {
                 const referrer = req.headers['referer'] || req.headers['referrer'] || null;
 
                 let geoData = null;
-                if (cleanIP !== '127.0.0.1' && !cleanIP.startsWith('192.168.') && !cleanIP.startsWith('10.')) {
+                // Only fetch geo for external IPs
+                const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.');
+
+                if (!isLocal) {
                     try {
                         const fetch = (await import('node-fetch')).default;
                         const fields = 'status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';

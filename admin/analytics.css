@@ -392,23 +392,157 @@ body {
     font-size: 0.9rem;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
-    .charts-section {
-        grid-template-columns: 1fr;
-    }
+/* Activity Feed & Cards */
+.activity-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px 0;
 }
 
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
+.activity-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    position: relative;
+}
 
-    .device-grid {
-        grid-template-columns: 1fr;
-    }
+.activity-card:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(4px);
+}
 
-    #map {
-        height: 350px;
-    }
+.activity-status-line {
+    width: 4px;
+    background: var(--accent-cyan);
+}
+
+.activity-card.reaction .activity-status-line {
+    background: var(--accent-pink);
+}
+
+.activity-main {
+    flex: 1;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.activity-icon {
+    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+}
+
+.activity-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.activity-primary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.activity-type-label {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--accent-cyan);
+    background: rgba(0, 245, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.activity-card.reaction .activity-type-label {
+    color: var(--accent-pink);
+    background: rgba(255, 0, 110, 0.1);
+}
+
+.activity-target {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.activity-secondary {
+    display: flex;
+    gap: 20px;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+}
+
+.activity-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.activity-diagnostics {
+    display: flex;
+    gap: 25px;
+    padding-left: 20px;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.diag-item {
+    display: flex;
+    flex-direction: column;
+    text-align: right;
+}
+
+.diag-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.diag-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.no-data-card {
+    padding: 60px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px dashed var(--card-border);
+    border-radius: 16px;
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+}
+
+/* Scrollbar Polish */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--analytics-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-cyan);
 }

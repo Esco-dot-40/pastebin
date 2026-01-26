@@ -128,7 +128,7 @@
 
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab active" data-tab="overview">
+            <button class="tab" data-tab="overview">
                 <span>🌐</span> Overview
             </button>
             <button class="tab" data-tab="devices">
@@ -143,13 +143,13 @@
             <button class="tab" data-tab="pages">
                 <span>📄</span> Pages
             </button>
-            <button class="tab" data-tab="recent">
+            <button class="tab active" data-tab="recent">
                 <span>⏱️</span> Recent
             </button>
         </div>
 
         <!-- Tab Content: Overview -->
-        <div class="tab-content" data-tab-content="overview" style="display: block;">
+        <div class="tab-content" data-tab-content="overview" style="display: none;">
             <!-- Global Visitor Distribution Map -->
             <div class="map-section">
                 <div class="map-header">
@@ -240,7 +240,7 @@
         </div>
 
         <!-- Tab Content: Recent -->
-        <div class="tab-content" data-tab-content="recent" style="display: none;">
+        <div class="tab-content" data-tab-content="recent" style="display: block;">
             <div class="chart-card">
                 <h3><span class="chart-icon">⏱️</span> Recent Activity Stream</h3>
                 <div id="recentContent" style="padding: 1rem 0;">

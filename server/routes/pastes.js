@@ -118,8 +118,8 @@ router.get('/analytics', requireAuth, (req, res) => {
 
         const totalVisits = allHits.length;
         const uniqueVisitors = new Set(allHits.map(h => h.ip)).size;
-        const thirtySecondsAgo = Date.now() - (30 * 1000);
-        const activeNow = new Set(allHits.filter(h => new Date(h.timestamp).getTime() > thirtySecondsAgo).map(h => h.ip)).size;
+        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+        const activeNow = new Set(allHits.filter(h => new Date(h.timestamp).getTime() > fiveMinutesAgo).map(h => h.ip)).size;
         const uniqueLocations = new Set(allHits.filter(h => h.city || h.country).map(h => `${h.city},${h.country}`)).size;
 
         const groupCount = (arr, keyFn) => {
@@ -166,9 +166,9 @@ router.get('/analytics', requireAuth, (req, res) => {
             isps: groupCount(allHits, h => h.isp),
             devices: { touchCount: touchDevices, desktopCount: allHits.length - touchDevices },
             referrers: groupCount(allHits, h => { if (!h.referrer) return 'Direct'; try { return new URL(h.referrer).hostname; } catch (e) { return 'Other'; } }),
-            recentViews: pasteViews.slice(-50).reverse(),
+            recentActivity: allHits.slice(0, 50),
             recentReactions: allReactions.slice(0, 50),
-            pageAccesses: { total: pageAccesses.length, byPage: groupCount(pageAccesses, p => p.path).slice(0, 20), recent: pageAccesses.slice(-50).reverse() }
+            pageAccesses: { total: pageAccesses.length, byPage: groupCount(pageAccesses, p => p.path).slice(0, 20) }
         });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });

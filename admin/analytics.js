@@ -66,7 +66,7 @@ async function loadAnalytics() {
         runner(updateResolutionsTab, 'updateResolutionsTab', data.resolutions || []);
         runner(updateReferrersTab, 'updateReferrersTab', data.referrers || []);
         runner(updateConnectionsTab, 'updateConnectionsTab', data.connections || []);
-        runner(updateRecentActivityTab, 'updateRecentActivityTab', (data.recentViews || []), (data.recentReactions || []));
+        runner(updateRecentActivityTab, 'updateRecentActivityTab', (data.recentActivity || []), (data.recentReactions || []));
 
         // Update page accesses if available
         if (data.pageAccesses) {
@@ -313,8 +313,8 @@ function updateRecentActivityTab(views, reactions) {
     const container = document.getElementById('recentContent');
     if (!container) return;
 
-    if (!views && !reactions) {
-        container.innerHTML = '<p class="no-data">No recent activity</p>';
+    if ((!views || views.length === 0) && (!reactions || reactions.length === 0)) {
+        container.innerHTML = '<div class="no-data-card">No recent activity detected in this sector.</div>';
         return;
     }
 
@@ -326,42 +326,48 @@ function updateRecentActivityTab(views, reactions) {
         ...rArr.map(r => ({ type: 'reaction', data: r, timestamp: new Date(r.createdAt) }))
     ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
 
-    if (activities.length === 0) {
-        container.innerHTML = '<p class="no-data">No recent activity</p>';
-        return;
-    }
-
     container.innerHTML = `
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; color: white;">
-                <thead>
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left;">
-                        <th style="padding: 12px;">Time</th>
-                        <th style="padding: 12px;">Type</th>
-                        <th style="padding: 12px;">Location</th>
-                        <th style="padding: 12px;">ISP</th>
-                        <th style="padding: 12px;">IP</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${activities.map(activity => {
+        <div class="activity-feed">
+            ${activities.map(activity => {
         const d = activity.data;
-        const timeAgo = formatTimeAgo(activity.timestamp);
-        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Unknown');
-        const actionType = activity.type === 'view' ? '👁️ View' : `${getReactionEmoji(d.type)} Reaction`;
+        const timeStr = activity.timestamp.toLocaleTimeString();
+        const dateStr = activity.timestamp.toLocaleDateString();
+        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Global Node');
+        const isView = activity.type === 'view';
+        const sourceLabel = d.source === 'page' ? 'PAGE HIT' : (isView ? 'PASTE VIEW' : 'NETWORK REACTION');
+        const sourceColor = d.source === 'page' ? '#3b82f6' : (isView ? '#00f5ff' : '#ff006e');
 
         return `
-                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                                <td style="padding: 12px; opacity: 0.7;">${timeAgo}</td>
-                                <td style="padding: 12px;">${actionType}</td>
-                                <td style="padding: 12px;">${location}</td>
-                                <td style="padding: 12px; opacity: 0.8;">${d.isp || 'Unknown'}</td>
-                                <td style="padding: 12px; font-family: monospace; opacity: 0.6;">${d.ip || 'N/A'}</td>
-                            </tr>
-                        `;
+                    <div class="activity-card ${activity.type} ${d.source || ''}">
+                        <div class="activity-status-line" style="background: ${sourceColor}"></div>
+                        <div class="activity-main">
+                            <div class="activity-icon">
+                                ${isView ? (d.source === 'page' ? '📄' : '👁️') : getReactionEmoji(d.type)}
+                            </div>
+                            <div class="activity-info">
+                                <div class="activity-primary">
+                                    <span class="activity-type-label" style="color: ${sourceColor}; background: ${sourceColor}1a">${sourceLabel}</span>
+                                    <span class="activity-target">${d.path || (d.pasteId ? `/v/${d.pasteId}` : 'Root Node')}</span>
+                                </div>
+                                <div class="activity-secondary">
+                                    <span class="activity-meta-item">📍 ${location}</span>
+                                    <span class="activity-meta-item">📡 ${d.isp || 'Secure Relay'}</span>
+                                </div>
+                            </div>
+                            <div class="activity-diagnostics">
+                                <div class="diag-item">
+                                    <span class="diag-label">IP</span>
+                                    <span class="diag-val">${d.ip || 'ANONYMOUS'}</span>
+                                </div>
+                                <div class="diag-item">
+                                    <span class="diag-label">TIME</span>
+                                    <span class="diag-val">${timeStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
     }).join('')}
-                </tbody>
-            </table>
         </div>
     `;
 }
@@ -504,5 +510,6 @@ document.getElementById('logoutBtn')?.addEventListener('click', async () => {
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadAnalytics();
-    setInterval(loadAnalytics, 30000);
+    // Faster refresh for "Live" status
+    setInterval(loadAnalytics, 10000);
 });
