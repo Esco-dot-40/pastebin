@@ -222,33 +222,60 @@ app.get('/status', (req, res) => {
 // Heartbeat Analytics API
 app.get('/api/heartbeat-data', (req, res) => {
     // Real system metrics
-    const cpus = os.cpus();
-    const loadAvg = os.loadavg()[0];
     const totalMem = os.totalmem();
     const freeMem = os.freemem();
     const memUsage = (((totalMem - freeMem) / totalMem) * 100).toFixed(1);
 
     const baseLatency = 15;
-    const latencyVariance = Math.random() * 10;
-    const finalLatency = Math.floor(baseLatency + latencyVariance);
+    const finalLatency = Math.floor(baseLatency + Math.random() * 10);
+    const uptime = (99.987 + (Math.random() * 0.01)).toFixed(3);
 
-    const uptimeNum = 99.987 + (Math.random() * 0.01);
-    const uptime = uptimeNum.toFixed(3);
-
+    // Mock component data with history for the new UI
     const components = [
-        { name: 'Core API Gateway', status: 'Operational' },
-        { name: 'Database Shard A', status: 'Operational' },
-        { name: 'Database Shard B', status: 'Operational' },
-        { name: 'Static Asset Delivery (CDN)', status: 'Operational' },
-        { name: 'Auth Server (Discord/Google)', status: 'Operational' },
-        { name: 'Propagation Node Cluster', status: 'Operational' }
+        {
+            name: 'Main Website',
+            type: 'HTTPS',
+            status: 'Operational',
+            uptime: '99.98%',
+            latency: '124ms',
+            icon: 'globe',
+            history: Array.from({ length: 40 }, () => Math.random() > 0.98 ? 'down' : 'up')
+        },
+        {
+            name: 'Analytics API',
+            type: 'REST API',
+            status: 'Operational',
+            uptime: '100%',
+            latency: '85ms',
+            icon: 'bolt',
+            history: Array.from({ length: 40 }, (_, i) => i === 15 ? 'down' : 'up')
+        },
+        {
+            name: 'PostgreSQL Database',
+            type: 'TCP',
+            status: 'Operational',
+            uptime: '99.95%',
+            latency: '12ms',
+            icon: 'database',
+            history: Array.from({ length: 40 }, (_, i) => i === 8 ? 'down' : 'up')
+        },
+        {
+            name: 'Image Content Delivery',
+            type: 'CDN',
+            status: 'Operational',
+            uptime: '100%',
+            latency: '45ms',
+            icon: 'shield',
+            history: Array.from({ length: 40 }, (_, i) => i === 10 ? 'down' : 'up')
+        }
     ];
 
     res.json({
-        load: memUsage, // Using memory as a proxy for "load" in this context for visual impact
+        load: memUsage,
         latency: finalLatency,
         uptime: uptime,
-        components
+        components,
+        lastChecked: new Date().toLocaleTimeString()
     });
 });
 
