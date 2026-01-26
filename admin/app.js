@@ -1089,10 +1089,17 @@ async function handleImageUpload(e) {
         const res = await storage.uploadImage(file);
         if (res.success) {
             // Append markdown to content
-            const isVideo = file.type.startsWith('video/');
-            const markdown = isVideo ?
-                `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>\n` :
-                `\n![${file.name}](${res.url})\n`;
+            const mime = file.type.toLowerCase();
+            const ext = file.name.split('.').pop().toLowerCase();
+            const isVideo = mime.startsWith('video/') || ['mp4', 'webm', 'mov'].includes(ext);
+            const isAudio = mime.startsWith('audio/') || ['mp3', 'wav', 'ogg'].includes(ext);
+
+            let markdown = `\n![${file.name}](${res.url})\n`;
+            if (isVideo) {
+                markdown = `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>\n`;
+            } else if (isAudio) {
+                markdown = `\n<audio controls src="${res.url}" style="width: 100%; margin: 10px 0;"></audio>\n`;
+            }
 
             pasteContent.value += markdown;
 

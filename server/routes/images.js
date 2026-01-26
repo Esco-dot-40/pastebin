@@ -28,10 +28,15 @@ const upload = multer({
     storage,
     limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB limit (for large videos)
     fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.mp4', '.webm', '.mov', '.ogg', '.mp3', '.wav'];
+        const extension = path.extname(file.originalname).toLowerCase();
+        const isMimeAllowed = file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/') || file.mimetype.startsWith('audio/');
+        const isExtAllowed = allowedExtensions.includes(extension);
+
+        if (isMimeAllowed || isExtAllowed) {
             cb(null, true);
         } else {
-            cb(new Error('Only images and videos are allowed'));
+            cb(new Error('Only images, videos, and audio are allowed'));
         }
     }
 }).single('image');
