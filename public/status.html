@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>veroe.space // system status</title>
+    <link rel="stylesheet" href="/public/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/public/rotating-cursor.css">
+    <style>
+        :root {
+            --accent-color: #00f5ff;
+            --bg-dark: #050508;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--bg-dark) !important;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 80px 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 40px;
+        }
+
+        .brand {
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, #fff, #888);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .overall-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #00ff88;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+
+        .metric-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .metric-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 15px 0;
+            background: linear-gradient(135deg, #fff, var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .component-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .component-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .component-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border-left: 4px solid #00ff88;
+            transition: all 0.3s ease;
+        }
+
+        .component-row:hover {
+            background: rgba(255, 255, 255, 0.02);
+            transform: scale(1.01);
+        }
+
+        .comp-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .comp-status {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            height: 400px;
+            position: relative;
+            margin-bottom: 60px;
+        }
+
+        .btn-return {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            letter-spacing: 1px;
+        }
+
+        .btn-return:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+            background: rgba(0, 245, 255, 0.05);
+            box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Replica Uptime Monitor Widget */
+        .uptime-monitor-widget {
+            background: rgba(5, 5, 8, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            margin-bottom: 40px;
+        }
+
+        .uptime-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .uptime-title {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .service-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .service-name {
+            font-size: 0.85rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        .service-metrics {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            display: flex;
+            gap: 15px;
+        }
+
+        .metric-latency {
+            color: #00f5ff;
+        }
+
+        .metric-uptime {
+            color: #00ff88;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Rotating Cursor -->
+    <div id="cursor"><img alt="Cursor Hand"
+            src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/42578/rotating-cursor.svg"></div>
+    <script src="/public/rotating-cursor.js"></script>
+
+    <div class="container">
+        <header>
+            <div class="brand">veroe.space // analytics</div>
+            <div class="overall-status">
+                <div class="status-dot"></div>
+                All Systems Operational
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">System Load</div>
+                <div class="metric-value" id="val-load">--%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Latency</div>
+                <div class="metric-value" id="val-latency">--ms</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Global Uptime</div>
+                <div class="metric-value" id="val-uptime">--%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Active Nodes</div>
+                <div class="metric-value">6/6</div>
+            </div>
+        </div>
+
+        <div class="section-title">Operational Health</div>
+        <div class="uptime-monitor-widget" id="uptime-widget">
+            <!-- Populated via JS -->
+            <div class="service-row">
+                <span class="service-name">Loading components...</span>
+            </div>
+        </div>
+
+        <div class="section-title">Network Latency (Real-time)</div>
+        <div class="chart-container">
+            <canvas id="latencyChart"></canvas>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/" class="btn-return">← Return to Command Center</a>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Chart
+        const ctx = document.getElementById('latencyChart').getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(0, 245, 255, 0.3)');
+        gradient.addColorStop(1, 'rgba(0, 245, 255, 0)');
+
+        const latencyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 30 }, (_, i) => `-${30 - i}m`),
+                datasets: [{
+                    label: 'Response (ms)',
+                    data: Array.from({ length: 30 }, () => Math.floor(Math.random() * 20) + 15),
+                    borderColor: '#00f5ff',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                    x: { grid: { display: false }, ticks: { color: '#666' } }
+                }
+            }
+        });
+
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/heartbeat-data');
+                const data = await res.json();
+
+                document.getElementById('val-load').textContent = data.load + '%';
+                document.getElementById('val-latency').textContent = data.latency + 'ms';
+                document.getElementById('val-uptime').textContent = data.uptime + '%';
+
+                const widget = document.getElementById('uptime-widget');
+                widget.innerHTML = data.components.map(c => `
+                    <div class="service-row">
+                        <span class="service-name">${c.name}</span>
+                        <div class="service-metrics">
+                            <span class="metric-latency">${Math.floor(Math.random() * 20) + 10}ms</span>
+                            <span class="metric-uptime">${c.status}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Update Chart
+                latencyChart.data.datasets[0].data.shift();
+                latencyChart.data.datasets[0].data.push(data.latency);
+                latencyChart.update('none');
+
+            } catch (e) { console.error("Status update failed"); }
+        }
+
+        updateStatus();
+        setInterval(updateStatus, 3000);
+    </script>
+</body>
+
+</html>

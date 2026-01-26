@@ -1,10 +1,6 @@
 /* Rotating SVG Cursor Styles */
-body {
-    cursor: none;
-}
-
-body * {
-    cursor: inherit !important;
+* {
+    cursor: none !important;
 }
 
 #cursor {
