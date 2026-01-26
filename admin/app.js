@@ -874,8 +874,9 @@ async function loadPasteForEdit(id) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (e) {
-        console.error(e);
-        alert('Failed to load paste for editing');
+        console.error('Edit Load Error:', e);
+        const errorMsg = e.message || 'Unknown error';
+        alert(`Failed to load paste "${id}" for editing.\n\nDetails: ${errorMsg}\n\nCheck the console for more info.`);
     }
 }
 
@@ -1090,24 +1091,26 @@ async function handleImageUpload(e) {
             // Append markdown to content
             const isVideo = file.type.startsWith('video/');
             const markdown = isVideo ?
-                `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px;"></video>\n` :
+                `\n<video controls src="${res.url}" style="max-width: 100%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></video>\n` :
                 `\n![${file.name}](${res.url})\n`;
 
             pasteContent.value += markdown;
 
             // Visual feedback
             uploadImageBtn.innerHTML = '✅ Added!';
+            uploadImageBtn.style.color = '#00ff88';
             setTimeout(() => {
                 uploadImageBtn.innerHTML = originalText;
                 uploadImageBtn.disabled = false;
+                uploadImageBtn.style.color = '';
             }, 1000);
         } else {
-            alert('Upload failed: ' + res.error);
+            alert('Upload failed: ' + (res.error || 'Server error'));
             uploadImageBtn.innerHTML = originalText;
             uploadImageBtn.disabled = false;
         }
     } catch (e) {
-        console.error(e);
+        console.error('Upload Error:', e);
         alert('Upload Error: ' + e.message);
         uploadImageBtn.innerHTML = originalText;
         uploadImageBtn.disabled = false;

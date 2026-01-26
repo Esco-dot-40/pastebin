@@ -196,7 +196,9 @@ migrateTable('pastes', [
     { name: 'expiresAt', type: 'DATETIME' },
     { name: 'folderId', type: 'TEXT' },
     { name: 'password', type: 'TEXT' },
-    { name: 'embedUrl', type: 'TEXT' }
+    { name: 'embedUrl', type: 'TEXT' },
+    { name: 'userId', type: 'TEXT' },
+    { name: 'burned', type: 'INTEGER DEFAULT 0' }
 ]);
 
 // Access Keys Table

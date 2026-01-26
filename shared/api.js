@@ -102,7 +102,15 @@ if (!window.PasteAPI) {
                 });
 
                 if (response.status === 404) return null;
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                if (!response.ok) {
+                    let errorData;
+                    try {
+                        const text = await response.text();
+                        errorData = JSON.parse(text);
+                    } catch (e) { }
+                    throw new Error(errorData?.error || `HTTP error! status: ${response.status}`);
+                }
 
                 const paste = await response.json();
 

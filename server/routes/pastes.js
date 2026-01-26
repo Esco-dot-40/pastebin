@@ -248,7 +248,8 @@ router.get('/public-list', (req, res) => {
 router.post('/', requireAuth, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
     const id = generateId();
-    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null);
+    const userId = req.session?.user?.id || (req.session?.isAdmin ? 'admin' : null);
+    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null, userId);
     res.status(201).json({ id, success: true });
 });
 
@@ -271,6 +272,15 @@ router.get('/:id', async (req, res) => {
     const paste = db.prepare('SELECT * FROM pastes WHERE id = ?').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
 
+    // If paste is burned, return metadata but NO content
+    if (paste.burned) {
+        return res.json({
+            ...paste,
+            content: '[ BURNED: THIS CONTENT HAS BEEN DELETED ]',
+            isBurned: true
+        });
+    }
+
     const isAdmin = req.session && req.session.isAdmin;
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccessKey = validateAccessKey(key);
@@ -290,27 +300,61 @@ router.get('/:id', async (req, res) => {
         return res.status(401).json({ error: 'Password required', passwordRequired: true });
     }
 
-    db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
-    const ip = getClientIP(req);
-    const ua = req.headers['user-agent'];
-    const loc = await fetchGeolocation(ip);
+    const track = req.query.track !== 'false';
 
-    // BLOCK PROXIES/VPNs for authorized nodes if requested
-    if (loc && loc.isBlocked && !isAuthorized) {
-        return res.status(403).json({ error: 'Access Denied: Proxy/VPN identified. Please connect directly to this sector.' });
-    }
+    if (track) {
+        db.prepare('UPDATE pastes SET views = views + 1 WHERE id = ?').run(req.params.id);
+        const ip = getClientIP(req);
+        const ua = req.headers['user-agent'];
+        const loc = await fetchGeolocation(ip);
 
-    if (!(req.session && req.session.isAdmin) || process.env.LOG_ADMINS === 'true') {
-        const res2 = loc ? db.prepare(`INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, proxy, hosting, mobile, reverse, district, timezone, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, ua, loc.proxy ? 1 : 0, loc.hosting ? 1 : 0, loc.mobile ? 1 : 0, loc.reverse, loc.district, loc.timezone, loc.currency)
-            : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
-        updateHostname('paste_views', res2.lastInsertRowid, ip);
+        // BLOCK PROXIES/VPNs for authorized nodes if requested
+        if (loc && loc.isBlocked && !isAuthorized) {
+            return res.status(403).json({ error: 'Access Denied: Proxy/VPN identified. Please connect directly to this sector.' });
+        }
+
+        if (!(req.session && req.session.isAdmin) || process.env.LOG_ADMINS === 'true') {
+            const res2 = loc ? db.prepare(`INSERT INTO paste_views (pasteId, ip, country, countryCode, region, regionName, city, zip, lat, lon, isp, org, asName, userAgent, proxy, hosting, mobile, reverse, district, timezone, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(req.params.id, ip, loc.country, loc.countryCode, loc.region, loc.regionName, loc.city, loc.zip, loc.lat, loc.lon, loc.isp, loc.org, loc.as, ua, loc.proxy ? 1 : 0, loc.hosting ? 1 : 0, loc.mobile ? 1 : 0, loc.reverse, loc.district, loc.timezone, loc.currency)
+                : db.prepare(`INSERT INTO paste_views (pasteId, ip, userAgent) VALUES (?, ?, ?)`).run(req.params.id, ip, ua);
+            updateHostname('paste_views', res2.lastInsertRowid, ip);
+        }
     }
     // Aggregate reactions
     const reactionRows = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(req.params.id);
     const reactionCounts = { heart: 0, star: 0, like: 0 };
     reactionRows.forEach(r => { if (reactionCounts[r.type] !== undefined) reactionCounts[r.type] = r.count; });
 
+    // Burn After Read Logic
+    if (track && paste.burnAfterRead) {
+        setImmediate(() => {
+            try {
+                db.prepare('UPDATE pastes SET burned = 1, content = NULL WHERE id = ?').run(req.params.id);
+                console.log(`🔥 Paste ${req.params.id} burned after read.`);
+            } catch (e) {
+                console.error('Failed to burn paste:', e);
+            }
+        });
+    }
+
     res.json({ ...paste, reactions: reactionCounts });
+});
+
+// Purge Expired or Burned Pastes every hour
+import cron from 'node-cron';
+cron.schedule('0 * * * *', () => {
+    try {
+        const now = new Date().toISOString();
+        // Delete pastes that are:
+        // 1. Expired
+        // 2. Burned (mark for physical deletion after 1 hour if preferred, or immediate)
+        // Here let's just delete expired ones. Burned ones keep the record so frontend shows "Burned".
+        const result = db.prepare('DELETE FROM pastes WHERE (expiresAt IS NOT NULL AND expiresAt < ?)').run(now);
+        if (result.changes > 0) {
+            console.log(`🧹 [PASTE PURGE] Cleaned up ${result.changes} expired paste(s)`);
+        }
+    } catch (e) {
+        console.error('❌ Paste Purge error:', e.message);
+    }
 });
 
 router.post('/:id/react', async (req, res) => {

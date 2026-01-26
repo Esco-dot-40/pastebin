@@ -39,22 +39,27 @@ const upload = multer({
 const router = express.Router();
 
 router.post('/upload', requireAuth, (req, res) => {
+    console.log(`[UPLOAD] Received upload request from ${req.ip}`);
     upload(req, res, (err) => {
         if (err instanceof multer.MulterError) {
-            // A Multer error occurred when uploading.
+            console.error(`[UPLOAD] Multer Error: ${err.message}`, err);
             return res.status(400).json({ error: `Upload error: ${err.message}` });
         } else if (err) {
-            // An unknown error occurred when uploading.
+            console.error(`[UPLOAD] Generic Error: ${err.message}`, err);
             return res.status(400).json({ error: err.message });
         }
 
-        // Everything went fine.
         try {
-            if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+            if (!req.file) {
+                console.warn('[UPLOAD] No file received in request body');
+                return res.status(400).json({ error: 'No file uploaded' });
+            }
 
+            console.log(`[UPLOAD] Successfully saved: ${req.file.filename} (${(req.file.size / 1024 / 1024).toFixed(2)} MB)`);
             const url = `/uploads/${req.file.filename}`;
             res.json({ url, success: true });
         } catch (e) {
+            console.error('[UPLOAD] Server Error:', e);
             res.status(500).json({ error: e.message });
         }
     });
