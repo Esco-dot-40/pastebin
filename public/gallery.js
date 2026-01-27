@@ -40,6 +40,16 @@ const App = () => {
     }, []);
 
     useEffect(() => {
+        const fetchFolders = async () => {
+            try {
+                const res = await fetch('/api/folders', { credentials: 'include' });
+                const data = await res.json();
+                setFolders(['ALL', ...data.map(f => f.name)]);
+            } catch (err) {
+                console.error("Failed to fetch folders:", err);
+            }
+        };
+
         const activeKey = localStorage.getItem('private_access_key');
         let visiblePastes = pastes;
 
@@ -52,9 +62,14 @@ const App = () => {
         setFilteredPastes(folded);
 
         if (activeFolder !== 'ALL' && activeFolder !== 'Public' && !visiblePastes.find(p => p.folderName === activeFolder)) {
-            setActiveFolder('ALL');
+            // Check if folder exists in fetched folders but is just empty
+            // If it's not in visiblePastes, it might still be a valid selectable folder
         }
+
+        fetchFolders();
     }, [activeFolder, pastes]);
+
+    const [folders, setFolders] = useState(['ALL']);
 
     if (hasError) {
         return html`
@@ -65,13 +80,6 @@ const App = () => {
             </div>
         `;
     }
-
-    const activeKey = localStorage.getItem('private_access_key');
-    let visiblePastesForFolders = pastes;
-    if (!activeKey) {
-        visiblePastesForFolders = pastes.filter(p => !['PRIV', 'Private', 'priv', 'private'].includes(p.folderName));
-    }
-    const folders = ['ALL', ...new Set(visiblePastesForFolders.map(p => p.folderName).filter(Boolean))];
 
     if (isInitializing || !pastes || pastes.length === 0) {
         return html`
