@@ -21,11 +21,14 @@ router.post('/login', async (req, res) => {
     const { password } = req.body;
     if (await verifyAdminPassword(password)) {
         req.session.isAdmin = true;
-        req.session.save((err) => {
+        req.session.save(async (err) => {
             if (err) {
                 console.error('Session save error:', err);
                 return res.status(500).json({ error: 'Session error' });
             }
+            // Import dynamically to avoid circular issues if any
+            const { logEvent } = await import('../index.js');
+            logEvent(req, '/admin/login', 'ADMIN_LOGIN');
             res.json({ success: true });
         });
         return;

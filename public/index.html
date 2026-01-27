@@ -2334,7 +2334,8 @@
     }
 
     function tryPlayAudio() {
-        if (storedPaused === 'true' && !hasInteracted) return;
+        // If it's explicitly paused by user, DON'T try to play unless triggered by specific action
+        if (localStorage.getItem('audioIsPaused') === 'true') return;
 
         const playPromise = audio.play();
         if (playPromise !== undefined) {
@@ -2357,7 +2358,6 @@
             audio.play();
             hasInteracted = true;
             localStorage.setItem('audioIsPaused', 'false');
-            // If previously volume was 0, restore it
             if (audio.volume === 0) {
                 let vol = lastVolume || 0.2;
                 setVolume(vol);
@@ -2407,7 +2407,7 @@
 
     // Global interaction fallback
     document.addEventListener('click', () => {
-        if (audio.paused && !hasInteracted && storedPaused !== 'true') {
+        if (audio.paused && !hasInteracted && localStorage.getItem('audioIsPaused') !== 'true') {
             tryPlayAudio();
         }
         hasInteracted = true;
@@ -2420,7 +2420,7 @@
     const interactEvents = ['click', 'keydown', 'touchstart'];
     interactEvents.forEach(evt =>
         window.addEventListener(evt, () => {
-            if (!hasInteracted && storedPaused !== 'true') {
+            if (!hasInteracted && localStorage.getItem('audioIsPaused') !== 'true') {
                 tryPlayAudio();
             }
             hasInteracted = true;

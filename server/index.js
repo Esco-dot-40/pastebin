@@ -125,11 +125,24 @@ app.use(async (req, res, next) => {
     next();
 });
 
+// Helper for manual events
+export const logEvent = async (req, path, method = 'LOG') => {
+    try {
+        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || req.socket.remoteAddress || '127.0.0.1';
+        const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
+        const userAgent = req.headers['user-agent'] || '';
+        db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent) VALUES (?, ?, ?, ?)`).run(path, method, cleanIP, userAgent);
+    } catch (e) { }
+};
+
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/pastes', pastesRouter);
 app.use('/api/folders', foldersRouter);
 app.use('/api/images', imagesRouter);
+import analyticsRouter from './routes/analytics.js';
+app.use('/api/analytics', analyticsRouter);
+
 app.use('/api/admin', bannerRouter);
 
 // Static Folders

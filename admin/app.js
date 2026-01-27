@@ -151,6 +151,36 @@ if (logoutBtn) {
     });
 }
 
+// Logs Elements
+const logsBtn = document.getElementById('logsBtn');
+const logsModal = document.getElementById('logsModal');
+const closeLogsBtn = document.getElementById('closeLogsBtn');
+const logsList = document.getElementById('logsList');
+const clearAllLogsBtn = document.getElementById('clearAllLogsBtn');
+const logsSearch = document.getElementById('logsSearch');
+
+if (logsBtn) {
+    logsBtn.addEventListener('click', () => {
+        logsModal.classList.add('active');
+        loadLogs();
+    });
+}
+if (closeLogsBtn) closeLogsBtn.addEventListener('click', () => logsModal.classList.remove('active'));
+if (clearAllLogsBtn) {
+    clearAllLogsBtn.addEventListener('click', async () => {
+        if (!confirm('EXTERMINATE ALL LOGS? This cannot be undone.')) return;
+        try {
+            const res = await fetch('/api/analytics/logs-clear', { method: 'DELETE', credentials: 'include' });
+            if (res.ok) loadLogs();
+        } catch (e) { alert('Failed to clear logs'); }
+    });
+}
+if (logsSearch) {
+    logsSearch.addEventListener('input', () => {
+        loadLogs(logsSearch.value);
+    });
+}
+
 
 if (generateKeyBtn) {
     generateKeyBtn.addEventListener('click', async () => {
@@ -1432,3 +1462,78 @@ async function updateBanner() {
         updateBannerBtn.disabled = false;
     }
 }
+
+async function loadLogs(query = '') {
+    try {
+        const res = await fetch(`/api/analytics/logs?_t=${Date.now()}`, { credentials: 'include' });
+        const data = await res.json();
+        if (data.logs) {
+            renderLogs(data.logs, query);
+        }
+    } catch (e) {
+        console.error('Failed to load logs', e);
+    }
+}
+
+function renderLogs(logs, query = '') {
+    const container = document.getElementById('logsList');
+    if (!container) return;
+
+    const filtered = query
+        ? logs.filter(l =>
+            l.ip.includes(query) ||
+            (l.path && l.path.includes(query)) ||
+            (l.userAgent && l.userAgent.toLowerCase().includes(query.toLowerCase())) ||
+            (l.method && l.method.includes(query.toUpperCase()))
+        )
+        : logs;
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding: 40px; text-align: center; color: rgba(255,255,255,0.2); font-family: monospace;">NO RECORDS FOUND FOR CURRENT SECTOR</div>`;
+        return;
+    }
+
+    container.innerHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">
+            <thead style="position: sticky; top: 0; background: #1a1a1f; z-index: 10;">
+                <tr style="text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">
+                    <th style="padding: 12px;">Timestamp</th>
+                    <th style="padding: 12px;">Method</th>
+                    <th style="padding: 12px;">Path</th>
+                    <th style="padding: 12px;">Identity (IP)</th>
+                    <th style="padding: 12px;">Location</th>
+                    <th style="padding: 12px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filtered.map(log => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); hover: background: rgba(255,255,255,0.02);">
+                        <td style="padding: 12px; color: rgba(255,255,255,0.4);">${formatDateTime(log.timestamp)}</td>
+                        <td style="padding: 12px;"><span class="badge ${log.method === 'ADMIN_LOGIN' ? 'badge-glow' : ''}" style="background: rgba(0,245,255,0.1); color: #00f5ff; padding: 2px 6px; border-radius: 4px;">${log.method}</span></td>
+                        <td style="padding: 12px; color: #fff; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
+                        <td style="padding: 12px;">
+                            <div>${log.ip}</div>
+                            ${log.reverse ? `<small style="color: rgba(255,255,255,0.2); font-size: 0.65rem;">${log.reverse}</small>` : ''}
+                        </td>
+                        <td style="padding: 12px; color: rgba(255,255,255,0.6);">
+                            ${log.city || 'Unknown'}${log.countryCode ? `, ${log.countryCode}` : ''}
+                        </td>
+                        <td style="padding: 12px;">
+                            <button onclick="deleteLog(${log.id})" class="btn-mini-icon" style="color: #ff0050;">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+async function deleteLog(id) {
+    if (!confirm('Exterminate this entry?')) return;
+    try {
+        const res = await fetch(`/api/analytics/logs/${id}`, { method: 'DELETE', credentials: 'include' });
+        if (res.ok) loadLogs(document.getElementById('logsSearch').value);
+    } catch (e) { alert('Failed to delete log'); }
+}
+
+window.deleteLog = deleteLog;

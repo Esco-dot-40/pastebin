@@ -5,6 +5,67 @@ import htm from "https://esm.sh/htm";
 
 const html = htm.bind(React.createElement);
 
+const FolderDropdown = ({ folders, activeFolder, onSelect }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return html`
+        <div class="relative inline-block text-left w-[280px]">
+            <${motion.button}
+                whileHover=${{ scale: 1.02 }}
+                whileTap=${{ scale: 0.98 }}
+                onClick=${() => setIsOpen(!isOpen)}
+                class="w-full px-8 py-4 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center justify-between group hover:border-cyan-500/50 transition-all duration-300 shadow-[0_10px_40px_rgba(0,0,0,0.4)]"
+            >
+                <div class="text-left">
+                    <span class="block text-[9px] uppercase tracking-[0.3em] text-white/30 font-black mb-1">Active Sector</span>
+                    <span class="block text-[13px] uppercase tracking-[0.1em] text-cyan-400 font-bold font-mono">${activeFolder}</span>
+                </div>
+                <${motion.div}
+                    animate=${{ rotate: isOpen ? 180 : 0 }}
+                    class="text-cyan-500/50 group-hover:text-cyan-400"
+                >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m6 9 6 6 6-6"/>
+                    </svg>
+                <//>
+            <//>
+
+            <${motion.div}
+                initial=${{ opacity: 0, y: 10, scale: 0.95 }}
+                animate=${{
+            opacity: isOpen ? 1 : 0,
+            y: isOpen ? 0 : 10,
+            scale: isOpen ? 1 : 0.95,
+            pointerEvents: isOpen ? 'auto' : 'none'
+        }}
+                class="absolute left-0 right-0 mt-3 p-2 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_20px_80px_rgba(0,0,0,0.8)] z-50 overflow-hidden"
+            >
+                <div class="max-h-[350px] overflow-y-auto no-scrollbar py-1">
+                    ${folders.map(f => html`
+                        <${motion.button}
+                            key=${f}
+                            whileHover=${{ x: 5, backgroundColor: 'rgba(0, 245, 255, 0.05)' }}
+                            onClick=${() => {
+                onSelect(f);
+                setIsOpen(false);
+            }}
+                            class=${`w-full px-6 py-4 flex items-center justify-between rounded-xl transition-all duration-200 group/item ${activeFolder === f ? 'bg-cyan-500/10 text-cyan-400' : 'text-white/40 hover:text-white'}`}
+                        >
+                            <span class="text-[11px] uppercase tracking-[0.2em] font-bold font-mono">${f}</span>
+                            ${activeFolder === f && html`
+                                <${motion.span} 
+                                    layoutId="activeIndicator"
+                                    class="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_10px_#00f5ff]"
+                                ></${motion.span}>
+                            `}
+                        <//>
+                    `)}
+                </div>
+            <//>
+        </div>
+    `;
+};
+
 const App = () => {
     const [pastes, setPastes] = useState([]);
     const [filteredPastes, setFilteredPastes] = useState([]);
@@ -133,15 +194,12 @@ const App = () => {
                     <div class="w-24"></div> 
                 </div>
                 
-                <div class="flex justify-center gap-4 flex-wrap max-w-4xl mx-auto">
-                    ${folders.map(f => html`
-                        <button 
-                            onClick=${() => setActiveFolder(f)}
-                            class=${`px-6 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-300 border ${activeFolder === f ? 'bg-cyan-500 border-cyan-400 text-black shadow-[0_0_20px_rgba(0,245,255,0.4)]' : 'bg-white/5 border-white/10 text-white/40 hover:bg-white/10'}`}
-                        >
-                            ${f}
-                        </button>
-                    `)}
+                <div class="flex justify-center relative z-20">
+                    <${FolderDropdown} 
+                        folders=${folders} 
+                        activeFolder=${activeFolder} 
+                        onSelect=${setActiveFolder} 
+                    />
                 </div>
             </div>
 
