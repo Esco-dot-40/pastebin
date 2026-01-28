@@ -28,7 +28,8 @@
     <meta property="twitter:image" content="https://veroe.space/public/preview.png">
 
     <link rel="stylesheet" href="/public/style.css">
-    <link rel="stylesheet" href="/public/design-refresh.css?v=10">
+    <link rel="stylesheet" href="/public/design-refresh.css?v=20">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -62,8 +63,8 @@
             display: none !important;
         }
 
-        /* THE MODULAR DECK FIX: Enforce horizontal layout */
-        .site-wrapper {
+        /* THE MODULAR DECK FIX: Enforce horizontal layout ONLY in entry view */
+        #view-entry .site-wrapper {
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
@@ -1296,11 +1297,6 @@
 
 
 
-<!-- Announcement Banner (Editable from Admin) -->
-<div id="announcement-banner" class="banner-animate"
-    style="position: fixed; top: 10px; width: 100%; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; z-index: 20000; pointer-events: none; white-space: nowrap; overflow-x: hidden; color: #ffae00; text-shadow: 0 0 20px rgba(255, 174, 0, 0.6);">
-    CONFLICT RESOLUTION: LOVENSE UPDATES & GOOGLE AUTH.
-</div>
 
 <!-- Combined Initialization Logic Moved to the End -->
 
@@ -1308,11 +1304,6 @@
 <!-- Bio Card Wrapper for Center Alignment -->
 
 
-<!-- Announcement Banner (Editable from Admin) -->
-<div id="announcement-banner" class="banner-animate"
-    style="position: fixed; top: 10px; width: 100%; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; z-index: 20000; pointer-events: none; white-space: nowrap; overflow-x: hidden; color: #ffae00; text-shadow: 0 0 20px rgba(255, 174, 0, 0.6);">
-    CONFLICT RESOLUTION: LOVENSE UPDATES & GOOGLE AUTH.
-</div>
 
 <!-- Background Media Controller -->
 <div id="video-background-container"
