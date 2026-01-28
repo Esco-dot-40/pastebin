@@ -1468,7 +1468,7 @@
             <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
                 <span class="dock-label">Private Access</span>
             </a>
-            <a href="/status" class="dock-item">
+            <a href="/status" class="dock-item" onclick="window.navigateTo('/status'); return false;">
                 <span class="dock-label">Status</span>
             </a>
             <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
@@ -1616,7 +1616,7 @@
     </p>
     <div class="button-container" style="margin-top: 40px;">
         <button onclick="window.openRequestModal()" class="entry-btn btn-private">Request Key</button>
-        <button onclick="window.location.href='/'" class="entry-btn btn-public">Return Home</button>
+        <button onclick="window.navigateTo('/')" class="entry-btn btn-public">Return Home</button>
     </div>
 </div>
 
@@ -1985,6 +1985,17 @@
         document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
     };
 
+    window.submitKey = function () {
+        const input = document.getElementById('accessKeyInput');
+        const key = input ? input.value.trim() : null;
+        if (!key) return alert('Please enter a valid access key.');
+
+        localStorage.setItem('private_access_key', key);
+        window.closeModals();
+        if (window.showToast) window.showToast("✅ Access Key Applied!", "success");
+        setTimeout(() => window.location.reload(), 800);
+    };
+
     // 3. Modal & Auth Flow
     window.openKeyModal = function () {
         window.closeModals();
@@ -2206,7 +2217,15 @@
         if (window.currentViewedPaste) {
             navigator.clipboard.writeText(window.currentViewedPaste.content);
             if (window.showToast) window.showToast("Payload copied", "success");
+        } else {
+            console.warn("No paste selected for copy");
         }
+    };
+
+    window.copyPasteLink = function () {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url);
+        if (window.showToast) window.showToast("Link copied to clipboard", "success");
     };
 
     window.handleReaction = async function (type, specificId = null) {
