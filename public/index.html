@@ -53,10 +53,21 @@
             overflow-y: auto !important;
             overflow-x: hidden !important;
             width: 100%;
-            min-height: 100vh;
+            height: 100vh;
+            /* LOCK VR */
             margin: 0;
             padding: 0;
             scrollbar-width: none;
+        }
+
+        /* 100% ZOOM FIX: Scale everything down slightly on larger viewports */
+        @media (min-width: 1200px) {
+            #view-entry {
+                transform: scale(0.85);
+                transform-origin: top center;
+                height: 115vh !important;
+                /* Compensate for scale */
+            }
         }
 
         *::-webkit-scrollbar {
@@ -1294,10 +1305,87 @@
     <button onclick="storage.logout(); window.location.reload();" class="auth-btn"
         style="padding: 6px 14px; font-size: 0.75rem;">Logout</button>
 </div>
+<!-- Announcement Banner Container -->
+<div id="announcement-banner" class="banner-animate"
+    style="position: fixed; top: 10px; width: 100%; text-align: center; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; z-index: 20000; pointer-events: none; white-space: nowrap; overflow-x: hidden; color: #ffae00; text-shadow: 0 0 20px rgba(255, 174, 0, 0.6);">
+    <!-- Dynamically populated -->
+</div>
 
+<!-- Floating Bottom Action Dock -->
+<div class="bottom-action-dock">
+    <div class="dock-container">
+        <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
+            <span class="dock-label">View Pastes</span>
+        </a>
+        <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
+            <span class="dock-label">Private Access</span>
+        </a>
+        <a href="/status" class="dock-item">
+            <span class="dock-label">Status</span>
+        </a>
+        <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
+            <span class="dock-label">Request Key</span>
+        </a>
+    </div>
+</div>
 
+<style>
+    .bottom-action-dock {
+        position: fixed;
+        bottom: 5vh;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        animation: slideUpFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    }
 
+    .dock-container {
+        display: flex;
+        gap: 15px;
+        background: rgba(10, 10, 15, 0.8);
+        backdrop-filter: blur(20px);
+        padding: 10px 20px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
 
+    .dock-item {
+        padding: 12px 24px;
+        border-radius: 16px;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.7);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+
+    .dock-item:hover {
+        background: rgba(0, 245, 255, 0.1);
+        border-color: #00f5ff;
+        color: #00f5ff;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
+    }
+
+    @keyframes slideUpFade {
+        from {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+</style>
 <!-- Combined Initialization Logic Moved to the End -->
 
 <!-- Bio Card Wrapper for Center Alignment -->
@@ -1469,23 +1557,6 @@
                     <p class="bio-text">
                         Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
                     </p>
-
-                    <div class="dashboard-actions">
-                        <a href="/public" class="entry-btn btn-public"
-                            onclick="window.navigateTo('/public'); return false;">View Pastes</a>
-                        <a href="#" class="entry-btn btn-private" onclick="window.openKeyModal(); return false;">Private
-                            Access</a>
-                    </div>
-                </div>
-
-                <div class="utility-row">
-                    <a href="/status" class="status-btn">
-                        <span class="status-dot"></span>
-                        Status
-                    </a>
-                    <a href="#" onclick="window.openRequestModal(); return false;" class="tech-hint">
-                        Request Key
-                    </a>
                 </div>
             </div>
         </div>
