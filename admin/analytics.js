@@ -1,517 +1,304 @@
-// Analytics Command Center JS
-const storage = new PasteStorage();
 
-// Initialize map
+// Nexus Intelligence - Analytics Engine (Vanilla)
+const api = new PasteAPI();
+
+// Global State
 let map = null;
-let markers = [];
+let geoJsonLayer = null;
 let currentData = null;
+let feedSearchQuery = '';
 
+// Configuration
+const HEATMAP_URL = 'https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson';
+
+/**
+ * Initializes the Leaflet map with a dark theme.
+ */
 function initMap() {
     try {
-        const mapContainer = document.getElementById('map');
-        if (!mapContainer) return;
-
+        if (map) return;
         map = L.map('map', {
             center: [20, 0],
             zoom: 2,
             zoomControl: true,
-            attributionControl: false
+            attributionControl: false,
+            minZoom: 2,
+            maxBounds: [[-85, -180], [85, 180]]
         });
 
-        // OpenStreetMap Dark theme tiles
+        // Dark Matrix Tiles
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            maxZoom: 19
         }).addTo(map);
 
-        console.log('✅ Map initialized');
+        console.log('📡 [Nexus] Navigation array initialized.');
     } catch (e) {
-        console.error('❌ Map initialization failed:', e);
+        console.error('❌ [Nexus] Map failure:', e);
     }
 }
 
-// Load analytics data
+/**
+ * Core Data Pipeline
+ */
 async function loadAnalytics() {
     try {
-        console.log('📡 Fetching analytics data...');
-        const response = await fetch('/api/pastes/analytics', {
-            credentials: 'include'
-        });
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}: Failed to load analytics`);
-
-        const data = await response.json();
-        console.log('✅ Analytics data received:', data);
+        const data = await api.getGlobalAnalytics();
+        if (!data) return;
         currentData = data;
 
-        // stats always first
-        updateStats(data);
-
-        // Run updates safely
-        const runner = (fn, name, ...args) => {
-            try {
-                fn(...args);
-            } catch (e) {
-                console.error(`❌ Error in ${name}:`, e);
-            }
-        };
-
-        runner(updateMap, 'updateMap', data.locations || []);
-        runner(updatePlatforms, 'updatePlatforms', data.platforms || []);
-        runner(updateDevices, 'updateDevices', data.devices || {});
-
-        // Update tab-specific content
-        runner(updateBrowsersTab, 'updateBrowsersTab', data.browsers || []);
-        runner(updateISPTab, 'updateISPTab', data.isps || []);
-        runner(updateResolutionsTab, 'updateResolutionsTab', data.resolutions || []);
-        runner(updateReferrersTab, 'updateReferrersTab', data.referrers || []);
-        runner(updateConnectionsTab, 'updateConnectionsTab', data.connections || []);
-        runner(updateRecentActivityTab, 'updateRecentActivityTab', (data.recentActivity || []), (data.recentReactions || []));
-
-        // Update page accesses if available
-        if (data.pageAccesses) {
-            runner(updatePageAccessesTab, 'updatePageAccessesTab', data.pageAccesses);
-        }
-
-        // Load top cities
-        await loadTopCities();
+        updateGlobalStats(data);
+        await updateHeatmap(data.locations || []);
+        updateEnvironmentCharts(data);
+        updateActivityFeed(data);
 
     } catch (error) {
-        console.error('❌ Analytics Load Error:', error);
+        console.error('❌ [Nexus] Data fetch failure:', error);
     }
 }
 
-// Combine for updateRecentActivityTab call fix
-function wrapRecentActivity(views, reactions) {
-    updateRecentActivityTab(views, reactions);
+/**
+ * Updates primary stats
+ */
+function updateGlobalStats(data) {
+    const safeSet = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val || '0';
+    };
+
+    safeSet('totalVisits', data.totalVisits);
+    safeSet('uniqueVisitors', data.uniqueVisitors);
+    safeSet('activeNow', data.activeNow);
+    safeSet('geoReach', data.uniqueLocations);
+    if (document.getElementById('headerActiveNow')) {
+        document.getElementById('headerActiveNow').textContent = `${data.activeNow || 0} active now`;
+    }
+
+    // Sub-stats
+    safeSet('newVisitors', data.newVisitors);
+    safeSet('returningVisitors', data.returningVisitors);
 }
 
-// ... rest of the helper functions ...
-
-function updateMap(locations) {
+/**
+ * Implements the Choropleth Heatmap
+ */
+async function updateHeatmap(locations) {
     if (!map) return;
 
-    // Clear existing markers
-    markers.forEach(marker => marker.remove());
-    markers = [];
-
-    if (!locations || locations.length === 0) {
-        console.log('ℹ️ No locations to display on map');
-        return;
-    }
-
-    // Add markers for each location
-    locations.forEach(loc => {
-        const lat = parseFloat(loc.lat);
-        const lon = parseFloat(loc.lon);
-
-        if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.circleMarker([lat, lon], {
-                radius: 8 + Math.log(loc.count || 1) * 3,
-                fillColor: '#ff006e',
-                color: '#fff',
-                weight: 2,
-                opacity: 0.8,
-                fillOpacity: 0.6
-            }).addTo(map);
-
-            marker.bindPopup(`
-                <div style="font-family: Inter, sans-serif; color: #000;">
-                    <strong>${loc.city || 'Unknown'}, ${loc.country || '??'}</strong><br>
-                    Visits: ${loc.count || 1}
-                </div>
-            `);
-
-            markers.push(marker);
-        }
-    });
-
-    // Fit map to markers if any exist
-    if (markers.length > 0) {
-        try {
-            const group = new L.featureGroup(markers);
-            map.fitBounds(group.getBounds().pad(0.1));
-        } catch (e) { console.warn('map.fitBounds failed', e); }
-    }
-}
-
-function updatePlatforms(platforms) {
-    const container = document.getElementById('platformBars');
-    if (!container) return;
-    container.innerHTML = '';
-
-    const platformData = Array.isArray(platforms) ? platforms : Object.entries(platforms).map(([name, count]) => ({ name, count }));
-    const sorted = platformData.sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 5);
-
-    if (sorted.length === 0) {
-        container.innerHTML = '<p class="no-data">No platform data</p>';
-        return;
-    }
-
-    const maxCount = sorted[0]?.count || 1;
-
-    sorted.forEach(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        const item = document.createElement('div');
-        item.className = 'platform-item';
-        item.innerHTML = `
-            <span class="platform-name">${name}</span>
-            <div class="platform-bar-container">
-                <div class="platform-bar" style="width: ${percentage}%"></div>
-            </div>
-            <span class="platform-count">${count}</span>
-        `;
-        container.appendChild(item);
-    });
-}
-
-function updateBrowsersTab(browsers) {
-    const container = document.getElementById('browsersContent');
-    if (!container) return;
-
-    const data = (Array.isArray(browsers) ? browsers : []).sort((a, b) => b.count - a.count);
-
-    if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No browser data</p>';
-        return;
-    }
-
-    const maxCount = data[0]?.count || 1;
-
-    container.innerHTML = data.map(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="stat-bar">
-                <div class="stat-bar-label">${name}</div>
-                <div class="stat-bar-track">
-                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00f5ff, #7b42ff);"></div>
-                </div>
-                <div class="stat-bar-value">${count} visits</div>
-            </div>
-        `;
-    }).join('');
-}
-
-function updateISPTab(isps) {
-    const container = document.getElementById('ispContent');
-    if (!container) return;
-
-    const data = (Array.isArray(isps) ? isps : []).sort((a, b) => b.count - a.count).slice(0, 10);
-
-    if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No ISP data</p>';
-        return;
-    }
-
-    const maxCount = data[0]?.count || 1;
-
-    container.innerHTML = data.map(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="stat-bar">
-                <div class="stat-bar-label">${name || 'Unknown ISP'}</div>
-                <div class="stat-bar-track">
-                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #ff006e, #ffbe0b);"></div>
-                </div>
-                <div class="stat-bar-value">${count}</div>
-                <button onclick="deleteLogsByISP('${name}')" style="margin-left: 10px; background: none; border: none; cursor: pointer; font-size: 0.8rem;">🗑️</button>
-            </div>
-        `;
-    }).join('');
-}
-
-async function deleteLogsByISP(ispName) {
-    if (!confirm(`Delete all logs from ISP: ${ispName}?`)) return;
     try {
-        await fetch(`/api/pastes/analytics/isp/${encodeURIComponent(ispName)}`, { method: 'DELETE', credentials: 'include' });
-        loadAnalytics();
-    } catch (e) { console.error(e); }
+        // Fetch GeoJSON if not already cached
+        if (!window._geoJsonData) {
+            const resp = await fetch(HEATMAP_URL);
+            window._geoJsonData = await resp.json();
+        }
+
+        const stats = {};
+        locations.forEach(l => {
+            if (l.countryCode) stats[l.countryCode.toUpperCase()] = (stats[l.countryCode.toUpperCase()] || 0) + (l.count || 1);
+        });
+
+        const maxCount = Math.max(...Object.values(stats), 1);
+
+        if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+
+        geoJsonLayer = L.geoJSON(window._geoJsonData, {
+            style: (feature) => {
+                const code = feature.properties.iso_a2 || feature.properties.ISO_A2;
+                const count = stats[code] || 0;
+                return {
+                    fillColor: count > 0 ? getColor(count, maxCount) : '#1a1a1a',
+                    weight: 1,
+                    opacity: 1,
+                    color: '#333',
+                    fillOpacity: 0.8
+                };
+            },
+            onEachFeature: (feature, layer) => {
+                const code = feature.properties.iso_a2 || feature.properties.ISO_A2;
+                const count = stats[code] || 0;
+                const name = feature.properties.name || feature.properties.NAME;
+
+                if (count > 0) {
+                    layer.bindPopup(`
+                        <div class="nexus-popup">
+                            <div class="popup-header">
+                                <span>${getFlagEmoji(code)}</span>
+                                <strong>${name}</strong>
+                            </div>
+                            <div class="popup-body">
+                                SESSIONS: <strong>${count}</strong>
+                            </div>
+                        </div>
+                    `);
+
+                    layer.on('mouseover', () => {
+                        layer.setStyle({ fillOpacity: 1, weight: 2, color: '#fff' });
+                    });
+                    layer.on('mouseout', () => {
+                        layer.setStyle({ fillOpacity: 0.8, weight: 1, color: '#333' });
+                    });
+                }
+            }
+        }).addTo(map);
+
+    } catch (e) {
+        console.error('❌ [Nexus] Heatmap sync failed:', e);
+    }
 }
 
-function updateResolutionsTab(resolutions) {
-    const container = document.getElementById('resolutionsContent');
+/**
+ * Color scale for heatmap
+ */
+function getColor(count, max) {
+    const ratio = count / max;
+    // Simple interpolation from #1a1a1a to #FE4A49
+    // #1a1a1a -> rgb(26, 26, 26)
+    // #FE4A49 -> rgb(254, 74, 73)
+    const r = Math.round(26 + (254 - 26) * ratio);
+    const g = Math.round(26 + (74 - 26) * ratio);
+    const b = Math.round(26 + (73 - 26) * ratio);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
+ * Renders simple bar charts
+ */
+function renderBarChart(containerId, data, colorClass = 'cyan') {
+    const container = document.getElementById(containerId);
     if (!container) return;
 
-    const data = (Array.isArray(resolutions) ? resolutions : []).sort((a, b) => b.count - a.count);
-
-    if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No resolution data</p>';
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div class="no-data-card">Insufficient Data Signal</div>';
         return;
     }
 
-    const maxCount = data[0]?.count || 1;
+    const sorted = [...data].sort((a, b) => b.count - a.count).slice(0, 10);
+    const max = sorted[0].count;
 
-    container.innerHTML = data.map(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="stat-bar">
-                <div class="stat-bar-label">${name}</div>
-                <div class="stat-bar-track">
-                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00ff88, #00f5ff);"></div>
-                </div>
-                <div class="stat-bar-value">${count} devices</div>
+    container.innerHTML = sorted.map(item => `
+        <div class="stat-bar">
+            <span class="stat-bar-label">${item.name || item.city || 'Unknown'}</span>
+            <div class="stat-bar-track">
+                <div class="stat-bar-fill" style="width: ${(item.count / max) * 100}%; background: var(--accent-${colorClass})"></div>
             </div>
-        `;
-    }).join('');
+            <span class="stat-bar-value">${item.count}</span>
+        </div>
+    `).join('');
 }
 
-function updateReferrersTab(referrers) {
-    const container = document.getElementById('referrersContent');
-    if (!container) return;
+function updateEnvironmentCharts(data) {
+    renderBarChart('platformBars', data.platforms || [], 'purple');
+    renderBarChart('browsersContent', data.browsers || [], 'cyan');
+    renderBarChart('resolutionsContent', data.resolutions || [], 'gold');
+    renderBarChart('ispContent', data.isps || [], 'purple');
+    renderBarChart('referrersContent', data.referrers || [], 'cyan');
+    renderBarChart('pageAccessesContent', data.pageAccesses?.byPage.map(p => ({ name: p.path, count: p.count })) || [], 'purple');
 
-    const data = (Array.isArray(referrers) ? referrers : []).sort((a, b) => b.count - a.count);
-
-    if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No referrer data</p>';
-        return;
+    // Top Cities in Overview
+    const citiesContainer = document.getElementById('topCitiesContent');
+    if (citiesContainer && data.locations) {
+        const topCities = [...data.locations].sort((a, b) => b.count - a.count).slice(0, 8);
+        citiesContainer.innerHTML = topCities.map((l, i) => `
+            <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px; font-size: 0.85rem;">
+                <span style="font-weight: 700; color: var(--text-tertiary);">#${i + 1}</span>
+                <span style="font-weight: 600;">${l.city}</span>
+                <span style="font-family: var(--font-mono); font-weight: 800; color: var(--accent-red);">${l.count}</span>
+            </div>
+        `).join('');
     }
-
-    const maxCount = data[0]?.count || 1;
-
-    container.innerHTML = data.map(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="stat-bar">
-                <div class="stat-bar-label">${name}</div>
-                <div class="stat-bar-track">
-                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #7b42ff, #ff006e);"></div>
-                </div>
-                <div class="stat-bar-value">${count} visits</div>
-            </div>
-        `;
-    }).join('');
 }
 
-function updateConnectionsTab(connections) {
-    const container = document.getElementById('connectionsContent');
-    if (!container) return;
-
-    const data = (Array.isArray(connections) ? connections : []).sort((a, b) => b.count - a.count);
-
-    if (data.length === 0) {
-        container.innerHTML = '<p class="no-data">No connection data</p>';
-        return;
-    }
-
-    const maxCount = data[0]?.count || 1;
-
-    container.innerHTML = data.map(({ name, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="stat-bar">
-                <div class="stat-bar-label">${name.toUpperCase()}</div>
-                <div class="stat-bar-track">
-                    <div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #ffbe0b, #ff006e);"></div>
-                </div>
-                <div class="stat-bar-value">${count} connections</div>
-            </div>
-        `;
-    }).join('');
-}
-
-function updateRecentActivityTab(views, reactions) {
+/**
+ * Updates activity feed
+ */
+function updateActivityFeed(data) {
     const container = document.getElementById('recentContent');
     if (!container) return;
 
-    if ((!views || views.length === 0) && (!reactions || reactions.length === 0)) {
-        container.innerHTML = '<div class="no-data-card">No recent activity detected in this sector.</div>';
-        return;
-    }
-
-    const vArr = Array.isArray(views) ? views : [];
-    const rArr = Array.isArray(reactions) ? reactions : [];
-
-    const activities = [
-        ...vArr.map(v => ({ type: 'view', data: v, timestamp: new Date(v.timestamp) })),
-        ...rArr.map(r => ({ type: 'reaction', data: r, timestamp: new Date(r.createdAt) }))
-    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 100);
+    const views = data.recentActivity || [];
+    const activities = views.filter(v => {
+        if (!feedSearchQuery) return true;
+        const q = feedSearchQuery.toLowerCase();
+        return (v.ip || '').toLowerCase().includes(q) || (v.city || '').toLowerCase().includes(q) || (v.path || '').toLowerCase().includes(q);
+    });
 
     container.innerHTML = `
         <div class="activity-table-container">
             <table class="activity-table">
                 <thead>
                     <tr>
-                        <th>Type</th>
-                        <th>Target</th>
+                        <th>Node</th>
+                        <th>Path</th>
                         <th>Location</th>
-                        <th>ISP</th>
                         <th>IP Address</th>
-                        <th>Time</th>
+                        <th>Signal</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${activities.map(activity => {
-        const d = activity.data;
-        const timeStr = activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Global');
-        const isView = activity.type === 'view';
-        const isPage = d.source === 'page';
-
-        let typeClass = isView ? (isPage ? 'type-page' : 'type-view') : 'type-reaction';
-        let typeLabel = isView ? (isPage ? 'PAGE' : 'VIEW') : 'LIKE';
-        let emoji = isView ? (isPage ? '📄' : '👁️') : getReactionEmoji(d.type);
-
-        return `
+                    ${activities.slice(0, 50).map(v => `
                         <tr>
-                            <td>
-                                <span class="type-tag ${typeClass}">${emoji} ${typeLabel}</span>
-                            </td>
-                            <td class="mono" title="${d.path || d.pasteId || '/'}">
-                                ${d.path || (d.pasteId ? `/v/${d.pasteId}` : '/')}
-                            </td>
-                            <td>${location}</td>
-                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${d.isp || 'N/A'}">
-                                ${d.isp || 'N/A'}
-                            </td>
-                            <td class="mono">${d.ip || '---'}</td>
-                            <td class="mono">${timeStr}</td>
+                            <td><span class="type-tag type-view">Veroe</span></td>
+                            <td class="mono" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${v.path}</td>
+                            <td>${getFlagEmoji(v.countryCode)} ${v.city}</td>
+                            <td class="mono">${v.ip}</td>
+                            <td class="mono">${new Date(v.timestamp).toLocaleTimeString()}</td>
                         </tr>
-                    `;
-    }).join('')}
+                    `).join('')}
                 </tbody>
             </table>
         </div>
     `;
 }
 
-// ... original helper functions (updateStats, loadTopCities, updateTopCitiesUI, deleteLogsFromCity, getReactionEmoji, formatTimeAgo, updatePageAccessesTab, etc.) ...
-
-function updateStats(data) {
-    document.getElementById('totalVisits').textContent = data.totalVisits || 0;
-    document.getElementById('uniqueVisitors').textContent = data.uniqueVisitors || 0;
-    document.getElementById('activeNow').textContent = data.activeNow || 0;
-
-    const headerActive = document.getElementById('headerActiveNow');
-    if (headerActive) headerActive.textContent = `${data.activeNow || 0} active now`;
-
-    document.getElementById('geoReach').textContent = data.uniqueLocations || 0;
-    document.getElementById('newVisitors').textContent = data.newVisitors || 0;
-    document.getElementById('returningVisitors').textContent = data.returningVisitors || 0;
+/**
+ * Utility: Unicode Flags
+ */
+function getFlagEmoji(countryCode) {
+    if (!countryCode || countryCode === '??') return '🏳️';
+    return countryCode.toUpperCase().replace(/./g, char => String.fromCodePoint(127397 + char.charCodeAt(0)));
 }
 
-async function loadTopCities() {
-    try {
-        const response = await fetch('/api/pastes/analytics/top-cities', { credentials: 'include' });
-        if (!response.ok) return;
-        const cities = await response.json();
-        updateTopCitiesUI(cities);
-    } catch (e) { console.error(e); }
-}
-
-function updateTopCitiesUI(cities) {
-    const container = document.getElementById('topCitiesContent');
-    if (!container) return;
-
-    if (!cities || cities.length === 0) {
-        container.innerHTML = '<p class="no-data">No data for cities</p>';
-        return;
-    }
-
-    const sorted = cities.sort((a, b) => b.count - a.count);
-    const maxCount = sorted[0]?.count || 1;
-
-    container.innerHTML = sorted.map(({ city, country, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-            <div class="city-item" style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 5px;">
-                <div style="flex: 1;">
-                    <div style="font-weight: 500; color: white;">${city}, ${country}</div>
-                    <div style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 4px;">
-                        <div style="width: ${percentage}%; height: 100%; background: linear-gradient(90deg, #ff006e, #7b42ff);"></div>
-                    </div>
-                </div>
-                <div style="color: var(--text-secondary); font-weight: 600;">${count} hits</div>
-                <button onclick="deleteLogsFromCity('${city}')" style="background:none; border:none; cursor:pointer;">🗑️</button>
-            </div>
-        `;
-    }).join('');
-}
-
-async function deleteLogsFromCity(cityName) {
-    if (!confirm(`Delete logs for ${cityName}?`)) return;
-    try {
-        await fetch(`/api/pastes/analytics/city/${encodeURIComponent(cityName)}`, { method: 'DELETE', credentials: 'include' });
-        loadAnalytics();
-    } catch (e) { console.error(e); }
-}
-
-function updateDevices(devices) {
-    document.getElementById('avgCpuCores').textContent = devices.avgCpu || '0.0';
-    document.getElementById('avgRam').textContent = (devices.avgRam || 0).toFixed(1) + ' GB';
-    document.getElementById('touchDevices').textContent = devices.touchCount || 0;
-    document.getElementById('desktopDevices').textContent = devices.desktopCount || 0;
-}
-
-function getReactionEmoji(type) {
-    const emojis = { heart: '❤️', star: '⭐', like: '👍' };
-    return emojis[type] || '👍';
-}
-
-function formatTimeAgo(date) {
-    try {
-        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-        if (isNaN(seconds)) return 'N/A';
-        if (seconds < 60) return `${seconds}s ago`;
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h ago`;
-        const days = Math.floor(hours / 24);
-        return `${days}d ago`;
-    } catch (e) { return 'N/A'; }
-}
-
-function updatePageAccessesTab(pageAccesses) {
-    const container = document.getElementById('pageAccessesContent');
-    if (!container) return;
-
-    const { byPage = [], total = 0 } = pageAccesses;
-    if (byPage.length === 0) {
-        container.innerHTML = '<p class="no-data">No page access data</p>';
-        return;
-    }
-
-    const maxCount = byPage[0]?.count || 1;
-    container.innerHTML = `
-        <div style="margin-bottom: 1rem;">
-            <h4 style="color: var(--accent-cyan);">Total Page Hits: ${total}</h4>
-        </div>
-        ${byPage.map(({ path, count }) => {
-        const percentage = (count / maxCount) * 100;
-        return `
-                <div class="stat-bar">
-                    <div class="stat-bar-label" style="font-family: monospace; font-size: 0.8rem;">${path}</div>
-                    <div class="stat-bar-track"><div class="stat-bar-fill" style="width: ${percentage}%; background: linear-gradient(90deg, #00ff88, #00f5ff);"></div></div>
-                    <div class="stat-bar-value">${count} hits</div>
-                </div>
-            `;
-    }).join('')}
-    `;
-}
-
-// Tab Switching
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        const tabName = tab.getAttribute('data-tab');
-        document.querySelectorAll('.tab-content').forEach(section => section.style.display = 'none');
-        const content = document.querySelector(`[data-tab-content="${tabName}"]`);
-        if (content) content.style.display = 'block';
-        if (tabName === 'overview' && map) setTimeout(() => map.invalidateSize(), 200);
-    });
-});
-
-// Logout
-document.getElementById('logoutBtn')?.addEventListener('click', async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
-    window.location.href = '/adminperm/login.html';
-});
-
-// Init
+// Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadAnalytics();
-    // Faster refresh for "Live" status
-    setInterval(loadAnalytics, 10000);
+    setInterval(loadAnalytics, 30000);
+
+    // Tab Logic
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const target = tab.getAttribute('data-tab');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            const targetContent = document.querySelector(`[data-tab-content="${target}"]`);
+            if (targetContent) targetContent.style.display = 'block';
+
+            if (target === 'overview' && map) setTimeout(() => map.invalidateSize(), 200);
+        });
+    });
+
+    // Hardware Specs Logic (Network Tab)
+    document.querySelector('[data-tab="network"]')?.addEventListener('click', () => {
+        if (!currentData || !currentData.devices) return;
+        const d = currentData.devices;
+        document.getElementById('avgCpuCores').textContent = d.avgCpu || '0';
+        document.getElementById('avgRam').textContent = (d.avgRam || 0).toFixed(1) + ' GB';
+        document.getElementById('touchDevices').textContent = d.touchCount || 0;
+        document.getElementById('desktopDevices').textContent = d.desktopCount || 0;
+    });
+
+    // Feed Search
+    document.getElementById('feedSearch')?.addEventListener('input', (e) => {
+        feedSearchQuery = e.target.value;
+        if (currentData) updateActivityFeed(currentData);
+    });
+});
+
+// Logout flow
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    if (confirm("Terminate secure session?")) {
+        await api.logout();
+        window.location.href = '/adminperm/login.html';
+    }
 });
