@@ -41,6 +41,7 @@
 
     <link rel="stylesheet" href="/public/design-refresh.css">
     <script src="/shared/api.js"></script>
+    <script src="/public/audio-manager.js"></script>
     <style>
         :root {
             --accent-color: #00f5ff;
@@ -1253,10 +1254,46 @@
                 <hr> Stop
             </div>
         </button>
-        <div class="silent-entry-link" onclick="enterSite(false)"
-            style="margin-top: 20px; color: rgba(255,255,255,0.3); font-size: 0.8rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">
-            Enter Silently
+        <div class="audio-opt-in"
+            style="margin-top: 30px; display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.3); padding: 10px 20px; border-radius: 50px; border: 1px solid rgba(0,245,255,0.1);">
+            <span
+                style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: rgba(255,255,255,0.6); text-transform: uppercase;">Background
+                Music</span>
+            <label class="switch" style="position: relative; display: inline-block; width: 46px; height: 22px;">
+                <input type="checkbox" id="audioToggle" checked style="opacity: 0; width: 0; height: 0;">
+                <span class="slider round"
+                    style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 34px;"></span>
+            </label>
         </div>
+        <div class="silent-entry-link" onclick="enterSite(false)"
+            style="margin-top: 15px; color: rgba(255,255,255,0.3); font-size: 0.7rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">
+            Default to Silent Entry
+        </div>
+        <style>
+            #audioToggle:checked+.slider {
+                background-color: #00f5ff;
+            }
+
+            #audioToggle:focus+.slider {
+                box-shadow: 0 0 1px #00f5ff;
+            }
+
+            #audioToggle:checked+.slider:before {
+                transform: translateX(24px);
+            }
+
+            .slider:before {
+                position: absolute;
+                content: "";
+                height: 16px;
+                width: 16px;
+                left: 3px;
+                bottom: 3px;
+                background-color: white;
+                transition: .4s;
+                border-radius: 50%;
+            }
+        </style>
     </div>
     <ul id="color-picker">
         <li><label><input type="radio" name="color" value="aqua"> Aqua</label></li>
@@ -1566,43 +1603,57 @@
 <!-- Bio Card Wrapper for Center Alignment -->
 
 
-<!-- Audio Engine -->
-<audio id="bgAudio" loop preload="auto">
-    <source src="/public/audio.mp3" type="audio/mp3">
-</audio>
-
-<div id="volumeControl" class="volume-control">
-    <div id="volumeArrow" class="volume-arrow">
-        <span>Turn up the volume</span>
-        <svg width="40" height="20" viewBox="0 0 40 20" fill="none">
-            <path d="M10 10l20 0m0 0l-5-5m5 5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" />
-        </svg>
-    </div>
-    <div class="volume-control-inner">
-        <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume"
-            style="background: none; border: none; padding: 0;">
-            <svg id="iconMuted" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <line x1="23" y1="9" x2="17" y2="15" />
-                <line x1="17" y1="9" x2="23" y2="15" />
-            </svg>
-            <svg id="iconSound" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" style="display: none;">
-                <path d="M11 5L6 9H2V15H6L11 19V5Z" />
-                <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
-                <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
-            </svg>
-        </button>
-        <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.2" style="display: none;">
-    </div>
-</div>
-
 <!-- Background Media Controller -->
 <div id="video-background-container"
     style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.6);">
 </div>
+
+<div id="volumeControl" class="volume-control"
+    style="position: fixed; bottom: 20px; right: 20px; z-index: 20001; display: flex; align-items: center; gap: 10px;">
+    <button id="imgVolumeBtn" class="btn-icon volume-btn" title="Toggle Volume"
+        style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 50%; color: white; cursor: pointer; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+        <svg id="iconMuted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" style="display: none;">
+            <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+        </svg>
+        <svg id="iconSound" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2">
+            <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+            <path d="M19.07 4.93C20.98 6.84 20.98 9.95 19.07 11.85" />
+            <path d="M15.54 8.46C16.47 9.39 16.47 10.91 15.54 11.84" />
+        </svg>
+    </button>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3"
+        style="width: 0; opacity: 0; transition: all 0.3s ease; height: 4px; border-radius: 2px; cursor: pointer;">
+</div>
+
+<style>
+    #volumeControl:hover #volumeSlider {
+        width: 80px;
+        opacity: 1;
+        margin-left: 5px;
+    }
+
+    .volume-btn:hover {
+        background: rgba(0, 245, 255, 0.2) !important;
+        border-color: #00f5ff !important;
+        box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    }
+</style>
+
+<script>
+    // Link elements to AudioManager
+    const volBtn = document.getElementById('imgVolumeBtn');
+    const volSlider = document.getElementById('volumeSlider');
+
+    if (volBtn) volBtn.onclick = () => window.audioSystem.toggleMute();
+    if (volSlider) volSlider.oninput = (e) => window.audioSystem.setVolume(parseFloat(e.target.value));
+
+    // Initial sync
+    setTimeout(() => { if (window.audioSystem) window.audioSystem.syncUI(); }, 500);
+</script>
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
@@ -1660,7 +1711,8 @@
 
                 <div class="identity-overlay">
                     <div class="esco-name" style="font-size: 2rem; margin-bottom: 5px;">Ξ s c o</div>
-                    <div class="esco-title accent-text" style="font-size: 0.8rem;">LEAD ARCHITECT // VEROE.SPACE</div>
+                    <div class="esco-title accent-text" style="font-size: 0.8rem;">LEAD ARCHITECT // VEROE.SPACE
+                    </div>
 
                     <div class="esco-socials" style="justify-content: flex-start; margin-top: 15px; gap: 12px;">
                         <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link"
@@ -1685,7 +1737,8 @@
             <div class="dashboard-right">
                 <div>
                     <p style="color: rgba(255,255,255,0.7); font-size: 0.85rem; line-height: 1.6; margin-bottom: 15px;">
-                        Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
+                        Building secure propagation networks. Passionate about privacy, automation, and aesthetic
+                        code.
                     </p>
 
                     <div class="dashboard-actions">
@@ -1723,12 +1776,14 @@
                     </a>
                     <a href="https://esco.veroe.fun" target="_blank" class="site-card">
                         <h4 style="font-size: 0.85rem; margin: 0; color: #fff;">Esco.Veroe.Fun</h4>
-                        <p style="font-size: 0.6rem; margin: 5px 0 0; color: var(--primary-neon);">Interactive Sandbox
+                        <p style="font-size: 0.6rem; margin: 5px 0 0; color: var(--primary-neon);">Interactive
+                            Sandbox
                         </p>
                     </a>
                     <a href="https://farkle.velarixsolutions.nl" target="_blank" class="site-card">
                         <h4 style="font-size: 0.85rem; margin: 0; color: #fff;">Farkle Online</h4>
-                        <p style="font-size: 0.6rem; margin: 5px 0 0; color: var(--primary-neon);">Social Game Hub</p>
+                        <p style="font-size: 0.6rem; margin: 5px 0 0; color: var(--primary-neon);">Social Game Hub
+                        </p>
                     </a>
                     <a href="https://spell.velarixsolutions.nl" target="_blank" class="site-card">
                         <h4 style="font-size: 0.85rem; margin: 0; color: #fff;">SpellBound</h4>
@@ -2036,506 +2091,391 @@
 </script>
 
 <script>
-    // --- 1. Audio Logic ---
-    const audio = document.getElementById('bgAudio');
-    const volBtn = document.getElementById('imgVolumeBtn');
-    const iconMuted = document.getElementById('iconMuted');
-    const iconSound = document.getElementById('iconSound');
-    const arrow = document.getElementById('volumeArrow');
-    const slider = document.getElementById('volumeSlider');
-
-    let hasInteracted = false;
-
-    // Restore Volume
-    let storedVolume = localStorage.getItem('audioVolume');
-    let lastVolume = storedVolume !== null ? parseFloat(storedVolume) : 0.2;
-
-    // Restore Time
-    let storedTime = localStorage.getItem('audioCurrentTime');
-    if (storedTime) {
-        audio.currentTime = parseFloat(storedTime);
-    }
-
-    // Restore Paused State
-    let storedPaused = localStorage.getItem('audioIsPaused');
-
-    // Initialize state
-    audio.volume = lastVolume;
-    slider.value = lastVolume;
-
-    // Persist Time Update
-    audio.addEventListener('timeupdate', () => {
-        localStorage.setItem('audioCurrentTime', audio.currentTime);
-    });
-
-    // Persist Volume
-    function setVolume(val) {
-        audio.volume = val;
-        localStorage.setItem('audioVolume', val);
-        if (val > 0) {
-            lastVolume = val;
-        }
-    }
-
-    function tryPlayAudio() {
-        // If it's explicitly paused by user, DON'T try to play unless triggered by specific action
-        if (localStorage.getItem('audioIsPaused') === 'true') return;
-
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                hasInteracted = true;
-                localStorage.setItem('audioIsPaused', 'false');
-                updateAudioIcon();
-                if (audio.currentTime < 5) {
-                    arrow.classList.add('visible');
-                    setTimeout(() => arrow.classList.remove('visible'), 4000);
-                }
-            }).catch(error => {
-                console.log("Autoplay prevented. Waiting for interaction.", error);
-            });
-        }
-    }
-
-    function toggleAudio() {
-        if (audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
-            if (audio.volume === 0) {
-                let vol = lastVolume || 0.2;
-                setVolume(vol);
-                slider.value = vol;
-            }
-        } else {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
-        }
-        updateAudioIcon();
-    }
-
-    function updateAudioIcon() {
-        if (!audio.paused && audio.volume > 0) {
-            iconMuted.style.display = 'none';
-            iconSound.style.display = 'block';
-            volBtn.classList.add('active-volume');
-        } else {
-            iconMuted.style.display = 'block';
-            iconSound.style.display = 'none';
-            volBtn.classList.remove('active-volume');
-        }
-    }
-
-    // Slider Logic
-    slider.addEventListener('input', (e) => {
-        const val = parseFloat(e.target.value);
-        setVolume(val);
-
-        if (val > 0 && audio.paused) {
-            audio.play();
-            hasInteracted = true;
-            localStorage.setItem('audioIsPaused', 'false');
-        } else if (val === 0 && !audio.paused) {
-            audio.pause();
-            localStorage.setItem('audioIsPaused', 'true');
-        }
-        updateAudioIcon();
-    });
-
-    slider.addEventListener('click', (e) => e.stopPropagation());
-
-    volBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleAudio();
-    });
-
-    // Global interaction fallback
-    document.addEventListener('click', () => {
-        if (audio.paused && !hasInteracted && localStorage.getItem('audioIsPaused') !== 'true') {
-            tryPlayAudio();
-        }
-        hasInteracted = true;
-    }, { once: true });
-
-    // Try playing immediately on load
-    tryPlayAudio();
-
-    // Global interaction listeners
+    // --- 1. Audio Interaction Fallback ---
+    // Background music is initialized via audio-manager.js and window.audioSystem.
+    // We add global interaction listeners to help bypass autoplay restrictions.
     const interactEvents = ['click', 'keydown', 'touchstart'];
     interactEvents.forEach(evt =>
         window.addEventListener(evt, () => {
-            if (!hasInteracted && localStorage.getItem('audioIsPaused') !== 'true') {
-                tryPlayAudio();
+            if (window.audioSystem && !window.audioSystem.audio.playing && window.audioSystem.isEnabled) {
+                window.audioSystem.play();
             }
-            hasInteracted = true;
         }, { once: true, capture: true })
     );
 
+    // Initial check on load
+    window.addEventListener('load', () => {
+        if (window.audioSystem && window.audioSystem.isEnabled) {
+            window.audioSystem.play();
+        }
+    });
+</script>
 
-    // --- 2. SPA Navigation ---
 
-    // Handle Back/Forward
-    window.addEventListener('popstate', handleRoute);
-    // Handle Initial Load
-    document.addEventListener('DOMContentLoaded', handleRoute);
+// --- 2. SPA Navigation ---
 
-    window.navigateTo = function (path) {
-        console.log("Navigating with cinematic transition:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+// Handle Back/Forward
+window.addEventListener('popstate', handleRoute);
+// Handle Initial Load
+document.addEventListener('DOMContentLoaded', handleRoute);
+
+window.navigateTo = function (path) {
+console.log("Navigating with cinematic transition:", path);
+const ls = document.getElementById('loadingState');
+if (ls) {
+ls.style.display = 'flex';
+ls.classList.remove('fade-out');
+if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+}
+
+// Show loading for 0.8 seconds (reduced from 2.5s for speed)
+setTimeout(() => {
+window.history.pushState({}, '', path);
+handleRoute();
+}, 800);
+}
+
+window.hideLoader = function () {
+const ls = document.getElementById('loadingState');
+if (!ls) return;
+ls.classList.add('fade-out');
+setTimeout(() => {
+ls.style.display = 'none';
+}, 500);
+};
+
+function handleRoute() {
+const path = window.location.pathname;
+
+// Ensure audio tries to resume on route change if enabled
+if (window.audioSystem && window.audioSystem.isEnabled) {
+window.audioSystem.syncUI();
+}
+
+// Entry Page
+if (path === '/' || path === '/index.html') {
+const ls = document.getElementById('loadingState');
+if (ls) ls.style.display = 'none'; // Hide loading screen
+
+document.getElementById('view-entry').style.display = 'flex';
+document.getElementById('view-viewer').style.display = 'none';
+document.getElementById('view-access-denied').style.display = 'none';
+document.body.style.overflow = 'auto'; // Reset
+if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+updateUptime();
+}
+// Access Denied Page
+else if (path === '/access-denied') {
+const ls = document.getElementById('loadingState');
+if (ls) ls.style.display = 'none';
+document.getElementById('view-entry').style.display = 'none';
+document.getElementById('view-viewer').style.display = 'none';
+document.getElementById('view-access-denied').style.display = 'flex';
+document.body.style.overflow = 'hidden'; // Lock for restricted view
+if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+}
+// Public Viewer
+else if (path.startsWith('/public') || path.startsWith('/v/')) {
+const ls = document.getElementById('loadingState');
+if (ls) ls.style.display = 'none'; // Hide loading screen
+
+document.getElementById('view-entry').style.display = 'none';
+document.getElementById('view-viewer').style.display = 'block';
+document.getElementById('view-access-denied').style.display = 'none';
+document.body.style.setProperty('overflow', 'auto', 'important');
+if (window.setBackgroundVideo) window.setBackgroundVideo('public');
+
+if (path.startsWith('/v/')) {
+const id = path.split('/')[2];
+showDetail(id);
+} else {
+showList();
+}
+}
+}
+
+async function updateUptime() {
+try {
+const res = await fetch('/api/uptime');
+const data = await res.json();
+const list = document.getElementById('service-list');
+if (list && data.services) {
+list.innerHTML = data.services.map(s => `
+<div class="service-row">
+    <div class="service-name">${s.name}</div>
+    <div class="service-metrics"><span>${s.uptime}</span> <span>${s.latency}</span></div>
+</div>
+`).join('');
+document.getElementById('system-status-text').textContent = data.systemStatus;
+}
+} catch (e) {
+console.warn("Uptime fetch failed");
+}
+}
+
+
+// --- 3. Viewer Logic (Isolated Scope) ---
+(function () {
+const storage = window.storage = new PasteStorage();
+const listView = document.getElementById('listView');
+const detailView = document.getElementById('detailView');
+const pasteListContainer = document.getElementById('pasteList');
+const detailLoading = document.getElementById('detailLoading');
+const notFoundState = document.getElementById('notFoundState');
+const pasteViewContent = document.getElementById('pasteViewContent');
+
+// Elements for detail
+const pTitle = document.getElementById('pasteTitle');
+const pLang = document.getElementById('pasteLanguage');
+const pViews = document.getElementById('pasteViews');
+const pDate = document.getElementById('pasteDate');
+const pContent = document.getElementById('pasteContent');
+
+window.showList = async function () {
+detailView.style.display = 'none';
+listView.style.display = 'block';
+await loadPastes();
+};
+
+async function loadPastes() {
+console.log("Fetching paste stream...");
+try {
+const headers = { 'Content-Type': 'application/json' };
+const key = localStorage.getItem('private_access_key');
+if (key) {
+console.log("Using stored access key for request");
+headers['x-access-key'] = key;
+}
+
+const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
+headers,
+credentials: 'include'
+});
+
+if (!res.ok) {
+console.error("API Error:", res.status, res.statusText);
+throw new Error(`Server returned ${res.status}`);
+}
+
+const pastes = await res.json();
+console.log(`Stream retrieved: ${pastes.length} nodes found.`);
+
+if (!Array.isArray(pastes)) {
+console.error("Malformed API response, expected array.");
+return;
+}
+
+if (window.setPasteData) {
+window.setPasteData(pastes);
+} else {
+window._pendingPastes = pastes;
+}
+
+} catch (e) {
+console.error("CRITICAL: Stream synchronization failure:", e);
+if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
+} finally {
+window.hideLoader();
+}
+}
+
+// Auto-refresh feed every 30 seconds
+setInterval(loadPastes, 30000);
+
+window.showDetail = async function (id) {
+if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+
+// Switch to detail video background
+console.log('Switching to detail video background for paste:', id);
+if (window.setBackgroundVideo) {
+window.setBackgroundVideo('detail');
+} else {
+console.warn('setBackgroundVideo not available yet');
+}
+
+listView.style.display = 'none';
+detailView.style.display = 'block';
+
+detailLoading.style.display = 'flex';
+notFoundState.style.display = 'none';
+pasteViewContent.style.display = 'none';
+window.currentPasteId = id;
+
+try {
+let paste = null;
+try {
+paste = await storage.getPaste(id);
+} catch (e) {
+if (e.message.includes('401') || e.message.includes('403')) {
+const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
+if (!pwd) throw new Error('Cancelled');
+paste = await storage.getPaste(id, true, pwd);
+} else {
+throw e;
+}
+}
+
+if (!paste) throw new Error('Not found');
+
+renderPasteDetail(paste);
+detailLoading.style.display = 'none';
+pasteViewContent.style.display = 'block';
+
+} catch (err) {
+console.error(err);
+detailLoading.style.display = 'none';
+if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
+} finally {
+window.hideLoader();
+}
+};
+
+function renderPasteDetail(paste) {
+pTitle.textContent = paste.title || 'Untitled';
+pLang.textContent = paste.language;
+pViews.textContent = `${paste.views} views`;
+pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+    const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+        const container = document.getElementById('pasteContentContainer');
+
+        if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+        pContent.innerHTML = marked.parse(paste.content);
+        pContent.classList.add('markdown-body');
+        if (container) container.classList.add('markdown-body');
+
+        pContent.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightElement(block);
+        });
+        } else {
+        pContent.textContent = paste.content;
+        pContent.className = `hljs language-${paste.language}`;
+        if (container) container.classList.remove('markdown-body');
+        hljs.highlightElement(pContent);
         }
 
-        // Show loading for 0.8 seconds (reduced from 2.5s for speed)
-        setTimeout(() => {
-            window.history.pushState({}, '', path);
-            handleRoute();
-        }, 800);
-    }
-
-    window.hideLoader = function () {
-        const ls = document.getElementById('loadingState');
-        if (!ls) return;
-        ls.classList.add('fade-out');
-        setTimeout(() => {
-            ls.style.display = 'none';
-        }, 500);
-    };
-
-    function handleRoute() {
-        const path = window.location.pathname;
-
-        // Ensure audio is trying to play on route change (interaction happened)
-        if (audio.paused && hasInteracted) {
-            audio.play().catch(e => console.log('Resume play failed', e));
-            updateAudioIcon();
+        // Reactions
+        const panel = document.getElementById('reactionsPanel');
+        if (panel) panel.style.display = 'flex';
+        if (paste.reactions) {
+        const l = document.getElementById('count-like');
+        const h = document.getElementById('count-heart');
+        const s = document.getElementById('count-star');
+        if (l) l.textContent = paste.reactions.like || 0;
+        if (h) h.textContent = paste.reactions.heart || 0;
+        if (s) s.textContent = paste.reactions.star || 0;
         }
 
-        // Entry Page
-        if (path === '/' || path === '/index.html') {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
+        // Burn Notice
+        const burnNotice = document.getElementById('burnNotice');
+        if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
 
-            document.getElementById('view-entry').style.display = 'flex';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Reset
-            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-            updateUptime();
+        // Cleanup active states
+        document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
+
+        window.currentViewedPaste = paste;
         }
-        // Access Denied Page
-        else if (path === '/access-denied') {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none';
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Lock for restricted view
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-        }
-        // Public Viewer
-        else if (path.startsWith('/public') || path.startsWith('/v/')) {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
+        })();
 
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'block';
-            document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.setProperty('overflow', 'auto', 'important');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('public');
-
-            if (path.startsWith('/v/')) {
-                const id = path.split('/')[2];
-                showDetail(id);
-            } else {
-                showList();
-            }
-        }
-    }
-
-    async function updateUptime() {
-        try {
-            const res = await fetch('/api/uptime');
-            const data = await res.json();
-            const list = document.getElementById('service-list');
-            if (list && data.services) {
-                list.innerHTML = data.services.map(s => `
-                    <div class="service-row">
-                        <div class="service-name">${s.name}</div>
-                        <div class="service-metrics"><span>${s.uptime}</span> <span>${s.latency}</span></div>
-                    </div>
-                `).join('');
-                document.getElementById('system-status-text').textContent = data.systemStatus;
-            }
-        } catch (e) {
-            console.warn("Uptime fetch failed");
-        }
-    }
-
-
-    // --- 3. Viewer Logic (Isolated Scope) ---
-    (function () {
-        const storage = window.storage = new PasteStorage();
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const pasteListContainer = document.getElementById('pasteList');
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
-
-        // Elements for detail
-        const pTitle = document.getElementById('pasteTitle');
-        const pLang = document.getElementById('pasteLanguage');
-        const pViews = document.getElementById('pasteViews');
-        const pDate = document.getElementById('pasteDate');
-        const pContent = document.getElementById('pasteContent');
-
-        window.showList = async function () {
-            detailView.style.display = 'none';
-            listView.style.display = 'block';
-            await loadPastes();
-        };
-
-        async function loadPastes() {
-            console.log("Fetching paste stream...");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) {
-                    console.log("Using stored access key for request");
-                    headers['x-access-key'] = key;
-                }
-
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                    headers,
-                    credentials: 'include'
-                });
-
-                if (!res.ok) {
-                    console.error("API Error:", res.status, res.statusText);
-                    throw new Error(`Server returned ${res.status}`);
-                }
-
-                const pastes = await res.json();
-                console.log(`Stream retrieved: ${pastes.length} nodes found.`);
-
-                if (!Array.isArray(pastes)) {
-                    console.error("Malformed API response, expected array.");
-                    return;
-                }
-
-                if (window.setPasteData) {
-                    window.setPasteData(pastes);
-                } else {
-                    window._pendingPastes = pastes;
-                }
-
-            } catch (e) {
-                console.error("CRITICAL: Stream synchronization failure:", e);
-                if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
-            } finally {
-                window.hideLoader();
-            }
-        }
-
-        // Auto-refresh feed every 30 seconds
-        setInterval(loadPastes, 30000);
-
-        window.showDetail = async function (id) {
-            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
-
-            // Switch to detail video background
-            console.log('Switching to detail video background for paste:', id);
-            if (window.setBackgroundVideo) {
-                window.setBackgroundVideo('detail');
-            } else {
-                console.warn('setBackgroundVideo not available yet');
-            }
-
-            listView.style.display = 'none';
-            detailView.style.display = 'block';
-
-            detailLoading.style.display = 'flex';
-            notFoundState.style.display = 'none';
-            pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
-
-            try {
-                let paste = null;
-                try {
-                    paste = await storage.getPaste(id);
-                } catch (e) {
-                    if (e.message.includes('401') || e.message.includes('403')) {
-                        const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                        if (!pwd) throw new Error('Cancelled');
-                        paste = await storage.getPaste(id, true, pwd);
-                    } else {
-                        throw e;
-                    }
-                }
-
-                if (!paste) throw new Error('Not found');
-
-                renderPasteDetail(paste);
-                detailLoading.style.display = 'none';
-                pasteViewContent.style.display = 'block';
-
-            } catch (err) {
-                console.error(err);
-                detailLoading.style.display = 'none';
-                if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
-            } finally {
-                window.hideLoader();
-            }
-        };
-
-        function renderPasteDetail(paste) {
-            pTitle.textContent = paste.title || 'Untitled';
-            pLang.textContent = paste.language;
-            pViews.textContent = `${paste.views} views`;
-            pDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const container = document.getElementById('pasteContentContainer');
-
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                pContent.innerHTML = marked.parse(paste.content);
-                pContent.classList.add('markdown-body');
-                if (container) container.classList.add('markdown-body');
-
-                pContent.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            } else {
-                pContent.textContent = paste.content;
-                pContent.className = `hljs language-${paste.language}`;
-                if (container) container.classList.remove('markdown-body');
-                hljs.highlightElement(pContent);
-            }
-
-            // Reactions
-            const panel = document.getElementById('reactionsPanel');
-            if (panel) panel.style.display = 'flex';
-            if (paste.reactions) {
-                const l = document.getElementById('count-like');
-                const h = document.getElementById('count-heart');
-                const s = document.getElementById('count-star');
-                if (l) l.textContent = paste.reactions.like || 0;
-                if (h) h.textContent = paste.reactions.heart || 0;
-                if (s) s.textContent = paste.reactions.star || 0;
-            }
-
-            // Burn Notice
-            const burnNotice = document.getElementById('burnNotice');
-            if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
-
-            // Cleanup active states
-            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
-
-            window.currentViewedPaste = paste;
-        }
-    })();
-
-    window.handleReaction = async function (type, specificId = null) {
+        window.handleReaction = async function (type, specificId = null) {
         const id = specificId || window.currentPasteId;
         if (!id) return;
 
         try {
-            const res = await storage.toggleReaction(id, type);
-            if (res.success) {
-                if (specificId) {
-                    loadPastes(); // Refresh list to update count
-                } else {
-                    const countEl = document.getElementById(`count-${type}`);
-                    if (countEl) {
-                        let current = parseInt(countEl.textContent) || 0;
-                        countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
-                    }
-                }
-                showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
-            }
+        const res = await storage.toggleReaction(id, type);
+        if (res.success) {
+        if (specificId) {
+        loadPastes(); // Refresh list to update count
+        } else {
+        const countEl = document.getElementById(`count-${type}`);
+        if (countEl) {
+        let current = parseInt(countEl.textContent) || 0;
+        countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
+        }
+        }
+        showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
+        }
         } catch (e) {
-            if (e.message === 'AUTH_REQUIRED') {
-                showToast('🔐 Login with Discord or Google to react!', 'info');
-                if (window.openRequestModal) window.openRequestModal();
-                else storage.loginWithDiscord();
-            } else {
-                console.error("Reaction failed", e);
-            }
+        if (e.message === 'AUTH_REQUIRED') {
+        showToast('🔐 Login with Discord or Google to react!', 'info');
+        if (window.openRequestModal) window.openRequestModal();
+        else storage.loginWithDiscord();
+        } else {
+        console.error("Reaction failed", e);
         }
-    }
+        }
+        }
 
-    // Viewer Buttons
-    // Viewer Buttons
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) backBtn.addEventListener('click', () => navigateTo('/public'));
+        // Viewer Buttons
+        // Viewer Buttons
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) backBtn.addEventListener('click', () => navigateTo('/public'));
 
-    const copyBtn = document.getElementById('copyBtn');
-    if (copyBtn) copyBtn.addEventListener('click', () => {
+        const copyBtn = document.getElementById('copyBtn');
+        if (copyBtn) copyBtn.addEventListener('click', () => {
         if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied to clipboard", "success");
+        navigator.clipboard.writeText(window.currentViewedPaste.content);
+        showToast("Payload copied to clipboard", "success");
         }
-    });
+        });
 
-    window.copyPasteContent = function () {
+        window.copyPasteContent = function () {
         if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied successfully", "success");
+        navigator.clipboard.writeText(window.currentViewedPaste.content);
+        showToast("Payload copied successfully", "success");
         }
-    };
+        };
 
-    window.copyPasteLink = function () {
+        window.copyPasteLink = function () {
         navigator.clipboard.writeText(window.location.href);
         showToast("Transmission link copied", "success");
-    };
+        };
 
-    const rawBtn = document.getElementById('rawBtn');
-    if (rawBtn) rawBtn.addEventListener('click', () => {
+        const rawBtn = document.getElementById('rawBtn');
+        if (rawBtn) rawBtn.addEventListener('click', () => {
         if (window.currentViewedPaste) {
-            const win = window.open();
-            win.document.write(`<pre>${window.currentViewedPaste.content}</pre>`);
+        const win = window.open();
+        win.document.write(`
+        <pre>${window.currentViewedPaste.content}</pre>`);
         }
-    });
+        });
 
 
-    // --- 4. Auth & Modal Logic (Restored) ---
-    let currentEmail = '';
-    let authMethod = '';
+        // --- 4. Auth & Modal Logic (Restored) ---
+        let currentEmail = '';
+        let authMethod = '';
 
-    window.openKeyModal = function () {
+        window.openKeyModal = function () {
         closeModals();
         document.getElementById('keyModal').classList.add('active');
-    }
+        }
 
-    window.openRequestModal = function () {
+        window.openRequestModal = function () {
         console.log("Opening request modal");
         closeModals();
         resetRequestModal();
         document.getElementById('requestModal').classList.add('active');
-    }
+        }
 
-    window.closeModals = function () {
+        window.closeModals = function () {
         document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    }
+        }
 
-    window.switchView = function (id) {
+        window.switchView = function (id) {
         document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
         document.getElementById(id).style.display = 'block';
-    }
+        }
 
-    window.resetRequestModal = function () {
+        window.resetRequestModal = function () {
         switchView('req-view-1');
         document.getElementById('manualIdentity').value = '';
         document.getElementById('manualReason').value = '';
         document.getElementById('reqReason').value = '';
-    }
+        }
 
-    window.startDiscordAuth = function (mode = 'request') {
+        window.startDiscordAuth = function (mode = 'request') {
         const width = 500;
         const height = 800;
         const left = (window.screen.width / 2) - (width / 2);
@@ -2546,39 +2486,39 @@
         const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
 
         window.addEventListener('message', function onMessage(e) {
-            if (e.data.type === 'DISCORD_VERIFIED') {
-                window.removeEventListener('message', onMessage);
+        if (e.data.type === 'DISCORD_VERIFIED') {
+        window.removeEventListener('message', onMessage);
 
-                if (mode === 'login') {
-                    showToast("✅ Signed in with Discord!", "success");
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
+        if (mode === 'login') {
+        showToast("✅ Signed in with Discord!", "success");
+        setTimeout(() => window.location.reload(), 1000);
+        return;
+        }
 
-                // FOUND AUTO-KEY?
-                if (e.data.existingKey) {
-                    localStorage.setItem('private_access_key', e.data.existingKey);
-                    closeModals();
-                    // Show quick success visual
-                    const hint = document.querySelector('.tech-hint');
-                    if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
-                    setTimeout(() => navigateTo('/public'), 800);
-                    return;
-                }
+        // FOUND AUTO-KEY?
+        if (e.data.existingKey) {
+        localStorage.setItem('private_access_key', e.data.existingKey);
+        closeModals();
+        // Show quick success visual
+        const hint = document.querySelector('.tech-hint');
+        if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
+        setTimeout(() => navigateTo('/public'), 800);
+        return;
+        }
 
-                currentEmail = e.data.id;
-                authMethod = 'Discord';
-                document.getElementById('verifiedId').value = currentEmail;
-                switchView('req-view-4');
-            }
+        currentEmail = e.data.id;
+        authMethod = 'Discord';
+        document.getElementById('verifiedId').value = currentEmail;
+        switchView('req-view-4');
+        }
         });
-    }
+        }
 
-    window.showManualInput = function () {
+        window.showManualInput = function () {
         switchView('req-view-manual');
-    }
+        }
 
-    window.submitManualRequest = async function () {
+        window.submitManualRequest = async function () {
         const contact = document.getElementById('manualIdentity').value;
         const reason = document.getElementById('manualReason').value;
         const btn = document.querySelector('#req-view-manual .btn-submit');
@@ -2589,28 +2529,28 @@
         btn.textContent = 'Sending...';
 
         try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact, reason, method: 'Manual' })
-            });
-            const data = await res.json();
+        const res = await fetch('/api/access/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact, reason, method: 'Manual' })
+        });
+        const data = await res.json();
 
-            if (data.success) {
-                closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
+        if (data.success) {
+        closeModals();
+        document.getElementById('successPopup').classList.add('active');
+        } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
         }
-    }
+        } catch (e) {
+        alert('Connection error');
+        } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Request';
+        }
+        }
 
-    window.submitFinalRequest = async function () {
+        window.submitFinalRequest = async function () {
         const reason = document.getElementById('reqReason').value;
         const btn = document.querySelector('#req-view-4 .btn-submit');
 
@@ -2618,213 +2558,214 @@
         btn.textContent = 'Sending...';
 
         try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
-            });
-            const data = await res.json();
+        const res = await fetch('/api/access/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
+        });
+        const data = await res.json();
 
-            if (data.success) {
-                closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
+        if (data.success) {
+        closeModals();
+        document.getElementById('successPopup').classList.add('active');
+        } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
         }
-    }
+        } catch (e) {
+        alert('Connection error');
+        } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Request';
+        }
+        }
 
-    window.submitKey = async function () {
+        window.submitKey = async function () {
         const key = document.getElementById('accessKeyInput').value.trim();
         const btn = document.querySelector('#keyModal .btn-submit');
         if (!key) return alert('Enter a key.');
         btn.disabled = true;
         btn.textContent = 'Verifying...';
         try {
-            const res = await fetch('/api/access/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('private_access_key', data.key);
-                closeModals();
-                navigateTo('/public'); // Changed from window.location.href to SPA nav
-            } else {
-                alert(data.error || 'Invalid key.');
-            }
-        } catch (e) {
-            alert('Verification failed.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Unlock';
+        const res = await fetch('/api/access/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key })
+        });
+        const data = await res.json();
+        if (data.success) {
+        localStorage.setItem('private_access_key', data.key);
+        closeModals();
+        navigateTo('/public'); // Changed from window.location.href to SPA nav
+        } else {
+        alert(data.error || 'Invalid key.');
         }
-    }
+        } catch (e) {
+        alert('Verification failed.');
+        } finally {
+        btn.disabled = false;
+        btn.textContent = 'Unlock';
+        }
+        }
 
-    window.handlePrivateAccess = function () {
+        window.handlePrivateAccess = function () {
         console.log("Private access requested");
         const hasKey = localStorage.getItem('private_access_key');
         if (!hasKey) {
-            const notif = document.getElementById('accessNotification');
-            if (notif) {
-                notif.classList.add('active');
-                setTimeout(() => notif.classList.remove('active'), 3000);
-            }
-            if (window.openKeyModal) window.openKeyModal();
-        } else {
-            window.navigateTo('/public');
+        const notif = document.getElementById('accessNotification');
+        if (notif) {
+        notif.classList.add('active');
+        setTimeout(() => notif.classList.remove('active'), 3000);
         }
-    };
+        if (window.openKeyModal) window.openKeyModal();
+        } else {
+        window.navigateTo('/public');
+        }
+        };
 
-    // Glitch effect on hint
-    const hint = document.querySelector('.tech-hint');
-    if (hint) {
+        // Glitch effect on hint
+        const hint = document.querySelector('.tech-hint');
+        if (hint) {
         setInterval(() => {
-            if (Math.random() > 0.95) {
-                hint.style.opacity = 0.5;
-                setTimeout(() => hint.style.opacity = 0.8, 50);
-            }
+        if (Math.random() > 0.95) {
+        hint.style.opacity = 0.5;
+        setTimeout(() => hint.style.opacity = 0.8, 50);
+        }
         }, 100);
-    }
+        }
 
-    // --- Animated Title ---
-    (function () {
+        // --- Animated Title ---
+        (function () {
         const originalTitle = "QuietBin.space";
         const altTitle = "ERROR // CORRUPTION";
         let isOriginal = true;
 
         setInterval(() => {
-            document.title = isOriginal ? originalTitle : altTitle;
-            isOriginal = !isOriginal;
+        document.title = isOriginal ? originalTitle : altTitle;
+        isOriginal = !isOriginal;
         }, 2000); // Toggle every 2 seconds
-    })();
-    // -- UTILS --
-    window.navigateTo = function (path) {
+        })();
+        // -- UTILS --
+        window.navigateTo = function (path) {
         console.log("Navigating with cinematic transition:", path);
         const ls = document.getElementById('loadingState');
         if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+        ls.style.display = 'flex';
+        ls.classList.remove('fade-out');
+        if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
         setTimeout(() => {
-            window.history.pushState({}, '', path);
-            if (window.handleRoute) window.handleRoute();
-            else window.location.href = path;
+        window.history.pushState({}, '', path);
+        if (window.handleRoute) window.handleRoute();
+        else window.location.href = path;
         }, 800);
-    };
+        };
 
-    window.hideLoader = function () {
+        window.hideLoader = function () {
         const ls = document.getElementById('loadingState');
         if (!ls) return;
         ls.classList.add('fade-out');
         setTimeout(() => { ls.style.display = 'none'; }, 500);
-    };
+        };
 
-    window.closeModals = function () {
+        window.closeModals = function () {
         document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    };
+        };
 
-    // -- SPLASH SYSTEM --
-    window.checkSplash = function () {
+        // -- SPLASH SYSTEM --
+        window.checkSplash = function () {
         const lastSeen = localStorage.getItem('splash_last_seen');
         const now = Date.now();
         const thirtyMinutes = 30 * 60 * 1000;
         const splash = document.getElementById('splash-overlay');
 
-        if (lastSeen && (now - parseInt(lastSeen) < thirtyMinutes)) {
-            if (splash) splash.style.display = 'none';
-            document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = '');
+        if (lastSeen && (now - parseInt(lastSeen) < thirtyMinutes)) { if (splash) splash.style.display='none' ;
+            document.querySelectorAll('body> :not(#splash-overlay)').forEach(el => el.style.filter = '');
             setTimeout(window.hideLoader, 1000);
             return;
-        }
+            }
 
-        if (splash) splash.style.display = 'grid';
-        document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = 'blur(10px)');
-        setTimeout(window.hideLoader, 1500);
-        initEngineButton();
-    };
+            if (splash) splash.style.display = 'grid';
+            document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = 'blur(10px)');
+            setTimeout(window.hideLoader, 1500);
+            initEngineButton();
+            };
 
-    function initEngineButton() {
-        const button = document.getElementById("btnEngineStart");
-        if (button) {
+            function initEngineButton() {
+            const button = document.getElementById("btnEngineStart");
+            if (button) {
             button.onclick = () => {
-                button.classList.toggle("on");
-                if (button.classList.contains("on")) {
-                    setTimeout(() => {
-                        if (button.classList.contains("on")) {
-                            button.classList.add("vibrating");
-                            setTimeout(() => enterSite(true), 1200);
-                        }
-                    }, 500);
-                } else {
-                    button.classList.remove("vibrating");
-                }
+            button.classList.toggle("on");
+            if (button.classList.contains("on")) {
+            setTimeout(() => {
+            if (button.classList.contains("on")) {
+            button.classList.add("vibrating");
+            const audioPref = document.getElementById('audioToggle').checked;
+            setTimeout(() => enterSite(audioPref), 1200);
+            }
+            }, 500);
+            } else {
+            button.classList.remove("vibrating");
+            }
             };
-        }
-        document.querySelectorAll("#color-picker input").forEach(input => {
+            }
+            document.querySelectorAll("#color-picker input").forEach(input => {
             input.onchange = () => {
-                const btn = document.querySelector("button.start-stop");
-                if (btn && input.checked) btn.style.setProperty("--color", input.value);
+            const btn = document.querySelector("button.start-stop");
+            if (btn && input.checked) btn.style.setProperty("--color", input.value);
             };
-        });
-    }
+            });
+            }
 
-    window.enterSite = function (withAudio) {
-        const splash = document.getElementById('splash-overlay');
-        localStorage.setItem('splash_last_seen', Date.now());
-        localStorage.setItem('audio_pref', withAudio ? 'on' : 'off');
-        if (splash) splash.style.opacity = '0';
-        document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => {
+            window.enterSite = function (withAudio) {
+            const splash = document.getElementById('splash-overlay');
+            localStorage.setItem('splash_last_seen', Date.now());
+
+            window.audioSystem.setEnabled(withAudio);
+
+            if (splash) splash.style.opacity = '0';
+            document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => {
             el.style.transition = 'filter 0.8s ease';
             el.style.filter = 'blur(0px)';
-        });
-        const aud = document.getElementById('bgAudio');
-        if (withAudio && aud) { aud.volume = 0.3; aud.play().catch(console.error); }
-        setTimeout(() => {
+            });
+
+            setTimeout(() => {
             if (splash) splash.style.display = 'none';
             document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = '');
-        }, 800);
-    };
+            }, 800);
+            };
 
-    async function checkStoredKey() {
-        const storedKey = localStorage.getItem('private_access_key');
-        if (storedKey) {
+            async function checkStoredKey() {
+            const storedKey = localStorage.getItem('private_access_key');
+            if (storedKey) {
             try {
-                const res = await fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ key: storedKey })
-                });
-                const data = await res.json();
-                if (data.success && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
-                    navigateTo('/public');
-                } else if (!data.success) {
-                    localStorage.removeItem('private_access_key');
-                }
+            const res = await fetch('/api/access/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ key: storedKey })
+            });
+            const data = await res.json();
+            if (data.success && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
+            navigateTo('/public');
+            } else if (!data.success) {
+            localStorage.removeItem('private_access_key');
+            }
             } catch (e) { console.error("Auto-check failed", e); }
-        }
-    }
+            }
+            }
 
-    // Site-wide initialization
-    window.addEventListener('load', () => {
-        if (window.checkSplash) window.checkSplash();
-        if (window.handleRoute) window.handleRoute();
-        checkStoredKey();
-        if (document.getElementById('loadingShaderContainer') && window.initLoadingShader) {
+            // Site-wide initialization
+            window.addEventListener('load', () => {
+            if (window.checkSplash) window.checkSplash();
+            if (window.handleRoute) window.handleRoute();
+            checkStoredKey();
+            if (document.getElementById('loadingShaderContainer') && window.initLoadingShader) {
             window.initLoadingShader('loadingShaderContainer');
-        }
-    });
-</script>
-<script type="module" src="/public/gallery.js"></script>
-<script src="/public/title-rotator.js?v=999"></script>
-</body>
+            }
+            });
+            </script>
+            <script type="module" src="/public/gallery.js"></script>
+            <script src="/public/title-rotator.js?v=999"></script>
+            </body>
 
 </html>
