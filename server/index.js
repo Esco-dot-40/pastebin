@@ -434,6 +434,11 @@ app.get('/v/:id', (req, res) => {
 });
 
 
+// Custom 404 Error Page (Neon Style)
+app.use((req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+});
+
 // Error handling
 app.use((err, req, res, next) => {
     console.error(err);
