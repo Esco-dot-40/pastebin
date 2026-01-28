@@ -10,232 +10,281 @@
     --border-light: rgba(255, 255, 255, 0.08);
 }
 
-/* 2. Esco Profile Card (Jotform inspired) */
+/* --- Modular Layout Components --- */
+/* --- Modular Layout Components --- */
+.site-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 60px 20px;
+    gap: 40px;
+    perspective: 1000px;
+}
+
+/* Floating Website Grid (Yellow in markup) */
+.website-header-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 20px;
+    width: 800px;
+    max-width: 95vw;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+/* STABLE DECK (Spotify + Profile) */
+.deck-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 1200px;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+/* Spotify Sidecar (Green in markup) */
+.spotify-sidecar {
+    width: 320px;
+    height: 520px;
+    border-radius: 28px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s ease;
+}
+
+.spotify-sidecar:hover {
+    transform: translateY(-5px);
+}
+
+/* Profile Card Refinement (Red in markup) */
 .esco-profile-card {
-    width: 1100px !important;
-    /* Widened for dashboard */
-    max-width: 98vw;
-    padding: 0;
+    width: 450px !important;
+    padding: 40px !important;
     border-radius: 32px;
     background: var(--card-bg);
-    border: 1px solid rgba(0, 245, 255, 0.15);
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 77, 0, 0.05);
-    text-align: left !important;
-    /* Enforce for dashboard */
-    position: relative;
-    overflow: hidden;
-    margin: 20px auto;
-    animation: cardEntrance 1s cubic-bezier(0.23, 1, 0.32, 1);
-    z-index: 1000;
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.esco-dashboard-layout {
-    display: grid !important;
-    grid-template-columns: 280px 1fr 300px !important;
-    min-height: 520px;
-}
-
-.dashboard-left {
-    background: rgba(0, 0, 0, 0.2);
-    border-right: 1px solid var(--border-light);
+    border: 1px solid rgba(0, 245, 255, 0.2);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+    text-align: center;
     display: flex;
     flex-direction: column;
-    position: relative;
-    /* For name overlay */
-    height: 100%;
-}
-
-.dashboard-center {
-    padding: 30px;
-    border-right: 1px solid var(--border-light);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.identity-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 40px 30px 30px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
-    z-index: 2;
-}
-
-.dashboard-right {
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 20px;
+    backdrop-filter: blur(30px);
 }
 
-/* Scrollbar for dashboard right */
-.dashboard-right::-webkit-scrollbar {
-    width: 4px;
-}
-
-.dashboard-right::-webkit-scrollbar-thumb {
-    background: var(--primary-neon);
-    border-radius: 10px;
-}
-
-.esco-profile-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    border-color: var(--accent-fire);
-    box-shadow: 0 50px 120px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 77, 0, 0.2);
-}
-
-@keyframes cardEntrance {
-    from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.9);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
+/* Avatar & Identity Polishing */
 .avatar-container {
-    width: 100%;
-    height: 240px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 4px solid var(--accent-color);
+    box-shadow: 0 0 40px var(--accent-glow);
     overflow: hidden;
     position: relative;
-    border-bottom: 2px solid rgba(255, 77, 0, 0.3);
+    margin-bottom: 10px;
+    background: #000;
 }
 
-.esco-profile-card .esco-avatar {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: cover !important;
-    border-radius: 0 !important;
-    /* Force rectangular for character card */
-    border: none !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    transition: transform 1.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
+.esco-profile-card:hover .avatar-container {
+    transform: scale(1.05);
+    border-color: #fff;
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.2);
 }
 
-.esco-profile-card:hover .esco-avatar {
-    transform: scale(1.1);
-}
-
-.card-content {
-    padding: 25px 30px 40px;
+.esco-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .esco-name {
-    font-size: 2.2rem;
-    font-weight: 900;
+    font-size: 2.8rem;
+    font-weight: 950;
     color: #fff;
-    margin-bottom: 8px;
-    letter-spacing: 4px;
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    letter-spacing: 6px;
     text-transform: uppercase;
 }
 
 .esco-title {
-    color: var(--primary-neon);
-    font-size: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    margin-bottom: 15px;
+    color: var(--accent-color);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
     font-family: 'JetBrains Mono', monospace;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
+/* Social Links Styling */
 .esco-socials {
     display: flex;
     justify-content: center;
-    gap: 18px;
-    margin-top: 15px;
+    gap: 15px;
+    margin: 10px 0;
 }
 
 .social-link {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 16px;
     background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     color: #fff;
-    text-decoration: none;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid var(--border-light);
-}
-
-.social-link:hover {
-    background: var(--primary-neon);
-    color: #000;
-    transform: translateY(-8px) rotate(8deg);
-    box-shadow: 0 15px 30px rgba(0, 245, 255, 0.3);
-}
-
-/* Compact Dashboard Grids */
-.website-cards-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-    width: 100%;
-}
-
-.website-cards-grid .site-card {
-    padding: 15px;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border-light);
-    text-decoration: none;
     transition: all 0.3s ease;
 }
 
-.website-cards-grid .site-card:hover {
-    background: rgba(0, 245, 255, 0.05);
-    border-color: var(--primary-neon);
-    transform: translateY(-3px);
+.social-link:hover {
+    background: var(--accent-color);
+    color: #000;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px var(--accent-glow);
+}
+
+.bio-text {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
 }
 
 .dashboard-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    width: 100%;
 }
 
+.utility-row {
+    width: 100%;
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+.status-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.75rem;
+    background: rgba(0, 255, 136, 0.05);
+    border: 1px solid rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.status-btn:hover {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: #00ff88;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    background: #00ff88;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+.tech-hint {
+    flex: 1;
+    padding: 12px;
+    font-size: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.tech-hint:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #fff;
+}
+
+/* Website Grid & Cards */
+.website-header-grid .site-card {
+    padding: 15px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-light);
+    text-decoration: none;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+.website-header-grid .site-card h4 {
+    font-size: 0.9rem;
+    color: #fff;
+    margin: 0;
+    letter-spacing: 1px;
+}
+
+.website-header-grid .site-card p {
+    font-size: 0.7rem;
+    color: var(--accent-color);
+    margin: 5px 0 0;
+    opacity: 0.8;
+}
+
+.website-header-grid .site-card:hover {
+    background: var(--accent-glow);
+    border-color: var(--accent-color);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px var(--accent-glow);
+}
+
+/* Responsiveness */
 @media (max-width: 1100px) {
+    .deck-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .spotify-sidecar {
+        width: 450px;
+        max-width: 95vw;
+        height: 152px;
+    }
+}
+
+@media (max-width: 768px) {
+    .website-header-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        width: 450px;
+    }
+
     .esco-profile-card {
-        width: 380px !important;
-        text-align: center !important;
+        padding: 20px !important;
     }
 
-    .esco-dashboard-layout {
+    .esco-name {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .website-header-grid {
         grid-template-columns: 1fr !important;
-        min-height: auto;
+        width: 100%;
     }
 
-    .dashboard-left,
-    .dashboard-center,
-    .dashboard-right {
-        border-right: none;
-        border-bottom: 1px solid var(--border-light);
-        padding: 20px;
-    }
-
-    .dashboard-left {
-        height: auto !important;
-    }
-
-    .avatar-container {
-        height: 300px;
-    }
-
-    .website-cards-grid,
-    .dashboard-actions {
-        grid-template-columns: 1fr;
+    .spotify-sidecar {
+        width: 100%;
     }
 }
 

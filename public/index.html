@@ -1700,57 +1700,56 @@
 
 
 
-    <div class="esco-profile-card">
-        <div class="esco-dashboard-layout">
-            <!-- LEFT PILLAR: Website Link Grid (Top) + Avatar (Bottom) -->
-            <div class="dashboard-left">
-                <!-- WEBSITE CARDS GRID (NOW ON TOP) -->
-                <div class="website-cards-grid"
-                    style="padding: 15px; border-bottom: 1px solid var(--border-light); grid-template-columns: repeat(2, 1fr) !important; gap: 10px;">
-                    <a href="https://velarixsolutions.nl" target="_blank" class="site-card" style="padding: 10px;">
-                        <h4 style="font-size: 0.75rem; margin: 0; color: #fff;">Velarix</h4>
-                        <p style="font-size: 0.55rem; margin: 3px 0 0; color: var(--primary-neon);">Corporate</p>
-                    </a>
-                    <a href="https://esco.veroe.fun" target="_blank" class="site-card" style="padding: 10px;">
-                        <h4 style="font-size: 0.75rem; margin: 0; color: #fff;">Veroe</h4>
-                        <p style="font-size: 0.55rem; margin: 3px 0 0; color: var(--primary-neon);">Interactive</p>
-                    </a>
-                    <a href="https://farkle.velarixsolutions.nl" target="_blank" class="site-card"
-                        style="padding: 10px;">
-                        <h4 style="font-size: 0.75rem; margin: 0; color: #fff;">Farkle</h4>
-                        <p style="font-size: 0.55rem; margin: 3px 0 0; color: var(--primary-neon);">Social Hub</p>
-                    </a>
-                    <a href="https://spell.velarixsolutions.nl" target="_blank" class="site-card"
-                        style="padding: 10px;">
-                        <h4 style="font-size: 0.75rem; margin: 0; color: #fff;">SpellBound</h4>
-                        <p style="font-size: 0.55rem; margin: 3px 0 0; color: var(--primary-neon);">Utility</p>
-                    </a>
-                </div>
+    <div class="site-wrapper">
+        <!-- WEBSITE GRID (YELLOW IN MARKUP) -->
+        <div class="website-header-grid">
+            <a href="https://velarixsolutions.nl" target="_blank" class="site-card">
+                <h4>Velarix</h4>
+                <p>Corporate</p>
+            </a>
+            <a href="https://esco.veroe.fun" target="_blank" class="site-card">
+                <h4>Veroe</h4>
+                <p>Interactive</p>
+            </a>
+            <a href="https://farkle.velarixsolutions.nl" target="_blank" class="site-card">
+                <h4>Farkle</h4>
+                <p>Social Hub</p>
+            </a>
+            <a href="https://spell.velarixsolutions.nl" target="_blank" class="site-card">
+                <h4>SpellBound</h4>
+                <p>Utility</p>
+            </a>
+        </div>
 
-                <!-- AVATAR (STILL IN LEFT PILLAR BUT BELOW CARDS) -->
-                <div class="avatar-container">
-                    <img src="/public/assets/avatar_v3.jpg?v=1" id="escoAvatarImg" class="esco-avatar" alt="Esco"
-                        style="height: 100%; width: 100%; object-fit: cover;">
-                </div>
+        <!-- STABLE DECK LAYOUT (GRID/FLEX) -->
+        <div class="deck-layout">
+            <!-- SPOTIFY SIDECAR (GREEN IN MARKUP) -->
+            <div class="spotify-sidecar">
+                <iframe style="height: 100%; border: none;"
+                    src="https://open.spotify.com/embed/playlist/3XhVdqTKASknXt1oYZEK1G?utm_source=generator&theme=0"
+                    width="100%" frameBorder="0" allowfullscreen=""
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"></iframe>
             </div>
 
-            <!-- CENTER PILLAR: Identity, Bio, & Actions -->
-            <div class="dashboard-center">
-                <div class="identity-section">
-                    <div class="esco-name" style="font-size: 2.5rem; margin-bottom: 2px;">Ξ s c o</div>
-                    <div class="esco-title accent-text" style="font-size: 0.85rem; letter-spacing: 2px;">LEAD ARCHITECT
-                        // VEROE.SPACE</div>
+            <!-- MAIN PROFILE CARD (RED IN MARKUP) -->
+            <div class="esco-profile-card">
+                <div class="avatar-container">
+                    <img src="/public/assets/avatar_v3.jpg?v=1" id="escoAvatarImg" class="esco-avatar" alt="Esco">
+                </div>
 
-                    <div class="esco-socials" style="justify-content: flex-start; margin: 20px 0; gap: 15px;">
-                        <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link"
-                            style="width: 45px; height: 45px; border-radius: 12px; background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.1);">
+                <div class="identity-section">
+                    <div class="esco-name">Ξ s c o</div>
+                    <div class="esco-title accent-text">LEAD ARCHITECT // VEROE.SPACE</div>
+
+                    <div class="esco-socials">
+                        <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path
                                     d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
                             </svg>
                         </a>
-                        <a href="https://github.com/EscoLessgo" target="_blank" class="social-link"
-                            style="width: 45px; height: 45px; border-radius: 12px; background: rgba(0,245,255,0.05); border: 1px solid rgba(0,245,255,0.1);">
+                        <a href="https://github.com/EscoLessgo" target="_blank" class="social-link">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                 <path
                                     d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
@@ -1760,42 +1759,24 @@
                 </div>
 
                 <div class="bio-section">
-                    <p
-                        style="color: rgba(255,255,255,0.8); font-size: 0.95rem; line-height: 1.6; margin-bottom: 25px; font-weight: 300;">
+                    <p class="bio-text">
                         Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
-                        Constant development.
                     </p>
 
-                    <div class="dashboard-actions" style="gap: 12px; margin-bottom: 12px;">
+                    <div class="dashboard-actions">
                         <a href="/public" class="entry-btn btn-public"
-                            onclick="window.navigateTo('/public'); return false;"
-                            style="padding: 0.8rem; font-size: 0.9rem; border-radius: 14px; flex: 1;">View Pastes</a>
-                        <a href="#" class="entry-btn btn-private" onclick="window.openKeyModal(); return false;"
-                            style="padding: 0.8rem; font-size: 0.9rem; border-radius: 14px; flex: 1;">Private Access</a>
+                            onclick="window.navigateTo('/public'); return false;">View Pastes</a>
+                        <a href="#" class="entry-btn btn-private" onclick="window.openKeyModal(); return false;">Private
+                            Access</a>
                     </div>
                 </div>
-            </div>
 
-            <!-- RIGHT PILLAR: Spotify Side-Car (Off to the side) -->
-            <div class="dashboard-right">
-                <div
-                    style="border-radius: 20px; overflow: hidden; border: 1px solid rgba(0, 245, 255, 0.15); background: #000; flex: 1; min-height: 380px;">
-                    <iframe style="height: 100%; border: none;"
-                        src="https://open.spotify.com/embed/playlist/3XhVdqTKASknXt1oYZEK1G?utm_source=generator&theme=0"
-                        width="100%" frameBorder="0" allowfullscreen=""
-                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                        loading="lazy"></iframe>
-                </div>
-
-                <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between;">
-                    <a href="/status" class="entry-btn"
-                        style="flex: 1; padding: 0.6rem; font-size: 0.75rem; border-radius: 10px; background: rgba(0, 255, 136, 0.05); border: 1px solid rgba(0, 255, 136, 0.2); color: #00ff88; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span
-                            style="width: 6px; height: 6px; background: #00ff88; border-radius: 50%; box-shadow: 0 0 8px #00ff88;"></span>
+                <div class="utility-row">
+                    <a href="/status" class="status-btn">
+                        <span class="status-dot"></span>
                         Status
                     </a>
-                    <a href="#" onclick="window.openRequestModal(); return false;" class="tech-hint"
-                        style="font-size: 0.7rem; opacity: 0.7; border: 1px solid rgba(255,255,255,0.1); padding: 0.6rem 8px; border-radius: 10px; flex: 1; text-align: center; text-decoration: none;">
+                    <a href="#" onclick="window.openRequestModal(); return false;" class="tech-hint">
                         Request Key
                     </a>
                 </div>
@@ -1822,32 +1803,20 @@
 <script>
     document.addEventListener('mousemove', (e) => {
         const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
+        if (!card) return;
 
+        // Only run on landing/index
         if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
 
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 40;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 40;
+        // Extremely subtle parallax to prevent 'instability'
+        const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
+        const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
 
-        if (card) card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-
-        // Text parallax
-        if (topText) {
-            topText.style.transform = `translate(${xAxis * -1.5}px, ${yAxis * -1.5}px)`;
-            topText.style.opacity = 0.8;
-        }
-        if (bottomText) {
-            bottomText.style.transform = `translate(${xAxis * 1.5}px, ${yAxis * 1.5}px)`;
-            bottomText.style.opacity = 0.3 + Math.abs(yAxis / 50);
-        }
+        card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
     });
 
     document.addEventListener('mouseleave', () => {
         const card = document.querySelector('.esco-profile-card');
-        const topText = document.getElementById('parallax-top');
-        const bottomText = document.getElementById('parallax-bottom');
-
         if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
     });
 </script>
@@ -1881,21 +1850,21 @@
                 const user = await storage.getMe();
 
                 // Safe DOM references
-                const topProfile = document.getElementById('topProfile');
-                const loggedInProfile = document.getElementById('loggedInProfile');
-                const navUsername = document.getElementById('navUsername');
-                const navAvatar = document.getElementById('navAvatar');
+                const loggedOut = document.getElementById('userLoggedOut');
+                const loggedIn = document.getElementById('userLoggedIn');
+                const userName = document.getElementById('userName');
+                const userAvatar = document.getElementById('userAvatar');
 
                 if (user) {
-                    if (topProfile) topProfile.style.display = 'none';
-                    if (loggedInProfile) {
-                        loggedInProfile.style.display = 'flex';
-                        if (navUsername) navUsername.textContent = user.displayName || user.username || 'User';
-                        if (navAvatar && user.avatarUrl) navAvatar.src = user.avatarUrl;
+                    if (loggedOut) loggedOut.style.display = 'none';
+                    if (loggedIn) {
+                        loggedIn.style.display = 'flex';
+                        if (userName) userName.textContent = user.displayName || user.username || 'User';
+                        if (userAvatar) userAvatar.src = user.avatarUrl || '/public/favicon.png';
                     }
                 } else {
-                    if (topProfile) topProfile.style.display = 'flex';
-                    if (loggedInProfile) loggedInProfile.style.display = 'none';
+                    if (loggedOut) loggedOut.style.display = 'flex';
+                    if (loggedIn) loggedIn.style.display = 'none';
                 }
             } catch (e) {
                 console.warn('Session check warning:', e);
@@ -2084,44 +2053,23 @@
     }
 </style>
 
+
 <script type="module">
     import { initLoadingShader } from '/public/loading-shader.js';
 
-</script>
+    // Global Utils & State
+    window.currentEmail = '';
+    window.authMethod = '';
 
-<script>
-    // --- 1. Audio Interaction Fallback ---
-    // Background music is initialized via audio-manager.js and window.audioSystem.
-    // We add global interaction listeners to help bypass autoplay restrictions.
-    const interactEvents = ['click', 'keydown', 'touchstart'];
-    interactEvents.forEach(evt =>
-        window.addEventListener(evt, () => {
-            if (window.audioSystem && !window.audioSystem.audio.playing && window.audioSystem.isEnabled) {
-                window.audioSystem.play();
-            }
-        }, { once: true, capture: true })
-    );
+    // Machine Fingerprint (Device Binding)
+    if (!localStorage.getItem('machine_id')) {
+        localStorage.setItem('machine_id', 'mh-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36));
+    }
+    window.getFingerprint = () => localStorage.getItem('machine_id');
 
-    // Initial check on load
-    window.addEventListener('load', () => {
-        if (window.audioSystem && window.audioSystem.isEnabled) {
-            window.audioSystem.play();
-        }
-    });
-</script>
-
-<script>
-
-
-    // --- 2. SPA Navigation ---
-
-    // Handle Back/Forward
-    window.addEventListener('popstate', handleRoute);
-    // Handle Initial Load
-    document.addEventListener('DOMContentLoaded', handleRoute);
-
+    // 1. SPA Navigation & Routing
     window.navigateTo = function (path) {
-        console.log("Navigating with cinematic transition:", path);
+        console.log("Navigating to:", path);
         const ls = document.getElementById('loadingState');
         if (ls) {
             ls.style.display = 'flex';
@@ -2129,401 +2077,117 @@
             if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         }
 
-        // Show loading for 0.8 seconds (reduced from 2.5s for speed)
         setTimeout(() => {
             window.history.pushState({}, '', path);
             handleRoute();
         }, 800);
-    }
+    };
 
     window.hideLoader = function () {
         const ls = document.getElementById('loadingState');
         if (!ls) return;
         ls.classList.add('fade-out');
-        setTimeout(() => {
-            ls.style.display = 'none';
-        }, 500);
+        setTimeout(() => { ls.style.display = 'none'; }, 500);
     };
 
-    function handleRoute() {
+    window.handleRoute = function () {
         const path = window.location.pathname;
+        if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
 
-        // Ensure audio tries to resume on route change if enabled
-        if (window.audioSystem && window.audioSystem.isEnabled) {
-            window.audioSystem.syncUI();
-        }
+        // View Switching Logic
+        const entry = document.getElementById('view-entry');
+        const viewer = document.getElementById('view-viewer');
+        const denied = document.getElementById('view-access-denied');
 
-        // Entry Page
         if (path === '/' || path === '/index.html') {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
-
-            document.getElementById('view-entry').style.display = 'flex';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'none';
-            document.body.style.overflow = 'auto'; // Reset
+            if (entry) entry.style.display = 'flex';
+            if (viewer) viewer.style.display = 'none';
+            if (denied) denied.style.display = 'none';
+            document.body.style.overflow = 'auto';
             if (window.setBackgroundVideo) window.setBackgroundVideo('main');
             updateUptime();
-        }
-        // Access Denied Page
-        else if (path === '/access-denied') {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none';
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'none';
-            document.getElementById('view-access-denied').style.display = 'flex';
-            document.body.style.overflow = 'hidden'; // Lock for restricted view
+        } else if (path === '/access-denied') {
+            if (entry) entry.style.display = 'none';
+            if (viewer) viewer.style.display = 'none';
+            if (denied) denied.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
             if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-        }
-        // Public Viewer
-        else if (path.startsWith('/public') || path.startsWith('/v/')) {
-            const ls = document.getElementById('loadingState');
-            if (ls) ls.style.display = 'none'; // Hide loading screen
-
-            document.getElementById('view-entry').style.display = 'none';
-            document.getElementById('view-viewer').style.display = 'block';
-            document.getElementById('view-access-denied').style.display = 'none';
+        } else if (path.startsWith('/public') || path.startsWith('/v/')) {
+            if (entry) entry.style.display = 'none';
+            if (viewer) viewer.style.display = 'block';
+            if (denied) denied.style.display = 'none';
             document.body.style.setProperty('overflow', 'auto', 'important');
             if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
             if (path.startsWith('/v/')) {
                 const id = path.split('/')[2];
-                showDetail(id);
+                if (window.showDetail) window.showDetail(id);
             } else {
-                showList();
+                if (window.showList) window.showList();
             }
         }
+        window.hideLoader();
     }
 
-    async function updateUptime() {
+    // 2. Session & Auth UI Sync
+    async function checkSession() {
         try {
-            const res = await fetch('/api/uptime');
-            const data = await res.json();
-            const list = document.getElementById('service-list');
-            if (list && data.services) {
-                list.innerHTML = data.services.map(s => `
-<div class="service-row">
-    <div class="service-name">${s.name}</div>
-    <div class="service-metrics"><span>${s.uptime}</span> <span>${s.latency}</span></div>
-</div>
-`).join('');
-                document.getElementById('system-status-text').textContent = data.systemStatus;
+            const storage = new PasteStorage();
+            const user = await storage.getMe();
+            const loggedOut = document.getElementById('userLoggedOut');
+            const loggedIn = document.getElementById('userLoggedIn');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+
+            if (user) {
+                if (loggedOut) loggedOut.style.display = 'none';
+                if (loggedIn) {
+                    loggedIn.style.display = 'flex';
+                    if (userName) userName.textContent = user.displayName || user.username || 'User';
+                    if (userAvatar) userAvatar.src = user.avatarUrl || '/public/favicon.png';
+                }
+            } else {
+                if (loggedOut) loggedOut.style.display = 'flex';
+                if (loggedIn) loggedIn.style.display = 'none';
             }
-        } catch (e) {
-            console.warn("Uptime fetch failed");
-        }
+        } catch (e) { console.error("Session check failed", e); }
     }
 
+    // Run on init
+    checkSession();
 
-    // --- 3. Viewer Logic (Isolated Scope) ---
-    (function () {
-        const storage = window.storage = new PasteStorage();
-        const listView = document.getElementById('listView');
-        const detailView = document.getElementById('detailView');
-        const pasteListContainer = document.getElementById('pasteList');
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
-
-        // Elements for detail
-        const pTitle = document.getElementById('pasteTitle');
-        const pLang = document.getElementById('pasteLanguage');
-        const pViews = document.getElementById('pasteViews');
-        const pDate = document.getElementById('pasteDate');
-        const pContent = document.getElementById('pasteContent');
-
-        window.showList = async function () {
-            detailView.style.display = 'none';
-            listView.style.display = 'block';
-            await loadPastes();
-        };
-
-        async function loadPastes() {
-            console.log("Fetching paste stream...");
-            try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) {
-                    console.log("Using stored access key for request");
-                    headers['x-access-key'] = key;
-                }
-
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, {
-                    headers,
-                    credentials: 'include'
-                });
-
-                if (!res.ok) {
-                    console.error("API Error:", res.status, res.statusText);
-                    throw new Error(`Server returned ${res.status}`);
-                }
-
-                const pastes = await res.json();
-                console.log(`Stream retrieved: ${pastes.length} nodes found.`);
-
-                if (!Array.isArray(pastes)) {
-                    console.error("Malformed API response, expected array.");
-                    return;
-                }
-
-                if (window.setPasteData) {
-                    window.setPasteData(pastes);
-                } else {
-                    window._pendingPastes = pastes;
-                }
-
-            } catch (e) {
-                console.error("CRITICAL: Stream synchronization failure:", e);
-                if (window.showToast) window.showToast("Sync Error: " + e.message, "error");
-            } finally {
-                window.hideLoader();
-            }
-        }
-
-        // Auto-refresh feed every 30 seconds
-        setInterval(loadPastes, 30000);
-
-        window.showDetail = async function (id) {
-            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
-
-            // Switch to detail video background
-            console.log('Switching to detail video background for paste:', id);
-            if (window.setBackgroundVideo) {
-                window.setBackgroundVideo('detail');
-            } else {
-                console.warn('setBackgroundVideo not available yet');
-            }
-
-            listView.style.display = 'none';
-            detailView.style.display = 'block';
-
-            detailLoading.style.display = 'flex';
-            notFoundState.style.display = 'none';
-            pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
-
-            try {
-                let paste = null;
-                try {
-                    paste = await storage.getPaste(id);
-                } catch (e) {
-                    if (e.message.includes('401') || e.message.includes('403')) {
-                        const pwd = prompt('🔒 This paste is password-protected.\nPlease enter the password:');
-                        if (!pwd) throw new Error('Cancelled');
-                        paste = await storage.getPaste(id, true, pwd);
-                    } else {
-                        throw e;
-                    }
-                }
-
-                if (!paste) throw new Error('Not found');
-
-                renderPasteDetail(paste);
-                detailLoading.style.display = 'none';
-                pasteViewContent.style.display = 'block';
-
-            } catch (err) {
-                console.error(err);
-                detailLoading.style.display = 'none';
-                if (err.message !== 'Cancelled') notFoundState.style.display = 'flex';
-            } finally {
-                window.hideLoader();
-            }
-        };
-
-        function renderPasteDetail(paste) {
-            pTitle.textContent = paste.title || 'Untitled';
-            pLang.textContent = paste.language;
-            pViews.textContent = `${paste.views} views`;
-            pDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const container = document.getElementById('pasteContentContainer');
-
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                pContent.innerHTML = marked.parse(paste.content);
-                pContent.classList.add('markdown-body');
-                if (container) container.classList.add('markdown-body');
-
-                pContent.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-            } else {
-                pContent.textContent = paste.content;
-                pContent.className = `hljs language-${paste.language}`;
-                if (container) container.classList.remove('markdown-body');
-                hljs.highlightElement(pContent);
-            }
-
-            // Reactions
-            const panel = document.getElementById('reactionsPanel');
-            if (panel) panel.style.display = 'flex';
-            if (paste.reactions) {
-                const l = document.getElementById('count-like');
-                const h = document.getElementById('count-heart');
-                const s = document.getElementById('count-star');
-                if (l) l.textContent = paste.reactions.like || 0;
-                if (h) h.textContent = paste.reactions.heart || 0;
-                if (s) s.textContent = paste.reactions.star || 0;
-            }
-
-            // Burn Notice
-            const burnNotice = document.getElementById('burnNotice');
-            if (burnNotice) burnNotice.style.display = (paste.burnAfterRead && !paste.burned) ? 'flex' : 'none';
-
-            // Cleanup active states
-            document.querySelectorAll('.reaction-btn').forEach(b => b.classList.remove('active'));
-
-            window.currentViewedPaste = paste;
-        }
-    })();
-
-    window.handleReaction = async function (type, specificId = null) {
-        const id = specificId || window.currentPasteId;
-        if (!id) return;
-
-        try {
-            const res = await storage.toggleReaction(id, type);
-            if (res.success) {
-                if (specificId) {
-                    loadPastes(); // Refresh list to update count
-                } else {
-                    const countEl = document.getElementById(`count-${type}`);
-                    if (countEl) {
-                        let current = parseInt(countEl.textContent) || 0;
-                        countEl.textContent = res.action === 'added' ? current + 1 : Math.max(0, current - 1);
-                    }
-                }
-                showToast(`${res.action === 'added' ? '✅ Reacted' : '🗑️ Removed'} with ${type}!`, 'success');
-            }
-        } catch (e) {
-            if (e.message === 'AUTH_REQUIRED') {
-                showToast('🔐 Login with Discord or Google to react!', 'info');
-                if (window.openRequestModal) window.openRequestModal();
-                else storage.loginWithDiscord();
-            } else {
-                console.error("Reaction failed", e);
-            }
-        }
-    }
-
-    // Viewer Buttons
-    // Viewer Buttons
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) backBtn.addEventListener('click', () => navigateTo('/public'));
-
-    const copyBtn = document.getElementById('copyBtn');
-    if (copyBtn) copyBtn.addEventListener('click', () => {
-        if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied to clipboard", "success");
-        }
-    });
-
-    window.copyPasteContent = function () {
-        if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            showToast("Payload copied successfully", "success");
-        }
-    };
-
-    window.copyPasteLink = function () {
-        navigator.clipboard.writeText(window.location.href);
-        showToast("Transmission link copied", "success");
-    };
-
-    const rawBtn = document.getElementById('rawBtn');
-    if (rawBtn) rawBtn.addEventListener('click', () => {
-        if (window.currentViewedPaste) {
-            const win = window.open();
-            win.document.write(`
-        <pre>${window.currentViewedPaste.content}</pre>`);
-        }
-    });
-
-
-    // --- 4. Auth & Modal Logic (Restored) ---
-    let currentEmail = '';
-    let authMethod = '';
-
+    // 3. Modal & Auth Flow
     window.openKeyModal = function () {
-        closeModals();
+        window.closeModals();
         document.getElementById('keyModal').classList.add('active');
-    }
+    };
 
     window.openRequestModal = function () {
-        console.log("Opening request modal");
-        closeModals();
-        resetRequestModal();
+        window.closeModals();
+        window.resetRequestModal();
         document.getElementById('requestModal').classList.add('active');
-    }
-
-    window.closeModals = function () {
-        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    }
+    };
 
     window.switchView = function (id) {
         document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
         document.getElementById(id).style.display = 'block';
-    }
+    };
 
     window.resetRequestModal = function () {
-        switchView('req-view-1');
+        window.switchView('req-view-1');
         document.getElementById('manualIdentity').value = '';
         document.getElementById('manualReason').value = '';
         document.getElementById('reqReason').value = '';
-    }
-
-    window.startDiscordAuth = function (mode = 'request') {
-        const width = 500;
-        const height = 800;
-        const left = (window.screen.width / 2) - (width / 2);
-        const top = (window.screen.height / 2) - (height / 2);
-
-        // Using the consolidated auth endpoint
-        const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
-        const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
-
-        window.addEventListener('message', function onMessage(e) {
-            if (e.data.type === 'DISCORD_VERIFIED') {
-                window.removeEventListener('message', onMessage);
-
-                if (mode === 'login') {
-                    showToast("✅ Signed in with Discord!", "success");
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
-
-                // FOUND AUTO-KEY?
-                if (e.data.existingKey) {
-                    localStorage.setItem('private_access_key', e.data.existingKey);
-                    closeModals();
-                    // Show quick success visual
-                    const hint = document.querySelector('.tech-hint');
-                    if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED. WELCOME BACK.</span>";
-                    setTimeout(() => navigateTo('/public'), 800);
-                    return;
-                }
-
-                currentEmail = e.data.id;
-                authMethod = 'Discord';
-                document.getElementById('verifiedId').value = currentEmail;
-                switchView('req-view-4');
-            }
-        });
-    }
+    };
 
     window.showManualInput = function () {
-        switchView('req-view-manual');
-    }
+        window.switchView('req-view-manual');
+    };
 
     window.submitManualRequest = async function () {
         const contact = document.getElementById('manualIdentity').value;
         const reason = document.getElementById('manualReason').value;
         const btn = document.querySelector('#req-view-manual .btn-submit');
-
         if (!contact || !reason) return alert('Please fill in all fields.');
 
         btn.disabled = true;
@@ -2536,25 +2200,17 @@
                 body: JSON.stringify({ contact, reason, method: 'Manual' })
             });
             const data = await res.json();
-
             if (data.success) {
-                closeModals();
+                window.closeModals();
                 document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
-        }
-    }
+            } else { alert('Error: ' + (data.error || 'Unknown error')); }
+        } catch (e) { alert('Connection error'); }
+        finally { btn.disabled = false; btn.textContent = 'Send Request'; }
+    };
 
     window.submitFinalRequest = async function () {
         const reason = document.getElementById('reqReason').value;
         const btn = document.querySelector('#req-view-4 .btn-submit');
-
         btn.disabled = true;
         btn.textContent = 'Sending...';
 
@@ -2562,65 +2218,178 @@
             const res = await fetch('/api/access/request', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact: currentEmail, reason, method: authMethod })
+                body: JSON.stringify({ contact: window.currentEmail, reason, method: window.authMethod })
             });
             const data = await res.json();
-
             if (data.success) {
-                closeModals();
+                window.closeModals();
                 document.getElementById('successPopup').classList.add('active');
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (e) {
-            alert('Connection error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Send Request';
-        }
-    }
+            } else { alert('Error: ' + (data.error || 'Unknown error')); }
+        } catch (e) { alert('Connection error'); }
+        finally { btn.disabled = false; btn.textContent = 'Send Request'; }
+    };
 
-    window.submitKey = async function () {
-        const key = document.getElementById('accessKeyInput').value.trim();
-        const btn = document.querySelector('#keyModal .btn-submit');
-        if (!key) return alert('Enter a key.');
-        btn.disabled = true;
-        btn.textContent = 'Verifying...';
+    window.startDiscordAuth = function (mode = 'request') {
+        const width = 500, height = 800;
+        const left = (window.screen.width / 2) - (width / 2);
+        const top = (window.screen.height / 2) - (height / 2);
+        const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
+        const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+
+        window.addEventListener('message', function onMessage(e) {
+            if (e.data.type === 'DISCORD_VERIFIED') {
+                window.removeEventListener('message', onMessage);
+                if (mode === 'login') {
+                    if (window.showToast) window.showToast("✅ Signed in!", "success");
+                    setTimeout(() => window.location.reload(), 1000);
+                    return;
+                }
+                if (e.data.existingKey) {
+                    localStorage.setItem('private_access_key', e.data.existingKey);
+                    window.closeModals();
+                    const hint = document.querySelector('.tech-hint');
+                    if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED.</span>";
+                    setTimeout(() => window.navigateTo('/public'), 800);
+                    return;
+                }
+                window.currentEmail = e.data.id;
+                window.authMethod = 'Discord';
+                document.getElementById('verifiedId').value = window.currentEmail;
+                window.switchView('req-view-4');
+            }
+        });
+    };
+
+    // 4. Viewer Logic (Isolated Scope)
+    (function () {
+        const storage = window.storage = new PasteStorage();
+        const detailLoading = document.getElementById('detailLoading');
+        const notFoundState = document.getElementById('notFoundState');
+        const pasteViewContent = document.getElementById('pasteViewContent');
+
+        // Elements for detail
+        const pTitle = document.getElementById('pasteTitle');
+        const pLang = document.getElementById('pasteLanguage');
+        const pViews = document.getElementById('pasteViews');
+        const pDate = document.getElementById('pasteDate');
+        const pContent = document.getElementById('pasteContent');
+
+        window.showList = async function () {
+            document.getElementById('detailView').style.display = 'none';
+            document.getElementById('listView').style.display = 'block';
+            await loadPastes();
+        };
+
+        async function loadPastes() {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                const key = localStorage.getItem('private_access_key');
+                if (key) headers['x-access-key'] = key;
+
+                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, { headers, credentials: 'include' });
+                if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+                const pastes = await res.json();
+                if (!Array.isArray(pastes)) return;
+
+                if (window.setPasteData) window.setPasteData(pastes);
+                else window._pendingPastes = pastes;
+
+            } catch (e) {
+                console.error("Sync Error:", e);
+            } finally { window.hideLoader(); }
+        }
+
+        setInterval(loadPastes, 30000);
+
+        window.showDetail = async function (id) {
+            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+            if (window.setBackgroundVideo) window.setBackgroundVideo('detail');
+
+            document.getElementById('listView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'block';
+
+            if (detailLoading) detailLoading.style.display = 'flex';
+            if (notFoundState) notFoundState.style.display = 'none';
+            if (pasteViewContent) pasteViewContent.style.display = 'none';
+            window.currentPasteId = id;
+
+            try {
+                let paste = await storage.getPaste(id);
+                if (!paste) throw new Error('Not found');
+
+                renderPasteDetail(paste);
+                if (detailLoading) detailLoading.style.display = 'none';
+                if (pasteViewContent) pasteViewContent.style.display = 'block';
+
+            } catch (err) {
+                console.error(err);
+                if (detailLoading) detailLoading.style.display = 'none';
+                if (notFoundState) notFoundState.style.display = 'flex';
+            } finally { window.hideLoader(); }
+        };
+
+        function renderPasteDetail(paste) {
+            if (pTitle) pTitle.textContent = paste.title || 'Untitled';
+            if (pLang) pLang.textContent = paste.language;
+            if (pViews) pViews.textContent = `${paste.views} views`;
+            if (pDate) pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+            const container = document.getElementById('pasteContentContainer');
+
+            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+                if (pContent) {
+                    pContent.innerHTML = marked.parse(paste.content);
+                    pContent.classList.add('markdown-body');
+                    if (container) container.classList.add('markdown-body');
+                    pContent.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+                }
+            } else {
+                if (pContent) {
+                    pContent.textContent = paste.content;
+                    pContent.className = `hljs language-${paste.language}`;
+                    if (container) container.classList.remove('markdown-body');
+                    hljs.highlightElement(pContent);
+                }
+            }
+
+            // Reactions
+            const panel = document.getElementById('reactionsPanel');
+            if (panel) panel.style.display = 'flex';
+            if (paste.reactions) {
+                const l = document.getElementById('count-like'), h = document.getElementById('count-heart'), s = document.getElementById('count-star');
+                if (l) l.textContent = paste.reactions.like || 0;
+                if (h) h.textContent = paste.reactions.heart || 0;
+                if (s) s.textContent = paste.reactions.star || 0;
+            }
+            window.currentViewedPaste = paste;
+        }
+    })();
+
+    // 5. Interaction UI
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.addEventListener('click', () => window.navigateTo('/public'));
+
+    window.copyPasteContent = function () {
+        if (window.currentViewedPaste) {
+            navigator.clipboard.writeText(window.currentViewedPaste.content);
+            if (window.showToast) window.showToast("Payload copied", "success");
+        }
+    };
+
+    window.handleReaction = async function (type, specificId = null) {
+        const id = specificId || window.currentPasteId;
+        if (!id) return;
         try {
-            const res = await fetch('/api/access/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ key })
-            });
-            const data = await res.json();
-            if (data.success) {
-                localStorage.setItem('private_access_key', data.key);
-                closeModals();
-                navigateTo('/public'); // Changed from window.location.href to SPA nav
-            } else {
-                alert(data.error || 'Invalid key.');
+            const res = await window.storage.toggleReaction(id, type);
+            if (res.success) {
+                if (window.showToast) window.showToast("✅ Reacted!", "success");
+                window.showList(); // Refresh
             }
-        } catch (e) {
-            alert('Verification failed.');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Unlock';
-        }
-    }
-
-    window.handlePrivateAccess = function () {
-        console.log("Private access requested");
-        const hasKey = localStorage.getItem('private_access_key');
-        if (!hasKey) {
-            const notif = document.getElementById('accessNotification');
-            if (notif) {
-                notif.classList.add('active');
-                setTimeout(() => notif.classList.remove('active'), 3000);
-            }
-            if (window.openKeyModal) window.openKeyModal();
-        } else {
-            window.navigateTo('/public');
-        }
+        } catch (e) { console.error("Reaction failed", e); }
     };
 
     // Glitch effect on hint
@@ -2633,138 +2402,51 @@
             }
         }, 100);
     }
+</script>
 
-    // --- Animated Title ---
-    (function () {
-        const originalTitle = "QuietBin.space";
-        const altTitle = "ERROR // CORRUPTION";
-        let isOriginal = true;
+<!-- Firebase Auth Handler -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        setInterval(() => {
-            document.title = isOriginal ? originalTitle : altTitle;
-            isOriginal = !isOriginal;
-        }, 2000); // Toggle every 2 seconds
-    })();
-    // -- UTILS --
-    window.navigateTo = function (path) {
-        console.log("Navigating with cinematic transition:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-        }
-        setTimeout(() => {
-            window.history.pushState({}, '', path);
-            if (window.handleRoute) window.handleRoute();
-            else window.location.href = path;
-        }, 800);
-    };
+    async function initFirebase() {
+        try {
+            const configRes = await fetch('/api/auth/firebase-config');
+            const firebaseConfig = await configRes.json();
+            if (!firebaseConfig.apiKey) return;
 
-    window.hideLoader = function () {
-        const ls = document.getElementById('loadingState');
-        if (!ls) return;
-        ls.classList.add('fade-out');
-        setTimeout(() => { ls.style.display = 'none'; }, 500);
-    };
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
 
-    window.closeModals = function () {
-        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    };
-
-    // -- SPLASH SYSTEM --
-    window.checkSplash = function () {
-        const lastSeen = localStorage.getItem('splash_last_seen');
-        const now = Date.now();
-        const thirtyMinutes = 30 * 60 * 1000;
-        const splash = document.getElementById('splash-overlay');
-
-        if (lastSeen && (now - parseInt(lastSeen) < thirtyMinutes)) {
-            if (splash) splash.style.display = 'none';
-            document.querySelectorAll('body> :not(#splash-overlay)').forEach(el => el.style.filter = '');
-            setTimeout(window.hideLoader, 1000);
-            return;
-        }
-
-        if (splash) splash.style.display = 'grid';
-        document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = 'blur(10px)');
-        setTimeout(window.hideLoader, 1500);
-        initEngineButton();
-    };
-
-    function initEngineButton() {
-        const button = document.getElementById("btnEngineStart");
-        if (button) {
-            button.onclick = () => {
-                button.classList.toggle("on");
-                if (button.classList.contains("on")) {
-                    setTimeout(() => {
-                        if (button.classList.contains("on")) {
-                            button.classList.add("vibrating");
-                            const audioPref = document.getElementById('audioToggle').checked;
-                            setTimeout(() => enterSite(audioPref), 1200);
-                        }
-                    }, 500);
-                } else {
-                    button.classList.remove("vibrating");
+            window.loginWithGoogle = async () => {
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    const user = result.user;
+                    const response = await fetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
+                        setTimeout(() => window.location.reload(), 1000);
+                    }
+                } catch (error) {
+                    console.error("Google login failed", error);
+                    alert("Login Failed: " + (error.message || "Unknown Error"));
                 }
             };
-        }
-        document.querySelectorAll("#color-picker input").forEach(input => {
-            input.onchange = () => {
-                const btn = document.querySelector("button.start-stop");
-                if (btn && input.checked) btn.style.setProperty("--color", input.value);
-            };
-        });
+        } catch (e) { console.error(e); }
     }
 
-    window.enterSite = function (withAudio) {
-        const splash = document.getElementById('splash-overlay');
-        localStorage.setItem('splash_last_seen', Date.now());
+    initFirebase();
+</script>
 
-        window.audioSystem.setEnabled(withAudio);
-
-        if (splash) splash.style.opacity = '0';
-        document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => {
-            el.style.transition = 'filter 0.8s ease';
-            el.style.filter = 'blur(0px)';
-        });
-
-        setTimeout(() => {
-            if (splash) splash.style.display = 'none';
-            document.querySelectorAll('body > :not(#splash-overlay)').forEach(el => el.style.filter = '');
-        }, 800);
-    };
-
-    async function checkStoredKey() {
-        const storedKey = localStorage.getItem('private_access_key');
-        if (storedKey) {
-            try {
-                const res = await fetch('/api/access/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ key: storedKey })
-                });
-                const data = await res.json();
-                if (data.success && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
-                    navigateTo('/public');
-                } else if (!data.success) {
-                    localStorage.removeItem('private_access_key');
-                }
-            } catch (e) { console.error("Auto-check failed", e); }
-        }
-    }
-
-    // Site-wide initialization
-    window.addEventListener('load', () => {
-        if (window.checkSplash) window.checkSplash();
-        if (window.handleRoute) window.handleRoute();
-        checkStoredKey();
-        if (document.getElementById('loadingShaderContainer') && window.initLoadingShader) {
-            window.initLoadingShader('loadingShaderContainer');
-        }
-    });
+<script>
+    // Toast Helper (Fallthrough)
+    window.showToast = window.showToast || ((msg) => console.log("Toast:", msg));
 </script>
 <script type="module" src="/public/gallery.js"></script>
 <script src="/public/title-rotator.js?v=999"></script>

@@ -229,6 +229,7 @@ db.exec(`
 migrateTable('access_keys', [
     { name: 'userId', type: 'TEXT' },
     { name: 'claimedIp', type: 'TEXT' },
+    { name: 'claimedFingerprint', type: 'TEXT' },
     { name: 'lastUsedAt', type: 'DATETIME' }
 ]);
 
