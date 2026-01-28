@@ -28,34 +28,23 @@
     <meta property="twitter:image" content="https://veroe.space/public/preview.png">
 
     <link rel="stylesheet" href="/public/style.css">
+    <link rel="stylesheet" href="/public/design-refresh.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=JetBrains+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Outfit:wght@100..900&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="/public/favicon.png">
-    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
-    <link rel="stylesheet" href="/public/loader.css?v=6">
-
-    <link rel="stylesheet" href="/public/design-refresh.css">
     <script src="/shared/api.js"></script>
     <script src="/public/audio-manager.js"></script>
     <style>
         :root {
             --accent-color: #00f5ff;
-            /* Default cinematic cyan */
             --accent-glow: rgba(0, 245, 255, 0.4);
         }
 
         .accent-text {
             color: var(--accent-color) !important;
-            transition: color 0.4s ease, text-shadow 0.4s ease;
-        }
-
-        .accent-border {
-            border-color: var(--accent-color) !important;
         }
 
         html,
@@ -66,356 +55,63 @@
             min-height: 100vh;
             margin: 0;
             padding: 0;
-        }
-
-        /* Hide scrollbar globally */
-        html {
-            -ms-overflow-style: none;
             scrollbar-width: none;
         }
 
-        html::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Global scrollbar hiding */
-        html,
-        body,
-        .no-scrollbar {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-
-        html::-webkit-scrollbar,
-        body::-webkit-scrollbar,
-        .no-scrollbar::-webkit-scrollbar {
+        *::-webkit-scrollbar {
             display: none !important;
-            width: 0 !important;
-            height: 0 !important;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.3);
-                opacity: 0.6;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
+        /* THE MODULAR DECK FIX: Enforce horizontal layout */
+        .site-wrapper {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            padding: 60px 20px !important;
+            gap: 40px !important;
+            width: 100% !important;
         }
 
-        @keyframes banner-pulse {
-
-            0%,
-            100% {
-                opacity: 0.6;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 1;
-                transform: scale(1.02);
-            }
+        .website-header-grid {
+            display: grid !important;
+            grid-template-columns: repeat(4, 1fr) !important;
+            gap: 20px !important;
+            width: 100% !important;
+            max-width: 1200px !important;
         }
 
-        .banner-animate {
-            animation: banner-pulse 4s ease-in-out infinite;
+        .deck-layout {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            /* NO VERTICAL STACKING */
+            align-items: flex-start !important;
+            justify-content: center !important;
+            gap: 40px !important;
+            width: 100% !important;
+            max-width: 1200px !important;
         }
 
-        /* Glitch Effect */
-        .glitch-text {
-            position: relative;
-            display: inline-block;
+        .spotify-sidecar {
+            flex-shrink: 0 !important;
+            width: 320px !important;
+            height: 520px !important;
         }
 
-        .glitch-text::before,
-        .glitch-text::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.8;
-        }
-
-        .glitch-text::before {
-            color: #00f5ff;
-            z-index: -1;
-            animation: glitch-anim 2s infinite linear alternate-reverse;
-        }
-
-        .glitch-text::after {
-            color: #ff006e;
-            z-index: -2;
-            animation: glitch-anim-2 3s infinite linear alternate-reverse;
-        }
-
-        @keyframes glitch-anim {
-            0% {
-                clip: rect(44px, 450px, 56px, 0);
-                transform: translate(-2px, -2px);
-            }
-
-            20% {
-                clip: rect(12px, 450px, 34px, 0);
-                transform: translate(2px, 2px);
-            }
-
-            40% {
-                clip: rect(67px, 450px, 78px, 0);
-                transform: translate(-2px, 2px);
-            }
-
-            60% {
-                clip: rect(23px, 450px, 98px, 0);
-                transform: translate(2px, -2px);
-            }
-
-            80% {
-                clip: rect(89px, 450px, 12px, 0);
-                transform: translate(-2px, -2px);
-            }
-
-            100% {
-                clip: rect(44px, 450px, 56px, 0);
-                transform: translate(2px, 2px);
-            }
-        }
-
-        @keyframes glitch-anim-2 {
-            0% {
-                clip: rect(12px, 450px, 34px, 0);
-                transform: translate(2px, 2px);
-            }
-
-            20% {
-                clip: rect(44px, 450px, 56px, 0);
-                transform: translate(-2px, -2px);
-            }
-
-            40% {
-                clip: rect(23px, 450px, 98px, 0);
-                transform: translate(2px, -2px);
-            }
-
-            60% {
-                clip: rect(67px, 450px, 78px, 0);
-                transform: translate(-2px, 2px);
-            }
-
-            80% {
-                clip: rect(12px, 450px, 34px, 0);
-                transform: translate(-2px, -2px);
-            }
-
-            100% {
-                clip: rect(89px, 450px, 12px, 0);
-                transform: translate(2px, 2px);
-            }
-        }
-
-        /* 3D Red Text for Access Denied */
-        .text-3d-red {
-            color: #ff0000;
-            text-shadow:
-                0 1px 0 #8b0000,
-                0 2px 0 #7e0000,
-                0 3px 0 #710000,
-                0 4px 0 #640000,
-                0 5px 0 #570000,
-                0 0 5px rgba(0, 0, 0, .1),
-                0 1px 3px rgba(0, 0, 0, .3),
-                0 3px 5px rgba(0, 0, 0, .2),
-                0 5px 10px rgba(0, 0, 0, .25),
-                0 10px 10px rgba(0, 0, 0, .2),
-                0 20px 20px rgba(0, 0, 0, .15);
-            font-size: 3rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            font-family: 'Bricolage Grotesque', sans-serif;
-            letter-spacing: 2px;
-            line-height: 1.2;
-            text-align: center;
-        }
-
-        @media (max-width: 768px) {
-            .text-3d-red {
-                font-size: 1.8rem;
-            }
-        }
-
-        /* Uptime Monitor Styles */
-        .uptime-monitor {
-            position: fixed;
-            top: 40px;
-            /* Moved down slightly */
-            right: 40px;
-            width: 350px;
-            /* Wider */
-            background: rgba(5, 5, 8, 0.95);
-            /* More opaque */
-            backdrop-filter: blur(20px);
-            border-radius: 16px;
-            border: 1px solid rgba(0, 245, 255, 0.3);
-            /* Brighter border */
-            padding: 25px;
-            /* More padding */
-            text-align: left;
-            z-index: 2000;
-            /* Higher Z to ensure on top */
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
-        }
-
-        .uptime-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .uptime-title {
-            font-size: 0.9rem;
-            /* Larger font */
-            color: rgba(255, 255, 255, 0.6);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .uptime-status {
-            font-size: 0.7rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #00ff88;
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            background: #00ff88;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #00ff88;
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
-
-            50% {
-                transform: scale(1.5);
-                opacity: 0.5;
-            }
-
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .service-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-
-        .service-name {
-            font-size: 0.8rem;
-            color: white;
-            font-weight: 500;
-        }
-
-        .service-metrics {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.65rem;
-            color: rgba(255, 255, 255, 0.3);
-            display: flex;
-            gap: 12px;
-        }
-
-        /* Website Cards Grid */
-        .website-cards {
-            position: fixed;
-            top: 50%;
-            left: 40px;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            /* Increased gap */
-            width: 280px;
-            /* Wider */
-            z-index: 1000;
+        .esco-profile-card {
+            flex-shrink: 0 !important;
+            width: 450px !important;
         }
 
         @media (max-width: 1000px) {
-            .website-cards {
-                position: relative;
-                top: auto;
-                left: auto;
-                transform: none;
-                width: 90%;
-                margin: 20px auto;
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
+            .deck-layout {
+                flex-direction: column !important;
+                align-items: center !important;
             }
-        }
 
-        /* Legacy Esco Card styles removed to support design-refresh.css dashboard layout */
-
-        .site-card {
-            background: rgba(5, 5, 8, 0.98);
-            border: 1px solid rgba(0, 245, 255, 0.2);
-            border-radius: 20px;
-            /* Slightly smaller radius for smaller cards */
-            padding: 20px;
-            text-decoration: none;
-            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .site-card:hover {
-            transform: translateY(-5px) scale(1.02);
-            box-shadow: 0 20px 50px rgba(0, 245, 255, 0.15);
-            border-color: #00f5ff;
-        }
-
-        .site-card h4 {
-            color: #fff;
-            margin: 0;
-            font-size: 1rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-        }
-
-        .site-card p {
-            font-family: 'JetBrains Mono', monospace;
-            color: #00f5ff;
-            font-size: 0.7rem;
-            margin: 0;
-            opacity: 0.8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            .website-header-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
         }
     </style>
     <script src="/shared/api.js?v=6"></script>
