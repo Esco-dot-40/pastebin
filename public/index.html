@@ -1448,6 +1448,47 @@
     // Initial sync
     setTimeout(() => { if (window.audioSystem) window.audioSystem.syncUI(); }, 500);
 </script>
+<!-- Audio Init Prompt Overlay (Initial Session) -->
+<div id="audioPromptOverlay" class="modal-overlay"
+    style="z-index: 30000; background: rgba(0,0,0,0.95); backdrop-filter: blur(40px);">
+    <div class="modal-box" style="text-align: center; border-color: var(--accent-color);">
+        <div class="tech-hint accent-text" style="font-size: 0.7rem; letter-spacing: 5px; margin-bottom: 20px;">SYSTEM
+            BROADCAST</div>
+        <h2 style="font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 30px;">ENABLE NEURAL AUDIO?</h2>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <button class="entry-btn btn-public" onclick="handleAudioChoice(true)"
+                style="padding: 20px 60px;">YES</button>
+            <button class="entry-btn btn-private" onclick="handleAudioChoice(false)"
+                style="padding: 20px 60px;">NO</button>
+        </div>
+        <p style="margin-top: 40px; font-size: 0.65rem; color: rgba(255,255,255,0.3); font-family: 'JetBrains Mono';">
+            RECOMMENDED FOR IMMERSIVE EXPERIENCE</p>
+    </div>
+</div>
+
+<script>
+    window.handleAudioChoice = function (choice) {
+        const overlay = document.getElementById('audioPromptOverlay');
+        if (overlay) overlay.style.display = 'none';
+        sessionStorage.setItem('audio_prompted', 'true');
+
+        if (choice && window.audioSystem) {
+            window.audioSystem.setEnabled(true);
+        } else if (window.audioSystem) {
+            window.audioSystem.setEnabled(false);
+        }
+    };
+
+    // Check for prompt on init
+    (function () {
+        if (!sessionStorage.getItem('audio_prompted')) {
+            document.getElementById('audioPromptOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('audioPromptOverlay').style.display = 'none';
+        }
+    })();
+</script>
+
 <script src="/public/video-manager.js?v=8"></script>
 
 <!-- View: ENTRY -->
@@ -1876,11 +1917,13 @@
         const entry = document.getElementById('view-entry');
         const viewer = document.getElementById('view-viewer');
         const denied = document.getElementById('view-access-denied');
+        const dock = document.querySelector('.bottom-action-dock');
 
         if (path === '/' || path === '/index.html') {
             if (entry) entry.style.display = 'flex';
             if (viewer) viewer.style.display = 'none';
             if (denied) denied.style.display = 'none';
+            if (dock) dock.style.display = 'block';
             document.body.style.overflow = 'auto';
             if (window.setBackgroundVideo) window.setBackgroundVideo('main');
             updateUptime();
@@ -1888,12 +1931,14 @@
             if (entry) entry.style.display = 'none';
             if (viewer) viewer.style.display = 'none';
             if (denied) denied.style.display = 'flex';
+            if (dock) dock.style.display = 'none';
             document.body.style.overflow = 'hidden';
             if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
         } else if (path.startsWith('/public') || path.startsWith('/v/')) {
             if (entry) entry.style.display = 'none';
             if (viewer) viewer.style.display = 'block';
             if (denied) denied.style.display = 'none';
+            if (dock) dock.style.display = 'none';
             document.body.style.setProperty('overflow', 'auto', 'important');
             if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
