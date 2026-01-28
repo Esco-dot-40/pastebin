@@ -142,7 +142,7 @@ const App = () => {
         `;
     }
 
-    if (isInitializing || !pastes || pastes.length === 0) {
+    if (isInitializing) {
         return html`
             <div class="flex flex-col justify-center items-center h-[100vh] text-center p-8 bg-black/30 backdrop-blur-sm">
                 <div class="relative w-32 h-32 mb-12">
@@ -158,18 +158,12 @@ const App = () => {
                         animate=${{ y: 0 }}
                         class="text-3xl font-black mb-4 text-white uppercase tracking-[0.5em] leading-none"
                     >
-                        ${isInitializing ? 'Decrypting Feed' : 'Sector Empty'}
+                        Decrypting Feed
                     <//>
                 </div>
                 <p class="opacity-30 max-w-sm mb-12 text-white text-[11px] uppercase font-mono tracking-widest leading-relaxed">
-                    ${isInitializing ? 'Establishing secure uplink to node repository...' : 'No active packets detected. Awaiting administrative propagation to this sector.'}
+                    Establishing secure uplink to node repository...
                 </p>
-                ${!isInitializing && html`
-                    <div class="flex gap-4">
-                        <button onClick=${() => window.navigateTo('/')} class="px-12 py-3 rounded-full border border-white/10 bg-white/5 text-white/60 text-[10px] uppercase tracking-[0.3em] hover:bg-white/10">Abort</button>
-                        <button onClick=${() => window.location.reload()} class="px-12 py-3 rounded-full border border-cyan-500/30 bg-cyan-500/5 text-cyan-400 text-[10px] uppercase tracking-[0.3em] hover:bg-cyan-500/10">Re-Sync</button>
-                    </div>
-                `}
             </div>
         `;
     }
@@ -216,8 +210,22 @@ const App = () => {
                     transition=${{ type: 'spring', damping: 30, stiffness: 100 }}
                 >
                     ${filteredPastes.length === 0 ? html`
-                        <div key="empty" style=${{ height: HEIGHT }} class="flex items-center justify-center text-white/10 font-mono tracking-[1rem] uppercase">
-                            Sector empty // No nodes detected
+                        <div key="empty" style=${{ height: HEIGHT }} class="flex flex-col items-center justify-center text-center p-20 transform-gpu">
+                            <div class="relative w-24 h-24 mb-10 opacity-20">
+                                <div class="absolute inset-0 border border-white/20 rounded-full"></div>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-1 h-1 bg-white rounded-full"></div>
+                                </div>
+                            </div>
+                            <h2 class="text-4xl font-black text-white/40 uppercase tracking-[0.5em] mb-6">Sector Empty</h2>
+                            <p class="text-white/10 font-mono text-[10px] uppercase tracking-[0.4em] max-w-sm mb-12">
+                                No active data packets detected in ${activeFolder} sector. 
+                                Awaiting administrative propagation.
+                            </p>
+                            <div class="flex gap-4">
+                                <button onClick=${() => window.navigateTo('/')} class="px-10 py-3 rounded-full border border-white/5 bg-white/5 text-white/30 text-[9px] uppercase tracking-[0.3em] hover:bg-white/10 hover:text-white/60 transition-all">Return to Core</button>
+                                <button onClick=${() => window.location.reload()} class="px-10 py-3 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-500/40 text-[9px] uppercase tracking-[0.3em] hover:bg-cyan-500/10 hover:text-cyan-400 transition-all">Re-Sync Node</button>
+                            </div>
                         </div>
                     ` : filteredPastes.map((p, index) => {
         const thumb = p.embedUrl || '/public/preview.png';
