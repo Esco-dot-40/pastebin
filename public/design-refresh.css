@@ -12,15 +12,16 @@
 
 /* 2. Esco Profile Card (Jotform inspired) */
 .esco-profile-card {
-    width: 850px;
-    max-width: 95vw;
+    width: 950px;
+    /* Widened for dashboard */
+    max-width: 98vw;
     padding: 0;
     border-radius: 32px;
     background: var(--card-bg);
     border: 1px solid rgba(0, 245, 255, 0.15);
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 77, 0, 0.05);
-    text-align: left;
-    /* Changed to left for dashboard feel */
+    text-align: left !important;
+    /* Enforce for dashboard */
     position: relative;
     overflow: hidden;
     margin: 20px auto;
@@ -32,9 +33,9 @@
 }
 
 .esco-dashboard-layout {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    min-height: 580px;
+    display: grid !important;
+    grid-template-columns: 340px 1fr !important;
+    min-height: 600px;
 }
 
 .dashboard-left {
@@ -196,19 +197,20 @@
     gap: 15px;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 900px) {
     .esco-profile-card {
         width: 380px;
+        text-align: center !important;
     }
 
     .esco-dashboard-layout {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
     }
 
     .dashboard-left {
         border-right: none;
         border-bottom: 1px solid var(--border-light);
-        height: 300px !important;
+        height: 320px !important;
     }
 
     .website-cards-grid,
