@@ -3,30 +3,37 @@
 /* 1. Global Utilities */
 :root {
     --primary-neon: #00f5ff;
+    --accent-fire: #ff4d00;
     --secondary-neon: #7b42ff;
     --bg-dark: #0a0a0f;
-    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-bg: rgba(5, 5, 8, 0.95);
     --border-light: rgba(255, 255, 255, 0.08);
 }
 
 /* 2. Esco Profile Card (Jotform inspired) */
 .esco-profile-card {
-    width: 380px;
-    padding: 20px;
-    border-radius: 28px;
-    background: rgb(5, 5, 8);
-    /* Fully opaque to prevent bleed-through */
-    border: 1px solid rgba(0, 245, 255, 0.2);
-    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+    width: 420px;
+    padding: 0;
+    /* Removing padding for full-bleed feel */
+    border-radius: 32px;
+    background: var(--card-bg);
+    border: 1px solid rgba(0, 245, 255, 0.15);
+    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 77, 0, 0.05);
     text-align: center;
     position: relative;
     overflow: hidden;
     margin: 40px auto;
-    /* Reduced top margin to allow flex centering */
     animation: cardEntrance 1s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1000;
-    backdrop-filter: blur(15px) saturate(160%);
-    -webkit-backdrop-filter: blur(15px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.esco-profile-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    border-color: var(--accent-fire);
+    box-shadow: 0 50px 120px rgba(0, 0, 0, 0.9), 0 0 40px rgba(255, 77, 0, 0.2);
 }
 
 @keyframes cardEntrance {
@@ -41,16 +48,32 @@
     }
 }
 
-.esco-avatar {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 4px solid var(--primary-neon);
-    padding: 5px;
-    margin-bottom: 15px;
-    box-shadow: 0 0 40px rgba(0, 245, 255, 0.4);
-    object-fit: cover;
-    background: #000;
+.avatar-container {
+    width: 100%;
+    height: 240px;
+    overflow: hidden;
+    position: relative;
+    border-bottom: 2px solid rgba(255, 77, 0, 0.3);
+}
+
+.esco-profile-card .esco-avatar {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;
+    /* Force rectangular for character card */
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    transition: transform 1.5s cubic-bezier(0.23, 1, 0.32, 1) !important;
+}
+
+.esco-profile-card:hover .esco-avatar {
+    transform: scale(1.1);
+}
+
+.card-content {
+    padding: 25px 30px 40px;
 }
 
 .esco-name {

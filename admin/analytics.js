@@ -324,50 +324,52 @@ function updateRecentActivityTab(views, reactions) {
     const activities = [
         ...vArr.map(v => ({ type: 'view', data: v, timestamp: new Date(v.timestamp) })),
         ...rArr.map(r => ({ type: 'reaction', data: r, timestamp: new Date(r.createdAt) }))
-    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
+    ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 100);
 
     container.innerHTML = `
-        <div class="activity-feed">
-            ${activities.map(activity => {
+        <div class="activity-table-container">
+            <table class="activity-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Target</th>
+                        <th>Location</th>
+                        <th>ISP</th>
+                        <th>IP Address</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${activities.map(activity => {
         const d = activity.data;
-        const timeStr = activity.timestamp.toLocaleTimeString();
-        const dateStr = activity.timestamp.toLocaleDateString();
-        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Global Node');
+        const timeStr = activity.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const location = d.city ? `${d.city}, ${d.country}` : (d.country || 'Global');
         const isView = activity.type === 'view';
-        const sourceLabel = d.source === 'page' ? 'PAGE HIT' : (isView ? 'PASTE VIEW' : 'NETWORK REACTION');
-        const sourceColor = d.source === 'page' ? '#3b82f6' : (isView ? '#00f5ff' : '#ff006e');
+        const isPage = d.source === 'page';
+
+        let typeClass = isView ? (isPage ? 'type-page' : 'type-view') : 'type-reaction';
+        let typeLabel = isView ? (isPage ? 'PAGE' : 'VIEW') : 'LIKE';
+        let emoji = isView ? (isPage ? '📄' : '👁️') : getReactionEmoji(d.type);
 
         return `
-                    <div class="activity-card ${activity.type} ${d.source || ''}">
-                        <div class="activity-status-line" style="background: ${sourceColor}"></div>
-                        <div class="activity-main">
-                            <div class="activity-icon">
-                                ${isView ? (d.source === 'page' ? '📄' : '👁️') : getReactionEmoji(d.type)}
-                            </div>
-                            <div class="activity-info">
-                                <div class="activity-primary">
-                                    <span class="activity-type-label" style="color: ${sourceColor}; background: ${sourceColor}1a">${sourceLabel}</span>
-                                    <span class="activity-target">${d.path || (d.pasteId ? `/v/${d.pasteId}` : 'Root Node')}</span>
-                                </div>
-                                <div class="activity-secondary">
-                                    <span class="activity-meta-item">📍 ${location}</span>
-                                    <span class="activity-meta-item">📡 ${d.isp || 'Secure Relay'}</span>
-                                </div>
-                            </div>
-                            <div class="activity-diagnostics">
-                                <div class="diag-item">
-                                    <span class="diag-label">IP</span>
-                                    <span class="diag-val">${d.ip || 'ANONYMOUS'}</span>
-                                </div>
-                                <div class="diag-item">
-                                    <span class="diag-label">TIME</span>
-                                    <span class="diag-val">${timeStr}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                        <tr>
+                            <td>
+                                <span class="type-tag ${typeClass}">${emoji} ${typeLabel}</span>
+                            </td>
+                            <td class="mono" title="${d.path || d.pasteId || '/'}">
+                                ${d.path || (d.pasteId ? `/v/${d.pasteId}` : '/')}
+                            </td>
+                            <td>${location}</td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${d.isp || 'N/A'}">
+                                ${d.isp || 'N/A'}
+                            </td>
+                            <td class="mono">${d.ip || '---'}</td>
+                            <td class="mono">${timeStr}</td>
+                        </tr>
+                    `;
     }).join('')}
+                </tbody>
+            </table>
         </div>
     `;
 }

@@ -181,7 +181,7 @@ const App = () => {
     const toNext = () => activeIndex < filteredPastes.length - 1 && setActiveIndex(prev => prev + 1);
 
     return html`
-        <div class="flex flex-col items-center select-none py-20 w-full min-h-screen overflow-hidden relative bg-transparent">
+        <div class="flex flex-col items-center select-none pt-32 pb-20 w-full min-h-screen overflow-hidden relative bg-transparent">
             <!-- Header / System Path -->
             <div class="text-center mb-16 relative z-10 w-full px-10">
                 <div class="flex justify-between items-center max-w-6xl mx-auto mb-10">

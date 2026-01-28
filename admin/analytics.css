@@ -392,132 +392,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Activity Feed & Cards */
-.activity-feed {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 10px 0;
-}
-
-.activity-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    overflow: hidden;
-    display: flex;
-    transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-    position: relative;
-}
-
-.activity-card:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(4px);
-}
-
-.activity-status-line {
-    width: 4px;
-    background: var(--accent-cyan);
-}
-
-.activity-card.reaction .activity-status-line {
-    background: var(--accent-pink);
-}
-
-.activity-main {
-    flex: 1;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.activity-icon {
-    font-size: 1.5rem;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 10px;
-}
-
-.activity-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.activity-primary {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.activity-type-label {
-    font-size: 0.65rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    color: var(--accent-cyan);
-    background: rgba(0, 245, 255, 0.1);
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
-.activity-card.reaction .activity-type-label {
-    color: var(--accent-pink);
-    background: rgba(255, 0, 110, 0.1);
-}
-
-.activity-target {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.activity-secondary {
-    display: flex;
-    gap: 20px;
-    font-size: 0.8rem;
-    color: var(--text-tertiary);
-}
-
-.activity-meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.activity-diagnostics {
-    display: flex;
-    gap: 25px;
-    padding-left: 20px;
-    border-left: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.diag-item {
-    display: flex;
-    flex-direction: column;
-    text-align: right;
-}
-
-.diag-label {
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.diag-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
 
 .no-data-card {
     padding: 60px;
@@ -527,6 +401,73 @@ body {
     border-radius: 16px;
     color: var(--text-tertiary);
     font-size: 0.9rem;
+}
+
+/* Dense Activity Table */
+.activity-table-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+}
+
+.activity-table th {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.activity-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    vertical-align: middle;
+}
+
+.activity-table tr:hover {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+.activity-table tr:last-child td {
+    border-bottom: none;
+}
+
+.type-tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.type-view {
+    background: rgba(0, 245, 255, 0.1);
+    color: var(--accent-cyan);
+}
+
+.type-reaction {
+    background: rgba(255, 0, 110, 0.1);
+    color: var(--accent-pink);
+}
+
+.type-page {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
 }
 
 /* Scrollbar Polish */
