@@ -155,6 +155,26 @@ app.use('/uploads', express.static(process.env.RAILWAY_VOLUME_MOUNT_PATH
 // Redirect /admin to /adminperm for convenience
 app.get('/admin', (req, res) => res.redirect('/adminperm'));
 
+// Public Folders (for gallery dropdown)
+app.get('/api/public-folders', (req, res) => {
+    try {
+        const folders = db.prepare('SELECT name FROM folders ORDER BY name ASC').all();
+        res.json(folders);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Public Gallery Route (SPA handle)
+app.get('/public', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
+
+// Status Page Route
+app.get('/status', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'status.html'));
+});
+
 // Admin Section (/adminperm)
 app.use('/adminperm', (req, res, next) => {
     if (req.path === '/login.html' || req.path.match(/\.(css|js|jpg|png|svg|ico)$/)) {

@@ -103,7 +103,7 @@ const App = () => {
     useEffect(() => {
         const fetchFolders = async () => {
             try {
-                const res = await fetch('/api/folders', { credentials: 'include' });
+                const res = await fetch('/api/public-folders', { credentials: 'include' });
                 const data = await res.json();
                 setFolders(['ALL', ...data.map(f => f.name)]);
             } catch (err) {

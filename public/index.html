@@ -1591,7 +1591,7 @@
             <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
                 <span class="dock-label">Private Access</span>
             </a>
-            <a href="/status" class="dock-item" onclick="window.navigateTo('/status'); return false;">
+            <a href="/status" class="dock-item">
                 <span class="dock-label">Status</span>
             </a>
             <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
@@ -2103,6 +2103,8 @@
 
     // Run on init
     checkSession();
+    handleRoute();
+    window.onpopstate = handleRoute;
 
     window.closeModals = function () {
         document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
