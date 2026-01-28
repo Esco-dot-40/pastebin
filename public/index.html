@@ -1311,81 +1311,6 @@
     <!-- Dynamically populated -->
 </div>
 
-<!-- Floating Bottom Action Dock -->
-<div class="bottom-action-dock">
-    <div class="dock-container">
-        <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
-            <span class="dock-label">View Pastes</span>
-        </a>
-        <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
-            <span class="dock-label">Private Access</span>
-        </a>
-        <a href="/status" class="dock-item">
-            <span class="dock-label">Status</span>
-        </a>
-        <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
-            <span class="dock-label">Request Key</span>
-        </a>
-    </div>
-</div>
-
-<style>
-    .bottom-action-dock {
-        position: fixed;
-        bottom: 5vh;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        animation: slideUpFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .dock-container {
-        display: flex;
-        gap: 15px;
-        background: rgba(10, 10, 15, 0.8);
-        backdrop-filter: blur(20px);
-        padding: 10px 20px;
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .dock-item {
-        padding: 12px 24px;
-        border-radius: 16px;
-        text-decoration: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        transition: all 0.3s ease;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid transparent;
-        white-space: nowrap;
-    }
-
-    .dock-item:hover {
-        background: rgba(0, 245, 255, 0.1);
-        border-color: #00f5ff;
-        color: #00f5ff;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
-    }
-
-    @keyframes slideUpFade {
-        from {
-            opacity: 0;
-            transform: translate(-50%, 20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translate(-50%, 0);
-        }
-    }
-</style>
 <!-- Combined Initialization Logic Moved to the End -->
 
 <!-- Bio Card Wrapper for Center Alignment -->
@@ -1533,6 +1458,83 @@
     <div class="landing-text-container" id="parallax-top">
         <canvas class="webgl"></canvas>
     </div>
+
+    <!-- Floating Top Action Dock -->
+    <div class="top-action-dock">
+        <div class="dock-container">
+            <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
+                <span class="dock-label">View Pastes</span>
+            </a>
+            <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
+                <span class="dock-label">Private Access</span>
+            </a>
+            <a href="/status" class="dock-item">
+                <span class="dock-label">Status</span>
+            </a>
+            <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
+                <span class="dock-label">Request Key</span>
+            </a>
+        </div>
+    </div>
+
+    <style>
+        .top-action-dock {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            z-index: 10000;
+            animation: slideDownFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .top-action-dock .dock-container {
+            display: flex;
+            gap: 15px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .top-action-dock .dock-item {
+            padding: 12px 24px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .top-action-dock .dock-item:hover {
+            background: rgba(0, 245, 255, 0.1);
+            border-color: #00f5ff;
+            color: #00f5ff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
+        }
+
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 
 
 
@@ -1917,7 +1919,7 @@
         const entry = document.getElementById('view-entry');
         const viewer = document.getElementById('view-viewer');
         const denied = document.getElementById('view-access-denied');
-        const dock = document.querySelector('.bottom-action-dock');
+        const dock = document.querySelector('.top-action-dock');
 
         if (path === '/' || path === '/index.html') {
             if (entry) entry.style.display = 'flex';
@@ -1978,6 +1980,10 @@
 
     // Run on init
     checkSession();
+
+    window.closeModals = function () {
+        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+    };
 
     // 3. Modal & Auth Flow
     window.openKeyModal = function () {
