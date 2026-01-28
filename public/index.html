@@ -17,15 +17,8 @@
     <meta property="og:title" content="veroe.space // encrypted transmissions">
     <meta property="og:description"
         content="Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.">
-    <meta property="og:image" content="https://veroe.space/public/preview.png">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://veroe.space/">
-    <meta property="twitter:title" content="veroe.space // encrypted transmissions">
-    <meta property="twitter:description"
-        content="Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.">
     <meta property="twitter:image" content="https://veroe.space/public/preview.png">
+
 
     <link rel="stylesheet" href="/public/style.css">
     <link rel="stylesheet" href="/public/design-refresh.css?v=20">
@@ -1029,7 +1022,8 @@
     <div id="loadingShaderContainer" style="position: absolute; inset: 0; z-index: -1;"></div>
     <div class="loader-content" style="text-align: center; color: #00f5ff; font-family: 'JetBrains Mono', monospace;">
         <div class="loader"></div>
-        <p style="margin-top: 20px; letter-spacing: 4px; font-size: 0.8rem;">RE-ESTABLISHING TRANSCEIVER UPLINK...</p>
+        <p style="margin-top: 20px; letter-spacing: 4px; font-size: 0.8rem;">RE-ESTABLISHING TRANSCEIVER UPLINK...
+        </p>
     </div>
 </div>
 
@@ -1314,14 +1308,8 @@
 <!-- Combined Initialization Logic Moved to the End -->
 
 <!-- Bio Card Wrapper for Center Alignment -->
-<!-- Bio Card Wrapper for Center Alignment -->
 
 
-
-<!-- Background Media Controller -->
-<div id="video-background-container"
-    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.6);">
-</div>
 
 <div id="volumeControl" class="volume-control"
     style="position: fixed; bottom: 20px; right: 20px; z-index: 20001; display: flex; align-items: center; gap: 10px;">
@@ -1377,7 +1365,8 @@
 <div id="audioPromptOverlay" class="modal-overlay"
     style="z-index: 30000; background: rgba(0,0,0,0.95); backdrop-filter: blur(40px);">
     <div class="modal-box" style="text-align: center; border-color: var(--accent-color);">
-        <div class="tech-hint accent-text" style="font-size: 0.7rem; letter-spacing: 5px; margin-bottom: 20px;">SYSTEM
+        <div class="tech-hint accent-text" style="font-size: 0.7rem; letter-spacing: 5px; margin-bottom: 20px;">
+            SYSTEM
             BROADCAST</div>
         <h2 style="font-size: 2.5rem; letter-spacing: -1px; margin-bottom: 30px;">ENABLE NEURAL AUDIO?</h2>
         <div style="display: flex; gap: 20px; justify-content: center;">
@@ -1415,385 +1404,657 @@
 </script>
 
 <script src="/public/video-manager.js?v=8"></script>
+</head>
 
-<!-- View: ENTRY -->
-<div id="view-entry"
-    style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; position: relative; padding-top: 20px; padding-bottom: 50px; z-index: 5;">
-    <!-- LIQUID TITLE ANIMATION -->
-    <style>
-        .landing-text {
-            width: 100%;
-            text-align: center;
-            font-size: 5rem;
-            font-weight: 900;
-            letter-spacing: 1rem;
-            z-index: 10;
-            white-space: nowrap;
-            font-family: 'Bricolage Grotesque', sans-serif;
-            color: #ffffff !important;
-            text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(0, 245, 255, 0.8);
-            pointer-events: none;
-            margin-bottom: 0.5rem;
-            /* REDUCED MARGIN */
-            transition: transform 0.1s ease-out;
-        }
+<body style="background: transparent;">
 
-        @media (max-width: 768px) {
-            .landing-text {
-                font-size: 2.5rem;
-                letter-spacing: 0.5rem;
-                top: 15%;
-            }
+    <!-- Background Media Controller -->
+    <div id="video-background-container"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.6);">
+    </div>
 
-            #announcement-banner {
-                top: 25% !important;
-                font-size: 0.9rem !important;
-                padding: 0 20px;
-            }
-        }
-    </style>
+    <!-- Loading Shader / Transition Overlay -->
+    <div id="loadingState"
+        style="display: none; position: fixed; inset: 0; z-index: 99999; background: #000; align-items: center; justify-content: center; flex-direction: column;">
+        <div id="loading-canvas-container" style="position: absolute; inset: 0;"></div>
+        <div class="loader"></div>
+        <p
+            style="margin-top: 20px; color: #00f5ff; font-family: 'JetBrains Mono'; letter-spacing: 5px; font-size: 10px;">
+            SYNCHRONIZING NODE...</p>
+    </div>
 
-    <!-- CORRECTED NEON LOGO (VEROE.SPACE) -->
-    <div class="landing-text-container" id="parallax-top">
-        <div class="neon-logo-wrap">
-            <svg class="neon-svg" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                    <filter id="logo-glow">
-                        <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
-                        <feMerge>
-                            <feMergeNode in="blur"></feMergeNode>
-                            <feMergeNode in="SourceGraphic"></feMergeNode>
-                        </feMerge>
-                    </filter>
-                </defs>
-                <!-- Background / Shadow Layer -->
-                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="logo-text-bg">
-                    VEROE.SPACE
-                </text>
-                <!-- Animated Layer -->
-                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="logo-text-animated">
-                    VEROE.SPACE
-                </text>
-            </svg>
-        </div>
 
+
+    <!-- View: ENTRY -->
+    <div id="view-entry"
+        style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; position: relative; padding-top: 20px; padding-bottom: 50px; z-index: 5;">
+        <!-- LIQUID TITLE ANIMATION -->
         <style>
-            .neon-logo-wrap {
+            .landing-text {
                 width: 100%;
-                max-width: 1200px;
-                height: 180px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                margin: 0 auto;
-                animation: hueRotateLogo 6s ease-in-out infinite;
-                position: relative;
-                z-index: 100;
-            }
-
-            .neon-svg {
-                width: 100%;
-                height: 100%;
-            }
-
-            .logo-text-bg,
-            .logo-text-animated {
-                font-family: 'Audiowide', cursive;
+                text-align: center;
+                font-size: 5rem;
                 font-weight: 900;
-                font-size: 100px;
-                letter-spacing: 0.8rem;
-                fill: transparent;
-                stroke-width: 2px;
-                filter: url(#logo-glow);
+                letter-spacing: 1rem;
+                z-index: 10;
+                white-space: nowrap;
+                font-family: 'Bricolage Grotesque', sans-serif;
+                color: #ffffff !important;
+                text-transform: uppercase;
+                text-shadow: 0 0 30px rgba(0, 245, 255, 0.8);
+                pointer-events: none;
+                margin-bottom: 0.5rem;
+                /* REDUCED MARGIN */
+                transition: transform 0.1s ease-out;
             }
 
-            .logo-text-bg {
-                stroke: #12000a;
-            }
-
-            .logo-text-animated {
-                stroke: #00f5ff;
-                stroke-dasharray: 2000;
-                stroke-dashoffset: 2000;
-                animation:
-                    drawLogoText 2.5s cubic-bezier(0.23, 1, 0.32, 1) forwards,
-                    flickerMainLogo 5s linear 3s infinite;
-            }
-
-            @keyframes drawLogoText {
-                to {
-                    stroke-dashoffset: 0;
-                }
-            }
-
-            @keyframes flickerMainLogo {
-
-                0%,
-                30%,
-                32%,
-                36%,
-                42%,
-                85%,
-                96%,
-                100% {
-                    stroke: #00f5ff;
-                    opacity: 1;
-                    filter: drop-shadow(0 0 10px #00f5ff);
-                }
-
-                31%,
-                37%,
-                41%,
-                86%,
-                95% {
-                    stroke: #12000a;
-                    opacity: 0.3;
-                    filter: none;
-                }
-            }
-
-            @keyframes hueRotateLogo {
-
-                0%,
-                100% {
-                    filter: hue-rotate(0deg);
-                }
-
-                50% {
-                    filter: hue-rotate(30deg);
-                }
-            }
-
-            /* Responsive tweaks */
             @media (max-width: 768px) {
-
-                .logo-text-bg,
-                .logo-text-animated {
-                    font-size: 60px;
-                    letter-spacing: 0.4rem;
+                .landing-text {
+                    font-size: 2.5rem;
+                    letter-spacing: 0.5rem;
+                    top: 15%;
                 }
 
-                .neon-logo-wrap {
-                    height: 120px;
+                #announcement-banner {
+                    top: 25% !important;
+                    font-size: 0.9rem !important;
+                    padding: 0 20px;
                 }
             }
         </style>
-    </div>
-    <!-- END NEON LOGO -->
 
-    <!-- Floating Top Action Dock -->
-    <div class="top-action-dock">
-        <div class="dock-container">
-            <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
-                <span class="dock-label">View Pastes</span>
-            </a>
-            <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
-                <span class="dock-label">Private Access</span>
-            </a>
-            <a href="/status" class="dock-item">
-                <span class="dock-label">Status</span>
-            </a>
-            <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
-                <span class="dock-label">Request Key</span>
-            </a>
+        <!-- CORRECTED NEON LOGO (VEROE.SPACE) -->
+        <div class="landing-text-container" id="parallax-top">
+            <div class="neon-logo-wrap">
+                <svg class="neon-svg" viewBox="0 0 1000 200" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <filter id="logo-glow">
+                            <feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur>
+                            <feMerge>
+                                <feMergeNode in="blur"></feMergeNode>
+                                <feMergeNode in="SourceGraphic"></feMergeNode>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <!-- Background / Shadow Layer -->
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="logo-text-bg">
+                        VEROE.SPACE
+                    </text>
+                    <!-- Animated Layer -->
+                    <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="logo-text-animated">
+                        VEROE.SPACE
+                    </text>
+                </svg>
+            </div>
+
+            <style>
+                .neon-logo-wrap {
+                    width: 100%;
+                    max-width: 1200px;
+                    height: 180px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 0 auto;
+                    animation: hueRotateLogo 6s ease-in-out infinite;
+                    position: relative;
+                    z-index: 100;
+                }
+
+                .neon-svg {
+                    width: 100%;
+                    height: 100%;
+                }
+
+                .logo-text-bg,
+                .logo-text-animated {
+                    font-family: 'Audiowide', cursive;
+                    font-weight: 900;
+                    font-size: 100px;
+                    letter-spacing: 0.8rem;
+                    fill: transparent;
+                    stroke-width: 2px;
+                    filter: url(#logo-glow);
+                }
+
+                .logo-text-bg {
+                    stroke: #12000a;
+                }
+
+                .logo-text-animated {
+                    stroke: #00f5ff;
+                    stroke-dasharray: 2000;
+                    stroke-dashoffset: 2000;
+                    animation:
+                        drawLogoText 2.5s cubic-bezier(0.23, 1, 0.32, 1) forwards,
+                        flickerMainLogo 5s linear 3s infinite;
+                }
+
+                @keyframes drawLogoText {
+                    to {
+                        stroke-dashoffset: 0;
+                    }
+                }
+
+                @keyframes flickerMainLogo {
+
+                    0%,
+                    30%,
+                    32%,
+                    36%,
+                    42%,
+                    85%,
+                    96%,
+                    100% {
+                        stroke: #00f5ff;
+                        opacity: 1;
+                        filter: drop-shadow(0 0 10px #00f5ff);
+                    }
+
+                    31%,
+                    37%,
+                    41%,
+                    86%,
+                    95% {
+                        stroke: #12000a;
+                        opacity: 0.3;
+                        filter: none;
+                    }
+                }
+
+                @keyframes hueRotateLogo {
+
+                    0%,
+                    100% {
+                        filter: hue-rotate(0deg);
+                    }
+
+                    50% {
+                        filter: hue-rotate(30deg);
+                    }
+                }
+
+                /* Responsive tweaks */
+                @media (max-width: 768px) {
+
+                    .logo-text-bg,
+                    .logo-text-animated {
+                        font-size: 60px;
+                        letter-spacing: 0.4rem;
+                    }
+
+                    .neon-logo-wrap {
+                        height: 120px;
+                    }
+                }
+            </style>
+        </div>
+        <!-- END NEON LOGO -->
+
+        <!-- Floating Top Action Dock -->
+        <div class="top-action-dock">
+            <div class="dock-container">
+                <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
+                    <span class="dock-label">View Pastes</span>
+                </a>
+                <a href="#" class="dock-item" onclick="window.openKeyModal(); return false;">
+                    <span class="dock-label">Private Access</span>
+                </a>
+                <a href="/status" class="dock-item">
+                    <span class="dock-label">Status</span>
+                </a>
+                <a href="#" onclick="window.openRequestModal(); return false;" class="dock-item">
+                    <span class="dock-label">Request Key</span>
+                </a>
+            </div>
+        </div>
+
+        <style>
+            .top-action-dock {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                margin-top: 10px;
+                margin-bottom: 20px;
+                z-index: 10000;
+                animation: slideDownFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            }
+
+            .top-action-dock .dock-container {
+                display: flex;
+                gap: 15px;
+                background: rgba(10, 10, 15, 0.8);
+                backdrop-filter: blur(20px);
+                padding: 10px 20px;
+                border-radius: 24px;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            }
+
+            .top-action-dock .dock-item {
+                padding: 12px 24px;
+                border-radius: 16px;
+                text-decoration: none;
+                color: rgba(255, 255, 255, 0.7);
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.75rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid transparent;
+                white-space: nowrap;
+            }
+
+            .top-action-dock .dock-item:hover {
+                background: rgba(0, 245, 255, 0.1);
+                border-color: #00f5ff;
+                color: #00f5ff;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
+            }
+
+            @keyframes slideDownFade {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+
+
+
+        <div class="site-wrapper">
+            <!-- WEBSITE GRID (YELLOW IN MARKUP) -->
+            <div class="website-header-grid">
+                <a href="https://velarixsolutions.nl" target="_blank" class="site-card">
+                    <h4>Velarix</h4>
+                    <p>Corporate</p>
+                </a>
+                <a href="https://esco.veroe.fun" target="_blank" class="site-card">
+                    <h4>Veroe</h4>
+                    <p>Interactive</p>
+                </a>
+                <a href="https://farkle.velarixsolutions.nl" target="_blank" class="site-card">
+                    <h4>Farkle</h4>
+                    <p>Social Hub</p>
+                </a>
+                <a href="https://spell.velarixsolutions.nl" target="_blank" class="site-card">
+                    <h4>SpellBound</h4>
+                    <p>Utility</p>
+                </a>
+            </div>
+
+            <!-- STABLE DECK LAYOUT (GRID/FLEX) -->
+            <div class="deck-layout">
+                <!-- SPOTIFY SIDECAR (GREEN IN MARKUP) -->
+                <div class="spotify-sidecar">
+                    <iframe style="height: 100%; border: none;"
+                        src="https://open.spotify.com/embed/playlist/3XhVdqTKASknXt1oYZEK1G?utm_source=generator&theme=0"
+                        width="100%" frameBorder="0" allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"></iframe>
+                </div>
+
+                <!-- MAIN PROFILE CARD (RED IN MARKUP) -->
+                <div class="esco-profile-card">
+                    <div class="avatar-container">
+                        <img src="/public/assets/avatar_v3.jpg?v=1" id="escoAvatarImg" class="esco-avatar" alt="Esco">
+                    </div>
+
+                    <div class="identity-section">
+                        <div class="esco-name">Ξ s c o</div>
+                        <div class="esco-title accent-text">LEAD ARCHITECT // VEROE.SPACE</div>
+
+                        <div class="esco-socials">
+                            <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+                                </svg>
+                            </a>
+                            <a href="https://github.com/EscoLessgo" target="_blank" class="social-link">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="bio-section">
+                        <p class="bio-text">
+                            Building secure propagation networks. Passionate about privacy, automation, and
+                            aesthetic
+                            code.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- View: ACCESS DENIED -->
+    <div id="view-access-denied" class="state-container"
+        style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 200; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
+        <div class="error-icon" style="font-size: 4rem;">🚫</div>
+        <h1 class="text-3d-red">PLEASE ACQUIRE A KEY<br>TO VIEW PRIVATE PASTES</h1>
+        <p style="color: rgba(255,255,255,0.7); max-width: 500px; margin-top: 20px;">
+            This sector is restricted. You must possess a valid cryptographic signature to proceed.
+        </p>
+        <div class="button-container" style="margin-top: 40px;">
+            <button onclick="window.openRequestModal()" class="entry-btn btn-private">Request Key</button>
+            <button onclick="window.navigateTo('/')" class="entry-btn btn-public">Return Home</button>
+        </div>
+    </div>
+
+    <!-- Mouse Parallax Script -->
+    <script>
+        document.addEventListener('mousemove', (e) => {
+            const card = document.querySelector('.esco-profile-card');
+            if (!card) return;
+
+            // Only run on landing/index
+            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
+
+            // Extremely subtle parallax to prevent 'instability'
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
+
+            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        document.addEventListener('mouseleave', () => {
+            const card = document.querySelector('.esco-profile-card');
+            if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+        });
+    </script>
+    <script>
+
+        // --- ACCENT COLOR PROPAGATION ---
+        (function () {
+            // Settings: mode 'fixed' or 'rotate'
+            const mode = 'rotate';
+            const cycleSpeed = 3000; // ms
+            const colors = [
+                { main: "#00f5ff", glow: "rgba(0, 245, 255, 0.4)" }, // Cyan
+                { main: "#ff006e", glow: "rgba(255, 0, 110, 0.4)" }, // Pink
+                { main: "#00ff88", glow: "rgba(0, 255, 136, 0.4)" }, // Green
+                { main: "#7b42ff", glow: "rgba(123, 66, 255, 0.4)" }, // Purple
+                { main: "#ff9900", glow: "rgba(255, 153, 0, 0.4)" } // Gold
+            ];
+
+            let currentIndex = 0;
+
+            function updateAccent(colorObj) {
+                document.documentElement.style.setProperty('--accent-color', colorObj.main);
+                document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
+            }
+
+            // Initialize Session & UI State
+            (async function checkSession() {
+                try {
+                    if (!window.storage) return;
+
+                    const user = await storage.getMe();
+
+                    // Safe DOM references
+                    const loggedOut = document.getElementById('userLoggedOut');
+                    const loggedIn = document.getElementById('userLoggedIn');
+                    const userName = document.getElementById('userName');
+                    const userAvatar = document.getElementById('userAvatar');
+
+                    if (user) {
+                        if (loggedOut) loggedOut.style.display = 'none';
+                        if (loggedIn) {
+                            loggedIn.style.display = 'flex';
+                            if (userName) userName.textContent = user.displayName || user.username || 'User';
+                            if (userAvatar) userAvatar.src = user.avatarUrl || '/public/favicon.png';
+                        }
+                    } else {
+                        if (loggedOut) loggedOut.style.display = 'flex';
+                        if (loggedIn) loggedIn.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.warn('Session check warning:', e);
+                }
+            })();
+
+            if (mode === 'rotate') {
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % colors.length;
+                    updateAccent(colors[currentIndex]);
+                }, cycleSpeed);
+            } else {
+                updateAccent(colors[0]); // Use first as fixed
+            }
+        })();
+    </script>
+
+    <!-- View: VIEWER -->
+    <div id="view-viewer"
+        style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif; overflow: visible !important;">
+        <div id="listView"
+            style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: visible; backdrop-filter: none;">
+            <div id="pasteGalleryApp" style="width: 100%;">
+                <div
+                    style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
+                    <div class="loader"></div>
+                    <p
+                        style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
+                        ESTABLISHING UPLINK...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="detailView" class="container"
+            style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%; overflow: visible !important;">
+            <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
+
+            <main id="mainContent">
+                <div id="detailLoading" class="state-container" style="display: none;">
+                    <div class="loader"></div>
+                    <p>Loading paste...</p>
+                </div>
+                <div id="notFoundState" class="state-container" style="display: none;">
+                    <h2>Paste Not Found</h2>
+                </div>
+                <div id="pasteViewContent" style="display: none;">
+                    <div class="paste-header">
+                        <div class="paste-info">
+                            <h2 id="pasteTitle">Loading...</h2>
+                            <div class="paste-meta">
+                                <span class="language-tag" id="pasteLanguage">plaintext</span>
+                                <span class="meta-item" id="pasteViews">0 views</span>
+                                <span class="meta-item" id="pasteDate">Just now</span>
+                            </div>
+                        </div>
+
+                        <!-- REACTION PANEL -->
+                        <div id="reactionsPanel" class="reactions-matrix">
+                            <button class="reaction-trigger heart" onclick="handleReaction('heart')">
+                                <span class="icon">♥</span>
+                                <span class="count" id="count-heart">0</span>
+                            </button>
+                            <button class="reaction-trigger star" onclick="handleReaction('star')">
+                                <span class="icon">★</span>
+                                <span class="count" id="count-star">0</span>
+                            </button>
+                            <button class="reaction-trigger like" onclick="handleReaction('like')">
+                                <span class="icon">👍</span>
+                                <span class="count" id="count-like">0</span>
+                            </button>
+                        </div>
+
+                        <div class="header-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
+                            <button onclick="copyPasteContent()" class="reaction-btn"
+                                style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Payload</button>
+                            <button onclick="copyPasteLink()" class="reaction-btn"
+                                style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Link</button>
+                        </div>
+                    </div>
+                    <div class="code-container">
+                        <div class="code-header">
+                            <div class="code-title" id="codeTitle">code.txt</div>
+                        </div>
+                        <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    <!-- Key Entry Modal -->
+    <div id="keyModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0;">Enter Access Key</h2>
+            <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
+                    placeholder="sk-..."></div><button type="button" class="btn-submit blue"
+                onclick="submitKey()">Unlock</button>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a href="#"
+                    onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
+                    Access</a></p>
+        </div>
+    </div>
+    <!-- Request Access Modal -->
+    <div id="requestModal" class="modal-overlay">
+        <!-- View 1: Auth Selection -->
+        <div id="req-view-1" class="modal-box">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
+            <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">You must verify your identity
+                before requesting a key. </p>
+            <div class="auth-buttons"><button type="button" class="btn-submit auth-discord"
+                    onclick="startDiscordAuth('request')"><svg width="20" height="20" viewBox="0 0 24 24"
+                        style="margin-right: 10px; vertical-align: bottom;">
+                        <path fill="currentColor"
+                            d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
+                    </svg>Discord </button><button type="button" class="btn-submit auth-google"
+                    onclick="window.loginWithGoogle()" style="background: #EA4335; color: white;">Google
+                </button><button type="button" class="btn-submit auth-manual" onclick="showManualInput()">Manual
+                    Request
+                </button></div>
+        </div>
+        <!-- View 2: Manual Request Input -->
+        <div id="req-view-manual" class="modal-box" style="display: none;">
+            <div class="close-modal" onclick="resetRequestModal()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
+            <div class="input-group"><label>Your Identity (Discord User / Email)</label><input type="text"
+                    id="manualIdentity" placeholder="Who are you?"></div>
+            <div class="input-group"><label>Reason</label><textarea id="manualReason" rows="6"
+                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+            </div>
+            <p
+                style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
+                <strong>Note:</strong>You will still be required to confirm your identity later before
+                receiving a key. Verification via Discord is faster and preferred.
+            </p><button type="button" class="btn-submit red" onclick="submitManualRequest()">Send
+                Request</button>
+        </div>
+        <!-- View 4: Request Form -->
+        <div id="req-view-4" class="modal-box" style="display: none;">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
+            <div class="input-group"><label>Verified ID</label><input type="text" id="verifiedId" readonly
+                    style="opacity: 0.5;"></div>
+            <div class="input-group"><label>Reason</label><textarea id="reqReason" rows="6"
+                    placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
+            </div><button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send
+                Request</button>
+        </div>
+    </div>
+    <!-- Success Popup -->
+    <div id="successPopup" class="modal-overlay">
+        <div class="modal-box" style="text-align: center;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+            <h2>Request Sent !</h2>
+            <p style="color: #ccc; margin-bottom: 2rem;">Your request has been forwarded. <br>For faster
+                approval, join our Discord server: </p><a href="https://discord.gg/YAqe3UvU5E" target="_blank"
+                class="btn-submit auth-discord" style="text-decoration: none; margin-bottom: 1rem;"><svg width="20"
+                    height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
+                    <path fill="currentColor"
+                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
+                </svg>Join Discord </a><button type="button" class="btn-submit blue"
+                onclick="window.location.reload()">Return to Home</button>
+        </div>
+    </div>
+    <!-- Additional Styles for Auth -->
     <style>
-        .top-action-dock {
-            width: 100%;
+        .auth-discord {
+            background: #5865F2;
+            color: white;
             display: flex;
+            align-items: center;
             justify-content: center;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            z-index: 10000;
-            animation: slideDownFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            margin-bottom: 1rem;
         }
 
-        .top-action-dock .dock-container {
-            display: flex;
-            gap: 15px;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 10px 20px;
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        .auth-discord:hover {
+            background: #4752C4;
         }
 
-        .top-action-dock .dock-item {
-            padding: 12px 24px;
-            border-radius: 16px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.7);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid transparent;
-            white-space: nowrap;
+        .auth-email {
+            background: #333;
+            color: white;
         }
 
-        .top-action-dock .dock-item:hover {
-            background: rgba(0, 245, 255, 0.1);
-            border-color: #00f5ff;
-            color: #00f5ff;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
-        }
-
-        @keyframes slideDownFade {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .auth-email:hover {
+            background: #444;
         }
     </style>
 
 
+    <script type="module">
+        import { initLoadingShader } from '/public/loading-shader.js';
 
-    <div class="site-wrapper">
-        <!-- WEBSITE GRID (YELLOW IN MARKUP) -->
-        <div class="website-header-grid">
-            <a href="https://velarixsolutions.nl" target="_blank" class="site-card">
-                <h4>Velarix</h4>
-                <p>Corporate</p>
-            </a>
-            <a href="https://esco.veroe.fun" target="_blank" class="site-card">
-                <h4>Veroe</h4>
-                <p>Interactive</p>
-            </a>
-            <a href="https://farkle.velarixsolutions.nl" target="_blank" class="site-card">
-                <h4>Farkle</h4>
-                <p>Social Hub</p>
-            </a>
-            <a href="https://spell.velarixsolutions.nl" target="_blank" class="site-card">
-                <h4>SpellBound</h4>
-                <p>Utility</p>
-            </a>
-        </div>
+        // Global Utils & State
+        window.currentEmail = '';
+        window.authMethod = '';
 
-        <!-- STABLE DECK LAYOUT (GRID/FLEX) -->
-        <div class="deck-layout">
-            <!-- SPOTIFY SIDECAR (GREEN IN MARKUP) -->
-            <div class="spotify-sidecar">
-                <iframe style="height: 100%; border: none;"
-                    src="https://open.spotify.com/embed/playlist/3XhVdqTKASknXt1oYZEK1G?utm_source=generator&theme=0"
-                    width="100%" frameBorder="0" allowfullscreen=""
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"></iframe>
-            </div>
-
-            <!-- MAIN PROFILE CARD (RED IN MARKUP) -->
-            <div class="esco-profile-card">
-                <div class="avatar-container">
-                    <img src="/public/assets/avatar_v3.jpg?v=1" id="escoAvatarImg" class="esco-avatar" alt="Esco">
-                </div>
-
-                <div class="identity-section">
-                    <div class="esco-name">Ξ s c o</div>
-                    <div class="esco-title accent-text">LEAD ARCHITECT // VEROE.SPACE</div>
-
-                    <div class="esco-socials">
-                        <a href="https://discord.gg/v5kkq6nYBt" target="_blank" class="social-link">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
-                            </svg>
-                        </a>
-                        <a href="https://github.com/EscoLessgo" target="_blank" class="social-link">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z" />
-                            </svg>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="bio-section">
-                    <p class="bio-text">
-                        Building secure propagation networks. Passionate about privacy, automation, and aesthetic code.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- View: ACCESS DENIED -->
-<div id="view-access-denied" class="state-container"
-    style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 200; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);">
-    <div class="error-icon" style="font-size: 4rem;">🚫</div>
-    <h1 class="text-3d-red">PLEASE ACQUIRE A KEY<br>TO VIEW PRIVATE PASTES</h1>
-    <p style="color: rgba(255,255,255,0.7); max-width: 500px; margin-top: 20px;">
-        This sector is restricted. You must possess a valid cryptographic signature to proceed.
-    </p>
-    <div class="button-container" style="margin-top: 40px;">
-        <button onclick="window.openRequestModal()" class="entry-btn btn-private">Request Key</button>
-        <button onclick="window.navigateTo('/')" class="entry-btn btn-public">Return Home</button>
-    </div>
-</div>
-
-<!-- Mouse Parallax Script -->
-<script>
-    document.addEventListener('mousemove', (e) => {
-        const card = document.querySelector('.esco-profile-card');
-        if (!card) return;
-
-        // Only run on landing/index
-        if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
-
-        // Extremely subtle parallax to prevent 'instability'
-        const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
-        const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
-
-        card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
-    });
-
-    document.addEventListener('mouseleave', () => {
-        const card = document.querySelector('.esco-profile-card');
-        if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
-    });
-</script>
-<script>
-
-    // --- ACCENT COLOR PROPAGATION ---
-    (function () {
-        // Settings: mode 'fixed' or 'rotate'
-        const mode = 'rotate';
-        const cycleSpeed = 3000; // ms
-        const colors = [
-            { main: "#00f5ff", glow: "rgba(0, 245, 255, 0.4)" }, // Cyan
-            { main: "#ff006e", glow: "rgba(255, 0, 110, 0.4)" }, // Pink
-            { main: "#00ff88", glow: "rgba(0, 255, 136, 0.4)" }, // Green
-            { main: "#7b42ff", glow: "rgba(123, 66, 255, 0.4)" }, // Purple
-            { main: "#ff9900", glow: "rgba(255, 153, 0, 0.4)" } // Gold
-        ];
-
-        let currentIndex = 0;
-
-        function updateAccent(colorObj) {
-            document.documentElement.style.setProperty('--accent-color', colorObj.main);
-            document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
+        // Machine Fingerprint (Device Binding)
+        if (!localStorage.getItem('machine_id')) {
+            localStorage.setItem('machine_id', 'mh-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36));
         }
+        window.getFingerprint = () => localStorage.getItem('machine_id');
 
-        // Initialize Session & UI State
-        (async function checkSession() {
+        // 1. SPA Navigation & Routing
+        window.navigateTo = function (path) {
+            console.log("Navigating to:", path);
+            const ls = document.getElementById('loadingState');
+            if (ls) {
+                ls.style.display = 'flex';
+                ls.classList.remove('fade-out');
+                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+            }
+
+            setTimeout(() => {
+                window.history.pushState({}, '', path);
+                handleRoute();
+            }, 800);
+        };
+
+        window.hideLoader = function () {
+            const ls = document.getElementById('loadingState');
+            if (!ls) return;
+            ls.classList.add('fade-out');
+            setTimeout(() => { ls.style.display = 'none'; }, 500);
+        };
+
+        window.updateUptime = () => { console.log("Uptime update requested"); };
+
+
+
+        // 2. Session & Auth UI Sync
+        async function checkSession() {
             try {
-                if (!window.storage) return;
-
+                const storage = new PasteStorage();
                 const user = await storage.getMe();
-
-                // Safe DOM references
                 const loggedOut = document.getElementById('userLoggedOut');
                 const loggedIn = document.getElementById('userLoggedIn');
                 const userName = document.getElementById('userName');
@@ -1810,638 +2071,409 @@
                     if (loggedOut) loggedOut.style.display = 'flex';
                     if (loggedIn) loggedIn.style.display = 'none';
                 }
-            } catch (e) {
-                console.warn('Session check warning:', e);
+            } catch (e) { console.error("Session check failed", e); }
+        }
+
+        // Run on init
+        checkSession();
+        if (window.loadPastes) window.loadPastes(); // Early fetch
+
+        window.closeModals = function () {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
+        };
+
+        window.submitKey = function () {
+            const input = document.getElementById('accessKeyInput');
+            const key = input ? input.value.trim() : null;
+            if (!key) return alert('Please enter a valid access key.');
+
+            localStorage.setItem('private_access_key', key);
+            window.closeModals();
+            if (window.showToast) window.showToast("✅ Access Key Applied!", "success");
+            setTimeout(() => window.location.reload(), 800);
+        };
+
+        // 3. Modal & Auth Flow
+        window.openKeyModal = function () {
+            window.closeModals();
+            document.getElementById('keyModal').classList.add('active');
+        };
+
+        window.openRequestModal = function () {
+            window.closeModals();
+            window.resetRequestModal();
+            document.getElementById('requestModal').classList.add('active');
+        };
+
+        window.switchView = function (id) {
+            document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
+        };
+
+        window.resetRequestModal = function () {
+            window.switchView('req-view-1');
+            document.getElementById('manualIdentity').value = '';
+            document.getElementById('manualReason').value = '';
+            document.getElementById('reqReason').value = '';
+        };
+
+        window.showManualInput = function () {
+            window.switchView('req-view-manual');
+        };
+
+        window.submitManualRequest = async function () {
+            const contact = document.getElementById('manualIdentity').value;
+            const reason = document.getElementById('manualReason').value;
+            const btn = document.querySelector('#req-view-manual .btn-submit');
+            if (!contact || !reason) return alert('Please fill in all fields.');
+
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch('/api/access/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact, reason, method: 'Manual' })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.closeModals();
+                    document.getElementById('successPopup').classList.add('active');
+                } else { alert('Error: ' + (data.error || 'Unknown error')); }
+            } catch (e) { alert('Connection error'); }
+            finally { btn.disabled = false; btn.textContent = 'Send Request'; }
+        };
+
+        window.submitFinalRequest = async function () {
+            const reason = document.getElementById('reqReason').value;
+            const btn = document.querySelector('#req-view-4 .btn-submit');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                const res = await fetch('/api/access/request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contact: window.currentEmail, reason, method: window.authMethod })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    window.closeModals();
+                    document.getElementById('successPopup').classList.add('active');
+                } else { alert('Error: ' + (data.error || 'Unknown error')); }
+            } catch (e) { alert('Connection error'); }
+            finally { btn.disabled = false; btn.textContent = 'Send Request'; }
+        };
+
+        window.startDiscordAuth = function (mode = 'request') {
+            const width = 500, height = 800;
+            const left = (window.screen.width / 2) - (width / 2);
+            const top = (window.screen.height / 2) - (height / 2);
+            const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
+            const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
+
+            window.addEventListener('message', function onMessage(e) {
+                if (e.data.type === 'DISCORD_VERIFIED') {
+                    window.removeEventListener('message', onMessage);
+                    if (mode === 'login') {
+                        if (window.showToast) window.showToast("✅ Signed in!", "success");
+                        setTimeout(() => window.location.reload(), 1000);
+                        return;
+                    }
+                    if (e.data.existingKey) {
+                        localStorage.setItem('private_access_key', e.data.existingKey);
+                        window.closeModals();
+                        const hint = document.querySelector('.tech-hint');
+                        if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED.</span>";
+                        setTimeout(() => window.navigateTo('/public'), 800);
+                        return;
+                    }
+                    window.currentEmail = e.data.id;
+                    window.authMethod = 'Discord';
+                    document.getElementById('verifiedId').value = window.currentEmail;
+                    window.switchView('req-view-4');
+                }
+            });
+        };
+
+        // 4. Viewer Logic (Isolated Scope)
+        (function () {
+            const storage = window.storage = new PasteStorage();
+            const detailLoading = document.getElementById('detailLoading');
+            const notFoundState = document.getElementById('notFoundState');
+            const pasteViewContent = document.getElementById('pasteViewContent');
+
+            // Elements for detail
+            const pTitle = document.getElementById('pasteTitle');
+            const pLang = document.getElementById('pasteLanguage');
+            const pViews = document.getElementById('pasteViews');
+            const pDate = document.getElementById('pasteDate');
+            const pContent = document.getElementById('pasteContent');
+
+            window.showList = async function () {
+                document.getElementById('detailView').style.display = 'none';
+                document.getElementById('listView').style.display = 'block';
+                await loadPastes();
+            };
+
+            async function loadPastes() {
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    const key = localStorage.getItem('private_access_key');
+                    if (key) headers['x-access-key'] = key;
+
+                    const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, { headers, credentials: 'include' });
+                    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+
+                    const pastes = await res.json();
+                    if (!Array.isArray(pastes)) return;
+
+                    if (window.setPasteData) window.setPasteData(pastes);
+                    else window._pendingPastes = pastes;
+
+                } catch (e) {
+                    console.error("Sync Error:", e);
+                } finally { window.hideLoader(); }
+            }
+
+            setInterval(loadPastes, 30000);
+
+            window.showDetail = async function (id) {
+                if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
+                if (window.setBackgroundVideo) window.setBackgroundVideo('detail');
+
+                document.getElementById('listView').style.display = 'none';
+                document.getElementById('detailView').style.display = 'block';
+
+                if (detailLoading) detailLoading.style.display = 'flex';
+                if (notFoundState) notFoundState.style.display = 'none';
+                if (pasteViewContent) pasteViewContent.style.display = 'none';
+                window.currentPasteId = id;
+
+                try {
+                    let paste = await storage.getPaste(id);
+                    if (!paste) throw new Error('Not found');
+
+                    renderPasteDetail(paste);
+                    if (detailLoading) detailLoading.style.display = 'none';
+                    if (pasteViewContent) pasteViewContent.style.display = 'block';
+
+                } catch (err) {
+                    console.error(err);
+                    if (detailLoading) detailLoading.style.display = 'none';
+                    if (notFoundState) notFoundState.style.display = 'flex';
+                } finally { window.hideLoader(); }
+            };
+
+            function renderPasteDetail(paste) {
+                if (pTitle) pTitle.textContent = paste.title || 'Untitled';
+                if (pLang) pLang.textContent = paste.language;
+                if (pViews) pViews.textContent = `${paste.views} views`;
+                if (pDate) pDate.textContent = new Date(paste.createdAt).toLocaleString();
+
+                const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
+                const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
+                const container = document.getElementById('pasteContentContainer');
+
+                if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
+                    if (pContent) {
+                        pContent.innerHTML = marked.parse(paste.content);
+                        pContent.classList.add('markdown-body');
+                        if (container) container.classList.add('markdown-body');
+                        pContent.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+                    }
+                } else {
+                    if (pContent) {
+                        pContent.textContent = paste.content;
+                        pContent.className = `hljs language-${paste.language}`;
+                        if (container) container.classList.remove('markdown-body');
+                        hljs.highlightElement(pContent);
+                    }
+                }
+
+                // Reactions
+                const panel = document.getElementById('reactionsPanel');
+                if (panel) panel.style.display = 'flex';
+                if (paste.reactions) {
+                    const l = document.getElementById('count-like'), h = document.getElementById('count-heart'), s = document.getElementById('count-star');
+                    if (l) l.textContent = paste.reactions.like || 0;
+                    if (h) h.textContent = paste.reactions.heart || 0;
+                    if (s) s.textContent = paste.reactions.star || 0;
+                }
+                window.currentViewedPaste = paste;
             }
         })();
 
-        if (mode === 'rotate') {
+        // 5. Interaction UI
+        const backBtn = document.getElementById('backBtn');
+        if (backBtn) backBtn.addEventListener('click', () => window.navigateTo('/public'));
+
+        window.copyPasteContent = function () {
+            if (window.currentViewedPaste) {
+                navigator.clipboard.writeText(window.currentViewedPaste.content);
+                if (window.showToast) window.showToast("Payload copied", "success");
+            } else {
+                console.warn("No paste selected for copy");
+            }
+        };
+
+        window.copyPasteLink = function () {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url);
+            if (window.showToast) window.showToast("Link copied to clipboard", "success");
+        };
+
+        window.handleReaction = async function (type, specificId = null) {
+            const id = specificId || window.currentPasteId;
+            if (!id) return;
+            try {
+                const res = await window.storage.toggleReaction(id, type);
+                if (res.success) {
+                    if (window.showToast) window.showToast("✅ Reacted!", "success");
+                    window.showList(); // Refresh
+                }
+            } catch (e) { console.error("Reaction failed", e); }
+        };
+
+        // Glitch effect on hint
+        const hint = document.querySelector('.tech-hint');
+        if (hint) {
             setInterval(() => {
-                currentIndex = (currentIndex + 1) % colors.length;
-                updateAccent(colors[currentIndex]);
-            }, cycleSpeed);
-        } else {
-            updateAccent(colors[0]); // Use first as fixed
-        }
-    })();
-</script>
-
-<!-- View: VIEWER -->
-<div id="view-viewer"
-    style="display: none; position: relative; width: 100%; min-height: 100vh; z-index: 20; background: transparent; font-family: 'Bricolage Grotesque', sans-serif; overflow: visible !important;">
-    <div id="listView"
-        style="width: 100%; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; background: transparent; overflow: visible; backdrop-filter: none;">
-        <div id="pasteGalleryApp" style="width: 100%;">
-            <div
-                style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; opacity:0.1;">
-                <div class="loader"></div>
-                <p
-                    style="margin-top:20px; font-family:'JetBrains Mono'; color:#00f5ff; letter-spacing:4px; font-size:10px;">
-                    ESTABLISHING UPLINK...</p>
-            </div>
-        </div>
-    </div>
-
-    <div id="detailView" class="container"
-        style="display: none; padding-top: 100px; padding-bottom: 100px; background: rgba(0,0,0,0.3); min-height: 100vh; width: 100%; max-width: 100%; overflow: visible !important;">
-        <button id="backBtn" class="reaction-btn" style="margin-bottom: 2rem;">← Back to Feed</button>
-
-        <main id="mainContent">
-            <div id="detailLoading" class="state-container" style="display: none;">
-                <div class="loader"></div>
-                <p>Loading paste...</p>
-            </div>
-            <div id="notFoundState" class="state-container" style="display: none;">
-                <h2>Paste Not Found</h2>
-            </div>
-            <div id="pasteViewContent" style="display: none;">
-                <div class="paste-header">
-                    <div class="paste-info">
-                        <h2 id="pasteTitle">Loading...</h2>
-                        <div class="paste-meta">
-                            <span class="language-tag" id="pasteLanguage">plaintext</span>
-                            <span class="meta-item" id="pasteViews">0 views</span>
-                            <span class="meta-item" id="pasteDate">Just now</span>
-                        </div>
-                    </div>
-
-                    <!-- REACTION PANEL -->
-                    <div id="reactionsPanel" class="reactions-matrix">
-                        <button class="reaction-trigger heart" onclick="handleReaction('heart')">
-                            <span class="icon">♥</span>
-                            <span class="count" id="count-heart">0</span>
-                        </button>
-                        <button class="reaction-trigger star" onclick="handleReaction('star')">
-                            <span class="icon">★</span>
-                            <span class="count" id="count-star">0</span>
-                        </button>
-                        <button class="reaction-trigger like" onclick="handleReaction('like')">
-                            <span class="icon">👍</span>
-                            <span class="count" id="count-like">0</span>
-                        </button>
-                    </div>
-
-                    <div class="header-actions" style="margin-top: 1rem; display: flex; gap: 10px;">
-                        <button onclick="copyPasteContent()" class="reaction-btn"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Payload</button>
-                        <button onclick="copyPasteLink()" class="reaction-btn"
-                            style="padding: 0.5rem 1rem; font-size: 0.8rem;">Copy Link</button>
-                    </div>
-                </div>
-                <div class="code-container">
-                    <div class="code-header">
-                        <div class="code-title" id="codeTitle">code.txt</div>
-                    </div>
-                    <pre id="pasteContentContainer"><code id="pasteContent" class="hljs"></code></pre>
-                </div>
-            </div>
-        </main>
-    </div>
-</div>
-<!-- Key Entry Modal -->
-<div id="keyModal" class="modal-overlay">
-    <div class="modal-box">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0;">Enter Access Key</h2>
-        <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
-                placeholder="sk-..."></div><button type="button" class="btn-submit blue"
-            onclick="submitKey()">Unlock</button>
-        <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a href="#"
-                onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
-                Access</a></p>
-    </div>
-</div>
-<!-- Request Access Modal -->
-<div id="requestModal" class="modal-overlay">
-    <!-- View 1: Auth Selection -->
-    <div id="req-view-1" class="modal-box">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Request Access</h2>
-        <p style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;">You must verify your identity
-            before requesting a key. </p>
-        <div class="auth-buttons"><button type="button" class="btn-submit auth-discord"
-                onclick="startDiscordAuth('request')"><svg width="20" height="20" viewBox="0 0 24 24"
-                    style="margin-right: 10px; vertical-align: bottom;">
-                    <path fill="currentColor"
-                        d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-                </svg>Discord </button><button type="button" class="btn-submit auth-google"
-                onclick="window.loginWithGoogle()" style="background: #EA4335; color: white;">Google
-            </button><button type="button" class="btn-submit auth-manual" onclick="showManualInput()">Manual Request
-            </button></div>
-    </div>
-    <!-- View 2: Manual Request Input -->
-    <div id="req-view-manual" class="modal-box" style="display: none;">
-        <div class="close-modal" onclick="resetRequestModal()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Manual Request</h2>
-        <div class="input-group"><label>Your Identity (Discord User / Email)</label><input type="text"
-                id="manualIdentity" placeholder="Who are you?"></div>
-        <div class="input-group"><label>Reason</label><textarea id="manualReason" rows="6"
-                placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
-        </div>
-        <p
-            style="color: #888; font-size: 0.8rem; margin-bottom: 2rem; border-left: 2px solid #555; padding-left: 10px;">
-            <strong>Note:</strong>You will still be required to confirm your identity later before
-            receiving a key. Verification via Discord is faster and preferred.
-        </p><button type="button" class="btn-submit red" onclick="submitManualRequest()">Send
-            Request</button>
-    </div>
-    <!-- View 4: Request Form -->
-    <div id="req-view-4" class="modal-box" style="display: none;">
-        <div class="close-modal" onclick="closeModals()">✕</div>
-        <h2 style="margin-top: 0; color: #ff0050;">Submit Request</h2>
-        <div class="input-group"><label>Verified ID</label><input type="text" id="verifiedId" readonly
-                style="opacity: 0.5;"></div>
-        <div class="input-group"><label>Reason</label><textarea id="reqReason" rows="6"
-                placeholder="To gain access, explain how you met or know Esco. In addition, please state any specialties that will help him identify you better assuming there are any :)"></textarea>
-        </div><button type="button" class="btn-submit red" onclick="submitFinalRequest()">Send
-            Request</button>
-    </div>
-</div>
-<!-- Success Popup -->
-<div id="successPopup" class="modal-overlay">
-    <div class="modal-box" style="text-align: center;">
-        <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-        <h2>Request Sent !</h2>
-        <p style="color: #ccc; margin-bottom: 2rem;">Your request has been forwarded. <br>For faster
-            approval, join our Discord server: </p><a href="https://discord.gg/YAqe3UvU5E" target="_blank"
-            class="btn-submit auth-discord" style="text-decoration: none; margin-bottom: 1rem;"><svg width="20"
-                height="20" viewBox="0 0 24 24" style="margin-right: 10px; vertical-align: bottom;">
-                <path fill="currentColor"
-                    d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.956 2.42-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.086 2.157 2.419 0 1.334-.946 2.42-2.157 2.419z" />
-            </svg>Join Discord </a><button type="button" class="btn-submit blue"
-            onclick="window.location.reload()">Return to Home</button>
-    </div>
-</div>
-<!-- Additional Styles for Auth -->
-<style>
-    .auth-discord {
-        background: #5865F2;
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-    }
-
-    .auth-discord:hover {
-        background: #4752C4;
-    }
-
-    .auth-email {
-        background: #333;
-        color: white;
-    }
-
-    .auth-email:hover {
-        background: #444;
-    }
-</style>
-
-
-<script type="module">
-    import { initLoadingShader } from '/public/loading-shader.js';
-
-    // Global Utils & State
-    window.currentEmail = '';
-    window.authMethod = '';
-
-    // Machine Fingerprint (Device Binding)
-    if (!localStorage.getItem('machine_id')) {
-        localStorage.setItem('machine_id', 'mh-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36));
-    }
-    window.getFingerprint = () => localStorage.getItem('machine_id');
-
-    // 1. SPA Navigation & Routing
-    window.navigateTo = function (path) {
-        console.log("Navigating to:", path);
-        const ls = document.getElementById('loadingState');
-        if (ls) {
-            ls.style.display = 'flex';
-            ls.classList.remove('fade-out');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+                if (Math.random() > 0.95) {
+                    hint.style.opacity = 0.5;
+                    setTimeout(() => hint.style.opacity = 0.8, 50);
+                }
+            }, 100);
         }
 
-        setTimeout(() => {
-            window.history.pushState({}, '', path);
-            handleRoute();
-        }, 800);
-    };
+        window.handleRoute = function () {
+            const path = window.location.pathname;
+            if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
 
-    window.hideLoader = function () {
-        const ls = document.getElementById('loadingState');
-        if (!ls) return;
-        ls.classList.add('fade-out');
-        setTimeout(() => { ls.style.display = 'none'; }, 500);
-    };
+            // View Switching Logic
+            const entry = document.getElementById('view-entry');
+            const viewer = document.getElementById('view-viewer');
+            const denied = document.getElementById('view-access-denied');
+            const dock = document.querySelector('.top-action-dock');
 
-    window.handleRoute = function () {
-        const path = window.location.pathname;
-        if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
+            if (path === '/' || path === '/index.html') {
+                if (entry) entry.style.display = 'flex';
+                if (viewer) viewer.style.display = 'none';
+                if (denied) denied.style.display = 'none';
+                if (dock) dock.style.display = 'block';
+                document.body.style.overflow = 'auto';
+                if (window.setBackgroundVideo) window.setBackgroundVideo('main');
+                updateUptime();
+            } else if (path === '/access-denied') {
+                if (entry) entry.style.display = 'none';
+                if (viewer) viewer.style.display = 'none';
+                if (denied) denied.style.display = 'flex';
+                if (dock) dock.style.display = 'none';
+                document.body.style.overflow = 'hidden';
+                if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
+            } else if (path.startsWith('/public') || path.startsWith('/v/')) {
+                if (entry) entry.style.display = 'none';
+                if (viewer) viewer.style.display = 'block';
+                if (denied) denied.style.display = 'none';
+                if (dock) dock.style.display = 'none';
+                document.body.style.setProperty('overflow', 'auto', 'important');
+                if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
-        // View Switching Logic
-        const entry = document.getElementById('view-entry');
-        const viewer = document.getElementById('view-viewer');
-        const denied = document.getElementById('view-access-denied');
-        const dock = document.querySelector('.top-action-dock');
-
-        if (path === '/' || path === '/index.html') {
-            if (entry) entry.style.display = 'flex';
-            if (viewer) viewer.style.display = 'none';
-            if (denied) denied.style.display = 'none';
-            if (dock) dock.style.display = 'block';
-            document.body.style.overflow = 'auto';
-            if (window.setBackgroundVideo) window.setBackgroundVideo('main');
-            updateUptime();
-        } else if (path === '/access-denied') {
-            if (entry) entry.style.display = 'none';
-            if (viewer) viewer.style.display = 'none';
-            if (denied) denied.style.display = 'flex';
-            if (dock) dock.style.display = 'none';
-            document.body.style.overflow = 'hidden';
-            if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-        } else if (path.startsWith('/public') || path.startsWith('/v/')) {
-            if (entry) entry.style.display = 'none';
-            if (viewer) viewer.style.display = 'block';
-            if (denied) denied.style.display = 'none';
-            if (dock) dock.style.display = 'none';
-            document.body.style.setProperty('overflow', 'auto', 'important');
-            if (window.setBackgroundVideo) window.setBackgroundVideo('public');
-
-            if (path.startsWith('/v/')) {
-                const id = path.split('/')[2];
-                if (window.showDetail) window.showDetail(id);
-            } else {
-                if (window.showList) window.showList();
+                if (path.startsWith('/v/')) {
+                    const id = path.split('/')[2];
+                    if (window.showDetail) window.showDetail(id);
+                } else {
+                    if (window.showList) window.showList();
+                }
             }
+            window.hideLoader();
         }
-        window.hideLoader();
-    }
+    </script>
 
-    // 2. Session & Auth UI Sync
-    async function checkSession() {
-        try {
-            const storage = new PasteStorage();
-            const user = await storage.getMe();
-            const loggedOut = document.getElementById('userLoggedOut');
-            const loggedIn = document.getElementById('userLoggedIn');
-            const userName = document.getElementById('userName');
-            const userAvatar = document.getElementById('userAvatar');
+    <!-- Firebase Auth Handler -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-            if (user) {
-                if (loggedOut) loggedOut.style.display = 'none';
-                if (loggedIn) {
-                    loggedIn.style.display = 'flex';
-                    if (userName) userName.textContent = user.displayName || user.username || 'User';
-                    if (userAvatar) userAvatar.src = user.avatarUrl || '/public/favicon.png';
-                }
-            } else {
-                if (loggedOut) loggedOut.style.display = 'flex';
-                if (loggedIn) loggedIn.style.display = 'none';
+        // Immediate Login Stub for Responsiveness
+        window.loginWithGoogle = async () => {
+            if (!window.firebaseReady) {
+                window.showToast("Initializing Auth... Please wait.", "info");
+                return;
             }
-        } catch (e) { console.error("Session check failed", e); }
-    }
-
-    // Run on init
-    checkSession();
-    handleRoute();
-    window.onpopstate = handleRoute;
-
-    window.closeModals = function () {
-        document.querySelectorAll('.modal-overlay').forEach(el => el.classList.remove('active'));
-    };
-
-    window.submitKey = function () {
-        const input = document.getElementById('accessKeyInput');
-        const key = input ? input.value.trim() : null;
-        if (!key) return alert('Please enter a valid access key.');
-
-        localStorage.setItem('private_access_key', key);
-        window.closeModals();
-        if (window.showToast) window.showToast("✅ Access Key Applied!", "success");
-        setTimeout(() => window.location.reload(), 800);
-    };
-
-    // 3. Modal & Auth Flow
-    window.openKeyModal = function () {
-        window.closeModals();
-        document.getElementById('keyModal').classList.add('active');
-    };
-
-    window.openRequestModal = function () {
-        window.closeModals();
-        window.resetRequestModal();
-        document.getElementById('requestModal').classList.add('active');
-    };
-
-    window.switchView = function (id) {
-        document.querySelectorAll('#requestModal .modal-box').forEach(el => el.style.display = 'none');
-        document.getElementById(id).style.display = 'block';
-    };
-
-    window.resetRequestModal = function () {
-        window.switchView('req-view-1');
-        document.getElementById('manualIdentity').value = '';
-        document.getElementById('manualReason').value = '';
-        document.getElementById('reqReason').value = '';
-    };
-
-    window.showManualInput = function () {
-        window.switchView('req-view-manual');
-    };
-
-    window.submitManualRequest = async function () {
-        const contact = document.getElementById('manualIdentity').value;
-        const reason = document.getElementById('manualReason').value;
-        const btn = document.querySelector('#req-view-manual .btn-submit');
-        if (!contact || !reason) return alert('Please fill in all fields.');
-
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
-
-        try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact, reason, method: 'Manual' })
-            });
-            const data = await res.json();
-            if (data.success) {
-                window.closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else { alert('Error: ' + (data.error || 'Unknown error')); }
-        } catch (e) { alert('Connection error'); }
-        finally { btn.disabled = false; btn.textContent = 'Send Request'; }
-    };
-
-    window.submitFinalRequest = async function () {
-        const reason = document.getElementById('reqReason').value;
-        const btn = document.querySelector('#req-view-4 .btn-submit');
-        btn.disabled = true;
-        btn.textContent = 'Sending...';
-
-        try {
-            const res = await fetch('/api/access/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contact: window.currentEmail, reason, method: window.authMethod })
-            });
-            const data = await res.json();
-            if (data.success) {
-                window.closeModals();
-                document.getElementById('successPopup').classList.add('active');
-            } else { alert('Error: ' + (data.error || 'Unknown error')); }
-        } catch (e) { alert('Connection error'); }
-        finally { btn.disabled = false; btn.textContent = 'Send Request'; }
-    };
-
-    window.startDiscordAuth = function (mode = 'request') {
-        const width = 500, height = 800;
-        const left = (window.screen.width / 2) - (width / 2);
-        const top = (window.screen.height / 2) - (height / 2);
-        const endpoint = `/api/auth/discord?state=${mode === 'login' ? 'login' : 'verify'}`;
-        const popup = window.open(endpoint, 'Discord Auth', `width=${width},height=${height},top=${top},left=${left}`);
-
-        window.addEventListener('message', function onMessage(e) {
-            if (e.data.type === 'DISCORD_VERIFIED') {
-                window.removeEventListener('message', onMessage);
-                if (mode === 'login') {
-                    if (window.showToast) window.showToast("✅ Signed in!", "success");
-                    setTimeout(() => window.location.reload(), 1000);
-                    return;
-                }
-                if (e.data.existingKey) {
-                    localStorage.setItem('private_access_key', e.data.existingKey);
-                    window.closeModals();
-                    const hint = document.querySelector('.tech-hint');
-                    if (hint) hint.innerHTML = "<span style='color:#00ff88'>ACCESS GRANTED.</span>";
-                    setTimeout(() => window.navigateTo('/public'), 800);
-                    return;
-                }
-                window.currentEmail = e.data.id;
-                window.authMethod = 'Discord';
-                document.getElementById('verifiedId').value = window.currentEmail;
-                window.switchView('req-view-4');
-            }
-        });
-    };
-
-    // 4. Viewer Logic (Isolated Scope)
-    (function () {
-        const storage = window.storage = new PasteStorage();
-        const detailLoading = document.getElementById('detailLoading');
-        const notFoundState = document.getElementById('notFoundState');
-        const pasteViewContent = document.getElementById('pasteViewContent');
-
-        // Elements for detail
-        const pTitle = document.getElementById('pasteTitle');
-        const pLang = document.getElementById('pasteLanguage');
-        const pViews = document.getElementById('pasteViews');
-        const pDate = document.getElementById('pasteDate');
-        const pContent = document.getElementById('pasteContent');
-
-        window.showList = async function () {
-            document.getElementById('detailView').style.display = 'none';
-            document.getElementById('listView').style.display = 'block';
-            await loadPastes();
         };
 
-        async function loadPastes() {
+        async function initFirebase() {
             try {
-                const headers = { 'Content-Type': 'application/json' };
-                const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
+                const configRes = await fetch('/api/auth/firebase-config');
+                const firebaseConfig = await configRes.json();
+                if (!firebaseConfig.apiKey) return;
 
-                const res = await fetch(`/api/pastes/public-list?_t=${Date.now()}`, { headers, credentials: 'include' });
-                if (!res.ok) throw new Error(`Server returned ${res.status}`);
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const provider = new GoogleAuthProvider();
+                window.firebaseReady = true;
 
-                const pastes = await res.json();
-                if (!Array.isArray(pastes)) return;
-
-                if (window.setPasteData) window.setPasteData(pastes);
-                else window._pendingPastes = pastes;
-
-            } catch (e) {
-                console.error("Sync Error:", e);
-            } finally { window.hideLoader(); }
-        }
-
-        setInterval(loadPastes, 30000);
-
-        window.showDetail = async function (id) {
-            if (window.ScrollTrigger) ScrollTrigger.getAll().forEach(t => t.disable());
-            if (window.setBackgroundVideo) window.setBackgroundVideo('detail');
-
-            document.getElementById('listView').style.display = 'none';
-            document.getElementById('detailView').style.display = 'block';
-
-            if (detailLoading) detailLoading.style.display = 'flex';
-            if (notFoundState) notFoundState.style.display = 'none';
-            if (pasteViewContent) pasteViewContent.style.display = 'none';
-            window.currentPasteId = id;
-
-            try {
-                let paste = await storage.getPaste(id);
-                if (!paste) throw new Error('Not found');
-
-                renderPasteDetail(paste);
-                if (detailLoading) detailLoading.style.display = 'none';
-                if (pasteViewContent) pasteViewContent.style.display = 'block';
-
-            } catch (err) {
-                console.error(err);
-                if (detailLoading) detailLoading.style.display = 'none';
-                if (notFoundState) notFoundState.style.display = 'flex';
-            } finally { window.hideLoader(); }
-        };
-
-        function renderPasteDetail(paste) {
-            if (pTitle) pTitle.textContent = paste.title || 'Untitled';
-            if (pLang) pLang.textContent = paste.language;
-            if (pViews) pViews.textContent = `${paste.views} views`;
-            if (pDate) pDate.textContent = new Date(paste.createdAt).toLocaleString();
-
-            const hasImage = /!\[.*?\]\(.*?\)/.test(paste.content);
-            const hasVideo = /<video.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const hasIframe = /<iframe.*?src=["'].*?["'].*?>/i.test(paste.content);
-            const container = document.getElementById('pasteContentContainer');
-
-            if (paste.language === 'markdown' || (paste.language === 'plaintext' && (hasImage || hasVideo || hasIframe))) {
-                if (pContent) {
-                    pContent.innerHTML = marked.parse(paste.content);
-                    pContent.classList.add('markdown-body');
-                    if (container) container.classList.add('markdown-body');
-                    pContent.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-                }
-            } else {
-                if (pContent) {
-                    pContent.textContent = paste.content;
-                    pContent.className = `hljs language-${paste.language}`;
-                    if (container) container.classList.remove('markdown-body');
-                    hljs.highlightElement(pContent);
-                }
-            }
-
-            // Reactions
-            const panel = document.getElementById('reactionsPanel');
-            if (panel) panel.style.display = 'flex';
-            if (paste.reactions) {
-                const l = document.getElementById('count-like'), h = document.getElementById('count-heart'), s = document.getElementById('count-star');
-                if (l) l.textContent = paste.reactions.like || 0;
-                if (h) h.textContent = paste.reactions.heart || 0;
-                if (s) s.textContent = paste.reactions.star || 0;
-            }
-            window.currentViewedPaste = paste;
-        }
-    })();
-
-    // 5. Interaction UI
-    const backBtn = document.getElementById('backBtn');
-    if (backBtn) backBtn.addEventListener('click', () => window.navigateTo('/public'));
-
-    window.copyPasteContent = function () {
-        if (window.currentViewedPaste) {
-            navigator.clipboard.writeText(window.currentViewedPaste.content);
-            if (window.showToast) window.showToast("Payload copied", "success");
-        } else {
-            console.warn("No paste selected for copy");
-        }
-    };
-
-    window.copyPasteLink = function () {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url);
-        if (window.showToast) window.showToast("Link copied to clipboard", "success");
-    };
-
-    window.handleReaction = async function (type, specificId = null) {
-        const id = specificId || window.currentPasteId;
-        if (!id) return;
-        try {
-            const res = await window.storage.toggleReaction(id, type);
-            if (res.success) {
-                if (window.showToast) window.showToast("✅ Reacted!", "success");
-                window.showList(); // Refresh
-            }
-        } catch (e) { console.error("Reaction failed", e); }
-    };
-
-    // Glitch effect on hint
-    const hint = document.querySelector('.tech-hint');
-    if (hint) {
-        setInterval(() => {
-            if (Math.random() > 0.95) {
-                hint.style.opacity = 0.5;
-                setTimeout(() => hint.style.opacity = 0.8, 50);
-            }
-        }, 100);
-    }
-</script>
-
-<!-- Firebase Auth Handler -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-    // Immediate Login Stub for Responsiveness
-    window.loginWithGoogle = async () => {
-        if (!window.firebaseReady) {
-            window.showToast("Initializing Auth... Please wait.", "info");
-            return;
-        }
-    };
-
-    async function initFirebase() {
-        try {
-            const configRes = await fetch('/api/auth/firebase-config');
-            const firebaseConfig = await configRes.json();
-            if (!firebaseConfig.apiKey) return;
-
-            const app = initializeApp(firebaseConfig);
-            const auth = getAuth(app);
-            const provider = new GoogleAuthProvider();
-            window.firebaseReady = true;
-
-            window.loginWithGoogle = async () => {
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    const user = result.user;
-                    const response = await fetch('/api/auth/google', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
-                    });
-                    const data = await response.json();
-                    if (data.success) {
-                        if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
-                        setTimeout(() => window.location.reload(), 1000);
+                window.loginWithGoogle = async () => {
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const user = result.user;
+                        const response = await fetch('/api/auth/google', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } catch (error) {
+                        console.error("Google login failed", error);
+                        alert("Login Failed: " + (error.message || "Unknown Error"));
                     }
-                } catch (error) {
-                    console.error("Google login failed", error);
-                    alert("Login Failed: " + (error.message || "Unknown Error"));
-                }
-            };
-        } catch (e) { console.error(e); }
-    }
-
-    initFirebase();
-</script>
-
-<!-- Audio Persistence & Auto-Play on Interaction -->
-<script>
-    document.addEventListener('mousedown', () => {
-        if (window.audioSystem && window.audioSystem.isEnabled) {
-            console.log("Resuming audio based on user preference");
-            window.audioSystem.play();
+                };
+            } catch (e) { console.error(e); }
         }
-    }, { once: true });
-</script>
 
-<script>
-    // Toast Helper (Fallthrough)
-    window.showToast = window.showToast || ((msg) => console.log("Toast:", msg));
-</script>
-<script type="module" src="/public/gallery.js"></script>
-<script src="/public/title-rotator.js?v=999"></script>
+        initFirebase();
+    </script>
+
+    <!-- Audio Persistence & Auto-Play on Interaction -->
+    <script>
+        document.addEventListener('mousedown', () => {
+            if (window.audioSystem && window.audioSystem.isEnabled) {
+                console.log("Resuming audio based on user preference");
+                window.audioSystem.play();
+            }
+        }, { once: true });
+    </script>
+
+    <script>
+        // Toast Helper (Fallthrough)
+        window.showToast = window.showToast || ((msg) => console.log("Toast:", msg));
+    </script>
+    <script>
+        // FINAL INITIALIZATION
+        (function () {
+            if (window.handleRoute) window.handleRoute();
+            window.onpopstate = window.handleRoute;
+
+            // If we are on public page, trigger early fetch
+            if (window.location.pathname.startsWith('/public') || window.location.pathname.startsWith('/v/')) {
+                const checkAndFetch = () => {
+                    if (window.showList) window.showList();
+                    else setTimeout(checkAndFetch, 100);
+                };
+                checkAndFetch();
+            }
+        })();
+    </script>
+    <script type="module" src="/public/gallery.js"></script>
+    <script src="/public/title-rotator.js?v=999"></script>
 </body>
+
 
 </html>
