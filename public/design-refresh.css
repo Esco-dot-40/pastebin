@@ -12,22 +12,65 @@
 
 /* 2. Esco Profile Card (Jotform inspired) */
 .esco-profile-card {
-    width: 420px;
+    width: 850px;
+    max-width: 95vw;
     padding: 0;
-    /* Removing padding for full-bleed feel */
     border-radius: 32px;
     background: var(--card-bg);
     border: 1px solid rgba(0, 245, 255, 0.15);
     box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 77, 0, 0.05);
-    text-align: center;
+    text-align: left;
+    /* Changed to left for dashboard feel */
     position: relative;
     overflow: hidden;
-    margin: 40px auto;
+    margin: 20px auto;
     animation: cardEntrance 1s cubic-bezier(0.23, 1, 0.32, 1);
     z-index: 1000;
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.esco-dashboard-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 580px;
+}
+
+.dashboard-left {
+    background: #000;
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /* For name overlay */
+}
+
+.identity-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px 30px 30px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+    z-index: 2;
+}
+
+.dashboard-right {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Scrollbar for dashboard right */
+.dashboard-right::-webkit-scrollbar {
+    width: 4px;
+}
+
+.dashboard-right::-webkit-scrollbar-thumb {
+    background: var(--primary-neon);
+    border-radius: 10px;
 }
 
 .esco-profile-card:hover {
@@ -122,6 +165,56 @@
     color: #000;
     transform: translateY(-8px) rotate(8deg);
     box-shadow: 0 15px 30px rgba(0, 245, 255, 0.3);
+}
+
+/* Compact Dashboard Grids */
+.website-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    width: 100%;
+}
+
+.website-cards-grid .site-card {
+    padding: 15px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-light);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.website-cards-grid .site-card:hover {
+    background: rgba(0, 245, 255, 0.05);
+    border-color: var(--primary-neon);
+    transform: translateY(-3px);
+}
+
+.dashboard-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+@media (max-width: 850px) {
+    .esco-profile-card {
+        width: 380px;
+    }
+
+    .esco-dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-left {
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        height: 300px !important;
+    }
+
+    .website-cards-grid,
+    .dashboard-actions {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* 3. Product Reveal Cards (Jon Kantner KQPdXK inspired) */
