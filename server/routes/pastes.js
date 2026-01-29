@@ -111,16 +111,53 @@ router.delete('/analytics/isp/:ispName', requireAuth, (req, res) => {
 
 router.get('/analytics', requireAuth, (req, res) => {
     try {
-        const pasteViews = db.prepare('SELECT * FROM paste_views').all();
-        const pageAccesses = db.prepare('SELECT * FROM page_accesses').all();
-        const allHits = [...pasteViews.map(v => ({ ...v, source: 'paste' })), ...pageAccesses.map(v => ({ ...v, source: 'page' }))].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        const allReactions = db.prepare('SELECT * FROM paste_reactions ORDER BY createdAt DESC').all();
+        // Optimized aggregate stats using SQL
+        const totalVisits = db.prepare(`
+            SELECT (SELECT COUNT(*) FROM paste_views) + (SELECT COUNT(*) FROM page_accesses) as total
+        `).get().total;
 
-        const totalVisits = allHits.length;
-        const uniqueVisitors = new Set(allHits.map(h => h.ip)).size;
-        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-        const activeNow = new Set(allHits.filter(h => new Date(h.timestamp).getTime() > fiveMinutesAgo).map(h => h.ip)).size;
-        const uniqueLocations = new Set(allHits.filter(h => h.city || h.country).map(h => `${h.city},${h.country}`)).size;
+        const uniqueVisitors = db.prepare(`
+            SELECT COUNT(DISTINCT ip) as count FROM (
+                SELECT ip FROM paste_views UNION SELECT ip FROM page_accesses
+            )
+        `).get().count;
+
+        const fiveMinutesAgo = new Date(Date.now() - (5 * 60 * 1000)).toISOString();
+        const activeNow = db.prepare(`
+            SELECT COUNT(DISTINCT ip) as count FROM (
+                SELECT ip FROM paste_views WHERE timestamp > ?
+                UNION
+                SELECT ip FROM page_accesses WHERE timestamp > ?
+            )
+        `).get(fiveMinutesAgo, fiveMinutesAgo).count;
+
+        const uniqueLocations = db.prepare(`
+            SELECT COUNT(*) as count FROM (
+                SELECT city, country FROM paste_views WHERE city IS NOT NULL GROUP BY city, country
+                UNION
+                SELECT city, country FROM page_accesses WHERE city IS NOT NULL GROUP BY city, country
+            )
+        `).get().count;
+
+        // Visitor counts (New vs Returning)
+        const visitorStats = db.prepare(`
+            SELECT 
+                COUNT(CASE WHEN hit_count = 1 THEN 1 END) as newVisitors,
+                COUNT(CASE WHEN hit_count > 1 THEN 1 END) as returningVisitors
+            FROM (
+                SELECT ip, COUNT(*) as hit_count FROM (
+                    SELECT ip FROM paste_views UNION ALL SELECT ip FROM page_accesses
+                ) GROUP BY ip
+            )
+        `).get();
+
+        // Platform & Browser distribution (Simplified logic in SQL if possible, but UA parsing is often easier in JS)
+        // For efficiency, we'll only fetch the userAgent strings and count them in JS
+        const uaRows = db.prepare(`
+            SELECT userAgent FROM paste_views WHERE userAgent IS NOT NULL
+            UNION ALL
+            SELECT userAgent FROM page_accesses WHERE userAgent IS NOT NULL
+        `).all();
 
         const groupCount = (arr, keyFn) => {
             const map = {};
@@ -128,49 +165,93 @@ router.get('/analytics', requireAuth, (req, res) => {
             return Object.entries(map).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
         };
 
-        const ipCounts = {}; allHits.forEach(h => { ipCounts[h.ip] = (ipCounts[h.ip] || 0) + 1; });
-        const newVisitors = Object.values(ipCounts).filter(c => c === 1).length;
-        const returningVisitors = Object.values(ipCounts).filter(c => c > 1).length;
+        const platforms = groupCount(uaRows, h => {
+            const ua = h.userAgent || '';
+            if (ua.includes('Windows')) return 'Windows';
+            if (ua.includes('Macintosh')) return 'macOS';
+            if (ua.includes('Android')) return 'Android';
+            if (ua.includes('iPhone')) return 'iOS';
+            return 'Other';
+        });
 
-        // Devices
-        const touchDevices = allHits.filter(h => {
+        const browsers = groupCount(uaRows, h => {
+            const ua = h.userAgent || '';
+            if (ua.includes('Edg/')) return 'Edge';
+            if (ua.includes('Chrome')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            return 'Safari';
+        });
+
+        const touchCount = uaRows.filter(h => {
             const ua = h.userAgent || '';
             return ua.includes('Mobile') || ua.includes('Android') || ua.includes('iPhone') || ua.includes('iPad');
         }).length;
 
-        res.json({
-            totalVisits, uniqueVisitors, activeNow, uniqueLocations, newVisitors, returningVisitors,
-            platforms: groupCount(allHits, h => {
-                const ua = h.userAgent || '';
-                if (ua.includes('Windows')) return 'Windows';
-                if (ua.includes('Macintosh')) return 'macOS';
-                if (ua.includes('Android')) return 'Android';
-                if (ua.includes('iPhone')) return 'iOS';
-                return 'Other';
-            }),
-            browsers: groupCount(allHits, h => {
-                const ua = h.userAgent || '';
-                if (ua.includes('Edg/')) return 'Edge';
-                if (ua.includes('Chrome')) return 'Chrome';
-                if (ua.includes('Firefox')) return 'Firefox';
-                return 'Safari';
-            }),
-            locations: Object.values(allHits.reduce((acc, h) => {
-                if (h.lat && h.lon) {
-                    const k = `${h.city},${h.country}`;
-                    if (!acc[k]) acc[k] = { city: h.city, country: h.country, lat: h.lat, lon: h.lon, count: 0 };
-                    acc[k].count++;
-                }
-                return acc;
-            }, {})),
-            isps: groupCount(allHits, h => h.isp),
-            devices: { touchCount: touchDevices, desktopCount: allHits.length - touchDevices },
-            referrers: groupCount(allHits, h => { if (!h.referrer) return 'Direct'; try { return new URL(h.referrer).hostname; } catch (e) { return 'Other'; } }),
-            recentActivity: allHits.slice(0, 50),
-            recentReactions: allReactions.slice(0, 50),
-            pageAccesses: { total: pageAccesses.length, byPage: groupCount(pageAccesses, p => p.path).slice(0, 20) }
+        // Locations for Heatmap/Cities
+        const locations = db.prepare(`
+            SELECT city, country, lat, lon, COUNT(*) as count
+            FROM (
+                SELECT city, country, lat, lon FROM paste_views WHERE lat IS NOT NULL
+                UNION ALL
+                SELECT city, country, lat, lon FROM page_accesses WHERE lat IS NOT NULL
+            )
+            GROUP BY city, country, lat, lon
+            ORDER BY count DESC
+        `).all();
+
+        const isps = db.prepare(`
+            SELECT isp as name, COUNT(*) as count FROM (
+                SELECT isp FROM paste_views WHERE isp IS NOT NULL
+                UNION ALL
+                SELECT isp FROM page_accesses WHERE isp IS NOT NULL
+            ) GROUP BY isp ORDER BY count DESC LIMIT 20
+        `).all();
+
+        const referrersRows = db.prepare(`
+            SELECT referrer FROM page_accesses WHERE referrer IS NOT NULL
+        `).all();
+
+        const referrers = groupCount(referrersRows, h => {
+            try { return new URL(h.referrer).hostname; } catch (e) { return 'Direct/Other'; }
         });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+
+        // Recent Activity (Still need some detailed rows)
+        const recentActivity = db.prepare(`
+            SELECT * FROM (
+                SELECT 'paste' as source, path, ip, city, country, countryCode, timestamp FROM paste_views
+                LEFT JOIN pastes ON paste_views.pasteId = pastes.id
+                UNION ALL
+                SELECT 'page' as source, path, ip, city, country, countryCode, timestamp FROM page_accesses
+            ) ORDER BY timestamp DESC LIMIT 50
+        `).all();
+
+        const recentReactions = db.prepare('SELECT * FROM paste_reactions ORDER BY createdAt DESC LIMIT 50').all();
+
+        const pageAccessesByPage = db.prepare(`
+            SELECT path as name, COUNT(*) as count FROM page_accesses GROUP BY path ORDER BY count DESC LIMIT 20
+        `).all();
+
+        res.json({
+            totalVisits,
+            uniqueVisitors,
+            activeNow,
+            uniqueLocations,
+            newVisitors: visitorStats.newVisitors,
+            returningVisitors: visitorStats.returningVisitors,
+            platforms,
+            browsers,
+            locations,
+            isps,
+            devices: { touchCount, desktopCount: totalVisits - touchCount },
+            referrers,
+            recentActivity,
+            recentReactions,
+            pageAccesses: { total: totalVisits, byPage: pageAccessesByPage }
+        });
+    } catch (e) {
+        console.error('Analytics Error:', e);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 router.get('/stats/summary', requireAuth, (req, res) => {

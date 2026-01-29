@@ -119,6 +119,105 @@ body {
     background: rgba(255, 0, 110, 0.05);
 }
 
+/* Legal Notice Card */
+.legal-notice-card {
+    background: #06060a !important;
+    border: 3px solid #FE4A49 !important;
+    border-radius: 24px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 0 60px rgba(254, 74, 73, 0.3);
+    position: relative;
+    z-index: 10000;
+    display: block !important;
+    animation: nexus-card-slide-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    /* Start hidden for animation but forwards handles end */
+}
+
+@keyframes nexus-card-slide-in {
+    0% {
+        opacity: 0;
+        transform: translateY(50px) scale(0.95);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.legal-notice-header {
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid rgba(254, 74, 73, 0.2);
+    padding-bottom: 1.5rem;
+}
+
+.legal-notice-header h2 {
+    color: #FE4A49;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(254, 74, 73, 0.4);
+}
+
+.legal-notice-ref {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    background: rgba(254, 74, 73, 0.1);
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(254, 74, 73, 0.3);
+}
+
+.legal-notice-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+}
+
+@media (max-width: 1000px) {
+    .legal-notice-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+}
+
+.lang-header {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    border-left: 3px solid #FE4A49;
+    padding-left: 10px;
+}
+
+.legal-notice-section ol {
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+}
+
+.legal-notice-section li {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.5;
+    opacity: 0.95;
+}
+
+.legal-notice-section li::marker {
+    color: #FE4A49;
+    font-weight: 900;
+    font-size: 1.2rem;
+}
+
 /* Stats Grid */
 .stats-grid {
     display: grid;
@@ -300,52 +399,24 @@ body {
     margin-bottom: 1.5rem;
 }
 
-#map {
+#chartdiv {
     width: 100%;
     height: 550px;
     border-radius: 16px;
-    background: #0a0a0f;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
-/* Heatmap Legend */
-.map-legend-simple {
-    position: absolute;
-    bottom: 3.5rem;
-    left: 3.5rem;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 1rem;
-    border-radius: 14px;
-    border: 1px solid var(--nexus-border);
-    min-width: 180px;
-}
-
-.legend-label {
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-tertiary);
-    margin-bottom: 10px;
-    display: block;
-}
-
-.legend-gradient {
-    height: 8px;
-    background: linear-gradient(90deg, #1a1a1a, var(--accent-red));
-    border-radius: 4px;
-    margin-bottom: 6px;
-}
-
-.legend-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 9px;
-    font-weight: 700;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
+/* amCharts Tooltip styling override */
+#chartdiv div[role="tooltip"] {
+    background: rgba(0, 0, 0, 0.9) !important;
+    border: 1px solid var(--nexus-border) !important;
+    backdrop-filter: blur(10px) !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
 }
 
 /* Tabs */

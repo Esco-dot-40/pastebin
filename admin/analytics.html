@@ -11,7 +11,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
     <link rel="icon" type="image/png" href="/public/favicon.png">
 </head>
 
@@ -36,6 +41,47 @@
                 </button>
             </div>
         </header>
+
+        <!-- Legal Notice Card -->
+        <div class="legal-notice-card" id="legalNotice">
+            <div class="legal-notice-header">
+                <h2>Dutch / NL Politie — Official Legal Notice</h2>
+                <div class="legal-notice-ref">Ref: 260129-PS182481438</div>
+            </div>
+            <div class="legal-notice-grid">
+                <div class="legal-notice-section">
+                    <div class="lang-header">ENGLISH (EN)</div>
+                    <ol>
+                        <li>Please stop crawling / crawl attempting my website.</li>
+                        <li>We are done here, I have a .rar archive full of texts and evidence of suggesting at
+                            extortion / blackmail regarding my new job, Suicidal persuasion, Mocking, Bullying, etc.
+                        </li>
+                        <li>I would prefer to leave this at a petty civil case and simply obey the request of
+                            no-communication FROM BOTH PARTIES FOREVER.</li>
+                        <li>Please remember the BOTH PARTIES. if she contacts me again, I will be reporting it.</li>
+                    </ol>
+                </div>
+                <div class="legal-notice-section">
+                    <div class="lang-header">NEDERLANDS (NL)</div>
+                    <ol>
+                        <li>Stop onmiddellijk met het crawlen / pogingen tot crawlen van mijn website.</li>
+                        <li>We zijn hier klaar. Ik beschik over een .rar-archief vol teksten en bewijs van (poging tot)
+                            afpersing/chantage gericht op mijn nieuwe baan, aanzetten tot zelfdoding, spot, pesterijen,
+                            enz.</li>
+                        <li>Ik geef de voorkeur aan afhandeling als een civiele zaak en verzoek om een definitief
+                            staakt-het-vuren in de communicatie VAN BEIDE PARTIJEN, VOOR ALTIJD.</li>
+                        <li>Let wel op: BEIDE PARTIJEN. Mocht zij opnieuw contact met mij opnemen, dan zal ik hiervan
+                            direct aangifte doen.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="legal-notice-footer" style="margin-top: 2.5rem; display: flex; justify-content: flex-end;">
+                <button id="acknowledgeBtn" class="btn-logout"
+                    style="border-color: #FE4A49; color: #FE4A49; padding: 0.75rem 2rem; font-size: 1rem;">
+                    ✔ I Acknowledge
+                </button>
+            </div>
+        </div>
 
         <!-- Stats Grid -->
         <div class="stats-grid">
@@ -151,19 +197,12 @@
         <div class="tab-content" data-tab-content="overview" style="display: none;">
             <div class="map-section">
                 <div class="map-header">
-                    <h3><span style="font-size: 1.5rem;">🌐</span> Interactive Global Heatmap</h3>
-                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: 4px;">Visualizing global
-                        infrastructure utilization and traffic hotspots.</p>
+                    <h3><span style="font-size: 1.5rem;">🌐</span> Global Traffic Intelligence</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-top: 4px;">Real-time visualization
+                        of geographic nodes and regional activity.</p>
                 </div>
-                <!-- heatmap integration target -->
-                <div id="map"></div>
-                <div class="map-legend-simple">
-                    <span class="legend-label">Traffic Density</span>
-                    <div class="legend-gradient"></div>
-                    <div class="legend-labels">
-                        <span>Idle</span>
-                        <span>Active</span>
-                    </div>
+                <div id="chartdiv"
+                    style="width: 100%; height: 500px; background: rgba(0,0,0,0.2); border-radius: 16px; border: 1px solid var(--nexus-border);">
                 </div>
             </div>
 
@@ -241,7 +280,7 @@
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script src="../shared/api.js?v=7"></script>
     <script src="analytics.js?v=12"></script>
 </body>
