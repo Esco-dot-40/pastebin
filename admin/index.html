@@ -12,10 +12,15 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=JetBrains+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Outfit:wght@100..900&display=swap"
+        rel="stylesheet">
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
     <link rel="icon" type="image/png" href="/public/favicon.png">
 </head>
 
@@ -101,6 +106,48 @@
             </div>
         </header>
 
+        <!-- Legal Notice Card -->
+        <div class="legal-notice-card" id="legalNotice" style="display: none;">
+            <div class="legal-notice-header">
+                <h2>Dutch / NL Politie — Official Legal Notice</h2>
+                <div class="legal-notice-ref">Ref: 260129-PS182481438</div>
+            </div>
+            <div class="legal-notice-grid">
+                <div class="legal-notice-section">
+                    <div class="lang-header">ENGLISH (EN)</div>
+                    <ol>
+                        <li>Please stop crawling / crawl attempting my website.</li>
+                        <li>We are done here, I have a .rar archive full of texts and evidence of suggesting at
+                            extortion / blackmail regarding my new job, Suicidal persuasion, Mocking, Bullying, etc.
+                        </li>
+                        <li>I would prefer to leave this at a petty civil case and simply obey the request of
+                            no-communication FROM BOTH PARTIES FOREVER.</li>
+                        <li>Please remember the BOTH PARTIES. if she contacts me again, I will be reporting it.</li>
+                    </ol>
+                </div>
+                <div class="legal-notice-section">
+                    <div class="lang-header">NEDERLANDS (NL)</div>
+                    <ol>
+                        <li>Stop onmiddellijk met het crawlen / pogingen tot crawlen van mijn website.</li>
+                        <li>We zijn hier klaar. Ik beschik over een .rar-archief vol teksten en bewijs van (poging tot)
+                            afpersing/chantage gericht op mijn nieuwe baan, aanzetten tot zelfdoding, spot, pesterijen,
+                            enz.</li>
+                        <li>Ik geef de voorkeur aan afhandeling als een civiele zaak en verzoek om een definitief
+                            staakt-het-vuren in de communicatie VAN BEIDE PARTIJEN, VOOR ALTIJD.</li>
+                        <li>Let wel op: BEIDE PARTIJEN. Mocht zij opnieuw contact met mij opnemen, dan zal ik hiervan
+                            direct aangifte doen.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="legal-notice-footer" style="margin-top: 2.5rem; display: flex; justify-content: flex-end;">
+                <button id="acknowledgeBtn" class="btn btn-glass"
+                    style="border-color: #FE4A49; color: #FE4A49; padding: 0.75rem 2rem; font-size: 1rem;">
+                    ✔ I Acknowledge
+                </button>
+            </div>
+        </div>
+
+
         <!-- Dashboard Dashboard stats -->
         <section class="dashboard-stats glass-card">
             <div class="stat-group">
@@ -131,7 +178,8 @@
                         <span class="legend-item"><span class="dot blue"></span> Low Intensity</span>
                     </div>
                 </div>
-                <div id="mainHeatmap" class="map-frame"></div>
+                <div id="mainHeatmap" class="map-frame" style="background: rgba(0,0,0,0.2); border-radius: 16px;"></div>
+
             </div>
         </section>
 

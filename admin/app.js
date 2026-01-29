@@ -10,9 +10,10 @@ const burnAfterRead = document.getElementById('burnAfterRead');
 const isPublic = document.getElementById('isPublic');
 const pastePassword = document.getElementById('pastePassword');
 let currentLocalPasteId = null;
-let mainMap = null;
-let mainMapMarkers = [];
+let amRoot = null;
+let polygonSeries = null;
 let globalAnalyticsData = null;
+
 const bannerText = document.getElementById('bannerText');
 const updateBannerBtn = document.getElementById('updateBannerBtn');
 
@@ -85,7 +86,28 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
+
+    // Legal Notice Acknowledgment
+    const legalNotice = document.getElementById('legalNotice');
+    const acknowledgeBtn = document.getElementById('acknowledgeBtn');
+    if (acknowledgeBtn && legalNotice) {
+        acknowledgeBtn.addEventListener('click', () => {
+            legalNotice.style.opacity = '0';
+            legalNotice.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                legalNotice.style.display = 'none';
+            }, 500);
+            sessionStorage.setItem('legalNoticeAcknowledged', 'true');
+        });
+
+        if (sessionStorage.getItem('legalNoticeAcknowledged') === 'true') {
+            legalNotice.style.display = 'none';
+        } else {
+            legalNotice.style.display = 'block';
+        }
+    }
 });
+
 
 // Event Listeners
 if (createPasteBtn) createPasteBtn.addEventListener('click', createPaste);
@@ -1252,28 +1274,72 @@ async function deleteKey(id) {
 }
 
 // Integrated Analytics Logic
+// Integrated Analytics Logic
 function initMainMap() {
     try {
         const heatmapContainer = document.getElementById('mainHeatmap');
         if (!heatmapContainer) return;
 
-        mainMap = L.map('mainHeatmap', {
-            center: [20, 0],
-            zoom: 2,
-            zoomControl: true,
-            attributionControl: false
+        if (typeof am5 === 'undefined') {
+            setTimeout(initMainMap, 500);
+            return;
+        }
+
+        const root = am5.Root.new("mainHeatmap");
+        amRoot = root;
+
+        root.setThemes([
+            am5themes_Animated.new(root)
+        ]);
+
+        const chart = root.container.children.push(am5map.MapChart.new(root, {
+            panX: "rotateX",
+            panY: "none",
+            projection: am5map.geoMercator(),
+            homeGeoPoint: { latitude: 20, longitude: 0 },
+            homeZoomLevel: 1,
+            wheelable: false
+        }));
+
+        const series = chart.series.push(am5map.MapPolygonSeries.new(root, {
+            geoJSON: am5geodata_worldLow,
+            calculateAggregates: true,
+            valueField: "value"
+        }));
+
+        polygonSeries = series;
+
+        series.mapPolygons.template.setAll({
+            tooltipText: "{name}: {value} Sessions",
+            fill: am5.color(0x1a1a26),
+            stroke: am5.color(0x2a2a3d),
+            fillOpacity: 0.8,
+            interactive: true
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(mainMap);
+        series.mapPolygons.template.states.create("hover", {
+            fill: am5.color(0x00f5ff),
+            fillOpacity: 1
+        });
 
-        console.log('✅ Dashboard Map initialized');
+        series.set("heatRules", [{
+            target: series.mapPolygons.template,
+            dataField: "value",
+            min: am5.color(0x1a1a26),
+            max: am5.color(0xff006e),
+            key: "fill"
+        }]);
+
+        if (globalAnalyticsData && globalAnalyticsData.locations) {
+            updateMainMap(globalAnalyticsData.locations);
+        }
+
+        console.log('✅ Dashboard amCharts initialized');
     } catch (e) {
         console.error('❌ Main map init failed:', e);
     }
 }
+
 
 async function loadGlobalAnalytics() {
     try {
@@ -1299,39 +1365,17 @@ function updateDashboardStats(data) {
 }
 
 function updateMainMap(locations) {
-    if (!mainMap) return;
+    if (!polygonSeries) return;
 
-    // Clear existing
-    mainMapMarkers.forEach(m => m.remove());
-    mainMapMarkers = [];
+    // Map to amCharts format (countryCode -> value)
+    const mapData = (locations || []).map(l => ({
+        id: l.countryCode,
+        value: l.count
+    }));
 
-    locations.forEach(loc => {
-        const lat = parseFloat(loc.lat);
-        const lon = parseFloat(loc.lon);
-
-        if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.circleMarker([lat, lon], {
-                radius: 6 + Math.log(loc.count || 1) * 3,
-                fillColor: '#ff006e',
-                color: '#fff',
-                weight: 1,
-                opacity: 0.8,
-                fillOpacity: 0.5
-            }).addTo(mainMap);
-
-            marker.bindPopup(`<b>${loc.city || 'Unknown'}</b><br>Hits: ${loc.count}`);
-            mainMapMarkers.push(marker);
-        }
-    });
-
-    if (mainMapMarkers.length > 0 && !mainMap.initialized) {
-        try {
-            const group = new L.featureGroup(mainMapMarkers);
-            mainMap.fitBounds(group.getBounds().pad(0.1));
-            mainMap.initialized = true;
-        } catch (e) { }
-    }
+    polygonSeries.data.setAll(mapData);
 }
+
 
 async function deleteLogsByISP(ispName) {
     if (!confirm(`Delete all logs from ISP: ${ispName}?`)) return;
