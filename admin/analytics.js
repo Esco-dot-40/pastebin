@@ -280,24 +280,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Legal Notice Acknowledgment
-    const legalNotice = document.getElementById('legalNotice');
-    const acknowledgeBtn = document.getElementById('acknowledgeBtn');
-
-    // Check if already acknowledged in this session
-    if (sessionStorage.getItem('legalNoticeAcknowledged')) {
-        if (legalNotice) legalNotice.style.display = 'none';
-    }
-
-    acknowledgeBtn?.addEventListener('click', () => {
-        if (legalNotice) {
-            legalNotice.style.transition = 'all 0.5s ease';
-            legalNotice.style.opacity = '0';
-            legalNotice.style.transform = 'translateY(-20px)';
-            setTimeout(() => {
-                legalNotice.style.display = 'none';
-                sessionStorage.setItem('legalNoticeAcknowledged', 'true');
-            }, 500);
-        }
-    });
 });

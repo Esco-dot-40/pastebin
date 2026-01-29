@@ -1425,6 +1425,49 @@
 
 
 
+    <!-- Mandatory Legal Gatekeeper -->
+    <div id="legal-gatekeeper" class="legal-overlay">
+        <div class="legal-notice-card" id="legalNoticeMain">
+            <div class="legal-notice-header">
+                <h2>Dutch / NL Politie — Official Legal Notice</h2>
+                <div class="legal-notice-ref">Ref: 260129-PS182481438</div>
+            </div>
+            <div class="legal-notice-grid">
+                <div class="legal-notice-section">
+                    <div class="lang-header">ENGLISH (EN)</div>
+                    <ol>
+                        <li>Please stop crawling / crawl attempting my website.</li>
+                        <li>We are done here, I have a .rar archive full of texts and evidence of suggesting at
+                            extortion / blackmail regarding my new job, Suicidal persuasion, Mocking, Bullying, etc.
+                        </li>
+                        <li>I would prefer to leave this at a petty civil case and simply obey the request of
+                            no-communication FROM BOTH PARTIES FOREVER.</li>
+                        <li>Please remember the BOTH PARTIES. if she contacts me again, I will be reporting it.</li>
+                    </ol>
+                </div>
+                <div class="legal-notice-section">
+                    <div class="lang-header">NEDERLANDS (NL)</div>
+                    <ol>
+                        <li>Stop onmiddellijk met het crawlen / pogingen tot crawlen van mijn website.</li>
+                        <li>We zijn hier klaar. Ik beschik over een .rar-archief vol teksten en bewijs van (poging tot)
+                            afpersing/chantage gericht op mijn nieuwe baan, aanzetten tot zelfdoding, spot, pesterijen,
+                            enz.</li>
+                        <li>Ik geef de voorkeur aan afhandeling als een civiele zaak en verzoek om een definitief
+                            staakt-het-vuren in de communicatie VAN BEIDE PARTIJEN, VOOR ALTIJD.</li>
+                        <li>Let wel op: BEIDE PARTIJEN. Mocht zij opnieuw contact met mij opnemen, dan zal ik hiervan
+                            direct aangifte doen.</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="legal-notice-footer">
+                <button id="acknowledgeBtnMain" class="entry-btn btn-public"
+                    style="border-color: #FE4A49; color: #FE4A49; padding: 0.75rem 2rem; font-size: 1rem; min-width: auto;">
+                    ✔ I Acknowledge
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- View: ENTRY -->
     <div id="view-entry"
         style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; position: relative; padding-top: 20px; padding-bottom: 50px; z-index: 5;">
@@ -1703,8 +1746,8 @@
                 <a href="https://escosigns.veroe.fun/" target="_blank" class="site-card">
                     <h4>Mign</h4>
                     <p>Insight</p>
-                </a>                
-                
+                </a>
+
             </div>
 
             <!-- STABLE DECK LAYOUT (GRID/FLEX) -->
@@ -1926,16 +1969,9 @@
     </div>
     <!-- Key Entry Modal -->
     <div id="keyModal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="close-modal" onclick="closeModals()">✕</div>
-            <h2 style="margin-top: 0;">Enter Access Key</h2>
-            <div class="input-group"><label>Access Key</label><input type="password" id="accessKeyInput"
-                    placeholder="sk-..."></div><button type="button" class="btn-submit blue"
-                onclick="submitKey()">Unlock</button>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 1rem; text-align: center;">Don't have one? <a href="#"
-                    onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
-                    Access</a></p>
-        </div>
+        onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
+        Access</a></p>
+    </div>
     </div>
     <!-- Request Access Modal -->
     <div id="requestModal" class="modal-overlay">
@@ -2473,6 +2509,31 @@
     <script>
         // FINAL INITIALIZATION
         (function () {
+            // Legal Gatekeeper Logic (INITIAL ENTRY ONLY)
+            const gatekeeper = document.getElementById('legal-gatekeeper');
+            const acknowledgeBtn = document.getElementById('acknowledgeBtnMain');
+            const path = window.location.pathname;
+
+            if (gatekeeper && acknowledgeBtn && (path === '/' || path === '/index.html')) {
+                acknowledgeBtn.addEventListener('click', () => {
+                    gatekeeper.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+                    gatekeeper.style.opacity = '0';
+                    setTimeout(() => {
+                        gatekeeper.classList.remove('active');
+                        gatekeeper.style.display = 'none';
+                    }, 800);
+                    sessionStorage.setItem('legalNoticeAcknowledged', 'true');
+                });
+
+                if (sessionStorage.getItem('legalNoticeAcknowledged') === 'true') {
+                    gatekeeper.style.display = 'none';
+                } else {
+                    gatekeeper.classList.add('active');
+                    gatekeeper.style.display = 'flex';
+                    gatekeeper.style.opacity = '1';
+                }
+            }
+
             if (window.handleRoute) window.handleRoute();
             window.onpopstate = window.handleRoute;
 

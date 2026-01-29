@@ -1,4 +1,3 @@
-
 (function () {
     // Public View Application
     const storage = window.storage || new (window.PasteStorage || window.PasteAPI)();
@@ -31,6 +30,8 @@
 
     // Initialize
     loadPaste();
+
+
 
     // Event Listeners
     copyBtn?.addEventListener('click', copyToClipboard);

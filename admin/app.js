@@ -87,25 +87,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
 
-    // Legal Notice Acknowledgment
-    const legalNotice = document.getElementById('legalNotice');
-    const acknowledgeBtn = document.getElementById('acknowledgeBtn');
-    if (acknowledgeBtn && legalNotice) {
-        acknowledgeBtn.addEventListener('click', () => {
-            legalNotice.style.opacity = '0';
-            legalNotice.style.transform = 'translateY(-20px)';
-            setTimeout(() => {
-                legalNotice.style.display = 'none';
-            }, 500);
-            sessionStorage.setItem('legalNoticeAcknowledged', 'true');
-        });
-
-        if (sessionStorage.getItem('legalNoticeAcknowledged') === 'true') {
-            legalNotice.style.display = 'none';
-        } else {
-            legalNotice.style.display = 'block';
-        }
-    }
 });
 
 
@@ -134,13 +115,9 @@ if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
 
 if (usersBtn) {
     usersBtn.addEventListener('click', () => {
-        console.log("Users button clicked");
         if (usersModal) usersModal.classList.add('active');
-        else console.error("Users modal not found");
         loadUsers();
     });
-} else {
-    console.error("Users button not found");
 }
 
 if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
@@ -226,8 +203,6 @@ if (generateKeyBtn) {
             generateKeyBtn.textContent = 'Generate New Key';
         }
     });
-} else {
-    console.error('[KEY GEN] Button element not found!');
 }
 
 if (copyKeyBtn) copyKeyBtn.addEventListener('click', () => {
@@ -1333,8 +1308,6 @@ function initMainMap() {
         if (globalAnalyticsData && globalAnalyticsData.locations) {
             updateMainMap(globalAnalyticsData.locations);
         }
-
-        console.log('✅ Dashboard amCharts initialized');
     } catch (e) {
         console.error('❌ Main map init failed:', e);
     }

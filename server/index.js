@@ -206,7 +206,6 @@ import accessRouter from './routes/access.js';
 app.use('/api/access', accessRouter);
 
 // Root Redirect/Entry
-// Root Redirect/Entry
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, '..', 'public', 'index.html');
     let html = '';
