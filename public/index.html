@@ -1976,9 +1976,24 @@
     </div>
     <!-- Key Entry Modal -->
     <div id="keyModal" class="modal-overlay">
-        onclick="openRequestModal(); return false;" style="color: #00f5ff;">Request
-        Access</a></p>
-    </div>
+        <div class="modal-box">
+            <div class="close-modal" onclick="closeModals()">✕</div>
+            <h2>Private Access</h2>
+            <p style="color: #888; margin-bottom: 2rem;">Enter your transmission key below for encrypted node
+                synchronization.</p>
+            <div class="input-group">
+                <input type="password" id="accessKeyInput" placeholder="Awaiting key signature..."
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; width: 100%; color: white; outline: none; transition: all 0.3s;"
+                    onfocus="this.style.borderColor='#00f5ff'; this.style.boxShadow='0 0 15px rgba(0,245,255,0.2)'"
+                    onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'">
+            </div>
+            <button class="btn-submit red" onclick="submitKey()" style="width: 100%; margin-top: 1rem;">Authorize
+                Node</button>
+            <p style="margin-top: 1.5rem; font-size: 0.8rem; color: #555;">
+                Need a key? <a href="#" onclick="window.openRequestModal(); return false;"
+                    style="color: #00f5ff; font-weight: bold; text-decoration: none;">Request Access</a>
+            </p>
+        </div>
     </div>
     <!-- Request Access Modal -->
     <div id="requestModal" class="modal-overlay">
