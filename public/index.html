@@ -2487,7 +2487,7 @@
             window.onpopstate = window.handleRoute;
 
             // If we are on public page, trigger early fetch
-            if (window.location.pathname.startsWith('/public') || window.location.pathname.startsWith('/v/')) {
+            if (window.location.pathname.startsWith('/public')) {
                 const checkAndFetch = () => {
                     if (window.showList) window.showList();
                     else setTimeout(checkAndFetch, 100);
