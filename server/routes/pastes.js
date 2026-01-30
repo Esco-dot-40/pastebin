@@ -133,9 +133,9 @@ router.get('/analytics', requireAuth, (req, res) => {
 
         const uniqueLocations = db.prepare(`
             SELECT COUNT(*) as count FROM (
-                SELECT city, country FROM paste_views WHERE city IS NOT NULL GROUP BY city, country
+                SELECT COALESCE(city, 'Unknown'), COALESCE(country, 'Unknown') FROM paste_views GROUP BY city, country
                 UNION
-                SELECT city, country FROM page_accesses WHERE city IS NOT NULL GROUP BY city, country
+                SELECT COALESCE(city, 'Unknown'), COALESCE(country, 'Unknown') FROM page_accesses GROUP BY city, country
             )
         `).get().count;
 
@@ -189,13 +189,17 @@ router.get('/analytics', requireAuth, (req, res) => {
 
         // Locations for Heatmap/Cities
         const locations = db.prepare(`
-            SELECT city, country, lat, lon, COUNT(*) as count
+            SELECT 
+                COALESCE(city, 'Unknown') as city, 
+                COALESCE(country, 'Unknown') as country, 
+                countryCode,
+                lat, lon, COUNT(*) as count
             FROM (
-                SELECT city, country, lat, lon FROM paste_views WHERE lat IS NOT NULL
+                SELECT city, country, countryCode, lat, lon FROM paste_views
                 UNION ALL
-                SELECT city, country, lat, lon FROM page_accesses WHERE lat IS NOT NULL
+                SELECT city, country, countryCode, lat, lon FROM page_accesses
             )
-            GROUP BY city, country, lat, lon
+            GROUP BY city, country, countryCode, lat, lon
             ORDER BY count DESC
         `).all();
 

@@ -210,9 +210,9 @@ function updateActivityFeed(data) {
                 <tbody>
                     ${activities.slice(0, 50).map(v => `
                         <tr>
-                            <td><span class="type-tag type-view">Veroe</span></td>
+                            <td><span class="type-tag type-view">${v.source === 'paste' ? 'Paste' : 'Veroe'}</span></td>
                             <td class="mono" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${v.path}</td>
-                            <td>${getFlagEmoji(v.countryCode)} ${v.city}</td>
+                            <td>${v.countryCode ? getFlagEmoji(v.countryCode) : '🌐'} ${v.city || 'Unknown Location'}</td>
                             <td class="mono">${v.ip}</td>
                             <td class="mono">${new Date(v.timestamp).toLocaleTimeString()}</td>
                         </tr>

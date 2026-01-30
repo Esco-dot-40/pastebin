@@ -77,8 +77,8 @@ app.use(async (req, res, next) => {
     // 3. Skip if IP is in the ignore list
     const ignoreIPs = (process.env.IGNORE_IPS || '').split(',').map(i => i.trim());
     const isIgnoredIP = ignoreIPs.includes(cleanIP);
-    // 4. Skip based on explicit env flag
-    const shouldSkip = (isAdminPath || isAdminUser || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true';
+    // 4. Skip based on explicit env flag (RELAXED for visibility)
+    const shouldSkip = (isAdminPath || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true' && !req.session?.isAdmin;
 
     if (!isStatic && !isApi && !shouldSkip && req.method === 'GET') {
         setImmediate(async () => {
@@ -87,8 +87,7 @@ app.use(async (req, res, next) => {
                 const referrer = req.headers['referer'] || req.headers['referrer'] || null;
 
                 let geoData = null;
-                // Only fetch geo for external IPs
-                const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.');
+                const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.') || cleanIP.startsWith('172.');
 
                 if (!isLocal) {
                     try {
@@ -116,7 +115,20 @@ app.use(async (req, res, next) => {
                         geoData.proxy ? 1 : 0, geoData.hosting ? 1 : 0, geoData.mobile ? 1 : 0
                     );
                 } else {
-                    db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent, referrer) VALUES (?, ?, ?, ?, ?)`).run(req.path, req.method, cleanIP, userAgent, referrer);
+                    // Fallback for local/admin hits to ensure they show up in statistics
+                    db.prepare(`
+                        INSERT INTO page_accesses (
+                            path, method, ip, userAgent, referrer, 
+                            country, countryCode, city, regionName, isp
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `).run(
+                        req.path, req.method, cleanIP, userAgent, referrer,
+                        isLocal ? 'Internal Network' : 'Unknown Sector',
+                        isLocal ? 'IN' : '??',
+                        isLocal ? 'Local Transmission' : 'Encrypted Node',
+                        isLocal ? 'Admin Sector' : 'Unknown',
+                        isLocal ? 'Direct Uplink' : 'Hidden ISP'
+                    );
                 }
             } catch (err) { }
         });
