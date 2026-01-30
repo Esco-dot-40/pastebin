@@ -192,7 +192,7 @@ router.get('/analytics', requireAuth, (req, res) => {
             SELECT 
                 COALESCE(city, 'Unknown') as city, 
                 COALESCE(country, 'Unknown') as country, 
-                countryCode,
+                COALESCE(countryCode, '??') as countryCode,
                 lat, lon, COUNT(*) as count
             FROM (
                 SELECT city, country, countryCode, lat, lon FROM paste_views
@@ -222,8 +222,7 @@ router.get('/analytics', requireAuth, (req, res) => {
         // Recent Activity (Still need some detailed rows)
         const recentActivity = db.prepare(`
             SELECT * FROM (
-                SELECT 'paste' as source, path, ip, city, country, countryCode, timestamp FROM paste_views
-                LEFT JOIN pastes ON paste_views.pasteId = pastes.id
+                SELECT 'paste' as source, '/v/' || pasteId as path, ip, city, country, countryCode, timestamp FROM paste_views
                 UNION ALL
                 SELECT 'page' as source, path, ip, city, country, countryCode, timestamp FROM page_accesses
             ) ORDER BY timestamp DESC LIMIT 50

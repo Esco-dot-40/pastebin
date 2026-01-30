@@ -80,7 +80,7 @@ app.use(async (req, res, next) => {
     // 4. Skip based on explicit env flag (RELAXED for visibility)
     const shouldSkip = (isAdminPath || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true' && !req.session?.isAdmin;
 
-    if (!isStatic && !isApi && !shouldSkip && req.method === 'GET') {
+    if (!isStatic && !isApi && !shouldSkip && (req.method === 'GET' || req.method === 'HEAD')) {
         setImmediate(async () => {
             try {
                 const userAgent = req.headers['user-agent'] || '';
@@ -124,7 +124,7 @@ app.use(async (req, res, next) => {
                     `).run(
                         req.path, req.method, cleanIP, userAgent, referrer,
                         isLocal ? 'Internal Network' : 'Unknown Sector',
-                        isLocal ? 'IN' : '??',
+                        isLocal ? '??' : '??',
                         isLocal ? 'Local Transmission' : 'Encrypted Node',
                         isLocal ? 'Admin Sector' : 'Unknown',
                         isLocal ? 'Direct Uplink' : 'Hidden ISP'
