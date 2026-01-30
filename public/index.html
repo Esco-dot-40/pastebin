@@ -22,6 +22,7 @@
 
     <link rel="stylesheet" href="/public/style.css">
     <link rel="stylesheet" href="/public/design-refresh.css?v=20">
+    <link rel="stylesheet" href="/public/legal-notice.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2506,34 +2507,10 @@
         // Toast Helper (Fallthrough)
         window.showToast = window.showToast || ((msg) => console.log("Toast:", msg));
     </script>
+    <script src="/public/legal-notice.js"></script>
     <script>
         // FINAL INITIALIZATION
         (function () {
-            // Legal Gatekeeper Logic (INITIAL ENTRY ONLY)
-            const gatekeeper = document.getElementById('legal-gatekeeper');
-            const acknowledgeBtn = document.getElementById('acknowledgeBtnMain');
-            const path = window.location.pathname;
-
-            if (gatekeeper && acknowledgeBtn && (path === '/' || path === '/index.html')) {
-                acknowledgeBtn.addEventListener('click', () => {
-                    gatekeeper.style.transition = 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
-                    gatekeeper.style.opacity = '0';
-                    setTimeout(() => {
-                        gatekeeper.classList.remove('active');
-                        gatekeeper.style.display = 'none';
-                    }, 800);
-                    sessionStorage.setItem('legalNoticeAcknowledged', 'true');
-                });
-
-                if (sessionStorage.getItem('legalNoticeAcknowledged') === 'true') {
-                    gatekeeper.style.display = 'none';
-                } else {
-                    gatekeeper.classList.add('active');
-                    gatekeeper.style.display = 'flex';
-                    gatekeeper.style.opacity = '1';
-                }
-            }
-
             if (window.handleRoute) window.handleRoute();
             window.onpopstate = window.handleRoute;
 
