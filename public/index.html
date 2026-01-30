@@ -2480,6 +2480,21 @@
         }
 
         initFirebase();
+
+        // FINAL INITIALIZATION (Inside module to ensure handleRoute is defined)
+        (function () {
+            if (window.handleRoute) window.handleRoute();
+            window.onpopstate = window.handleRoute;
+
+            // If we are on public page, trigger early fetch
+            if (window.location.pathname.startsWith('/public') || window.location.pathname.startsWith('/v/')) {
+                const checkAndFetch = () => {
+                    if (window.showList) window.showList();
+                    else setTimeout(checkAndFetch, 100);
+                };
+                checkAndFetch();
+            }
+        })();
     </script>
 
     <!-- Audio Persistence & Auto-Play on Interaction -->
@@ -2497,13 +2512,6 @@
         window.showToast = window.showToast || ((msg) => console.log("Toast:", msg));
     </script>
     <script src="/public/legal-notice.js"></script>
-    <script>
-        // FINAL INITIALIZATION
-        (function () {
-            if (window.handleRoute) window.handleRoute();
-            window.onpopstate = window.handleRoute;
-        })();
-    </script>
     <script type="module" src="/public/gallery.js"></script>
     <script src="/public/title-rotator.js?v=999"></script>
 </body>
