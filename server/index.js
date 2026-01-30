@@ -57,7 +57,8 @@ app.use(async (req, res, next) => {
     const isAdminUser = req.session && req.session.isAdmin;
 
     // IP Detection
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+    const ip = req.headers['cf-connecting-ip'] ||
+        req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
         req.headers['x-real-ip'] ||
         req.socket.remoteAddress ||
         '127.0.0.1';

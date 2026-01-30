@@ -7,7 +7,7 @@
     const STORAGE_KEY = 'legal_notice_acknowledged_v3';
 
     function injectNotice() {
-        if (localStorage.getItem(STORAGE_KEY)) return;
+        if (localStorage.getItem(STORAGE_KEY) && !window.FORCE_LEGAL_NOTICE) return;
 
         const html = `
             <div id="legal-notice-root">
@@ -57,7 +57,7 @@
 
                         <div class="footer">
                             <button id="legal-acknowledge-btn" class="btn-acknowledge">
-                                Acknowledge
+                                ${window.FORCE_LEGAL_NOTICE ? 'I Am Not A Crawling Entity' : 'Acknowledge'}
                             </button>
                         </div>
                     </div>

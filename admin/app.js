@@ -93,7 +93,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
-
 });
 
 
@@ -859,14 +858,6 @@ async function deletePaste(id) {
     }
 }
 
-function getFlagEmoji(countryCode) {
-    if (!countryCode) return '🌍';
-    const codePoints = countryCode
-        .toUpperCase()
-        .split('')
-        .map(char => 127397 + char.charCodeAt());
-    return String.fromCodePoint(...codePoints);
-}
 
 function formatDateTime(dateString) {
     const date = new Date(dateString);
@@ -1679,7 +1670,7 @@ async function loadFirewallList(query = '') {
                     </div>
                 </div>
                 <label class="neon-toggle">
-                    <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleCountryBlock('${c.code}', '${c.name.replace(/'/g, "\\'")}', this.checked)">
+                    <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleCountryBlock('${c.code}', '${c.name.replace(/'/g, "\\\'")}', this.checked)">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -1711,3 +1702,5 @@ function getFlagEmoji(countryCode) {
 
 window.toggleCountryBlock = toggleCountryBlock;
 window.getFlagEmoji = getFlagEmoji;
+window.loadFirewallList = loadFirewallList;
+
