@@ -353,7 +353,7 @@ router.delete('/:id', requireAuth, (req, res) => {
 // ==========================================
 
 router.get('/:id', async (req, res) => {
-    const paste = db.prepare('SELECT * FROM pastes WHERE id = ?').get(req.params.id);
+    const paste = db.prepare('SELECT * FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
 
     // If paste is burned, return metadata but NO content
@@ -481,7 +481,7 @@ router.post('/:id/react', async (req, res) => {
 });
 
 router.get('/:id/analytics', requireAuth, (req, res) => {
-    const paste = db.prepare('SELECT views FROM pastes WHERE id = ?').get(req.params.id);
+    const paste = db.prepare('SELECT views FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
     const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
     const reactions = db.prepare('SELECT * FROM paste_reactions WHERE pasteId = ? ORDER BY createdAt DESC').all(req.params.id);

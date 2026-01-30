@@ -16,10 +16,9 @@
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=JetBrains+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Outfit:wght@100..900&display=swap"
         rel="stylesheet">
     <link rel="icon" type="image/png" href="/public/favicon.png">
-    <script src="/shared/api.js"></script>
     <script src="/public/audio-manager.js"></script>
     <style>
-        /* INVERTED ROUTE GUARD: Hide by default, show only on explicit index class */
+        /* --- GLOBAL & ROUTE GUARD --- */
         #view-entry,
         .top-action-dock {
             display: none !important;
@@ -33,7 +32,6 @@
             display: flex !important;
         }
 
-        /* Viewer is block only when not on index */
         #view-viewer {
             display: none;
         }
@@ -56,105 +54,193 @@
             overflow-y: auto !important;
             overflow-x: hidden !important;
             width: 100%;
-            height: 100vh;
-            /* LOCK VR */
             margin: 0;
             padding: 0;
             scrollbar-width: none;
-        }
-
-        /* 100% ZOOM FIX: Scale everything down slightly on larger viewports */
-        @media (min-width: 1200px) {
-            #view-entry {
-                transform: scale(0.85);
-                transform-origin: top center;
-                height: 115vh !important;
-                /* Compensate for scale */
-            }
+            background: #000;
         }
 
         *::-webkit-scrollbar {
             display: none !important;
         }
 
-        /* THE MODULAR DECK FIX: Enforce horizontal layout ONLY in entry view */
+        /* --- MOBILE-FIRST LAYOUT --- */
         #view-entry .site-wrapper {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            padding: 20px 20px !important;
-            /* REDUCED PADDING */
-            gap: 20px !important;
-            /* REDUCED GAP */
-            width: 100% !important;
-        }
-
-        .landing-text-container {
-            height: 140px !important;
-            /* FIXED SMALLER HEIGHT */
-            margin-bottom: -20px !important;
-            /* PULL UP DECK */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+            width: 100%;
         }
 
         .website-header-grid {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
-            gap: 20px !important;
-            width: 100% !important;
-            max-width: 1200px !important;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 1200px;
         }
 
         .deck-layout {
-            display: flex !important;
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            /* NO VERTICAL STACKING */
-            align-items: flex-start !important;
-            justify-content: center !important;
-            gap: 40px !important;
-            width: 100% !important;
-            max-width: 1200px !important;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            /* Allow wrap for mobile */
+            align-items: flex-start;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
         }
 
         .spotify-sidecar {
-            flex-shrink: 0 !important;
-            width: 320px !important;
-            height: 520px !important;
+            width: 100%;
+            max-width: 320px;
+            height: 520px;
         }
 
         .esco-profile-card {
-            flex-shrink: 0 !important;
-            width: 450px !important;
+            width: 100%;
+            max-width: 450px;
         }
 
-        @media (max-width: 1000px) {
-            .deck-layout {
-                flex-direction: column !important;
-                align-items: center !important;
+        /* --- LOGO & NEON --- */
+        .neon-logo-wrap {
+            width: 100%;
+            max-width: 1200px;
+            height: auto;
+            min-height: 120px;
+            display: flex;
+            justify-content: center;
+            padding: 20px 0;
+            animation: hueRotateLogo 6s ease-in-out infinite;
+        }
+
+        .logo-text-bg,
+        .logo-text-animated {
+            font-family: 'Audiowide', cursive;
+            font-weight: 900;
+            font-size: clamp(40px, 8vw, 100px);
+            letter-spacing: 0.5rem;
+            fill: transparent;
+            stroke-width: 2px;
+            filter: url(#logo-glow);
+        }
+
+        .logo-text-bg {
+            stroke: #12000a;
+        }
+
+        .logo-text-animated {
+            stroke: #00f5ff;
+            stroke-dasharray: 2000;
+            stroke-dashoffset: 2000;
+            animation: drawLogoText 2.5s forwards, flickerMainLogo 5s linear 3s infinite;
+        }
+
+        /* --- DOCK & NAVIGATION --- */
+        .top-action-dock {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 20px;
+            z-index: 10000;
+        }
+
+        .top-action-dock .dock-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .top-action-dock .dock-item {
+            padding: 8px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: all 0.3s;
+        }
+
+        /* --- AUTH & MODALS --- */
+        .auth-discord {
+            background: #5865F2;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .auth-discord:hover {
+            background: #4752C4;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes drawLogoText {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes flickerMainLogo {
+
+            0%,
+            30%,
+            32%,
+            36%,
+            42%,
+            85%,
+            96%,
+            100% {
+                stroke: #00f5ff;
+                opacity: 1;
+                filter: drop-shadow(0 0 10px #00f5ff);
             }
 
-            .website-header-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
+            31%,
+            37%,
+            41%,
+            86%,
+            95% {
+                stroke: #12000a;
+                opacity: 0.3;
+                filter: none;
             }
         }
-    </style>
-    <script src="/shared/api.js?v=6"></script>
-    <script type="importmap">
-    {
-        "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+
+        @keyframes hueRotateLogo {
+
+            0%,
+            100% {
+                filter: hue-rotate(0deg);
+            }
+
+            50% {
+                filter: hue-rotate(30deg);
+            }
         }
-    }
-    </script>
-    <!-- Liquid Title Logic -->
-    <script type="module" src="/public/liquid-title.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <style>
+
+        /* Custom Zoom for Large Screens */
+        @media (min-width: 1500px) {
+            #view-entry {
+                transform: scale(0.9);
+                transform-origin: top center;
+            }
+        }
+
         /* Vertical Scroll Gallery with Electric Cards */
         .gallery {
             position: relative;
@@ -955,8 +1041,311 @@
             /* Removed max-width to allow full bleed */
             display: block;
         }
+
+        /* SPLASH STYLES */
+        :root {
+            --color-background-splash: rgba(10, 10, 15, 0.4);
+            /* Transparent for video */
+        }
+
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99999;
+            transition: opacity 0.8s ease;
+            backdrop-filter: blur(10px);
+            /* Keep slight blur for legibility */
+            background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%);
+        }
+
+        .splash-screen.splash-engine-layout {
+            display: grid;
+            /* Force grid by default */
+            grid-template-columns: 1fr calc(100vh / 7);
+            padding: 0;
+            /* background-color: var(--color-background-splash); Removed to allow gradient */
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .engine-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            position: relative;
+        }
+
+        /* Splash Logo Container */
+        .splash-logo-container {
+            width: 100%;
+            max-width: 800px;
+            height: 250px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .webgl-splash {
+            width: 100%;
+            height: 100%;
+            outline: none;
+        }
+
+        #color-picker {
+            background-color: rgba(0, 0, 0, 0.2);
+            display: flex;
+            margin: 0;
+            padding: 0;
+            gap: 2px;
+            align-content: stretch;
+            flex-direction: column;
+            list-style-type: none;
+            height: 100vh;
+        }
+
+        #color-picker li {
+            position: relative;
+            flex-grow: 1;
+            text-wrap-mode: nowrap;
+            overflow: hidden;
+        }
+
+        #color-picker label::after {
+            position: absolute;
+            inset: 0;
+            content: "";
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #color-picker label:hover::after {
+            transform: scale(1.05);
+            z-index: 1;
+        }
+
+        #color-picker label:has(:checked)::after {
+            box-shadow: inset 2px 2px 5px black;
+        }
+
+        #color-picker label:has([value="aqua"])::after {
+            background-color: aqua;
+        }
+
+        #color-picker label:has([value="blue"])::after {
+            background-color: blue;
+        }
+
+        #color-picker label:has([value="chartreuse"])::after {
+            background-color: chartreuse;
+        }
+
+        #color-picker label:has([value="coral"])::after {
+            background-color: coral;
+        }
+
+        #color-picker label:has([value="red"])::after {
+            background-color: red;
+        }
+
+        #color-picker label:has([value="deeppink"])::after {
+            background-color: deeppink;
+        }
+
+        #color-picker label:has([value="rebeccapurple"])::after {
+            background-color: rebeccapurple;
+        }
+
+        /* Hide radio inputs visually */
+        #color-picker input[type="radio"] {
+            opacity: 0;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        button.start-stop {
+            --color: red;
+            --color-off: hsl(from var(--color) H calc(S * 0.5) L);
+            /* Fallbacks for color-mix if relative color syntax not supported broadly, but chrome supports it */
+            --shadow: -2px -5px 10px rgba(0, 0, 0, 0.5), 2px 5px 10px rgba(255, 255, 255, 0.1);
+
+            box-shadow: var(--shadow);
+            block-size: 150px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent button bg */
+            border-style: none;
+            box-sizing: border-box;
+            container-type: size;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        button.start-stop::before {
+            position: absolute;
+            border-radius: 50%;
+            inset: 0;
+            border: 12px solid var(--color-off);
+            /* Fallback for cqb */
+            border: 8cqb solid var(--color-off);
+            content: "";
+            z-index: 1;
+            transition: border-color 0.2s;
+        }
+
+        button.start-stop>div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            font-size: 1.5rem;
+            /* Fallback */
+            font-size: 15cqb;
+            color: var(--color-off);
+            background-color: var(--color-background-splash);
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: color 0.2s, text-shadow 0.2s;
+        }
+
+        button.start-stop hr {
+            border: 0.1em solid var(--color-off);
+            margin: 0.1em 1em;
+            width: 80%;
+            transition: border-color 0.2s;
+        }
+
+        button.start-stop.on {
+            --shadow-on: var(--color) 0 0 10px;
+            box-shadow: var(--shadow), var(--shadow-on) 2px;
+        }
+
+        button.start-stop.on::before {
+            border-color: var(--color);
+            box-shadow: inset 0 0 10px var(--color);
+        }
+
+        button.start-stop.on>div {
+            color: var(--color);
+            text-shadow: 0 0 10px var(--color);
+        }
+
+        button.start-stop.on hr {
+            border-color: var(--color);
+            box-shadow: 0 0 5px var(--color);
+        }
+
+        button.start-stop:active::before {
+            filter: brightness(80%);
+        }
+
+        button.start-stop:active {
+            transform: scale(0.98);
+        }
+
+        @keyframes vibrate {
+            0% {
+                transform: translate(0);
+            }
+
+            20% {
+                transform: translate(-2px, 2px);
+            }
+
+            40% {
+                transform: translate(-2px, -2px);
+            }
+
+            60% {
+                transform: translate(2px, 2px);
+            }
+
+            80% {
+                transform: translate(2px, -2px);
+            }
+
+            100% {
+                transform: translate(0);
+            }
+        }
+
+        .vibrating {
+            animation: vibrate 0.05s linear infinite;
+        }
+
+        .silent-entry-link:hover {
+            color: white !important;
+            text-shadow: 0 0 8px white;
+        }
+
+        #audioToggle:checked+.slider {
+            background-color: #00f5ff;
+        }
+
+        #audioToggle:focus+.slider {
+            box-shadow: 0 0 1px #00f5ff;
+        }
+
+        #audioToggle:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        #volumeControl #volumeSlider {
+            width: 80px;
+            opacity: 0.8;
+            margin-left: 5px;
+        }
+
+        #volumeControl:hover #volumeSlider {
+            opacity: 1;
+        }
+
+        .volume-btn:hover {
+            background: rgba(0, 245, 255, 0.2) !important;
+            border-color: #00f5ff !important;
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+        }
     </style>
-    </style>
+    <script src="/shared/api.js?v=6"></script>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+        }
+    }
+    </script>
+    <!-- Liquid Title Logic -->
+    <script type="module" src="/public/liquid-title.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <!-- Splash / Audio Gatekeeper -->
@@ -989,31 +1378,6 @@
             style="margin-top: 15px; color: rgba(255,255,255,0.3); font-size: 0.7rem; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;">
             Default to Silent Entry
         </div>
-        <style>
-            #audioToggle:checked+.slider {
-                background-color: #00f5ff;
-            }
-
-            #audioToggle:focus+.slider {
-                box-shadow: 0 0 1px #00f5ff;
-            }
-
-            #audioToggle:checked+.slider:before {
-                transform: translateX(24px);
-            }
-
-            .slider:before {
-                position: absolute;
-                content: "";
-                height: 16px;
-                width: 16px;
-                left: 3px;
-                bottom: 3px;
-                background-color: white;
-                transition: .4s;
-                border-radius: 50%;
-            }
-        </style>
     </div>
     <ul id="color-picker">
         <li><label><input type="radio" name="color" value="aqua"> Aqua</label></li>
@@ -1040,256 +1404,6 @@
 <!-- Logic for Splash & Buttons -->
 <!-- Core Site Logic & Handlers -->
 </script>
-
-<style>
-    /* SPLASH STYLES */
-    :root {
-        --color-background-splash: rgba(10, 10, 15, 0.4);
-        /* Transparent for video */
-    }
-
-    .splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        z-index: 99999;
-        transition: opacity 0.8s ease;
-        backdrop-filter: blur(10px);
-        /* Keep slight blur for legibility */
-        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.8) 100%);
-    }
-
-    .splash-screen.splash-engine-layout {
-        display: grid;
-        /* Force grid by default */
-        grid-template-columns: 1fr calc(100vh / 7);
-        padding: 0;
-        /* background-color: var(--color-background-splash); Removed to allow gradient */
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    .engine-main {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background-color: transparent;
-        position: relative;
-    }
-
-    /* Splash Logo Container */
-    .splash-logo-container {
-        width: 100%;
-        max-width: 800px;
-        height: 250px;
-        margin-bottom: 40px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .webgl-splash {
-        width: 100%;
-        height: 100%;
-        outline: none;
-    }
-
-    #color-picker {
-        background-color: rgba(0, 0, 0, 0.2);
-        display: flex;
-        margin: 0;
-        padding: 0;
-        gap: 2px;
-        align-content: stretch;
-        flex-direction: column;
-        list-style-type: none;
-        height: 100vh;
-    }
-
-    #color-picker li {
-        position: relative;
-        flex-grow: 1;
-        text-wrap-mode: nowrap;
-        overflow: hidden;
-    }
-
-    #color-picker label::after {
-        position: absolute;
-        inset: 0;
-        content: "";
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    #color-picker label:hover::after {
-        transform: scale(1.05);
-        z-index: 1;
-    }
-
-    #color-picker label:has(:checked)::after {
-        box-shadow: inset 2px 2px 5px black;
-    }
-
-    #color-picker label:has([value="aqua"])::after {
-        background-color: aqua;
-    }
-
-    #color-picker label:has([value="blue"])::after {
-        background-color: blue;
-    }
-
-    #color-picker label:has([value="chartreuse"])::after {
-        background-color: chartreuse;
-    }
-
-    #color-picker label:has([value="coral"])::after {
-        background-color: coral;
-    }
-
-    #color-picker label:has([value="red"])::after {
-        background-color: red;
-    }
-
-    #color-picker label:has([value="deeppink"])::after {
-        background-color: deeppink;
-    }
-
-    #color-picker label:has([value="rebeccapurple"])::after {
-        background-color: rebeccapurple;
-    }
-
-    /* Hide radio inputs visually */
-    #color-picker input[type="radio"] {
-        opacity: 0;
-        pointer-events: none;
-        position: absolute;
-    }
-
-    button.start-stop {
-        --color: red;
-        --color-off: hsl(from var(--color) H calc(S * 0.5) L);
-        /* Fallbacks for color-mix if relative color syntax not supported broadly, but chrome supports it */
-        --shadow: -2px -5px 10px rgba(0, 0, 0, 0.5), 2px 5px 10px rgba(255, 255, 255, 0.1);
-
-        box-shadow: var(--shadow);
-        block-size: 150px;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        background-color: rgba(0, 0, 0, 0.5);
-        /* Semi-transparent button bg */
-        border-style: none;
-        box-sizing: border-box;
-        container-type: size;
-        padding: 10px;
-        position: relative;
-        overflow: hidden;
-        cursor: pointer;
-        transition: all 0.1s;
-    }
-
-    button.start-stop::before {
-        position: absolute;
-        border-radius: 50%;
-        inset: 0;
-        border: 12px solid var(--color-off);
-        /* Fallback for cqb */
-        border: 8cqb solid var(--color-off);
-        content: "";
-        z-index: 1;
-        transition: border-color 0.2s;
-    }
-
-    button.start-stop>div {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-        width: 100%;
-        font-size: 1.5rem;
-        /* Fallback */
-        font-size: 15cqb;
-        color: var(--color-off);
-        background-color: var(--color-background-splash);
-        text-transform: uppercase;
-        font-weight: bold;
-        transition: color 0.2s, text-shadow 0.2s;
-    }
-
-    button.start-stop hr {
-        border: 0.1em solid var(--color-off);
-        margin: 0.1em 1em;
-        width: 80%;
-        transition: border-color 0.2s;
-    }
-
-    button.start-stop.on {
-        --shadow-on: var(--color) 0 0 10px;
-        box-shadow: var(--shadow), var(--shadow-on) 2px;
-    }
-
-    button.start-stop.on::before {
-        border-color: var(--color);
-        box-shadow: inset 0 0 10px var(--color);
-    }
-
-    button.start-stop.on>div {
-        color: var(--color);
-        text-shadow: 0 0 10px var(--color);
-    }
-
-    button.start-stop.on hr {
-        border-color: var(--color);
-        box-shadow: 0 0 5px var(--color);
-    }
-
-    button.start-stop:active::before {
-        filter: brightness(80%);
-    }
-
-    button.start-stop:active {
-        transform: scale(0.98);
-    }
-
-    @keyframes vibrate {
-        0% {
-            transform: translate(0);
-        }
-
-        20% {
-            transform: translate(-2px, 2px);
-        }
-
-        40% {
-            transform: translate(-2px, -2px);
-        }
-
-        60% {
-            transform: translate(2px, 2px);
-        }
-
-        80% {
-            transform: translate(2px, -2px);
-        }
-
-        100% {
-            transform: translate(0);
-        }
-    }
-
-    .vibrating {
-        animation: vibrate 0.05s linear infinite;
-    }
-
-    .silent-entry-link:hover {
-        color: white !important;
-        text-shadow: 0 0 8px white;
-    }
-</style>
 
 <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/pinwheel.js"></script>
 
@@ -1341,24 +1455,6 @@
     <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.3"
         style="transition: all 0.3s ease; height: 4px; border-radius: 2px; cursor: pointer;">
 </div>
-
-<style>
-    #volumeControl #volumeSlider {
-        width: 80px;
-        opacity: 0.8;
-        margin-left: 5px;
-    }
-
-    #volumeControl:hover #volumeSlider {
-        opacity: 1;
-    }
-
-    .volume-btn:hover {
-        background: rgba(0, 245, 255, 0.2) !important;
-        border-color: #00f5ff !important;
-        box-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
-    }
-</style>
 
 <script>
     // Link elements to AudioManager
@@ -1482,39 +1578,6 @@
     <div id="view-entry"
         style="display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; position: relative; padding-top: 20px; padding-bottom: 50px; z-index: 5;">
         <!-- LIQUID TITLE ANIMATION -->
-        <style>
-            .landing-text {
-                width: 100%;
-                text-align: center;
-                font-size: 5rem;
-                font-weight: 900;
-                letter-spacing: 1rem;
-                z-index: 10;
-                white-space: nowrap;
-                font-family: 'Bricolage Grotesque', sans-serif;
-                color: #ffffff !important;
-                text-transform: uppercase;
-                text-shadow: 0 0 30px rgba(0, 245, 255, 0.8);
-                pointer-events: none;
-                margin-bottom: 0.5rem;
-                /* REDUCED MARGIN */
-                transition: transform 0.1s ease-out;
-            }
-
-            @media (max-width: 768px) {
-                .landing-text {
-                    font-size: 2.5rem;
-                    letter-spacing: 0.5rem;
-                    top: 15%;
-                }
-
-                #announcement-banner {
-                    top: 25% !important;
-                    font-size: 0.9rem !important;
-                    padding: 0 20px;
-                }
-            }
-        </style>
 
         <!-- CORRECTED NEON LOGO (VEROE.SPACE) -->
         <div class="landing-text-container" id="parallax-top">
@@ -1539,108 +1602,6 @@
                     </text>
                 </svg>
             </div>
-
-            <style>
-                .neon-logo-wrap {
-                    width: 100%;
-                    max-width: 1200px;
-                    height: 180px;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    margin: 0 auto;
-                    animation: hueRotateLogo 6s ease-in-out infinite;
-                    position: relative;
-                    z-index: 100;
-                }
-
-                .neon-svg {
-                    width: 100%;
-                    height: 100%;
-                }
-
-                .logo-text-bg,
-                .logo-text-animated {
-                    font-family: 'Audiowide', cursive;
-                    font-weight: 900;
-                    font-size: 100px;
-                    letter-spacing: 0.8rem;
-                    fill: transparent;
-                    stroke-width: 2px;
-                    filter: url(#logo-glow);
-                }
-
-                .logo-text-bg {
-                    stroke: #12000a;
-                }
-
-                .logo-text-animated {
-                    stroke: #00f5ff;
-                    stroke-dasharray: 2000;
-                    stroke-dashoffset: 2000;
-                    animation:
-                        drawLogoText 2.5s cubic-bezier(0.23, 1, 0.32, 1) forwards,
-                        flickerMainLogo 5s linear 3s infinite;
-                }
-
-                @keyframes drawLogoText {
-                    to {
-                        stroke-dashoffset: 0;
-                    }
-                }
-
-                @keyframes flickerMainLogo {
-
-                    0%,
-                    30%,
-                    32%,
-                    36%,
-                    42%,
-                    85%,
-                    96%,
-                    100% {
-                        stroke: #00f5ff;
-                        opacity: 1;
-                        filter: drop-shadow(0 0 10px #00f5ff);
-                    }
-
-                    31%,
-                    37%,
-                    41%,
-                    86%,
-                    95% {
-                        stroke: #12000a;
-                        opacity: 0.3;
-                        filter: none;
-                    }
-                }
-
-                @keyframes hueRotateLogo {
-
-                    0%,
-                    100% {
-                        filter: hue-rotate(0deg);
-                    }
-
-                    50% {
-                        filter: hue-rotate(30deg);
-                    }
-                }
-
-                /* Responsive tweaks */
-                @media (max-width: 768px) {
-
-                    .logo-text-bg,
-                    .logo-text-animated {
-                        font-size: 60px;
-                        letter-spacing: 0.4rem;
-                    }
-
-                    .neon-logo-wrap {
-                        height: 120px;
-                    }
-                }
-            </style>
         </div>
         <!-- END NEON LOGO -->
 
@@ -1661,65 +1622,6 @@
                 </a>
             </div>
         </div>
-
-        <style>
-            .top-action-dock {
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                margin-top: 10px;
-                margin-bottom: 20px;
-                z-index: 10000;
-                animation: slideDownFade 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-            }
-
-            .top-action-dock .dock-container {
-                display: flex;
-                gap: 15px;
-                background: rgba(10, 10, 15, 0.8);
-                backdrop-filter: blur(20px);
-                padding: 10px 20px;
-                border-radius: 24px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            }
-
-            .top-action-dock .dock-item {
-                padding: 12px 24px;
-                border-radius: 16px;
-                text-decoration: none;
-                color: rgba(255, 255, 255, 0.7);
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 0.75rem;
-                font-weight: 800;
-                text-transform: uppercase;
-                letter-spacing: 2px;
-                transition: all 0.3s ease;
-                background: rgba(255, 255, 255, 0.03);
-                border: 1px solid transparent;
-                white-space: nowrap;
-            }
-
-            .top-action-dock .dock-item:hover {
-                background: rgba(0, 245, 255, 0.1);
-                border-color: #00f5ff;
-                color: #00f5ff;
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(0, 245, 255, 0.2);
-            }
-
-            @keyframes slideDownFade {
-                from {
-                    opacity: 0;
-                    transform: translateY(-20px);
-                }
-
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        </style>
 
 
 
@@ -1862,34 +1764,6 @@
                 document.documentElement.style.setProperty('--accent-glow', colorObj.glow);
             }
 
-            // Initialize Session & UI State
-            (async function checkSession() {
-                try {
-                    if (!window.storage) return;
-
-                    const user = await storage.getMe();
-
-                    // Safe DOM references
-                    const loggedOut = document.getElementById('userLoggedOut');
-                    const loggedIn = document.getElementById('userLoggedIn');
-                    const userName = document.getElementById('userName');
-                    const userAvatar = document.getElementById('userAvatar');
-
-                    if (user) {
-                        if (loggedOut) loggedOut.style.display = 'none';
-                        if (loggedIn) {
-                            loggedIn.style.display = 'flex';
-                            if (userName) userName.textContent = user.displayName || user.username || 'User';
-                            if (userAvatar) userAvatar.src = user.avatarUrl || '/public/favicon.png';
-                        }
-                    } else {
-                        if (loggedOut) loggedOut.style.display = 'flex';
-                        if (loggedIn) loggedIn.style.display = 'none';
-                    }
-                } catch (e) {
-                    console.warn('Session check warning:', e);
-                }
-            })();
 
             if (mode === 'rotate') {
                 setInterval(() => {
@@ -2058,29 +1932,6 @@
         </div>
     </div>
     <!-- Additional Styles for Auth -->
-    <style>
-        .auth-discord {
-            background: #5865F2;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1rem;
-        }
-
-        .auth-discord:hover {
-            background: #4752C4;
-        }
-
-        .auth-email {
-            background: #333;
-            color: white;
-        }
-
-        .auth-email:hover {
-            background: #444;
-        }
-    </style>
 
     <script>
         // IMMEDIATE ROUTE GUARD - Inverted Logic
@@ -2160,7 +2011,6 @@
         }
 
         // Run on init
-        checkSession();
         if (window.loadPastes) window.loadPastes(); // Early fetch
 
         window.closeModals = function () {
@@ -2424,7 +2274,14 @@
                         window.showDetail(id);
                     }
                 }
-            } catch (e) { console.error("Reaction failed", e); }
+            } catch (e) {
+                console.error("Reaction failed", e);
+                if (e.message === 'AUTH_REQUIRED') {
+                    if (window.showToast) window.showToast("🔓 Please sign in to react!", "info");
+                } else {
+                    if (window.showToast) window.showToast("❌ Reaction failed", "error");
+                }
+            }
         };
 
         // Glitch effect on hint
@@ -2444,7 +2301,6 @@
             if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
             const lowerPath = path.toLowerCase();
 
-            console.log("[Router] Handling path:", lowerPath);
             if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
 
             // View Switching Logic

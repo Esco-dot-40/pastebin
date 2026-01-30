@@ -348,7 +348,7 @@ app.get('/v/:id', (req, res) => {
     // 1. Fetch Paste Metadata
     let paste = null;
     try {
-        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ?').get(pasteId);
+        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
     } catch (e) {
         console.error('DB Error fetching paste for embed:', e);
     }
