@@ -331,6 +331,12 @@ router.get('/public-list', (req, res) => {
 
 router.post('/', requireAuth, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
+
+    // Validation
+    if (!content) return res.status(400).json({ error: 'Content is strictly required for synchronization.' });
+    if (content.length > 1000000) return res.status(400).json({ error: 'Transmission overflow: Content exceeds 1MB limit.' });
+    if (title && title.length > 100) return res.status(400).json({ error: 'Title overhead: Maximum 100 characters allowed.' });
+
     const id = generateId();
     const userId = req.session?.user?.id || (req.session?.isAdmin ? 'admin' : null);
     db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null, userId);
@@ -339,6 +345,11 @@ router.post('/', requireAuth, async (req, res) => {
 
 router.put('/:id', requireAuth, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl } = req.body;
+
+    // Validation
+    if (content && content.length > 1000000) return res.status(400).json({ error: 'Transmission overflow: Content exceeds 1MB limit.' });
+    if (title && title.length > 100) return res.status(400).json({ error: 'Title overhead: Maximum 100 characters allowed.' });
+
     db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=?, embedUrl=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, embedUrl, req.params.id);
     res.json({ success: true });
 });

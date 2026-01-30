@@ -101,6 +101,13 @@
                     </svg>
                     Firewall
                 </button>
+                <button id="intelBtn" class="btn btn-glass btn-glow-pink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <circle cx="12" cy="11" r="3"></circle>
+                    </svg>
+                    Forensic Intel
+                </button>
                 <button id="logoutBtn" class="btn btn-glass btn-glow-orange">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -114,40 +121,91 @@
 
 
 
-        <!-- Dashboard Dashboard stats -->
-        <section class="dashboard-stats glass-card">
-            <div class="stat-group">
-                <div class="stat-box">
-                    <span class="stat-label">Total Hits</span>
-                    <span id="totalHits" class="stat-value">0</span>
-                    <div class="stat-trend up">↑ 12% today</div>
+        <!-- Command Center Grid -->
+        <div class="command-grid">
+            <!-- Summary Widgets -->
+            <div class="widget">
+                <div class="widget-title">
+                    <span><span class="stat-pulse"></span>Total Hits</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
                 </div>
-                <div class="stat-box">
-                    <span class="stat-label">Unique Readers</span>
-                    <span id="uniqueReaders" class="stat-value">0</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Avg Session</span>
-                    <span class="stat-value">4.2m</span>
-                </div>
-                <div class="stat-box">
-                    <span class="stat-label">Geo Reach</span>
-                    <span id="geoReach" class="stat-value">0</span>
-                </div>
+                <div id="totalHits" class="widget-value">0</div>
+                <div class="widget-trend up">↑ 14% vs last period</div>
             </div>
 
-            <div class="heatmap-container">
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Unique Readers</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <div id="uniqueReaders" class="widget-value">0</div>
+                <div class="widget-trend" style="color: var(--text-tertiary);">Active tracking enabled</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Geo Reach</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg>
+                </div>
+                <div id="geoReach" class="widget-value">0</div>
+                <div class="widget-trend" style="color: var(--primary-start);">Global propagation active</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Safety Score</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <div class="widget-value" style="color: var(--success);">98.4<span
+                        style="font-size: 1rem; opacity: 0.5;">%</span></div>
+                <div class="widget-trend" style="color: var(--success);">Firewall operational</div>
+            </div>
+
+            <!-- Global Map Widget -->
+            <div class="widget widget-map">
                 <div class="heatmap-header">
-                    <h3>Global View Interaction</h3>
+                    <h3 style="font-family: var(--font-heading); letter-spacing: 0.5px;">Global Signal Propagation</h3>
                     <div class="heatmap-legend">
-                        <span class="legend-item"><span class="dot pink"></span> High Intensity</span>
-                        <span class="legend-item"><span class="dot blue"></span> Low Intensity</span>
+                        <span class="legend-item"><span class="dot pink"></span> Intrusive Traffic</span>
+                        <span class="legend-item"><span class="dot blue"></span> Optimized Uplink</span>
                     </div>
                 </div>
-                <div id="mainHeatmap" class="map-frame" style="background: rgba(0,0,0,0.2); border-radius: 16px;"></div>
-
+                <div id="mainHeatmap" class="map-frame"
+                    style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);"></div>
             </div>
-        </section>
+
+            <!-- Real-time Activity Widget -->
+            <div class="widget widget-activity">
+                <div class="widget-title">
+                    <span>Real-time Traffic Feed</span>
+                    <span class="badge"
+                        style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">LIVE</span>
+                </div>
+                <div id="trafficFeed"
+                    style="flex: 1; overflow-y: auto; font-size: 0.75rem; font-family: var(--font-mono);">
+                    <!-- Dynamic traffic entries -->
+                    <div
+                        style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-tertiary);">
+                        Waiting for incoming transmission...
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Main Content Grid -->
         <main class="main-grid">
@@ -501,6 +559,46 @@
             </div>
             <div id="logsList" style="max-height: 600px; overflow-y: auto; padding: 10px;">
                 <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Forensic Intel Modal -->
+    <div id="intelModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Forensic Intelligence Node</h3>
+                <button id="closeIntelBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                <div>
+                    <h4 style="color: var(--secondary-start); margin-bottom: 15px;">Detecting Suspicious Terminal Nodes
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 15px;">IPs flagged as
+                        Proxy/VPN or Hosting providers across all synchronization channels.</p>
+                    <div id="suspiciousList"
+                        style="max-height: 500px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border);">
+                        <!-- Entries -->
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: var(--primary-start); margin-bottom: 15px;">Active Jurisdictional Blocks</h4>
+                    <div id="intelBlocks" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <!-- Blocked countries -->
+                    </div>
+
+                    <div
+                        style="margin-top: 40px; padding: 20px; background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 16px;">
+                        <h4 style="color: var(--primary-start); font-size: 0.9rem; margin-bottom: 10px;">Global Health
+                            Signature</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-tertiary);">All systems nominal. Propagation at
+                            100% efficiency. Database integrity verified.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

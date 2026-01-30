@@ -70,6 +70,10 @@ const closeFirewallBtn = document.getElementById('closeFirewallBtn');
 const firewallList = document.getElementById('firewallList');
 const firewallSearch = document.getElementById('firewallSearch');
 
+const intelBtn = document.getElementById('intelBtn');
+const intelModal = document.getElementById('intelModal');
+const closeIntelBtn = document.getElementById('closeIntelBtn');
+
 // Dashboard Elements
 const totalHitsEl = document.getElementById('totalHits');
 const uniqueReadersEl = document.getElementById('uniqueReaders');
@@ -94,6 +98,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
 });
+
+// Event Listeners
+if (intelBtn) {
+    intelBtn.addEventListener('click', () => {
+        intelModal.classList.add('active');
+        loadIntelData();
+    });
+}
+if (intelModal) {
+    intelModal.addEventListener('click', (e) => {
+        if (e.target === intelModal) intelModal.classList.remove('active');
+    });
+}
+if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => intelModal.classList.remove('active'));
 
 
 // Event Listeners
@@ -1337,6 +1355,7 @@ async function loadGlobalAnalytics() {
 
         updateDashboardStats(data);
         updateMainMap(data.locations || []);
+        updateTrafficFeed(data.recentActivity || []);
 
         // Update active visitors in header
         if (activeVisitorsEl) {
@@ -1348,10 +1367,66 @@ async function loadGlobalAnalytics() {
 }
 
 function updateDashboardStats(data) {
-    if (totalHitsEl) totalHitsEl.textContent = data.totalVisits || 0;
-    if (uniqueReadersEl) uniqueReadersEl.textContent = data.uniqueVisitors || 0;
-    if (geoReachEl) geoReachEl.textContent = data.uniqueLocations || 0;
+    if (totalHitsEl) animateValue(totalHitsEl, data.totalVisits || 0);
+    if (uniqueReadersEl) animateValue(uniqueReadersEl, data.uniqueVisitors || 0);
+    if (geoReachEl) animateValue(geoReachEl, data.uniqueLocations || 0);
 }
+
+function updateTrafficFeed(activity) {
+    const feed = document.getElementById('trafficFeed');
+    if (!feed) return;
+
+    if (!activity || activity.length === 0) {
+        feed.innerHTML = '<div style="padding: 10px; color: var(--text-tertiary);">No recent transmissions...</div>';
+        return;
+    }
+
+    feed.innerHTML = activity.slice(0, 15).map(a => {
+        const time = new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const isPaste = a.source === 'paste';
+        const flag = getFlagEmoji(a.countryCode);
+
+        return `
+            <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; animation: slideInFeed 0.3s ease-out;">
+                <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="color: ${isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'}; font-weight: 700;">[${a.source.toUpperCase()}]</span>
+                        <span style="color: var(--text-primary);">${a.path}</span>
+                    </div>
+                    <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-top: 2px;">
+                        ${flag} ${a.city || 'Unknown'}, ${a.countryCode || '??'} • ${a.ip}
+                    </div>
+                </div>
+                <div style="font-size: 0.65rem; color: var(--primary-start); font-weight: 700;">${time}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function animateValue(obj, value) {
+    const start = parseInt(obj.textContent) || 0;
+    const end = parseInt(value);
+    if (start === end) return;
+
+    // Simple fast animation
+    obj.textContent = end;
+    obj.style.transition = 'none';
+    obj.style.color = 'var(--primary-start)';
+    setTimeout(() => {
+        obj.style.transition = 'color 1s ease';
+        obj.style.color = 'var(--text-primary)';
+    }, 50);
+}
+
+// Add CSS animation for feed
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInFeed {
+        from { opacity: 0; transform: translateX(10px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+`;
+document.head.appendChild(style);
 
 function updateMainMap(locations) {
     if (!polygonSeries) return;
@@ -1388,7 +1463,58 @@ async function deleteLogsFromCity(cityName) {
     } catch (e) { console.error(e); }
 }
 
+async function loadIntelData() {
+    const suspiciousList = document.getElementById('suspiciousList');
+    const intelBlocks = document.getElementById('intelBlocks');
+    if (!suspiciousList || !intelBlocks) return;
+
+    suspiciousList.innerHTML = '<div style="padding: 20px; text-align: center;">Scanning synchronization channels...</div>';
+
+    try {
+        const res = await fetch('/api/analytics/threat-intel', { credentials: 'include' });
+        const data = await res.json();
+
+        if (data.suspiciousIPs) {
+            suspiciousList.innerHTML = data.suspiciousIPs.length > 0
+                ? data.suspiciousIPs.map(node => `
+                <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">${node.ip}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-tertiary);">
+                            ${node.isp} • ${node.country}
+                        </div>
+                        <div style="margin-top: 8px; display: flex; gap: 6px;">
+                            ${node.is_proxy ? '<span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start);">PROXY</span>' : ''}
+                            ${node.is_hosting ? '<span class="badge" style="background: rgba(123,66,255,0.1); color: var(--primary-start);">HOSTING</span>' : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.9rem; font-weight: 800; color: var(--secondary-start);">${node.hit_count}</div>
+                        <div style="font-size: 0.65rem; color: var(--text-tertiary); text-transform: uppercase;">Incidents</div>
+                    </div>
+                </div>
+            `).join('')
+                : '<div style="padding: 20px; text-align: center; color: var(--success);">All terminal nodes verified clean.</div>';
+        }
+
+        if (data.topBlocked) {
+            intelBlocks.innerHTML = data.topBlocked.map(b => `
+                <div style="padding: 8px 12px; background: rgba(255,0,110,0.1); border: 1px solid rgba(255,0,110,0.2); border-radius: 8px; display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 1.2rem;">${getFlagEmoji(b.countryCode)}</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: var(--secondary-start);">${b.countryName}</span>
+                </div>
+            `).join('');
+            if (data.topBlocked.length === 0) intelBlocks.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-tertiary);">No active jurisdictional blocks.</div>';
+        }
+
+    } catch (e) {
+        console.error('Forensic Intel scan failed:', e);
+        suspiciousList.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--error);">Scan Aborted: API Unavailable</div>';
+    }
+}
+
 // Global scope binding for inline onclick
+window.loadIntelData = loadIntelData;
 window.deleteKey = deleteKey;
 window.toggleVisibility = toggleVisibility;
 window.showAnalytics = showAnalytics;

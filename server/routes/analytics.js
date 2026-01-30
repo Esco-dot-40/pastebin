@@ -43,6 +43,29 @@ router.delete('/logs-clear', requireAdmin, (req, res) => {
     }
 });
 
+// Get Threat Intelligence (Suspicious Traffic)
+router.get('/threat-intel', requireAdmin, (req, res) => {
+    try {
+        const suspiciousIPs = db.prepare(`
+            SELECT ip, country, isp, COUNT(*) as hit_count, 
+                   MAX(proxy) as is_proxy, MAX(hosting) as is_hosting
+            FROM page_accesses
+            WHERE (proxy = 1 OR hosting = 1)
+            GROUP BY ip
+            ORDER BY hit_count DESC
+            LIMIT 50
+        `).all();
+
+        const topBlocked = db.prepare(`
+            SELECT countryCode, countryName, status FROM blocked_countries WHERE status = 1
+        `).all();
+
+        res.json({ suspiciousIPs, topBlocked });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Mock "Archive" (could move to another table, but for now just mark or export)
 router.post('/logs-archive', requireAdmin, (req, res) => {
     // In a real app, we'd move these to a cold storage table

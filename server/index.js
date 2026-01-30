@@ -82,83 +82,80 @@ app.use(async (req, res, next) => {
     // 4. Skip based on explicit env flag (RELAXED for visibility)
     const shouldSkip = (isAdminPath || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true' && !req.session?.isAdmin;
 
+    // --- PROACTIVE TRACKING & FIREWALL ---
     if (!isStatic && !isApi && !shouldSkip && (req.method === 'GET' || req.method === 'HEAD')) {
-        setImmediate(async () => {
-            try {
-                const userAgent = req.headers['user-agent'] || '';
-                const referrer = req.headers['referer'] || req.headers['referrer'] || null;
+        try {
+            const userAgent = req.headers['user-agent'] || '';
+            const referrer = req.headers['referer'] || req.headers['referrer'] || null;
+            const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.') || cleanIP.startsWith('172.');
 
-                let geoData = null;
-                const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.') || cleanIP.startsWith('172.');
+            // Check if we already know this IP
+            let knownGeo = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
 
-                if (!isLocal) {
+            // If unknown and not local, fetch real-time data
+            if (!knownGeo && !isLocal) {
+                try {
+                    const fetch = (await import('node-fetch')).default;
+                    const fields = 'status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
+                    const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=${fields}`);
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        // Insert immediately to the database
+                        db.prepare(`
+                            INSERT INTO page_accesses (
+                                path, method, ip, country, countryCode, region, regionName, city, district, zip, lat, lon, 
+                                timezone, currency, isp, org, asName, userAgent, referrer, reverse,
+                                proxy, hosting, mobile
+                            )
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        `).run(
+                            req.path, req.method, cleanIP,
+                            data.country, data.countryCode, data.region, data.regionName, data.city, data.district, data.zip,
+                            data.lat, data.lon, data.timezone, data.currency,
+                            data.isp, data.org, data.as, userAgent, referrer, data.reverse || null,
+                            data.proxy ? 1 : 0, data.hosting ? 1 : 0, data.mobile ? 1 : 0
+                        );
+                        // Refresh knownGeo for immediate firewall check below
+                        knownGeo = { countryCode: data.countryCode };
+                    }
+                } catch (e) { console.error('Proactive GeoIP fetch failed:', e.message); }
+            } else if (!knownGeo && isLocal) {
+                // Log local hit once
+                db.prepare(`
+                    INSERT INTO page_accesses (
+                        path, method, ip, userAgent, referrer, 
+                        country, countryCode, city, regionName, isp
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `).run(
+                    req.path, req.method, cleanIP, userAgent, referrer,
+                    'Internal Network', '??', 'Local Transmission', 'Admin Sector', 'Direct Uplink'
+                );
+                knownGeo = { countryCode: '??' };
+            } else if (knownGeo) {
+                // Still log the visit, but can be non-blocking/async for performance now that we have data
+                setImmediate(() => {
                     try {
-                        const fetch = (await import('node-fetch')).default;
-                        const fields = 'status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
-                        const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=${fields}`);
-                        const data = await response.json();
-                        if (data.status === 'success') geoData = data;
+                        db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent, referrer, countryCode) VALUES (?, ?, ?, ?, ?, ?)`).run(
+                            req.path, req.method, cleanIP, userAgent, referrer, knownGeo.countryCode
+                        );
                     } catch (e) { }
-                }
-
-                if (geoData) {
-                    db.prepare(`
-                        INSERT INTO page_accesses (
-                            path, method, ip, country, countryCode, region, regionName, city, district, zip, lat, lon, 
-                            timezone, currency, isp, org, asName, userAgent, referrer, reverse,
-                            proxy, hosting, mobile
-                        )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `).run(
-                        req.path, req.method, cleanIP,
-                        geoData.country, geoData.countryCode, geoData.region, geoData.regionName, geoData.city, geoData.district, geoData.zip,
-                        geoData.lat, geoData.lon, geoData.timezone, geoData.currency,
-                        geoData.isp, geoData.org, geoData.as, userAgent, referrer, geoData.reverse || null,
-                        geoData.proxy ? 1 : 0, geoData.hosting ? 1 : 0, geoData.mobile ? 1 : 0
-                    );
-                } else {
-                    // Fallback for local/admin hits to ensure they show up in statistics
-                    db.prepare(`
-                        INSERT INTO page_accesses (
-                            path, method, ip, userAgent, referrer, 
-                            country, countryCode, city, regionName, isp
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `).run(
-                        req.path, req.method, cleanIP, userAgent, referrer,
-                        isLocal ? 'Internal Network' : 'Unknown Sector',
-                        isLocal ? '??' : '??',
-                        isLocal ? 'Local Transmission' : 'Encrypted Node',
-                        isLocal ? 'Admin Sector' : 'Unknown',
-                        isLocal ? 'Direct Uplink' : 'Hidden ISP'
-                    );
-                }
-            } catch (err) { }
-        });
-    }
-
-    // --- COUNTRY DETECTION FOR CUSTOM NOTICE ---
-    // We check the DB for previous geo data to avoid blocking every request with an external API call
-    if (!isStatic && !isApi) {
-        try {
-            const knownGeo = db.prepare('SELECT countryCode FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
-            if (knownGeo && knownGeo.countryCode === 'NL') {
-                req.isDutch = true;
+                });
             }
-        } catch (e) { }
-    }
 
-    // --- GLOBAL FIREWALL (COUNTRY BLOCK) ---
-    if (!isStatic && !isApi && req.path !== '/blocked' && !req.session?.isAdmin) {
-        try {
-            // Check if current IP's country is blocked
-            const knownGeo = db.prepare('SELECT countryCode FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
-            if (knownGeo) {
+            // --- IMMEDIATE FIREWALL ENFORCEMENT ---
+            if (knownGeo && req.path !== '/blocked' && !isAdminUser) {
+                // 1. Check for NL Notice
+                if (knownGeo.countryCode === 'NL') req.isDutch = true;
+
+                // 2. Check for Country Block
                 const isBlocked = db.prepare('SELECT status FROM blocked_countries WHERE countryCode = ? AND status = 1').get(knownGeo.countryCode);
                 if (isBlocked) {
                     return res.redirect('/blocked');
                 }
             }
-        } catch (e) { }
+
+        } catch (err) { console.error('Middleware Processing Error:', err); }
     }
 
     next();

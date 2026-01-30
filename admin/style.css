@@ -48,6 +48,121 @@
 }
 
 /* ============================================
+   COMMAND CENTER GRID & WIDGETS
+   ============================================ */
+.command-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: auto auto;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.command-grid .widget {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: var(--spacing-lg);
+    backdrop-filter: blur(20px);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.command-grid .widget::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--primary-start), transparent);
+    opacity: 0.3;
+}
+
+.command-grid .widget:hover {
+    background: var(--bg-elevated);
+    border-color: var(--primary-start);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 245, 0.1);
+}
+
+.widget-title {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    font-family: var(--font-heading);
+    letter-spacing: -1px;
+}
+
+.widget-trend {
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
+}
+
+.widget-map {
+    grid-column: span 3;
+    grid-row: span 2;
+    min-height: 450px;
+}
+
+.widget-activity {
+    grid-column: span 1;
+    grid-row: span 2;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 1400px) {
+    .command-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .widget-map {
+        grid-column: span 2;
+    }
+
+    .widget-activity {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 800px) {
+    .command-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .widget-map,
+    .widget-activity {
+        grid-column: span 1;
+    }
+}
+
+.stat-pulse {
+    width: 6px;
+    height: 6px;
+    background: var(--primary-start);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 10px var(--primary-start);
+    animation: pulseDot 2s infinite;
+}
+
+/* ============================================
    BASE RESET & BACKGROUND
    ============================================ */
 
