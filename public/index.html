@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>veroe.space</title>
 
 
     <link rel="stylesheet" href="/public/style.css">
@@ -20,10 +19,23 @@
     <script src="/shared/api.js"></script>
     <script src="/public/audio-manager.js"></script>
     <style>
-        /* Route Guard Styles */
-        html.route-viewer #view-entry,
-        html.route-viewer .top-action-dock {
+        /* INVERTED ROUTE GUARD: Hide by default, show only on explicit index class */
+        #view-entry,
+        .top-action-dock {
             display: none !important;
+        }
+
+        html.route-index #view-entry {
+            display: flex !important;
+        }
+
+        html.route-index .top-action-dock {
+            display: block !important;
+        }
+
+        /* Viewer is block only when not on index */
+        #view-viewer {
+            display: none;
         }
 
         html.route-viewer #view-viewer {
@@ -2059,10 +2071,14 @@
     </style>
 
     <script>
-        // IMMEDIATE ROUTE GUARD
+        // IMMEDIATE ROUTE GUARD - Inverted Logic
         (function () {
-            const p = window.location.pathname.toLowerCase();
-            if (p.startsWith('/v/') || p.startsWith('/public') || p === '/access-denied') {
+            let p = window.location.pathname.toLowerCase();
+            if (p.length > 1 && p.endsWith('/')) p = p.slice(0, -1);
+
+            if (p === '/' || p === '/index.html' || p === '' || p === '/home') {
+                document.documentElement.classList.add('route-index');
+            } else {
                 document.documentElement.classList.add('route-viewer');
             }
         })();
@@ -2411,8 +2427,12 @@
         }
 
         window.handleRoute = function () {
-            const path = window.location.pathname;
+            // Path normalization
+            let path = window.location.pathname;
+            if (path.length > 1 && path.endsWith('/')) path = path.slice(0, -1);
             const lowerPath = path.toLowerCase();
+
+            console.log("[Router] Handling path:", lowerPath);
             if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
 
             // View Switching Logic
@@ -2421,8 +2441,9 @@
             const denied = document.getElementById('view-access-denied');
             const dock = document.querySelector('.top-action-dock');
 
-            if (lowerPath === '/' || lowerPath === '/index.html' || lowerPath === '') {
+            if (lowerPath === '/' || lowerPath === '/index.html' || lowerPath === '' || lowerPath === '/home') {
                 document.documentElement.classList.remove('route-viewer');
+                document.documentElement.classList.add('route-index');
                 if (entry) entry.style.display = 'flex';
                 if (viewer) viewer.style.display = 'none';
                 if (denied) denied.style.display = 'none';
@@ -2431,6 +2452,7 @@
                 if (window.setBackgroundVideo) window.setBackgroundVideo('main');
                 updateUptime();
             } else if (lowerPath === '/access-denied') {
+                document.documentElement.classList.remove('route-index');
                 document.documentElement.classList.add('route-viewer');
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'none';
@@ -2439,6 +2461,7 @@
                 document.body.style.overflow = 'hidden';
                 if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
             } else if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
+                document.documentElement.classList.remove('route-index');
                 document.documentElement.classList.add('route-viewer');
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'block';

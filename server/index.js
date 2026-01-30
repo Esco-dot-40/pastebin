@@ -221,10 +221,6 @@ app.get('/api/public-folders', (req, res) => {
     }
 });
 
-// Public Gallery Route (SPA handle)
-app.get('/public', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
 
 // Status Page Route
 app.get('/status', (req, res) => {
