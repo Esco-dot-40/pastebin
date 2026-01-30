@@ -6,8 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>veroe.space</title>
 
-    <title>veroe.space</title>
-
 
     <link rel="stylesheet" href="/public/style.css">
     <link rel="stylesheet" href="/public/design-refresh.css?v=20">
@@ -22,6 +20,16 @@
     <script src="/shared/api.js"></script>
     <script src="/public/audio-manager.js"></script>
     <style>
+        /* Route Guard Styles */
+        html.route-viewer #view-entry,
+        html.route-viewer .top-action-dock {
+            display: none !important;
+        }
+
+        html.route-viewer #view-viewer {
+            display: block !important;
+        }
+
         :root {
             --accent-color: #00f5ff;
             --accent-glow: rgba(0, 245, 255, 0.4);
@@ -2050,7 +2058,15 @@
         }
     </style>
 
-
+    <script>
+        // IMMEDIATE ROUTE GUARD
+        (function () {
+            const p = window.location.pathname.toLowerCase();
+            if (p.startsWith('/v/') || p.startsWith('/public') || p === '/access-denied') {
+                document.documentElement.classList.add('route-viewer');
+            }
+        })();
+    </script>
     <script type="module">
         import { initLoadingShader } from '/public/loading-shader.js';
 
@@ -2406,6 +2422,7 @@
             const dock = document.querySelector('.top-action-dock');
 
             if (lowerPath === '/' || lowerPath === '/index.html' || lowerPath === '') {
+                document.documentElement.classList.remove('route-viewer');
                 if (entry) entry.style.display = 'flex';
                 if (viewer) viewer.style.display = 'none';
                 if (denied) denied.style.display = 'none';
@@ -2414,6 +2431,7 @@
                 if (window.setBackgroundVideo) window.setBackgroundVideo('main');
                 updateUptime();
             } else if (lowerPath === '/access-denied') {
+                document.documentElement.classList.add('route-viewer');
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'none';
                 if (denied) denied.style.display = 'flex';
@@ -2421,6 +2439,7 @@
                 document.body.style.overflow = 'hidden';
                 if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
             } else if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
+                document.documentElement.classList.add('route-viewer');
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'block';
                 if (denied) denied.style.display = 'none';
