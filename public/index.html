@@ -2373,7 +2373,12 @@
                 const res = await window.storage.toggleReaction(id, type);
                 if (res.success) {
                     if (window.showToast) window.showToast("✅ Reacted!", "success");
-                    window.showList(); // Refresh
+                    const path = window.location.pathname.toLowerCase();
+                    if (specificId || path.startsWith('/public')) {
+                        window.showList();
+                    } else {
+                        window.showDetail(id);
+                    }
                 }
             } catch (e) { console.error("Reaction failed", e); }
         };
@@ -2391,6 +2396,7 @@
 
         window.handleRoute = function () {
             const path = window.location.pathname;
+            const lowerPath = path.toLowerCase();
             if (window.audioSystem && window.audioSystem.isEnabled) window.audioSystem.syncUI();
 
             // View Switching Logic
@@ -2399,7 +2405,7 @@
             const denied = document.getElementById('view-access-denied');
             const dock = document.querySelector('.top-action-dock');
 
-            if (path === '/' || path === '/index.html') {
+            if (lowerPath === '/' || lowerPath === '/index.html' || lowerPath === '') {
                 if (entry) entry.style.display = 'flex';
                 if (viewer) viewer.style.display = 'none';
                 if (denied) denied.style.display = 'none';
@@ -2407,14 +2413,14 @@
                 document.body.style.overflow = 'auto';
                 if (window.setBackgroundVideo) window.setBackgroundVideo('main');
                 updateUptime();
-            } else if (path === '/access-denied') {
+            } else if (lowerPath === '/access-denied') {
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'none';
                 if (denied) denied.style.display = 'flex';
                 if (dock) dock.style.display = 'none';
                 document.body.style.overflow = 'hidden';
                 if (window.setBackgroundVideo) window.setBackgroundVideo('loading');
-            } else if (path.startsWith('/public') || path.startsWith('/v/')) {
+            } else if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
                 if (entry) entry.style.display = 'none';
                 if (viewer) viewer.style.display = 'block';
                 if (denied) denied.style.display = 'none';
@@ -2422,7 +2428,7 @@
                 document.body.style.setProperty('overflow', 'auto', 'important');
                 if (window.setBackgroundVideo) window.setBackgroundVideo('public');
 
-                if (path.startsWith('/v/')) {
+                if (lowerPath.startsWith('/v/')) {
                     const id = path.split('/')[2];
                     if (window.showDetail) window.showDetail(id);
                 } else {
@@ -2486,13 +2492,20 @@
             if (window.handleRoute) window.handleRoute();
             window.onpopstate = window.handleRoute;
 
-            // If we are on public page, trigger early fetch
-            if (window.location.pathname.startsWith('/public')) {
-                const checkAndFetch = () => {
-                    if (window.showList) window.showList();
-                    else setTimeout(checkAndFetch, 100);
+            const lowerPath = window.location.pathname.toLowerCase();
+            if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
+                const initRoute = () => {
+                    const currentPath = window.location.pathname.toLowerCase();
+                    if (currentPath.startsWith('/v/')) {
+                        const id = window.location.pathname.split('/')[2];
+                        if (id && window.showDetail) window.showDetail(id);
+                        else if (id) setTimeout(initRoute, 100);
+                    } else if (currentPath.startsWith('/public')) {
+                        if (window.showList) window.showList();
+                        else setTimeout(initRoute, 100);
+                    }
                 };
-                checkAndFetch();
+                initRoute();
             }
         })();
     </script>
