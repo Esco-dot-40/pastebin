@@ -2011,6 +2011,7 @@
         }
 
         // Run on init
+        checkSession();
         if (window.loadPastes) window.loadPastes(); // Early fetch
 
         window.closeModals = function () {

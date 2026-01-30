@@ -213,6 +213,16 @@ db.exec(`
     );
 `);
 
+// Blocked Countries Table
+db.exec(`
+    CREATE TABLE IF NOT EXISTS blocked_countries (
+        countryCode TEXT PRIMARY KEY,
+        countryName TEXT,
+        status INTEGER DEFAULT 1, -- 1 = active block
+        createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+`);
+
 // Users Table (Auth)
 db.exec(`
     CREATE TABLE IF NOT EXISTS users (

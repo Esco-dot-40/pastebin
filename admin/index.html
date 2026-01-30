@@ -95,6 +95,13 @@
                     </svg>
                     Users
                 </button>
+                <button id="firewallBtn" class="btn btn-glass btn-glow-red">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Firewall
+                </button>
                 <button id="logoutBtn" class="btn btn-glass btn-glow-orange">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -446,6 +453,27 @@
                 </button>
             </div>
             <div id="usersList" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firewall Modal -->
+    <div id="firewallModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Global Firewall / Geo-Blocking</h3>
+                <button id="closeFirewallBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <input type="text" id="firewallSearch" class="input-field"
+                    placeholder="Search Country (e.g. NL, Netherlands)...">
+            </div>
+            <div id="firewallList" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
                 <!-- Dynamically populated -->
             </div>
         </div>

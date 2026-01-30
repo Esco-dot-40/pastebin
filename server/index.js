@@ -11,6 +11,7 @@ import authRouter from './routes/auth.js';
 import foldersRouter from './routes/folders.js';
 import imagesRouter from './routes/images.js';
 import bannerRouter from './routes/banner.js';
+import firewallRouter from './routes/firewall.js';
 import db from './db/index.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
 import { startAutoBackup } from './services/auto-backup.js';
@@ -134,6 +135,31 @@ app.use(async (req, res, next) => {
         });
     }
 
+    // --- COUNTRY DETECTION FOR CUSTOM NOTICE ---
+    // We check the DB for previous geo data to avoid blocking every request with an external API call
+    if (!isStatic && !isApi) {
+        try {
+            const knownGeo = db.prepare('SELECT countryCode FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
+            if (knownGeo && knownGeo.countryCode === 'NL') {
+                req.isDutch = true;
+            }
+        } catch (e) { }
+    }
+
+    // --- GLOBAL FIREWALL (COUNTRY BLOCK) ---
+    if (!isStatic && !isApi && req.path !== '/blocked' && !req.session?.isAdmin) {
+        try {
+            // Check if current IP's country is blocked
+            const knownGeo = db.prepare('SELECT countryCode FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
+            if (knownGeo) {
+                const isBlocked = db.prepare('SELECT status FROM blocked_countries WHERE countryCode = ? AND status = 1').get(knownGeo.countryCode);
+                if (isBlocked) {
+                    return res.redirect('/blocked');
+                }
+            }
+        } catch (e) { }
+    }
+
     next();
 });
 
@@ -184,6 +210,7 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
     <meta name="twitter:image" content="${imageUrl}">
+    ${req.isDutch ? '<script>window.FORCE_LEGAL_NOTICE = true;</script>' : ''}
     ${customMeta}`;
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
@@ -198,6 +225,7 @@ app.use('/api/folders', foldersRouter);
 app.use('/api/images', imagesRouter);
 import analyticsRouter from './routes/analytics.js';
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/firewall', firewallRouter);
 
 app.use('/api/admin', bannerRouter);
 
@@ -225,6 +253,10 @@ app.get('/api/public-folders', (req, res) => {
 // Status Page Route
 app.get('/status', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'status.html'));
+});
+
+app.get('/blocked', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'blocked.html'));
 });
 
 // Admin Section (/adminperm)

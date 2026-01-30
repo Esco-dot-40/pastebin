@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Restricted | veroe.space</title>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-red: #fe4a49;
+            --bg: #0a0a0f;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(254, 74, 73, 0.2);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.8);
+        }
+
+        h1 {
+            font-family: 'Audiowide', cursive;
+            color: var(--neon-red);
+            font-size: 3rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(254, 74, 73, 0.4);
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .eco-system {
+            font-size: 0.8rem;
+            color: var(--neon-red);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: transparent;
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 800;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--neon-red);
+            color: white;
+            box-shadow: 0 0 20px rgba(254, 74, 73, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="eco-system">System Firewall Active</div>
+        <h1>ACCESS DENIED</h1>
+        <p>Your transmission has been intercepted. This sector of the <b>veroe.space</b> network is currently restricted
+            for your regional node.</p>
+        <p style="font-size: 0.8rem; opacity: 0.5;">If you believe this is an error, please contact the administrator
+            via Discord.</p>
+        <a href="https://discord.gg/YAqe3UvU5E" class="back-btn">Request Uplink</a>
+    </div>
+</body>
+
+</html>
