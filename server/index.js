@@ -147,6 +147,50 @@ export const logEvent = async (req, path, method = 'LOG') => {
     } catch (e) { }
 };
 
+// Utility to serve HTML with injected meta tags
+const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
+    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    let html = '';
+    try {
+        html = fs.readFileSync(indexPath, 'utf-8');
+    } catch (err) {
+        console.error('Error reading index.html:', err);
+        return res.status(500).send('Error loading frontend.');
+    }
+
+    const siteName = 'veroe.space';
+    const themeColor = '#00f5ff';
+    const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
+    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+
+    const escape = (str) => String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const safeTitle = escape(title);
+    const safeDesc = escape(description);
+
+    const metaTags = `
+    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="${safeTitle}">
+    <meta property="og:description" content="${safeDesc}">
+    <meta property="og:url" content="${fullUrl}">
+    <meta property="og:image" content="${imageUrl}">
+    <meta name="theme-color" content="${themeColor}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${safeTitle}">
+    <meta name="twitter:description" content="${safeDesc}">
+    <meta name="twitter:image" content="${imageUrl}">
+    ${customMeta}`;
+
+    html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
+    html = html.replace('</head>', `${metaTags}\n</head>`);
+    res.send(html);
+};
+
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/pastes', pastesRouter);
@@ -219,55 +263,26 @@ app.use('/api/access', accessRouter);
 
 // Root Redirect/Entry
 app.get('/', (req, res) => {
-    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
-    let html = '';
-    try {
-        html = fs.readFileSync(indexPath, 'utf-8');
-    } catch (err) {
-        console.error('Error reading index.html:', err);
-        return res.status(500).send('Error loading frontend.');
-    }
-
-    // Default Meta Data for Home
-    const title = 'veroe.space // encrypted transmissions';
-    const description = 'Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.';
-    const siteName = 'veroe.space';
-    const themeColor = '#00f5ff';
-    const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-
-    const metaTags = `
-    <meta property="og:site_name" content="${siteName}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="${title}">
-    <meta property="og:description" content="${description}">
-    <meta property="og:url" content="${fullUrl}">
-    <meta property="og:image" content="${imageUrl}">
-    <meta name="theme-color" content="${themeColor}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${title}">
-    <meta name="twitter:description" content="${description}">
-    <meta name="twitter:image" content="${imageUrl}">
-    `;
-
-    // Replace title if needed, or just rely on meta tags. 
-    // index.html has <title>QuietBin.space</title> already, but let's be explicit.
-    html = html.replace(/<title>.*?<\/title>/, `<title>${title}</title>`);
-
-    // Inject before closing head
-    html = html.replace('</head>', `${metaTags}\n</head>`);
-
-    res.send(html);
+    serveHtmlWithMeta(
+        req, res,
+        'encrypted transmissions',
+        'Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.'
+    );
 });
 
-// Public Viewer - SPA Redirects
+// Public Gallery Route (SPA handle)
 app.get('/public', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+    serveHtmlWithMeta(
+        req, res,
+        'public archives',
+        'Browse the public node repository. Aesthetic code and cinematic propagation.'
+    );
 });
 
 // Dedicated Status Page
 app.get('/status', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'status.html'));
+    const statusPath = path.join(__dirname, '..', 'public', 'status.html');
+    res.sendFile(statusPath);
 });
 
 // Heartbeat Analytics API
@@ -333,18 +348,8 @@ app.get('/api/heartbeat-data', (req, res) => {
 // Short URL for viewing pastes: /v/ID
 app.get('/v/:id', (req, res) => {
     const pasteId = req.params.id;
-    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
 
-    // 1. Read the template
-    let html = '';
-    try {
-        html = fs.readFileSync(indexPath, 'utf-8');
-    } catch (err) {
-        console.error('Error reading index.html:', err);
-        return res.status(500).send('Error loading frontend.');
-    }
-
-    // 2. Fetch Paste Metadata
+    // 1. Fetch Paste Metadata
     let paste = null;
     try {
         paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ?').get(pasteId);
@@ -352,12 +357,10 @@ app.get('/v/:id', (req, res) => {
         console.error('DB Error fetching paste for embed:', e);
     }
 
-    // 3. Construct Meta Data
-    let title = 'veroe.space // node missing';
+    // 2. Default Meta Data
+    let title = 'node missing';
     let description = 'Transmission not found or purged from the ephemeral repository.';
-    const siteName = 'veroe.space';
-    const themeColor = '#00f5ff';
-    let imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
+    let imageUrl = '';
     let videoUrl = null;
     let videoType = 'text/html';
 
@@ -367,7 +370,7 @@ app.get('/v/:id', (req, res) => {
         const isAdmin = req.session && req.session.isAdmin;
 
         if (isPrivate && !isAdmin && !key) {
-            title = 'veroe.space // sector locked';
+            title = 'sector locked';
             description = 'Authorized signature required for node synchronization.';
         } else {
             title = paste.title || 'Untitled Paste';
@@ -375,12 +378,13 @@ app.get('/v/:id', (req, res) => {
             if (paste.embedUrl) {
                 let fullEmbedUrl = paste.embedUrl;
                 if (!fullEmbedUrl.startsWith('http')) {
-                    fullEmbedUrl = `${req.protocol}://${req.get('host')}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
+                    const protocol = req.protocol;
+                    const host = req.get('host');
+                    fullEmbedUrl = `${protocol}://${host}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
                 }
                 if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
                     videoUrl = fullEmbedUrl;
                     videoType = 'video/mp4';
-                    imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
                 } else {
                     imageUrl = fullEmbedUrl;
                 }
@@ -420,48 +424,21 @@ app.get('/v/:id', (req, res) => {
         }
     }
 
-    // 4. Escape HTML Helpers
-    const escape = (str) => String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-
-    const safeTitle = escape(title);
-    const safeDesc = escape(description);
-    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
-
-    // 5. Inject Meta Tags
-    let metaTags = `
-    <meta property="og:site_name" content="${siteName}">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="${safeTitle}">
-    <meta property="og:description" content="${safeDesc}">
-    <meta property="og:url" content="${fullUrl}">
-    <meta name="theme-color" content="${themeColor}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="${safeTitle}">
-    <meta name="twitter:description" content="${safeDesc}">`;
-
+    let customMeta = '';
     if (imageUrl) {
-        metaTags += `
-    <meta property="og:image" content="${imageUrl}">
-    <meta name="twitter:image" content="${imageUrl}">`;
+        customMeta += `<meta property="og:image" content="${imageUrl}"><meta name="twitter:image" content="${imageUrl}">`;
     }
-
     if (videoUrl) {
-        metaTags += `
-    <meta property="og:video" content="${videoUrl}">
-    <meta property="og:video:url" content="${videoUrl}">
-    <meta property="og:video:secure_url" content="${videoUrl}">
-    <meta property="og:video:type" content="${videoType}">
-    <meta property="og:video:width" content="1280">
-    <meta property="og:video:height" content="720">`;
+        customMeta += `
+        <meta property="og:video" content="${videoUrl}">
+        <meta property="og:video:url" content="${videoUrl}">
+        <meta property="og:video:secure_url" content="${videoUrl}">
+        <meta property="og:video:type" content="${videoType}">
+        <meta property="og:video:width" content="1280">
+        <meta property="og:video:height" content="720">`;
     }
 
-    html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
-    html = html.replace('</head>', `${metaTags}\n</head>`);
-    res.send(html);
+    serveHtmlWithMeta(req, res, title, description, customMeta);
 });
 
 

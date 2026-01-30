@@ -6,18 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>veroe.space</title>
 
-    <!-- SEO & Social Embeds -->
-    <meta name="description"
-        content="Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.">
-    <meta name="theme-color" content="#00f5ff">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://veroe.space/">
-    <meta property="og:title" content="veroe.space // encrypted transmissions">
-    <meta property="og:description"
-        content="Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.">
-    <meta property="twitter:image" content="https://veroe.space/public/preview.png">
+    <title>veroe.space</title>
 
 
     <link rel="stylesheet" href="/public/style.css">
@@ -2513,15 +2502,6 @@
         (function () {
             if (window.handleRoute) window.handleRoute();
             window.onpopstate = window.handleRoute;
-
-            // If we are on public page, trigger early fetch
-            if (window.location.pathname.startsWith('/public') || window.location.pathname.startsWith('/v/')) {
-                const checkAndFetch = () => {
-                    if (window.showList) window.showList();
-                    else setTimeout(checkAndFetch, 100);
-                };
-                checkAndFetch();
-            }
         })();
     </script>
     <script type="module" src="/public/gallery.js"></script>

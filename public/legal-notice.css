@@ -2,7 +2,8 @@
 #legal-notice-root {
     position: fixed;
     inset: 0;
-    z-index: 10001;
+    z-index: 1000001;
+    /* Above loader */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -11,11 +12,18 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.5s ease, visibility 0.5s ease;
+    backdrop-filter: blur(0px);
+    /* Transition this */
+    -webkit-backdrop-filter: blur(0px);
 }
 
 #legal-notice-root.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 #legal-notice-root .card-wrapper {

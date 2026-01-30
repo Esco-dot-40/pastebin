@@ -4,7 +4,7 @@
  */
 
 (function () {
-    const STORAGE_KEY = 'legal_notice_acknowledged_v2';
+    const STORAGE_KEY = 'legal_notice_acknowledged_v3';
 
     function injectNotice() {
         if (localStorage.getItem(STORAGE_KEY)) return;
@@ -70,11 +70,13 @@
         const root = document.getElementById('legal-notice-root');
         const btn = document.getElementById('legal-acknowledge-btn');
 
-        // Initial delay to ensure page is loaded/loader handled
+        // Show almost immediately to block interaction
         setTimeout(() => {
             root.classList.add('active');
             document.body.style.overflow = 'hidden';
-        }, 1200);
+            // Force focus to button to ensure they can't tab away easily
+            btn.focus();
+        }, 400);
 
         btn.addEventListener('click', () => {
             root.classList.remove('active');
@@ -82,7 +84,7 @@
             setTimeout(() => {
                 root.remove();
                 document.body.style.overflow = '';
-            }, 500);
+            }, 600);
         });
     }
 
