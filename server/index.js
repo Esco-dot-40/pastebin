@@ -86,8 +86,12 @@ app.use(async (req, res, next) => {
     if (!isStatic && !isApi && !shouldSkip && (req.method === 'GET' || req.method === 'HEAD')) {
         try {
             const userAgent = req.headers['user-agent'] || '';
+            const isBot = /Discordbot|Twitterbot|facebookexternalhit|TelegramBot|Slackbot/i.test(userAgent);
             const referrer = req.headers['referer'] || req.headers['referrer'] || null;
             const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.') || cleanIP.startsWith('172.');
+
+            // Bypass for bots
+            const shouldBypassFirewall = isBot || isAdminUser;
 
             // Check if we already know this IP
             let knownGeo = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
@@ -144,7 +148,7 @@ app.use(async (req, res, next) => {
             }
 
             // --- IMMEDIATE FIREWALL ENFORCEMENT ---
-            if (knownGeo && req.path !== '/blocked' && !isAdminUser) {
+            if (knownGeo && req.path !== '/blocked' && !shouldBypassFirewall) {
                 // 1. Check for NL Notice
                 if (knownGeo.countryCode === 'NL') req.isDutch = true;
 
@@ -184,8 +188,13 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
 
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
-    const imageUrl = `${req.protocol}://${req.get('host')}/public/preview.png`;
-    const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+    const host = req.get('host');
+    // Force HTTPS for links if on production/cloud
+    const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
+
+    // Default preview image
+    const defaultImageUrl = `${proto}://${host}/public/preview.png`;
+    const fullUrl = `${proto}://${host}${req.originalUrl}`;
 
     const escape = (str) => String(str || '')
         .replace(/&/g, '&amp;')
@@ -195,21 +204,26 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
 
     const safeTitle = escape(title);
     const safeDesc = escape(description);
+    const safeUrl = escape(fullUrl);
+
+    // If customMeta already contains an image, we don't want to add the default one
+    const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
+    const imageTag = hasCustomImage ? '' : `<meta property="og:image" content="${escape(defaultImageUrl)}"><meta name="twitter:image" content="${escape(defaultImageUrl)}">`;
 
     const metaTags = `
     <meta property="og:site_name" content="${siteName}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="${safeTitle}">
     <meta property="og:description" content="${safeDesc}">
-    <meta property="og:url" content="${fullUrl}">
-    <meta property="og:image" content="${imageUrl}">
+    <meta property="og:url" content="${safeUrl}">
+    ${imageTag}
     <meta name="theme-color" content="${themeColor}">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
-    <meta name="twitter:image" content="${imageUrl}">
     ${req.isDutch ? '<script>window.FORCE_LEGAL_NOTICE = true;</script>' : ''}
     ${customMeta}`;
+
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
     html = html.replace('</head>', `${metaTags}\n</head>`);
@@ -404,7 +418,7 @@ app.get('/v/:id', (req, res) => {
             if (paste.embedUrl) {
                 let fullEmbedUrl = paste.embedUrl;
                 if (!fullEmbedUrl.startsWith('http')) {
-                    const protocol = req.protocol;
+                    const protocol = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
                     const host = req.get('host');
                     fullEmbedUrl = `${protocol}://${host}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
                 }
@@ -452,14 +466,17 @@ app.get('/v/:id', (req, res) => {
 
     let customMeta = '';
     if (imageUrl) {
-        customMeta += `<meta property="og:image" content="${imageUrl}"><meta name="twitter:image" content="${imageUrl}">`;
+        const safeImg = imageUrl.replace(/"/g, '&quot;');
+        customMeta += `<meta property="og:image" content="${safeImg}"><meta name="twitter:image" content="${safeImg}">`;
     }
     if (videoUrl) {
+        const safeVid = videoUrl.replace(/"/g, '&quot;');
+        const safeVidType = videoType.replace(/"/g, '&quot;');
         customMeta += `
-        <meta property="og:video" content="${videoUrl}">
-        <meta property="og:video:url" content="${videoUrl}">
-        <meta property="og:video:secure_url" content="${videoUrl}">
-        <meta property="og:video:type" content="${videoType}">
+        <meta property="og:video" content="${safeVid}">
+        <meta property="og:video:url" content="${safeVid}">
+        <meta property="og:video:secure_url" content="${safeVid}">
+        <meta property="og:video:type" content="${safeVidType}">
         <meta property="og:video:width" content="1280">
         <meta property="og:video:height" content="720">`;
     }
