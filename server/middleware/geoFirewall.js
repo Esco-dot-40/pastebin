@@ -29,11 +29,20 @@ export const geoMiddleware = async (req, res, next) => {
 
     // 2. Region Detection (Immediate cache check)
     let countryCode = null;
-    const cachedRow = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
+    const cachedRow = db.prepare(`
+        SELECT country_code FROM page_accesses 
+        WHERE ip = ? 
+        AND country_code IS NOT NULL 
+        AND country_code != '??' 
+        AND length(country_code) = 2 
+        ORDER BY id DESC LIMIT 1
+    `).get(cleanIp);
 
-    if (cachedRow && cachedRow.country_code && cachedRow.country_code.length === 2 && cachedRow.country_code !== '??') {
-        countryCode = cachedRow.country_code.toUpperCase();
+    if (cachedRow && cachedRow.country_code) {
+        countryCode = cachedRow.country_code.trim().toUpperCase();
         console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: true)`);
+    } else if (cachedRow) {
+        console.log(`[GEO] IP: ${cleanIp} -> Ignored invalid cache: "${cachedRow.country_code}"`);
     }
 
     if (req.query.testRestrict === '1' || req.query.testDutch === '1' || EUROPEAN_COUNTRIES.includes(countryCode)) {
@@ -67,13 +76,16 @@ export const geoMiddleware = async (req, res, next) => {
             return res.redirect('/blocked');
         }
 
-        // Use cached data for blocking check if available (skip '??' for blocking decisions)
-        let geoData = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
+        // Use cached data for blocking check if available
+        let geoData = db.prepare(`
+            SELECT * FROM page_accesses 
+            WHERE ip = ? 
+            AND country_code IS NOT NULL 
+            AND country_code != '??' 
+            AND length(country_code) = 2 
+            ORDER BY id DESC LIMIT 1
+        `).get(cleanIp);
 
-        // Validate cached geoData
-        if (geoData && (geoData.country_code === '??' || !geoData.country_code || geoData.country_code.length !== 2)) {
-            geoData = null;
-        }
 
         if (!geoData || req.query.refreshGeo === '1') {
             try {
@@ -131,15 +143,35 @@ export const geoMiddleware = async (req, res, next) => {
                                     proxy: fbData.proxy ? 1 : 0,
                                     hosting: fbData.hosting ? 1 : 0
                                 };
-                                console.log(`[GEO] Fallback lookup successful for ${cleanIp} -> ${geoData.country_code}`);
+                                console.log(`[GEO] Fallback lookup success: ${geoData.country_code}`);
                             }
                         }
                     } catch (e) {
-                        if (e.name === 'AbortError') console.warn(`[GEO] ip-api.com timed out for ${cleanIp}`);
+                        if (fbController.signal.aborted) console.warn(`[GEO] ip-api.com timed out for ${cleanIp}`);
                     }
                 }
+
+                // Final Attempt: ipapi.co (no-auth variant or retry) - just in case
+                if (!geoData) {
+                    const finalController = new AbortController();
+                    const finalTimeoutId = setTimeout(() => finalController.abort(), 3500);
+                    try {
+                        const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { signal: finalController.signal });
+                        clearTimeout(finalTimeoutId);
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
+                                geoData = {
+                                    country: data.country_name,
+                                    country_code: data.country_code.toUpperCase(),
+                                    isp: data.org
+                                };
+                            }
+                        }
+                    } catch (e) { }
+                }
             } catch (apiError) {
-                console.error(`GeoIP fetching failed for ${cleanIp}:`, apiError.message);
+                console.error(`[GEO] Critical fetching error for ${cleanIp}:`, apiError.message);
             }
         }
 
