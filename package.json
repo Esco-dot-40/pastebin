@@ -1,6 +1,6 @@
 {
   "name": "pastebin-pro",
-  "version": "1.01",
+  "version": "1.02",
   "description": "Modern pastebin with geolocation tracking and dual interfaces",
   "main": "server/index.js",
   "type": "module",
