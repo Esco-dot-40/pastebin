@@ -116,6 +116,10 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     ${req.isDutch ? '<script>window.FORCE_LEGAL_NOTICE = true;</script>' : ''}
     ${customMeta}`;
 
+    if (req.isDutch) {
+        console.log(`[HTML] Injecting Dutch Legal Notice for ${req.path}`);
+    }
+
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
     html = html.replace('</head>', `${metaTags}\n</head>`);

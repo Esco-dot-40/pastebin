@@ -43,6 +43,10 @@ export const geoMiddleware = async (req, res, next) => {
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
 
+    if (req.query.testDutch === '1') {
+        req.isDutch = true;
+    }
+
     if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot) {
         return next();
     }
