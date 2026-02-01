@@ -94,6 +94,11 @@ export const geoMiddleware = async (req, res, next) => {
         if (geoData) {
             const currentCountry = geoData.country_code?.toUpperCase();
 
+            // Late-stage Dutch detection (for first-time visitors not already in cache)
+            if (currentCountry === 'NL') {
+                req.isDutch = true;
+            }
+
             // Check for Country Block
             const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(currentCountry);
 
