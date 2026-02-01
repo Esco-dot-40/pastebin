@@ -66,8 +66,11 @@ export const geoMiddleware = async (req, res, next) => {
     const bypassSecret = process.env.FIREWALL_SECRET;
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
-    const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim());
-    const isAdminIp = adminIps.includes(cleanIp);
+    const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
+
+    // Primary bypass: Owner IP, Whitelist IPs, Admin Session, or Localhouse
+    const isOwner = cleanIp === '176.67.81.55';
+    const isAdminIp = adminIps.includes(cleanIp) || isOwner;
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
