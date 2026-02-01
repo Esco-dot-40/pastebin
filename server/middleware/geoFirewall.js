@@ -85,8 +85,10 @@ export const geoMiddleware = async (req, res, next) => {
             return res.redirect('/blocked');
         }
 
-        // Deep Lookup Phase
-        if (!geoData || req.query.refreshGeo === '1') {
+        // Deep Lookup Phase (Only if Cloudflare/Cache didn't yield a result)
+        let geoData = null;
+
+        if ((!countryCode && !geoData) || req.query.refreshGeo === '1') {
             try {
                 // Tier 1: ipapi.co
                 const controller = new AbortController();
