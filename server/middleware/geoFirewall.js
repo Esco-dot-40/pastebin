@@ -23,51 +23,52 @@ export const geoMiddleware = async (req, res, next) => {
         cleanIp = cleanIp.substring(7);
     }
 
-    // 2. Hierarchical Security Bypasses
+    // 2. Region Detection (Immediate cache check)
+    // Run this before bypasses so admins/bypassed users still get regional features (like legal notices)
+    let countryCode = null;
+    const cachedGeo = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
 
-    // Localhost
+    if (cachedGeo) {
+        countryCode = cachedGeo.country_code?.toUpperCase();
+        console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: true)`);
+    }
+
+    if (req.query.testDutch === '1' || countryCode === 'NL') {
+        req.isDutch = true;
+        if (req.query.testDutch === '1') console.log(`[GEO] Manual override: Dutch mode active for ${cleanIp}`);
+    }
+
+    // 3. Hierarchical Security Bypasses
     const isLocal = cleanIp === '127.0.0.1' || cleanIp === '::1';
-
-    // Secret Key
     const bypassSecret = process.env.FIREWALL_SECRET;
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
-
-    // Admin IP
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const isAdminIp = adminIpSetting && adminIpSetting.value === cleanIp;
-
-    // Admin Header
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
-
-    // Bot Whitelist
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
-
-    if (req.query.testDutch === '1') {
-        req.isDutch = true;
-    }
 
     if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot) {
         return next();
     }
 
-    // 3. Geo-Blocking Logic
+    // 4. Geo-Blocking Logic & Deep Lookup
     try {
         const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
         const isLockdown = lockdownSetting && lockdownSetting.value === '1';
 
-        // Redirect all non-bypassed traffic if lockdown is active
         if (isLockdown && req.path !== '/blocked') {
             logAccess(cleanIp, req, { country_code: '??' }, 1);
             return res.redirect('/blocked');
         }
 
-        // Hybrid Lookup
+        // Use cached data for blocking check if available
         let geoData = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
 
-        if (!geoData) {
+        if (!geoData || req.query.refreshGeo === '1') {
             try {
-                const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { timeout: 5000 });
+                if (req.query.refreshGeo === '1') console.log(`[GEO] Refreshing data for ${cleanIp}`);
+                const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { timeout: 3000 });
                 if (response.ok) {
                     const data = await response.json();
                     if (!data.error) {
@@ -91,27 +92,19 @@ export const geoMiddleware = async (req, res, next) => {
         }
 
         if (geoData) {
-            const countryCode = geoData.country_code?.toUpperCase();
-            console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: ${!!db.prepare('SELECT 1 FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL').get(cleanIp)})`);
+            const currentCountry = geoData.country_code?.toUpperCase();
 
             // Check for Country Block
-            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(countryCode);
-
-            // Region Injection setup
-            if (countryCode === 'NL') {
-                req.isDutch = true;
-                console.log(`[GEO] Dutch visitor detected: ${cleanIp}`);
-            }
+            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(currentCountry);
 
             if (isBlocked && req.path !== '/blocked') {
                 logAccess(cleanIp, req, geoData, 1);
-                console.log(`[GEO] Blocking visitor from ${countryCode}: ${cleanIp}`);
+                console.log(`[GEO] Blocking visitor from ${currentCountry}: ${cleanIp}`);
                 return res.redirect('/blocked');
             }
 
             logAccess(cleanIp, req, geoData, 0);
         } else {
-            console.log(`[GEO] No geo data found for IP: ${cleanIp}`);
             // If no geoData could be fetched, log as unknown but allow (fail-open)
             logAccess(cleanIp, req, { country_code: '??' }, 0);
         }
