@@ -144,21 +144,19 @@ export const geoMiddleware = async (req, res, next) => {
         const resolvedCountry = (geoData?.country_code || countryCode)?.toUpperCase();
 
         if (resolvedCountry) {
-            // Check Europe List
-            if (EUROPEAN_COUNTRIES.includes(resolvedCountry)) {
-                req.isRestrictedRegion = true;
-                console.log(`[GEO] RESTRICTED REGION DETECTED: ${resolvedCountry} for ${cleanIp}`);
-            }
+            // High-Security Lockout: Check if region is restricted (Europe) OR manually blocked
+            const isRestricted = EUROPEAN_COUNTRIES.includes(resolvedCountry);
+            const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
 
-            // Check Manual Block List
-            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
-            if (isBlocked && req.path !== '/blocked') {
+            if ((isRestricted || isManuallyBlocked) && req.path !== '/blocked') {
+                req.isRestrictedRegion = true; // Still set for potential logging/meta
                 logAccess(cleanIp, req, geoData || { country_code: resolvedCountry }, 1);
+                console.log(`[GEO] TRIGGERING HARD BLOCK: ${resolvedCountry} for ${cleanIp}`);
                 return res.redirect('/blocked');
             }
         }
 
-        // Log access with whatever data we have
+        // Log allowed access
         logAccess(cleanIp, req, geoData || { country_code: resolvedCountry || '??' }, 0);
 
     } catch (err) {
