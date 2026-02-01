@@ -206,8 +206,7 @@ if (logsSearch) {
 
 if (firewallBtn) {
     firewallBtn.addEventListener('click', () => {
-        firewallModal.classList.add('active');
-        loadFirewallList();
+        window.location.href = '/adminperm/firewall.html';
     });
 }
 if (closeFirewallBtn) closeFirewallBtn.addEventListener('click', () => firewallModal.classList.remove('active'));

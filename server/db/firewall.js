@@ -47,6 +47,8 @@ db.exec(`
 // Seed default settings 
 const seedSetting = db.prepare('INSERT OR REPLACE INTO firewall_settings (key, value) VALUES (?, ?)');
 seedSetting.run('lockdown_active', '0');
+seedSetting.run('europe_block', '1'); // Default to blocked as requested
+seedSetting.run('usa_block', '0');
 seedSetting.run('admin_ip', '176.67.81.55,127.0.0.1');
 
 export default db;

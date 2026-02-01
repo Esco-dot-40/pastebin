@@ -58,6 +58,8 @@ router.get('/status', adminOnly, (req, res) => {
         const blockedCountries = db.prepare('SELECT country_code FROM blocked_countries').all().map(r => r.country_code);
         const settings = db.prepare('SELECT * FROM firewall_settings').all();
         const lockdownStatus = settings.find(s => s.key === 'lockdown_active')?.value === '1';
+        const europeBlock = settings.find(s => s.key === 'europe_block')?.value === '1';
+        const usaBlock = settings.find(s => s.key === 'usa_block')?.value === '1';
         const adminIp = settings.find(s => s.key === 'admin_ip')?.value || '';
 
         const stats = db.prepare(`
@@ -72,6 +74,8 @@ router.get('/status', adminOnly, (req, res) => {
             success: true,
             blocklist: blockedCountries,
             lockdown: lockdownStatus,
+            europeBlock: europeBlock,
+            usaBlock: usaBlock,
             adminIp: adminIp,
             statistics: stats
         });
@@ -87,6 +91,12 @@ router.post('/lockdown', adminOnly, (req, res) => {
     try {
         if (lockdownActive !== undefined) {
             db.prepare('INSERT OR REPLACE INTO firewall_settings (key, value) VALUES (?, ?)').run('lockdown_active', lockdownActive ? '1' : '0');
+        }
+        if (req.body.europeBlock !== undefined) {
+            db.prepare('INSERT OR REPLACE INTO firewall_settings (key, value) VALUES (?, ?)').run('europe_block', req.body.europeBlock ? '1' : '0');
+        }
+        if (req.body.usaBlock !== undefined) {
+            db.prepare('INSERT OR REPLACE INTO firewall_settings (key, value) VALUES (?, ?)').run('usa_block', req.body.usaBlock ? '1' : '0');
         }
         if (adminIp !== undefined) {
             db.prepare('INSERT OR REPLACE INTO firewall_settings (key, value) VALUES (?, ?)').run('admin_ip', adminIp);

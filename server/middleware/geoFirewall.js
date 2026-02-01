@@ -68,9 +68,8 @@ export const geoMiddleware = async (req, res, next) => {
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
 
-    // Primary bypass: Owner IP, Whitelist IPs, Admin Session, or Localhouse
-    const isOwner = cleanIp === '176.67.81.55';
-    const isAdminIp = adminIps.includes(cleanIp) || isOwner;
+    // Primary bypass: Whitelist IPs, Admin Session, or Localhouse
+    const isAdminIp = adminIps.includes(cleanIp);
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
@@ -82,10 +81,12 @@ export const geoMiddleware = async (req, res, next) => {
 
     // 4. Geo-Blocking Logic & Deep Lookup
     try {
-        const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
-        const isLockdown = lockdownSetting && lockdownSetting.value === '1';
+        const settings = db.prepare("SELECT * FROM firewall_settings").all();
+        const lockdownActive = settings.find(s => s.key === 'lockdown_active')?.value === '1';
+        const europeBlockActive = settings.find(s => s.key === 'europe_block')?.value === '1';
+        const usaBlockActive = settings.find(s => s.key === 'usa_block')?.value === '1';
 
-        if (isLockdown && req.path !== '/blocked') {
+        if (lockdownActive && req.path !== '/blocked') {
             logAccess(cleanIp, req, { country_code: '??' }, 1);
             return res.redirect('/blocked');
         }
@@ -149,11 +150,14 @@ export const geoMiddleware = async (req, res, next) => {
         const finalLookupCountry = geoData?.country_code || countryCode;
         const resolvedCountry = finalLookupCountry?.toUpperCase();
 
-        console.log(`[GEO-DEBUG] User: ${cleanIp} | Country: ${resolvedCountry || '??'} | IsOwner: ${isOwner} | IsAdmin: ${isSessionAdmin}`);
+        console.log(`[GEO-DEBUG] User: ${cleanIp} | Country: ${resolvedCountry || '??'} | IsAdmin: ${isSessionAdmin}`);
 
         if (resolvedCountry) {
             // High-Security Lockout: Check if region is restricted (Europe) OR manually blocked
-            const isRestricted = EUROPEAN_COUNTRIES.includes(resolvedCountry);
+            const isEurope = EUROPEAN_COUNTRIES.includes(resolvedCountry);
+            const isUSA = resolvedCountry === 'US';
+
+            const isRestricted = (isEurope && europeBlockActive) || (isUSA && usaBlockActive);
             const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
 
             if ((isRestricted || isManuallyBlocked) && req.path !== '/blocked') {
