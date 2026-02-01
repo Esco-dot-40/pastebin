@@ -1,6 +1,10 @@
 import db from '../db/firewall.js';
 import fetch from 'node-fetch';
 
+const EUROPEAN_COUNTRIES = [
+    'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
+];
+
 export const geoMiddleware = async (req, res, next) => {
     // 0. Skip Essential Paths & Static Files
     const isStatic = /\.(css|js|jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i.test(req.path);
@@ -25,17 +29,12 @@ export const geoMiddleware = async (req, res, next) => {
 
     // 2. Region Detection (Immediate cache check)
     let countryCode = null;
-    // Strict query: country_code must be exactly 2 characters and not '??'
-    const cachedGeo = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL AND length(country_code) = 2 AND country_code != "??" ORDER BY id DESC LIMIT 1').get(cleanIp);
+    const cachedRow = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
 
-    if (cachedGeo) {
-        countryCode = cachedGeo.country_code?.toUpperCase();
+    if (cachedRow && cachedRow.country_code && cachedRow.country_code.length === 2 && cachedRow.country_code !== '??') {
+        countryCode = cachedRow.country_code.toUpperCase();
         console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: true)`);
     }
-
-    const EUROPEAN_COUNTRIES = [
-        'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
-    ];
 
     if (req.query.testRestrict === '1' || req.query.testDutch === '1' || EUROPEAN_COUNTRIES.includes(countryCode)) {
         req.isRestrictedRegion = true;
@@ -69,50 +68,74 @@ export const geoMiddleware = async (req, res, next) => {
         }
 
         // Use cached data for blocking check if available (skip '??' for blocking decisions)
-        let geoData = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL AND length(country_code) = 2 AND country_code != "??" ORDER BY id DESC LIMIT 1').get(cleanIp);
+        let geoData = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
+
+        // Validate cached geoData
+        if (geoData && (geoData.country_code === '??' || !geoData.country_code || geoData.country_code.length !== 2)) {
+            geoData = null;
+        }
 
         if (!geoData || req.query.refreshGeo === '1') {
             try {
                 if (req.query.refreshGeo === '1') console.log(`[GEO] Refreshing data for ${cleanIp}`);
 
                 // Primary: ipapi.co
-                const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { timeout: 3000 });
-                if (response.ok) {
-                    const data = await response.json();
-                    if (!data.error && data.country_code && data.country_code !== '??') {
-                        geoData = {
-                            country: data.country_name,
-                            country_code: data.country_code?.toUpperCase(),
-                            region: data.region,
-                            city: data.city,
-                            lat: data.latitude,
-                            lon: data.longitude,
-                            isp: data.org,
-                            proxy: data.proxy ? 1 : 0,
-                            hosting: data.hosting ? 1 : 0
-                        };
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+                try {
+                    const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { signal: controller.signal });
+                    clearTimeout(timeoutId);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (!data.error && data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
+                            geoData = {
+                                country: data.country_name,
+                                country_code: data.country_code?.toUpperCase(),
+                                region: data.region,
+                                city: data.city,
+                                lat: data.latitude,
+                                lon: data.longitude,
+                                isp: data.org,
+                                proxy: data.proxy ? 1 : 0,
+                                hosting: data.hosting ? 1 : 0
+                            };
+                        }
                     }
+                } catch (e) {
+                    if (e.name === 'AbortError') console.warn(`[GEO] ipapi.co timed out for ${cleanIp}`);
+                    // Don't throw, let fallback try
                 }
 
                 // Fallback: ip-api.com (if primary failed or returned unknown)
-                if (!geoData || geoData.country_code === '??') {
-                    const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,proxy,hosting`, { timeout: 3000 });
-                    if (fbResponse.ok) {
-                        const fbData = await fbResponse.json();
-                        if (fbData.status === 'success') {
-                            geoData = {
-                                country: fbData.country,
-                                country_code: fbData.countryCode?.toUpperCase(),
-                                region: fbData.regionName,
-                                city: fbData.city,
-                                lat: fbData.lat,
-                                lon: fbData.lon,
-                                isp: fbData.isp,
-                                proxy: fbData.proxy ? 1 : 0,
-                                hosting: fbData.hosting ? 1 : 0
-                            };
-                            console.log(`[GEO] Fallback lookup successful for ${cleanIp} -> ${geoData.country_code}`);
+                if (!geoData) {
+                    const fbController = new AbortController();
+                    const fbTimeoutId = setTimeout(() => fbController.abort(), 3000);
+
+                    try {
+                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,proxy,hosting`, { signal: fbController.signal });
+                        clearTimeout(fbTimeoutId);
+
+                        if (fbResponse.ok) {
+                            const fbData = await fbResponse.json();
+                            if (fbData.status === 'success' && fbData.countryCode && fbData.countryCode.length === 2) {
+                                geoData = {
+                                    country: fbData.country,
+                                    country_code: fbData.countryCode?.toUpperCase(),
+                                    region: fbData.regionName,
+                                    city: fbData.city,
+                                    lat: fbData.lat,
+                                    lon: fbData.lon,
+                                    isp: fbData.isp,
+                                    proxy: fbData.proxy ? 1 : 0,
+                                    hosting: fbData.hosting ? 1 : 0
+                                };
+                                console.log(`[GEO] Fallback lookup successful for ${cleanIp} -> ${geoData.country_code}`);
+                            }
                         }
+                    } catch (e) {
+                        if (e.name === 'AbortError') console.warn(`[GEO] ip-api.com timed out for ${cleanIp}`);
                     }
                 }
             } catch (apiError) {
@@ -123,11 +146,7 @@ export const geoMiddleware = async (req, res, next) => {
         if (geoData) {
             const currentCountry = geoData.country_code?.toUpperCase();
 
-            // Late-stage detection (for first-time visitors not already in cache)
-            const EUROPEAN_COUNTRIES = [
-                'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
-            ];
-
+            // Late-stage detection
             if (EUROPEAN_COUNTRIES.includes(currentCountry)) {
                 req.isRestrictedRegion = true;
             }
