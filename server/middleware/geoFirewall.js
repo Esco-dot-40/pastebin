@@ -21,35 +21,44 @@ export const geoMiddleware = async (req, res, next) => {
         req.socket.remoteAddress ||
         '127.0.0.1';
 
+    const cfCountry = req.headers['cf-ipcountry'];
+
     // Clean IP: trim whitespace and strip IPv6 prefixing (::ffff:)
     let cleanIp = rawIp.trim();
     if (cleanIp.startsWith('::ffff:')) {
         cleanIp = cleanIp.substring(7);
     }
 
-    // 2. Region Detection (Immediate cache check)
+    // 2. Region Detection (Immediate sources)
     let countryCode = null;
-    const cachedRow = db.prepare(`
-        SELECT country_code FROM page_accesses 
-        WHERE ip = ? 
-        AND country_code IS NOT NULL 
-        AND country_code != '??' 
-        AND length(country_code) = 2 
-        ORDER BY id DESC LIMIT 1
-    `).get(cleanIp);
 
-    if (cachedRow && cachedRow.country_code) {
-        countryCode = cachedRow.country_code.trim().toUpperCase();
-        console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: true)`);
-    } else if (cachedRow) {
-        console.log(`[GEO] IP: ${cleanIp} -> Ignored invalid cache: "${cachedRow.country_code}"`);
+    // Source A: Cloudflare (Most reliable)
+    if (cfCountry && cfCountry !== 'XX' && cfCountry !== 'T1') {
+        countryCode = cfCountry.toUpperCase();
+        console.log(`[GEO] Source: Cloudflare -> ${countryCode}`);
     }
 
-    if (req.query.testRestrict === '1' || req.query.testDutch === '1' || EUROPEAN_COUNTRIES.includes(countryCode)) {
-        req.isRestrictedRegion = true;
-        if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
-            console.log(`[GEO] Manual override: Restricted mode active for ${cleanIp}`);
+    // Source B: Cache (Backup)
+    if (!countryCode) {
+        const cachedRow = db.prepare(`
+            SELECT country_code FROM page_accesses 
+            WHERE ip = ? 
+            AND country_code IS NOT NULL 
+            AND country_code != '??' 
+            AND length(country_code) = 2 
+            ORDER BY id DESC LIMIT 1
+        `).get(cleanIp);
+
+        if (cachedRow && cachedRow.country_code) {
+            countryCode = cachedRow.country_code.trim().toUpperCase();
+            console.log(`[GEO] Source: Cache -> ${countryCode}`);
         }
+    }
+
+    // Check for Manual Overrides immediately
+    if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
+        req.isRestrictedRegion = true;
+        console.log(`[GEO] Manual override active for ${cleanIp}`);
     }
 
     // 3. Hierarchical Security Bypasses
@@ -76,127 +85,79 @@ export const geoMiddleware = async (req, res, next) => {
             return res.redirect('/blocked');
         }
 
-        // Use cached data for blocking check if available
-        let geoData = db.prepare(`
-            SELECT * FROM page_accesses 
-            WHERE ip = ? 
-            AND country_code IS NOT NULL 
-            AND country_code != '??' 
-            AND length(country_code) = 2 
-            ORDER BY id DESC LIMIT 1
-        `).get(cleanIp);
-
-
+        // Deep Lookup Phase
         if (!geoData || req.query.refreshGeo === '1') {
             try {
-                if (req.query.refreshGeo === '1') console.log(`[GEO] Refreshing data for ${cleanIp}`);
-
-                // Primary: ipapi.co
+                // Tier 1: ipapi.co
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 3000);
-
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
                 try {
                     const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { signal: controller.signal });
                     clearTimeout(timeoutId);
-
                     if (response.ok) {
                         const data = await response.json();
                         if (!data.error && data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
-                            geoData = {
-                                country: data.country_name,
-                                country_code: data.country_code?.toUpperCase(),
-                                region: data.region,
-                                city: data.city,
-                                lat: data.latitude,
-                                lon: data.longitude,
-                                isp: data.org,
-                                proxy: data.proxy ? 1 : 0,
-                                hosting: data.hosting ? 1 : 0
-                            };
+                            geoData = { country_code: data.country_code.toUpperCase(), country: data.country_name, isp: data.org };
                         }
                     }
-                } catch (e) {
-                    if (e.name === 'AbortError') console.warn(`[GEO] ipapi.co timed out for ${cleanIp}`);
-                    // Don't throw, let fallback try
-                }
+                } catch (e) { }
 
-                // Fallback: ip-api.com (if primary failed or returned unknown)
+                // Tier 2: ip-api.com
                 if (!geoData) {
                     const fbController = new AbortController();
-                    const fbTimeoutId = setTimeout(() => fbController.abort(), 3000);
-
+                    const fbTimeoutId = setTimeout(() => fbController.abort(), 2000);
                     try {
-                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,country,countryCode,regionName,city,lat,lon,isp,proxy,hosting`, { signal: fbController.signal });
+                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,countryCode,country,isp`, { signal: fbController.signal });
                         clearTimeout(fbTimeoutId);
-
                         if (fbResponse.ok) {
                             const fbData = await fbResponse.json();
-                            if (fbData.status === 'success' && fbData.countryCode && fbData.countryCode.length === 2) {
-                                geoData = {
-                                    country: fbData.country,
-                                    country_code: fbData.countryCode?.toUpperCase(),
-                                    region: fbData.regionName,
-                                    city: fbData.city,
-                                    lat: fbData.lat,
-                                    lon: fbData.lon,
-                                    isp: fbData.isp,
-                                    proxy: fbData.proxy ? 1 : 0,
-                                    hosting: fbData.hosting ? 1 : 0
-                                };
-                                console.log(`[GEO] Fallback lookup success: ${geoData.country_code}`);
+                            if (fbData.status === 'success' && fbData.countryCode) {
+                                geoData = { country_code: fbData.countryCode.toUpperCase(), country: fbData.country, isp: fbData.isp };
                             }
                         }
-                    } catch (e) {
-                        if (fbController.signal.aborted) console.warn(`[GEO] ip-api.com timed out for ${cleanIp}`);
-                    }
+                    } catch (e) { }
                 }
 
-                // Final Attempt: ipapi.co (no-auth variant or retry) - just in case
+                // Tier 3: freeipapi.com
                 if (!geoData) {
-                    const finalController = new AbortController();
-                    const finalTimeoutId = setTimeout(() => finalController.abort(), 3500);
+                    const t3Controller = new AbortController();
+                    const t3TimeoutId = setTimeout(() => t3Controller.abort(), 2000);
                     try {
-                        const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { signal: finalController.signal });
-                        clearTimeout(finalTimeoutId);
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
-                                geoData = {
-                                    country: data.country_name,
-                                    country_code: data.country_code.toUpperCase(),
-                                    isp: data.org
-                                };
+                        const t3Response = await fetch(`https://freeipapi.com/api/json/${cleanIp}`, { signal: t3Controller.signal });
+                        clearTimeout(t3TimeoutId);
+                        if (t3Response.ok) {
+                            const t3Data = await t3Response.json();
+                            if (t3Data.countryCode) {
+                                geoData = { country_code: t3Data.countryCode.toUpperCase(), country: t3Data.countryName };
                             }
                         }
                     } catch (e) { }
                 }
             } catch (apiError) {
-                console.error(`[GEO] Critical fetching error for ${cleanIp}:`, apiError.message);
+                console.error(`[GEO] All lookup tiers failed for ${cleanIp}`);
             }
         }
 
-        if (geoData) {
-            const currentCountry = geoData.country_code?.toUpperCase();
+        // UNIFIED RESOLUTION: Combine all sources (CF > Lookup > Cache)
+        const resolvedCountry = (geoData?.country_code || countryCode)?.toUpperCase();
 
-            // Late-stage detection
-            if (EUROPEAN_COUNTRIES.includes(currentCountry)) {
+        if (resolvedCountry) {
+            // Check Europe List
+            if (EUROPEAN_COUNTRIES.includes(resolvedCountry)) {
                 req.isRestrictedRegion = true;
+                console.log(`[GEO] RESTRICTED REGION DETECTED: ${resolvedCountry} for ${cleanIp}`);
             }
 
-            // Check for Country Block
-            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(currentCountry);
-
+            // Check Manual Block List
+            const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
             if (isBlocked && req.path !== '/blocked') {
-                logAccess(cleanIp, req, geoData, 1);
-                console.log(`[GEO] Blocking visitor from ${currentCountry}: ${cleanIp}`);
+                logAccess(cleanIp, req, geoData || { country_code: resolvedCountry }, 1);
                 return res.redirect('/blocked');
             }
-
-            logAccess(cleanIp, req, geoData, 0);
-        } else {
-            // If no geoData could be fetched, log as unknown but allow (fail-open)
-            logAccess(cleanIp, req, { country_code: '??' }, 0);
         }
+
+        // Log access with whatever data we have
+        logAccess(cleanIp, req, geoData || { country_code: resolvedCountry || '??' }, 0);
 
     } catch (err) {
         console.error('Firewall Middleware Error:', err);
