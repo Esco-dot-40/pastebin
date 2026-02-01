@@ -110,7 +110,7 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
         }
     }
 
-    const metaTags = `
+    const metaBlock = `
     <meta property="og:site_name" content="${siteName}">
     <meta property="og:type" content="website">
     <meta property="og:title" content="${safeTitle}">
@@ -121,10 +121,6 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
-    ${req.isRestrictedRegion ? `
-        <script>window.FORCE_LEGAL_NOTICE = true;</script>
-        <script>${legalScript}</script>
-    ` : ''}
     ${customMeta}`;
 
     if (req.isRestrictedRegion) {
@@ -132,7 +128,15 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     }
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
-    html = html.replace('</head>', `${metaTags}\n</head>`);
+
+    // Inject Head Meta
+    html = html.replace('</head>', () => `${metaBlock}\n</head>`);
+
+    // Inject Body Guard (The Notice)
+    if (req.isRestrictedRegion && legalScript) {
+        const guardScript = `<script>window.FORCE_LEGAL_NOTICE = true;</script><script>${legalScript}</script>`;
+        html = html.replace(/<body.*?>/, (match) => `${match}\n${guardScript}`);
+    }
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.send(html);
 };

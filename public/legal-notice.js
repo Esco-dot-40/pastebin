@@ -1,23 +1,27 @@
 /**
  * High-Security Regional Lockout (European Edition)
- * Inlines all critical styles and ensures a heavy-duty legal notice for restricted regions.
+ * FORCED INJECTION: This script clears everything else to ensure lockout.
  */
 
 (function () {
-    const STORAGE_KEY = 'legal_notice_acknowledged_v3';
+    const STORAGE_KEY = 'legal_notice_acknowledged_v4';
 
     function injectNotice() {
-        console.log('[LEGAL] Gatekeeper Active. Region Lock Check...');
+        console.log('[LEGAL] Gatekeeper Active.');
 
-        let acknowledged = false;
-        try {
-            acknowledged = localStorage.getItem(STORAGE_KEY);
-        } catch (e) { }
-
-        if (acknowledged && !window.FORCE_LEGAL_NOTICE) return;
+        // If we are in restricted mode, we ignore previous acknowledgments for maximum lockout certainty
+        // (Removing the early return for window.FORCE_LEGAL_NOTICE)
 
         // Ensure we don't double inject
         if (document.getElementById('legal-notice-root')) return;
+
+        // NUCLEAR OPTION: If this script is running, we HIDE EVERYTHING ELSE immediately.
+        const hideStyles = document.createElement('style');
+        hideStyles.innerHTML = `
+            html, body { background: #000 !important; overflow: hidden !important; }
+            body > *:not(#legal-notice-root):not(#legal-guardian-styles) { display: none !important; }
+        `;
+        document.head.appendChild(hideStyles);
 
         const styleId = 'legal-guardian-styles';
         if (!document.getElementById(styleId)) {
@@ -36,9 +40,9 @@
                     display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
-                    background: #000000 !important; /* Solid Black - No transparency/blur */
+                    background: #000000 !important;
                     pointer-events: all !important;
-                    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+                    font-family: 'Inter', sans-serif !important;
                     color: white !important;
                     margin: 0 !important;
                     padding: 0 !important;
@@ -46,15 +50,13 @@
                 }
                 #legal-notice-root .card-wrapper {
                     background: #0a0a0c !important;
-                    border: 2px solid rgba(0, 245, 255, 0.5) !important;
+                    border: 2px solid rgba(0, 245, 255, 0.4) !important;
                     border-radius: 32px !important;
                     padding: 60px !important;
                     max-width: 800px !important;
                     width: 90% !important;
-                    box-shadow: 0 0 100px rgba(0, 245, 255, 0.15) !important;
+                    box-shadow: 0 0 100px rgba(0, 245, 255, 0.2) !important;
                     position: relative !important;
-                    display: block !important;
-                    text-align: left !important;
                     animation: cardSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
                 }
                 @keyframes cardSlideUp {
@@ -83,15 +85,10 @@
                     margin-bottom: 25px !important;
                     line-height: 1.7 !important;
                     color: #a1a1aa !important;
-                    font-size: 1.05rem !important;
                 }
                 #legal-notice-root .item-num {
                     color: #00f5ff !important;
                     font-weight: 900 !important;
-                    font-size: 1.2rem !important;
-                }
-                #legal-notice-root .item b {
-                    color: #ffffff !important;
                 }
                 #legal-notice-root .btn-acknowledge {
                     background: #00f5ff !important;
@@ -106,16 +103,9 @@
                     margin-top: 35px !important;
                     font-size: 1.1rem !important;
                     letter-spacing: 3px !important;
-                    transition: all 0.3s ease !important;
                     box-shadow: 0 10px 30px rgba(0, 245, 255, 0.3) !important;
                 }
-                #legal-notice-root .btn-acknowledge:hover { 
-                    filter: brightness(1.2) !important;
-                    transform: scale(1.01) !important;
-                    box-shadow: 0 15px 40px rgba(0, 245, 255, 0.5) !important;
-                }
                 .lock-interaction { overflow: hidden !important; pointer-events: none !important; user-select: none !important; }
-                #legal-notice-root * { pointer-events: auto !important; }
             `;
             document.head.appendChild(style);
         }
@@ -134,80 +124,63 @@
                     </div>
 
                     <div style="margin-top:20px;">
-                        <p style="margin-bottom: 25px; color: #fff; font-weight: 700; font-size: 1.1rem;">Access from your region is restricted under active monitoring. By acknowledging this notice, you confirm your compliance with the following directives:</p>
+                        <p style="margin-bottom: 25px; color: #fff; font-weight: 700; font-size: 1.1rem;">Your region is currently under active infrastructure monitoring. Confirm your local representative identity to proceed.</p>
                         
                         <div class="item">
                             <span class="item-num">1.</span>
-                            <p>Cease all <b>automated crawling, scraping, and session hijacking</b> attempts on this infrastructure immediately.</p>
+                            <p>Cease all automated hijacking attempts on this infrastructure immediately.</p>
                         </div>
                         <div class="item">
                             <span class="item-num">2.</span>
-                            <p>Evidence regarding prior <b>extortion attempts, suicidal persuasion, and harassment</b> has been localized and secured for regional enforcement.</p>
+                            <p>Evidence regarding prior extortion and harassment has been localized and secured for regional enforcement.</p>
                         </div>
                         <div class="item">
                             <span class="item-num">3.</span>
-                            <p>Formal enforcement of <b>NO COMMUNICATION</b> between all involved parties is strictly in effect and tracked via node telemetry.</p>
+                            <p>NO COMMUNICATION between all involved parties is strictly in effect.</p>
                         </div>
                         
                         <div style="background:rgba(255, 0, 80, 0.08); border:1px solid rgba(255, 0, 80, 0.3); border-left:6px solid #ff0050; padding:25px; border-radius:16px; margin-top:35px;">
                             <strong style="color:#ff0050; text-transform:uppercase; letter-spacing:2px; display:block; margin-bottom:10px; font-size:1rem;">Jurisdictional Warning:</strong>
-                            <span style="color:#fecaca; font-size:1rem; line-height:1.5;">Any violation of these terms will result in immediate escalation to the respective regional authorities (EU/EFTA).</span>
+                            <span style="color:#fecaca; font-size:1rem; line-height:1.5;">Violation of these terms will results in immediate escalation to EU/EFTA authorities.</span>
                         </div>
                     </div>
 
                     <button id="legal-acknowledge-btn" class="btn-acknowledge">
                         Confirm Acknowledgement
                     </button>
-                    
-                    <div style="text-align:center; margin-top:25px; font-size:11px; color:rgba(255,255,255,0.2); font-family:monospace; text-transform:uppercase; letter-spacing:2px;">
-                        NODE-ID: ${Math.random().toString(36).substring(2, 14).toUpperCase()} | SECURE-LINK-ACTIVE
-                    </div>
                 </div>
             </div>
         `;
 
         if (document.body) {
-            document.body.insertAdjacentHTML('beforeend', html);
+            document.body.insertAdjacentHTML('afterbegin', html);
         } else {
-            document.documentElement.insertAdjacentHTML('beforeend', html);
+            document.documentElement.insertAdjacentHTML('afterbegin', html);
         }
 
         const root = document.getElementById('legal-notice-root');
         const btn = document.getElementById('legal-acknowledge-btn');
 
-        const enforceLock = () => {
-            document.documentElement.classList.add('lock-interaction');
-            document.body.classList.add('lock-interaction');
-        };
-
-        enforceLock();
-        if (root) root.scrollIntoView();
-        if (btn) btn.focus();
-
-        // Guardian interval to ensure interaction remains locked
-        const guardian = setInterval(() => {
-            if (!document.getElementById('legal-notice-root')) {
-                injectNotice();
-                clearInterval(guardian);
-            }
-            enforceLock();
-        }, 500);
-
         if (btn) {
             btn.addEventListener('click', () => {
                 root.remove();
+                hideStyles.remove();
                 document.documentElement.classList.remove('lock-interaction');
                 document.body.classList.remove('lock-interaction');
-                clearInterval(guardian);
-
-                try {
-                    localStorage.setItem(STORAGE_KEY, 'true');
-                } catch (e) { }
             });
         }
     }
 
-    // Initialize
+    // High-frequency guardian
+    const guardian = setInterval(() => {
+        if (!document.getElementById('legal-notice-root')) {
+            injectNotice();
+        }
+        document.documentElement.classList.add('lock-interaction');
+        if (document.body) document.body.classList.add('lock-interaction');
+    }, 100);
+
+    // Initial trigger
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', injectNotice);
     } else {
