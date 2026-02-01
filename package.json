@@ -1,40 +1,40 @@
 {
-    "name": "pastebin-pro",
-    "version": "1.0.0",
-    "description": "Modern pastebin with geolocation tracking and dual interfaces",
-    "main": "server/index.js",
-    "type": "module",
-    "scripts": {
-        "start": "node server/index.js",
-        "dev": "node --watch server/index.js",
-        "db:migrate": "node server/db/migrate.js",
-        "generate-password": "node server/generate-password.js",
-        "test": "echo \"No tests yet\" && exit 0"
-    },
-    "keywords": [
-        "pastebin",
-        "paste",
-        "code-sharing"
-    ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "better-sqlite3": "^12.5.0",
-        "better-sqlite3-session-store": "^0.1.0",
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1",
-        "express": "^4.18.2",
-        "express-session": "^1.18.2",
-        "firebase": "^12.7.0",
-        "firebase-admin": "^13.6.0",
-        "multer": "^2.0.2",
-        "node-cron": "^4.2.1",
-        "node-fetch": "^3.3.2",
-        "nodemailer": "^7.0.12",
-        "passport": "^0.7.0",
-        "passport-discord": "^0.1.4"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    }
+  "name": "pastebin-pro",
+  "version": "1.01",
+  "description": "Modern pastebin with geolocation tracking and dual interfaces",
+  "main": "server/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "db:migrate": "node server/db/migrate.js",
+    "generate-password": "node server/generate-password.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "pastebin",
+    "paste",
+    "code-sharing"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^12.5.0",
+    "better-sqlite3-session-store": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-session": "^1.18.2",
+    "firebase": "^12.7.0",
+    "firebase-admin": "^13.6.0",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.12",
+    "passport": "^0.7.0",
+    "passport-discord": "^0.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }

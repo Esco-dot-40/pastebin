@@ -13,6 +13,7 @@ import foldersRouter from './routes/folders.js';
 import imagesRouter from './routes/images.js';
 import bannerRouter from './routes/banner.js';
 import firewallRouter from './routes/firewall.js';
+import analyticsRouter from './routes/analytics.js';
 import db from './db/index.js';
 import firewallDb from './db/firewall.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
@@ -81,10 +82,8 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
     const host = req.get('host');
-    // Force HTTPS for links if on production/cloud
     const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
 
-    // Default preview image
     const defaultImageUrl = `${proto}://${host}/public/preview.png`;
     const fullUrl = `${proto}://${host}${req.originalUrl}`;
 
@@ -98,9 +97,18 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     const safeDesc = escape(description);
     const safeUrl = escape(fullUrl);
 
-    // If customMeta already contains an image, we don't want to add the default one
     const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
     const imageTag = hasCustomImage ? '' : `<meta property="og:image" content="${escape(defaultImageUrl)}"><meta name="twitter:image" content="${escape(defaultImageUrl)}">`;
+
+    let legalScript = '';
+    if (req.isDutch) {
+        try {
+            const scriptPath = path.join(__dirname, '..', 'public', 'legal-notice.js');
+            legalScript = fs.readFileSync(scriptPath, 'utf-8');
+        } catch (e) {
+            console.error('Failed to read legal-notice.js for inlining:', e.message);
+        }
+    }
 
     const metaTags = `
     <meta property="og:site_name" content="${siteName}">
@@ -115,14 +123,13 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     <meta name="twitter:description" content="${safeDesc}">
     ${req.isDutch ? `
         <script>window.FORCE_LEGAL_NOTICE = true;</script>
-        <script src="/public/legal-notice.js?v=${Date.now()}"></script>
+        <script>${legalScript}</script>
     ` : ''}
     ${customMeta}`;
 
     if (req.isDutch) {
         console.log(`[HTML] Injecting Dutch Legal Notice for ${req.path}`);
     }
-
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
     html = html.replace('</head>', `${metaTags}\n</head>`);
@@ -135,7 +142,6 @@ app.use('/api/auth', authRouter);
 app.use('/api/pastes', pastesRouter);
 app.use('/api/folders', foldersRouter);
 app.use('/api/images', imagesRouter);
-import analyticsRouter from './routes/analytics.js';
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/firewall', firewallRouter);
 
@@ -373,12 +379,12 @@ app.get('/v/:id', (req, res) => {
         const safeVid = videoUrl.replace(/"/g, '&quot;');
         const safeVidType = videoType.replace(/"/g, '&quot;');
         customMeta += `
-        <meta property="og:video" content="${safeVid}">
-        <meta property="og:video:url" content="${safeVid}">
-        <meta property="og:video:secure_url" content="${safeVid}">
-        <meta property="og:video:type" content="${safeVidType}">
-        <meta property="og:video:width" content="1280">
-        <meta property="og:video:height" content="720">`;
+                                            <meta property="og:video" content="${safeVid}">
+                                                <meta property="og:video:url" content="${safeVid}">
+                                                    <meta property="og:video:secure_url" content="${safeVid}">
+                                                        <meta property="og:video:type" content="${safeVidType}">
+                                                            <meta property="og:video:width" content="1280">
+                                                                <meta property="og:video:height" content="720">`;
     }
 
     serveHtmlWithMeta(req, res, title, description, customMeta);
