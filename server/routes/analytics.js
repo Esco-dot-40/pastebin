@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../db/index.js';
+import db from '../db/firewall.js';
 
 const router = express.Router();
 
@@ -57,7 +57,7 @@ router.get('/threat-intel', requireAdmin, (req, res) => {
         `).all();
 
         const topBlocked = db.prepare(`
-            SELECT countryCode, countryName, status FROM blocked_countries WHERE status = 1
+            SELECT country_code as countryCode, 'Locked' as countryName, 1 as status FROM blocked_countries
         `).all();
 
         res.json({ suspiciousIPs, topBlocked });
@@ -68,8 +68,6 @@ router.get('/threat-intel', requireAdmin, (req, res) => {
 
 // Mock "Archive" (could move to another table, but for now just mark or export)
 router.post('/logs-archive', requireAdmin, (req, res) => {
-    // In a real app, we'd move these to a cold storage table
-    // For now, we'll just return success as a placeholder for the UI
     res.json({ success: true, message: 'Logs processed for archival' });
 });
 

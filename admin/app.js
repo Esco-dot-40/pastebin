@@ -1771,10 +1771,11 @@ async function loadFirewallList(query = '') {
     if (!list) return;
 
     try {
-        const res = await fetch('/api/firewall/list', { credentials: 'include' });
+        const res = await fetch('/api/firewall/status', { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-            activeBlocks = data.countries;
+            // New API returns 'blocklist' as an array of codes
+            activeBlocks = data.blocklist || [];
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
 
@@ -1783,8 +1784,7 @@ async function loadFirewallList(query = '') {
         : ISO_COUNTRIES;
 
     list.innerHTML = filtered.map(c => {
-        const block = activeBlocks.find(b => b.countryCode === c.code);
-        const isActive = block && block.status === 1;
+        const isActive = activeBlocks.includes(c.code.toUpperCase());
 
         return `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
@@ -1810,11 +1810,24 @@ async function toggleCountryBlock(code, name, status) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ countryCode: code, countryName: name, status })
+            body: JSON.stringify({ countryCode: code })
         });
         const data = await res.json();
-        if (!data.success) alert("Failed: " + data.error);
-    } catch (e) { alert("Error: " + e.message); }
+        if (data.success) {
+            // Update local state and re-render to ensure UI reflects real state
+            if (data.action === 'added') {
+                if (!activeBlocks.includes(code.toUpperCase())) activeBlocks.push(code.toUpperCase());
+            } else {
+                activeBlocks = activeBlocks.filter(b => b !== code.toUpperCase());
+            }
+        } else {
+            alert("Failed: " + data.error);
+            loadFirewallList(); // Refresh on failure
+        }
+    } catch (e) {
+        alert("Error: " + e.message);
+        loadFirewallList();
+    }
 }
 
 function getFlagEmoji(countryCode) {

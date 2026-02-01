@@ -1,7 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import os from 'os';
-import dotenv from 'dotenv';
 import session from 'express-session';
 import path from 'path';
 import fs from 'fs';
@@ -13,11 +14,11 @@ import imagesRouter from './routes/images.js';
 import bannerRouter from './routes/banner.js';
 import firewallRouter from './routes/firewall.js';
 import db from './db/index.js';
+import firewallDb from './db/firewall.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
 import { startAutoBackup } from './services/auto-backup.js';
+import { geoMiddleware } from './middleware/geoFirewall.js';
 const SqliteStore = sqlite3SessionStore(session);
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,129 +50,20 @@ app.use(session({
     }
 }));
 
-// Global Page Access Tracking Middleware
-app.use(async (req, res, next) => {
-    const isStatic = /\.(css|js|jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i.test(req.path);
-    const isApi = req.path.startsWith('/api/');
-    const isAdminPath = req.path.startsWith('/adminperm/');
-    const isAdminUser = req.session && req.session.isAdmin;
-
-    // IP Detection
-    const ip = req.headers['cf-connecting-ip'] ||
-        req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-        req.headers['x-real-ip'] ||
-        req.socket.remoteAddress ||
-        '127.0.0.1';
-    const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
-
-    // --- SELF-LEARNING FIREWALL (DISABLED DUE TO USER LOCKOUTS) ---
-    /*
-    if (!isStatic && !isAdminUser && cleanIP !== '127.0.0.1') {
-        const blacklist = db.prepare('SELECT proxy, hosting FROM page_accesses WHERE ip = ? AND (proxy = 1 OR hosting = 1) LIMIT 1').get(cleanIP);
-        if (blacklist) {
-            console.warn(`🛡️ [BLOCK] Neutralized Proxy Node: ${cleanIP}`);
-            return res.status(403).send('<h1>403 Forbidden</h1><p>Access Denied: Non-Residential Transit Node Detected.</p>');
-        }
-    }
-    */
-
-    // --- EXCLUSION LOGIC ---
-    // 3. Skip if IP is in the ignore list
-    const ignoreIPs = (process.env.IGNORE_IPS || '').split(',').map(i => i.trim());
-    const isIgnoredIP = ignoreIPs.includes(cleanIP);
-    // 4. Skip based on explicit env flag (RELAXED for visibility)
-    const shouldSkip = (isAdminPath || isIgnoredIP) && process.env.LOG_ADMIN_AND_SELF !== 'true' && !req.session?.isAdmin;
-
-    // --- PROACTIVE TRACKING & FIREWALL ---
-    if (!isStatic && !isApi && !shouldSkip && (req.method === 'GET' || req.method === 'HEAD')) {
-        try {
-            const userAgent = req.headers['user-agent'] || '';
-            const isBot = /Discordbot|Twitterbot|facebookexternalhit|TelegramBot|Slackbot/i.test(userAgent);
-            const referrer = req.headers['referer'] || req.headers['referrer'] || null;
-            const isLocal = cleanIP === '127.0.0.1' || cleanIP.startsWith('192.168.') || cleanIP.startsWith('10.') || cleanIP.startsWith('172.');
-
-            // Bypass for bots
-            const shouldBypassFirewall = isBot || isAdminUser;
-
-            // Check if we already know this IP
-            let knownGeo = db.prepare('SELECT * FROM page_accesses WHERE ip = ? AND countryCode IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIP);
-
-            // If unknown and not local, fetch real-time data
-            if (!knownGeo && !isLocal) {
-                try {
-                    const fetch = (await import('node-fetch')).default;
-                    const fields = 'status,message,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,offset,currency,isp,org,as,asname,reverse,mobile,proxy,hosting,query';
-                    const response = await fetch(`http://ip-api.com/json/${cleanIP}?fields=${fields}`);
-                    const data = await response.json();
-
-                    if (data.status === 'success') {
-                        // Insert immediately to the database
-                        db.prepare(`
-                            INSERT INTO page_accesses (
-                                path, method, ip, country, countryCode, region, regionName, city, district, zip, lat, lon, 
-                                timezone, currency, isp, org, asName, userAgent, referrer, reverse,
-                                proxy, hosting, mobile
-                            )
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        `).run(
-                            req.path, req.method, cleanIP,
-                            data.country, data.countryCode, data.region, data.regionName, data.city, data.district, data.zip,
-                            data.lat, data.lon, data.timezone, data.currency,
-                            data.isp, data.org, data.as, userAgent, referrer, data.reverse || null,
-                            data.proxy ? 1 : 0, data.hosting ? 1 : 0, data.mobile ? 1 : 0
-                        );
-                        // Refresh knownGeo for immediate firewall check below
-                        knownGeo = { countryCode: data.countryCode };
-                    }
-                } catch (e) { console.error('Proactive GeoIP fetch failed:', e.message); }
-            } else if (!knownGeo && isLocal) {
-                // Log local hit once
-                db.prepare(`
-                    INSERT INTO page_accesses (
-                        path, method, ip, userAgent, referrer, 
-                        country, countryCode, city, regionName, isp
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                `).run(
-                    req.path, req.method, cleanIP, userAgent, referrer,
-                    'Internal Network', '??', 'Local Transmission', 'Admin Sector', 'Direct Uplink'
-                );
-                knownGeo = { countryCode: '??' };
-            } else if (knownGeo) {
-                // Still log the visit, but can be non-blocking/async for performance now that we have data
-                setImmediate(() => {
-                    try {
-                        db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent, referrer, countryCode) VALUES (?, ?, ?, ?, ?, ?)`).run(
-                            req.path, req.method, cleanIP, userAgent, referrer, knownGeo.countryCode
-                        );
-                    } catch (e) { }
-                });
-            }
-
-            // --- IMMEDIATE FIREWALL ENFORCEMENT ---
-            if (knownGeo && req.path !== '/blocked' && !shouldBypassFirewall) {
-                // 1. Check for NL Notice
-                if (knownGeo.countryCode === 'NL') req.isDutch = true;
-
-                // 2. Check for Country Block
-                const isBlocked = db.prepare('SELECT status FROM blocked_countries WHERE countryCode = ? AND status = 1').get(knownGeo.countryCode);
-                if (isBlocked) {
-                    return res.redirect('/blocked');
-                }
-            }
-
-        } catch (err) { console.error('Middleware Processing Error:', err); }
-    }
-
-    next();
-});
+// High-Security Geo-Firewall & Analytics Engine
+app.use(geoMiddleware);
 
 // Helper for manual events
 export const logEvent = async (req, path, method = 'LOG') => {
     try {
-        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.headers['x-real-ip'] || req.socket.remoteAddress || '127.0.0.1';
+        const ip = req.headers['cf-connecting-ip'] ||
+            req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+            req.headers['x-real-ip'] ||
+            req.socket.remoteAddress ||
+            '127.0.0.1';
         const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
         const userAgent = req.headers['user-agent'] || '';
-        db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent) VALUES (?, ?, ?, ?)`).run(path, method, cleanIP, userAgent);
+        firewallDb.prepare(`INSERT INTO page_accesses (path, method, ip, user_agent, country_code) VALUES (?, ?, ?, ?, ?)`).run(path, method, cleanIP, userAgent, '??');
     } catch (e) { }
 };
 
@@ -486,8 +378,12 @@ app.get('/v/:id', (req, res) => {
 
 
 // Custom 404 Error Page (Neon Style)
-app.use((req, res) => {
-    res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/public') || req.path.startsWith('/shared') || req.path.startsWith('/uploads')) {
+        return res.status(404).sendFile(path.join(__dirname, '..', 'public', '404.html'));
+    }
+    // SPA Fallback for other routes
+    serveHtmlWithMeta(req, res, 'encrypted transmissions', 'Secure node synchronization.');
 });
 
 // Error handling
