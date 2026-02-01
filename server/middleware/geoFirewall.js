@@ -146,7 +146,10 @@ export const geoMiddleware = async (req, res, next) => {
         }
 
         // UNIFIED RESOLUTION: Combine all sources (CF > Lookup > Cache)
-        const resolvedCountry = (geoData?.country_code || countryCode)?.toUpperCase();
+        const finalLookupCountry = geoData?.country_code || countryCode;
+        const resolvedCountry = finalLookupCountry?.toUpperCase();
+
+        console.log(`[GEO-DEBUG] User: ${cleanIp} | Country: ${resolvedCountry || '??'} | IsOwner: ${isOwner} | IsAdmin: ${isSessionAdmin}`);
 
         if (resolvedCountry) {
             // High-Security Lockout: Check if region is restricted (Europe) OR manually blocked
@@ -154,9 +157,12 @@ export const geoMiddleware = async (req, res, next) => {
             const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
 
             if ((isRestricted || isManuallyBlocked) && req.path !== '/blocked') {
-                req.isRestrictedRegion = true; // Still set for potential logging/meta
+                // If they ARE owner or admin, they should have been bypassed at line 80.
+                // If they reach here, it means the bypass logic failed.
+
+                req.isRestrictedRegion = true;
                 logAccess(cleanIp, req, geoData || { country_code: resolvedCountry }, 1);
-                console.log(`[GEO] TRIGGERING HARD BLOCK: ${resolvedCountry} for ${cleanIp}`);
+                console.log(`[GEO] !!! BLOCKING !!! -> IP: ${cleanIp} | Country: ${resolvedCountry}`);
                 return res.redirect('/blocked');
             }
         }
