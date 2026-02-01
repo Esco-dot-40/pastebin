@@ -7,16 +7,27 @@
     const STORAGE_KEY = 'legal_notice_acknowledged_v3';
 
     function injectNotice() {
-        console.log('[LEGAL] Script initialized. Force Mode:', !!window.FORCE_LEGAL_NOTICE);
-        if (localStorage.getItem(STORAGE_KEY) && !window.FORCE_LEGAL_NOTICE) {
-            console.log('[LEGAL] Skipping notice: Already acknowledged.');
+        console.log('[LEGAL] Interaction Script Starting...');
+        console.log('[LEGAL] Force Mode Status:', !!window.FORCE_LEGAL_NOTICE);
+
+        let acknowledged = false;
+        try {
+            acknowledged = localStorage.getItem(STORAGE_KEY);
+        } catch (e) {
+            console.warn('[LEGAL] LocalStorage inaccessible, defaulting to false.');
+        }
+
+        if (acknowledged && !window.FORCE_LEGAL_NOTICE) {
+            console.log('[LEGAL] Notice already acknowledged. Skipping.');
             return;
         }
+
+        console.log('[LEGAL] Injecting Notice HTML into DOM...');
 
         const html = `
             <div id="legal-notice-root">
                 <div class="card-wrapper">
-                    ${window.FORCE_LEGAL_NOTICE ? '<div style="position:absolute; top:10px; right:10px; color:#ff0050; font-family:monospace; font-size:10px; z-index:100;">FORCED MODE</div>' : ''}
+                    ${window.FORCE_LEGAL_NOTICE ? '<div style="position:absolute; top:20px; left:20px; color:#ff0050; font-family:monospace; font-size:12px; font-weight:bold; z-index:100; letter-spacing:2px; background:rgba(0,0,0,0.8); padding:5px 10px; border-radius:4px; border:1px solid #ff0050;">REGION: NL_DETECTED (ACTIVE)</div>' : ''}
                     <div class="glow-1"></div>
                     <div class="glow-2"></div>
                     <div class="content-container">
@@ -70,22 +81,31 @@
             </div>
         `;
 
-        document.body.insertAdjacentHTML('beforeend', html);
+        const container = document.body || document.documentElement;
+        container.insertAdjacentHTML('beforeend', html);
 
         const root = document.getElementById('legal-notice-root');
         const btn = document.getElementById('legal-acknowledge-btn');
+
+        if (!root || !btn) {
+            console.error('[LEGAL] Failed to inject or find notice elements!');
+            return;
+        }
+
+        console.log('[LEGAL] Notice INJECTED. Activating styles...');
 
         // Show almost immediately to block interaction
         setTimeout(() => {
             root.classList.add('active');
             document.body.style.overflow = 'hidden';
-            // Force focus to button to ensure they can't tab away easily
             btn.focus();
-        }, 400);
+        }, 100);
 
         btn.addEventListener('click', () => {
             root.classList.remove('active');
-            localStorage.setItem(STORAGE_KEY, 'true');
+            try {
+                localStorage.setItem(STORAGE_KEY, 'true');
+            } catch (e) { }
             setTimeout(() => {
                 root.remove();
                 document.body.style.overflow = '';
@@ -93,7 +113,7 @@
         });
     }
 
-    // Initialize when DOM is ready
+    // Initialize
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', injectNotice);
     } else {
