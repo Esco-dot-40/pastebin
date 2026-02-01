@@ -34,9 +34,7 @@
                     display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
-                    background: rgba(0, 0, 0, 0.98) !important;
-                    backdrop-filter: blur(25px) !important;
-                    -webkit-backdrop-filter: blur(25px) !important;
+                    background: rgba(0, 0, 0, 0.99) !important;
                     pointer-events: all !important;
                     font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
                     color: white !important;

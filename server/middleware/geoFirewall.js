@@ -24,18 +24,23 @@ export const geoMiddleware = async (req, res, next) => {
     }
 
     // 2. Region Detection (Immediate cache check)
-    // Run this before bypasses so admins/bypassed users still get regional features (like legal notices)
     let countryCode = null;
-    const cachedGeo = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL ORDER BY id DESC LIMIT 1').get(cleanIp);
+    const cachedGeo = db.prepare('SELECT country_code FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL AND country_code != "??" ORDER BY id DESC LIMIT 1').get(cleanIp);
 
     if (cachedGeo) {
         countryCode = cachedGeo.country_code?.toUpperCase();
         console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: true)`);
     }
 
-    if (req.query.testDutch === '1' || countryCode === 'NL') {
-        req.isDutch = true;
-        if (req.query.testDutch === '1') console.log(`[GEO] Manual override: Dutch mode active for ${cleanIp}`);
+    const EUROPEAN_COUNTRIES = [
+        'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
+    ];
+
+    if (req.query.testRestrict === '1' || req.query.testDutch === '1' || EUROPEAN_COUNTRIES.includes(countryCode)) {
+        req.isRestrictedRegion = true;
+        if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
+            console.log(`[GEO] Manual override: Restricted mode active for ${cleanIp}`);
+        }
     }
 
     // 3. Hierarchical Security Bypasses
@@ -94,9 +99,13 @@ export const geoMiddleware = async (req, res, next) => {
         if (geoData) {
             const currentCountry = geoData.country_code?.toUpperCase();
 
-            // Late-stage Dutch detection (for first-time visitors not already in cache)
-            if (currentCountry === 'NL') {
-                req.isDutch = true;
+            // Late-stage detection (for first-time visitors not already in cache)
+            const EUROPEAN_COUNTRIES = [
+                'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
+            ];
+
+            if (EUROPEAN_COUNTRIES.includes(currentCountry)) {
+                req.isRestrictedRegion = true;
             }
 
             // Check for Country Block

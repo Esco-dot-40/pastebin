@@ -101,7 +101,7 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     const imageTag = hasCustomImage ? '' : `<meta property="og:image" content="${escape(defaultImageUrl)}"><meta name="twitter:image" content="${escape(defaultImageUrl)}">`;
 
     let legalScript = '';
-    if (req.isDutch) {
+    if (req.isRestrictedRegion) {
         try {
             const scriptPath = path.join(__dirname, '..', 'public', 'legal-notice.js');
             legalScript = fs.readFileSync(scriptPath, 'utf-8');
@@ -121,14 +121,14 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
-    ${req.isDutch ? `
+    ${req.isRestrictedRegion ? `
         <script>window.FORCE_LEGAL_NOTICE = true;</script>
         <script>${legalScript}</script>
     ` : ''}
     ${customMeta}`;
 
-    if (req.isDutch) {
-        console.log(`[HTML] Injecting Dutch Legal Notice for ${req.path}`);
+    if (req.isRestrictedRegion) {
+        console.log(`[HTML] Injecting Regional Legal Notice for ${req.path}`);
     }
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
