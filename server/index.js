@@ -123,6 +123,7 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
 
     html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
     html = html.replace('</head>', `${metaTags}\n</head>`);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.send(html);
 };
 

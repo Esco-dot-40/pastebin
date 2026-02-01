@@ -7,11 +7,16 @@
     const STORAGE_KEY = 'legal_notice_acknowledged_v3';
 
     function injectNotice() {
-        if (localStorage.getItem(STORAGE_KEY) && !window.FORCE_LEGAL_NOTICE) return;
+        console.log('[LEGAL] Script initialized. Force Mode:', !!window.FORCE_LEGAL_NOTICE);
+        if (localStorage.getItem(STORAGE_KEY) && !window.FORCE_LEGAL_NOTICE) {
+            console.log('[LEGAL] Skipping notice: Already acknowledged.');
+            return;
+        }
 
         const html = `
             <div id="legal-notice-root">
                 <div class="card-wrapper">
+                    ${window.FORCE_LEGAL_NOTICE ? '<div style="position:absolute; top:10px; right:10px; color:#ff0050; font-family:monospace; font-size:10px; z-index:100;">FORCED MODE</div>' : ''}
                     <div class="glow-1"></div>
                     <div class="glow-2"></div>
                     <div class="content-container">
