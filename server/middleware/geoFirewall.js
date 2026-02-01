@@ -33,7 +33,7 @@ export const geoMiddleware = async (req, res, next) => {
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
 
     // Admin IP
-    const adminIpSetting = db.prepare('SELECT value FROM firewall_settings WHERE key = "admin_ip"').get();
+    const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const isAdminIp = adminIpSetting && adminIpSetting.value === cleanIp;
 
     // Admin Header
@@ -49,7 +49,7 @@ export const geoMiddleware = async (req, res, next) => {
 
     // 3. Geo-Blocking Logic
     try {
-        const lockdownSetting = db.prepare('SELECT value FROM firewall_settings WHERE key = "lockdown_active"').get();
+        const lockdownSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'lockdown_active'").get();
         const isLockdown = lockdownSetting && lockdownSetting.value === '1';
 
         // Redirect all non-bypassed traffic if lockdown is active
