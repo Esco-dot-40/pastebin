@@ -113,7 +113,10 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
-    ${req.isDutch ? '<script>window.FORCE_LEGAL_NOTICE = true;</script>' : ''}
+    ${req.isDutch ? `
+        <script>window.FORCE_LEGAL_NOTICE = true;</script>
+        <script src="/public/legal-notice.js?v=${Date.now()}"></script>
+    ` : ''}
     ${customMeta}`;
 
     if (req.isDutch) {
