@@ -88,6 +88,7 @@ export const geoMiddleware = async (req, res, next) => {
 
         if (geoData) {
             const countryCode = geoData.country_code?.toUpperCase();
+            console.log(`[GEO] IP: ${cleanIp} -> Country: ${countryCode} (Cached: ${!!db.prepare('SELECT 1 FROM page_accesses WHERE ip = ? AND country_code IS NOT NULL').get(cleanIp)})`);
 
             // Check for Country Block
             const isBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(countryCode);
@@ -95,15 +96,18 @@ export const geoMiddleware = async (req, res, next) => {
             // Region Injection setup
             if (countryCode === 'NL') {
                 req.isDutch = true;
+                console.log(`[GEO] Dutch visitor detected: ${cleanIp}`);
             }
 
             if (isBlocked && req.path !== '/blocked') {
                 logAccess(cleanIp, req, geoData, 1);
+                console.log(`[GEO] Blocking visitor from ${countryCode}: ${cleanIp}`);
                 return res.redirect('/blocked');
             }
 
             logAccess(cleanIp, req, geoData, 0);
         } else {
+            console.log(`[GEO] No geo data found for IP: ${cleanIp}`);
             // If no geoData could be fetched, log as unknown but allow (fail-open)
             logAccess(cleanIp, req, { country_code: '??' }, 0);
         }
