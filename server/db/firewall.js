@@ -47,6 +47,6 @@ db.exec(`
 // Seed default settings if they don't exist
 const seedSetting = db.prepare('INSERT OR IGNORE INTO firewall_settings (key, value) VALUES (?, ?)');
 seedSetting.run('lockdown_active', '0');
-seedSetting.run('admin_ip', '');
+seedSetting.run('admin_ip', '176.67.81.55,127.0.0.1');
 
 export default db;

@@ -66,12 +66,14 @@ export const geoMiddleware = async (req, res, next) => {
     const bypassSecret = process.env.FIREWALL_SECRET;
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
-    const isAdminIp = adminIpSetting && adminIpSetting.value === cleanIp;
+    const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim());
+    const isAdminIp = adminIps.includes(cleanIp);
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
+    const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
 
-    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot) {
+    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isSessionAdmin || isBot) {
         return next();
     }
 
