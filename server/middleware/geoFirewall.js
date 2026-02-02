@@ -186,8 +186,8 @@ function logAccess(ip, req, geo, isBlocked) {
     try {
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, country_code, region, city, lat, lon, isp, user_agent, proxy, hosting, is_blocked)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ip, path, method, country, country_code, region, city, lat, lon, isp, user_agent, proxy, hosting, is_blocked, hostname)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
@@ -202,7 +202,8 @@ function logAccess(ip, req, geo, isBlocked) {
             req.headers['user-agent'] || '',
             geo.proxy || 0,
             geo.hosting || 0,
-            isBlocked ? 1 : 0
+            isBlocked ? 1 : 0,
+            req.get('host') || 'unknown'
         );
     } catch (e) {
         console.error('Failed to log access:', e.message);

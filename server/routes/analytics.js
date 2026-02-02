@@ -71,4 +71,21 @@ router.post('/logs-archive', requireAdmin, (req, res) => {
     res.json({ success: true, message: 'Logs processed for archival' });
 });
 
+// Get Universal Telemetry (Publicly accessible but rate-limited/obfuscated)
+router.get('/universal-telemetry', (req, res) => {
+    try {
+        // Return last 200 hits with coordinates for the globe
+        const hits = db.prepare(`
+            SELECT lat, lon, hostname, country_code, is_blocked, timestamp 
+            FROM page_accesses 
+            WHERE lat != 0 AND lon != 0
+            ORDER BY timestamp DESC 
+            LIMIT 200
+        `).all();
+        res.json(hits);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 export default router;

@@ -4,63 +4,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSTEM FIREWALL v4.0 | NEXUS_CREATIVE_TECH</title>
+    <title>SECURITY_CORE | NEXUS_CREATIVE_TECH</title>
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500;800&family=Orbitron:wght@900&display=swap">
-    <link rel="stylesheet" href="/admin/firewall.css">
+    <link rel="stylesheet" href="firewall.css">
+
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 </head>
 
 <body class="admin-theme">
+    <div class="hologram-overlay"></div>
+
     <div class="dashboard-wrapper">
-        <!-- Header -->
-        <header class="main-header">
-            <div class="brand">
+        <!-- Sidebar: Controls -->
+        <aside class="sidebar-controls">
+            <header class="sidebar-header">
                 <div class="system-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                 </div>
                 <div class="title-stack">
-                    <h1>SYSTEM FIREWALL v4.0</h1>
-                    <span class="sub-line">NEXUS_CREATIVE_TECH // SECURITY_CORE</span>
+                    <h1>SYSTEM_FIREWALL</h1>
+                    <span class="sub-line">CORE_v4.5_ULTIMATE</span>
                 </div>
-            </div>
-            <div class="status-indicator">
-                <span class="dot pulse"></span>
-                SYSTEM_OPERATIONAL
-            </div>
-        </header>
+            </header>
 
-        <div class="main-content">
-            <!-- Top Controls Grid -->
-            <div class="controls-grid">
-                <!-- Regional Protocols -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <path d="M2 12h20" />
-                            <path
-                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
-                        </svg>
-                        REGIONAL_PROTOCOLS
-                    </div>
-                    <div class="toggle-group">
-                        <div class="toggle-card">
-                            <div class="info">
-                                <h3>EUROPE_BLOCK</h3>
-                                <p>50 COUNTRIES (EU/EEA/EFTA)</p>
+            <div class="status-box">
+                <div class="status-indicator">
+                    <span class="dot pulse"></span>
+                    SYSTEM_OPERATIONAL
+                </div>
+                <div class="uptime-stat">UPTIME: <span id="uptime-val">99.998%</span></div>
+            </div>
+
+            <div class="panels-stack">
+                <!-- Global Protocols -->
+                <div class="hud-panel">
+                    <div class="hud-header">GLOBAL_PROTOCOLS</div>
+                    <div class="toggle-list">
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="t-name">LOCKDOWN_MODE</span>
+                                <span class="t-desc">BLOCK ALL EXTERNAL</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="lockdown-toggle" onchange="updateLockdown()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="t-name">EUROPE_BLOCK</span>
+                                <span class="t-desc">50+ REGIONS</span>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="europe-block-toggle" onchange="updateLockdown()">
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <div class="toggle-card">
-                            <div class="info">
-                                <h3>USA_BLOCK</h3>
-                                <p>UNITED STATES (DOMESTIC)</p>
+                        <div class="toggle-item">
+                            <div class="toggle-info">
+                                <span class="t-name">USA_BLOCK</span>
+                                <span class="t-desc">NORTH AMERICAN ARCH</span>
                             </div>
                             <label class="switch">
                                 <input type="checkbox" id="usa-block-toggle" onchange="updateLockdown()">
@@ -70,86 +80,56 @@
                     </div>
                 </div>
 
-                <!-- Lockdown Mode -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
-                        LOCKDOWN_MODE
-                    </div>
-                    <div class="lockdown-content">
-                        <div class="lockdown-toggle">
-                            <div class="info">
-                                <p>BLOCK ALL INBOUND TRANSMISSIONS EXCEPT AUTHENTICATED ADMIN IP</p>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="lockdown-toggle" onchange="updateLockdown()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="input-group">
-                            <label>WHITELIST_IP</label>
-                            <input type="text" id="admin-ip-input" placeholder="0.0.0.0">
-                            <button class="btn-primary" onclick="updateLockdown()">UPDATE_WHITELIST</button>
-                        </div>
+                <!-- Admin Whitelist -->
+                <div class="hud-panel">
+                    <div class="hud-header">AUTHORIZED_IP_WHITELIST</div>
+                    <div class="input-stack">
+                        <input type="text" id="admin-ip-input" placeholder="IP_ADDRESS (CSV FORMAT)">
+                        <button class="hud-btn" onclick="updateLockdown()">SYNC_PERMISSIONS</button>
                     </div>
                 </div>
 
                 <!-- Core Metrics -->
-                <div class="panel compact-metrics">
-                    <div class="panel-header">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M12 20v-6M6 20V10M18 20V4" />
-                        </svg>
-                        CORE_METRICS
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="metric-box">
-                            <span class="value" id="stat-blocked-regions">50</span>
-                            <span class="label">BLOCKED_REGIONS</span>
+                <div class="hud-panel">
+                    <div class="hud-header">CORE_METRICS</div>
+                    <div class="metrics-row">
+                        <div class="m-box">
+                            <div class="m-val" id="stat-blocked-regions">--</div>
+                            <div class="m-lbl">BLOCKED</div>
                         </div>
-                        <div class="metric-box">
-                            <span class="value" id="stat-threats">0</span>
-                            <span class="label">THREATS_DETERRING</span>
+                        <div class="m-box">
+                            <div class="m-val" id="stat-threats">--</div>
+                            <div class="m-lbl">THREATS</div>
                         </div>
-                    </div>
-                    <div class="security-status">
-                        <span class="ico">🛡️</span>
-                        SECURITY_HEURISTICS: OPTIMIZING
                     </div>
                 </div>
             </div>
+        </aside>
 
-            <!-- Granular Blocking Periodic Table -->
-            <div class="panel granular-blocking">
-                <div class="panel-header between">
-                    <span>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M3 3h18v18H3zM12 8v8M8 12h8" />
-                        </svg>
-                        GRANULAR_BLOCKING
-                    </span>
-                    <select id="country-toggle-select" class="country-select" onchange="toggleCountryFromSelect()">
-                        <option value="">SELECT COUNTRY TO TOGGLE</option>
-                    </select>
+        <!-- Main Workspace: Globe -->
+        <main class="globe-workspace">
+            <div id="chartdiv"></div>
+            <div class="globe-label">INTERACTIVE_GEOSPATIAL_FIREWALL</div>
+        </main>
+
+        <!-- Right: Granular Search -->
+        <aside class="sidebar-search">
+            <div class="hud-panel full-height">
+                <div class="hud-header">GRANULAR_DATABASE</div>
+                <div class="search-wrap">
+                    <input type="text" id="country-search" placeholder="SEARCH_REGION..." oninput="filterCountries()">
                 </div>
-
-                <div id="country-grid" class="country-grid">
-                    <!-- Dynamic Grid of Countries -->
+                <div id="country-grid" class="country-scroll-grid">
+                    <!-- Dynamic Grid -->
                 </div>
             </div>
-        </div>
+        </aside>
     </div>
 
     <!-- Notification system -->
     <div id="notifications"></div>
 
-    <script src="/admin/firewall.js"></script>
+    <script src="firewall.js"></script>
 </body>
 
 </html>

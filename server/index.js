@@ -29,9 +29,19 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
+// Priority Static Assets
+const hubDistPath = path.join(__dirname, '..', '3d-dashboard', 'dist');
+app.use(express.static(hubDistPath));
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
 
 app.use(session({
     store: new SqliteStore({
@@ -151,15 +161,24 @@ app.use('/api/firewall', firewallRouter);
 
 app.use('/api/admin', bannerRouter);
 
-// Static Folders
+// Redirect /admin to /adminperm for convenience
+app.get('/admin', (req, res) => res.redirect('/adminperm'));
+
+// Shared Static Assets
 app.use('/shared', express.static(path.join(__dirname, '..', 'shared')));
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 app.use('/uploads', express.static(process.env.RAILWAY_VOLUME_MOUNT_PATH
     ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'uploads')
     : path.join(__dirname, '..', 'public', 'uploads')));
 
-// Redirect /admin to /adminperm for convenience
-app.get('/admin', (req, res) => res.redirect('/adminperm'));
+// Admin Auth Status
+app.get('/api/auth/status', (req, res) => {
+    res.json({ isAuthenticated: !!(req.session && req.session.isAdmin) });
+});
+
+app.get('/favicon.ico', (req, res) => {
+    // Serve the logo as favicon or a 204 No Content to stop the 404
+    res.status(204).end();
+});
 
 // Public Folders (for gallery dropdown)
 app.get('/api/public-folders', (req, res) => {
@@ -170,7 +189,6 @@ app.get('/api/public-folders', (req, res) => {
         res.status(500).json({ error: e.message });
     }
 });
-
 
 // Status Page Route
 app.get('/status', (req, res) => {
@@ -207,17 +225,19 @@ app.get('/api/uptime', (req, res) => {
     });
 });
 
-// Access Router
+// Access Router (Imported at top or used here)
 import accessRouter from './routes/access.js';
 app.use('/api/access', accessRouter);
 
 // Root Redirect/Entry
 app.get('/', (req, res) => {
-    serveHtmlWithMeta(
-        req, res,
-        'encrypted transmissions',
-        'Secure, ephemeral node synchronization. Powered by cinematic propagation and aesthetic code.'
-    );
+    // Serve the Universal Hub directly at the root
+    res.sendFile(path.join(hubDistPath, 'index.html'));
+});
+
+// SPA Fallback for Hub
+app.get('/hub/*', (req, res) => {
+    res.sendFile(path.join(hubDistPath, 'index.html'));
 });
 
 // Public Gallery Route (SPA handle)
