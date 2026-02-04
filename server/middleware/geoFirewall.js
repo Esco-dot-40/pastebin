@@ -31,6 +31,7 @@ export const geoMiddleware = async (req, res, next) => {
 
     // 2. Region Detection (Immediate sources)
     let countryCode = null;
+    let geoData = null;
 
     // Source A: Cloudflare (Most reliable)
     if (cfCountry && cfCountry !== 'XX' && cfCountry !== 'T1') {
@@ -38,27 +39,30 @@ export const geoMiddleware = async (req, res, next) => {
         console.log(`[GEO] Source: Cloudflare -> ${countryCode}`);
     }
 
-    // Source B: Cache (Backup)
-    if (!countryCode) {
-        const cachedRow = db.prepare(`
-            SELECT country_code FROM page_accesses 
-            WHERE ip = ? 
-            AND country_code IS NOT NULL 
-            AND country_code != '??' 
-            AND length(country_code) = 2 
-            ORDER BY id DESC LIMIT 1
-        `).get(cleanIp);
+    // Source B: Cache (Full lookup)
+    const cachedRow = db.prepare(`
+        SELECT country_code, country, region, city, lat, lon, isp 
+        FROM page_accesses 
+        WHERE ip = ? 
+        AND country_code IS NOT NULL 
+        AND country_code != '??' 
+        ORDER BY id DESC LIMIT 1
+    `).get(cleanIp);
 
-        if (cachedRow && cachedRow.country_code) {
-            countryCode = cachedRow.country_code.trim().toUpperCase();
-            console.log(`[GEO] Source: Cache -> ${countryCode}`);
+    if (cachedRow && cachedRow.country_code) {
+        if (!countryCode) countryCode = cachedRow.country_code.trim().toUpperCase();
+        if (!geoData) {
+            geoData = {
+                country_code: cachedRow.country_code,
+                country: cachedRow.country,
+                region: cachedRow.region,
+                city: cachedRow.city,
+                lat: cachedRow.lat,
+                lon: cachedRow.lon,
+                isp: cachedRow.isp
+            };
         }
-    }
-
-    // Check for Manual Overrides immediately
-    if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
-        req.isRestrictedRegion = true;
-        console.log(`[GEO] Manual override active for ${cleanIp}`);
+        console.log(`[GEO] Cache -> ${countryCode} (${cachedRow.city || 'Unknown'})`);
     }
 
     // 3. Hierarchical Security Bypasses
@@ -67,6 +71,12 @@ export const geoMiddleware = async (req, res, next) => {
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
+
+    // Check for Manual Overrides immediately
+    if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
+        req.isRestrictedRegion = true;
+        console.log(`[GEO] Manual override active for ${cleanIp}`);
+    }
 
     // Primary bypass: Whitelist IPs, Admin Session, or Localhouse
     const isAdminIp = adminIps.includes(cleanIp);
@@ -91,10 +101,10 @@ export const geoMiddleware = async (req, res, next) => {
             return res.redirect('/blocked');
         }
 
-        // Deep Lookup Phase (Only if Cloudflare/Cache didn't yield a result)
-        let geoData = null;
+        // Deep Lookup Phase (Only if city data is missing or refresh requested)
+        const needsLookup = !geoData || !geoData.city || geoData.city === 'Unknown' || geoData.city === '';
 
-        if ((!countryCode && !geoData) || req.query.refreshGeo === '1') {
+        if (needsLookup || req.query.refreshGeo === '1') {
             try {
                 // Tier 1: ipapi.co
                 const controller = new AbortController();
@@ -105,7 +115,15 @@ export const geoMiddleware = async (req, res, next) => {
                     if (response.ok) {
                         const data = await response.json();
                         if (!data.error && data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
-                            geoData = { country_code: data.country_code.toUpperCase(), country: data.country_name, isp: data.org };
+                            geoData = {
+                                country_code: data.country_code.toUpperCase(),
+                                country: data.country_name,
+                                region: data.region,
+                                city: data.city,
+                                lat: data.latitude,
+                                lon: data.longitude,
+                                isp: data.org
+                            };
                         }
                     }
                 } catch (e) { }
@@ -115,12 +133,20 @@ export const geoMiddleware = async (req, res, next) => {
                     const fbController = new AbortController();
                     const fbTimeoutId = setTimeout(() => fbController.abort(), 2000);
                     try {
-                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,countryCode,country,isp`, { signal: fbController.signal });
+                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,countryCode,country,regionName,city,lat,lon,isp`, { signal: fbController.signal });
                         clearTimeout(fbTimeoutId);
                         if (fbResponse.ok) {
                             const fbData = await fbResponse.json();
                             if (fbData.status === 'success' && fbData.countryCode) {
-                                geoData = { country_code: fbData.countryCode.toUpperCase(), country: fbData.country, isp: fbData.isp };
+                                geoData = {
+                                    country_code: fbData.countryCode.toUpperCase(),
+                                    country: fbData.country,
+                                    region: fbData.regionName,
+                                    city: fbData.city,
+                                    lat: fbData.lat,
+                                    lon: fbData.lon,
+                                    isp: fbData.isp
+                                };
                             }
                         }
                     } catch (e) { }
@@ -136,7 +162,14 @@ export const geoMiddleware = async (req, res, next) => {
                         if (t3Response.ok) {
                             const t3Data = await t3Response.json();
                             if (t3Data.countryCode) {
-                                geoData = { country_code: t3Data.countryCode.toUpperCase(), country: t3Data.countryName };
+                                geoData = {
+                                    country_code: t3Data.countryCode.toUpperCase(),
+                                    country: t3Data.countryName,
+                                    region: t3Data.region,
+                                    city: t3Data.cityName,
+                                    lat: t3Data.latitude,
+                                    lon: t3Data.longitude
+                                };
                             }
                         }
                     } catch (e) { }

@@ -8,7 +8,6 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "db:migrate": "node server/db/migrate.js",
-    "generate-password": "node server/generate-password.js",
     "test": "echo \"No tests yet\" && exit 0"
   },
   "keywords": [
