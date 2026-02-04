@@ -219,7 +219,7 @@ function logAccess(ip, req, geo, isBlocked) {
     try {
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, is_blocked, hostname)
+            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,

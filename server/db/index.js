@@ -108,6 +108,7 @@ const initialTables = [
             userAgent TEXT,
             referrer TEXT,
             hostname TEXT,
+            isBlocked INTEGER DEFAULT 0,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )`
     },
@@ -182,6 +183,7 @@ const deepLocColumns = [
     { name: 'hosting', type: 'INTEGER' },
     { name: 'mobile', type: 'INTEGER' },
     { name: 'reverse', type: 'TEXT' },
+    { name: 'isBlocked', type: 'INTEGER DEFAULT 0' },
     { name: 'district', type: 'TEXT' },
     { name: 'timezone', type: 'TEXT' },
     { name: 'currency', type: 'TEXT' }

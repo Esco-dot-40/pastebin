@@ -76,7 +76,7 @@ router.get('/universal-telemetry', (req, res) => {
     try {
         // Return last 200 hits with coordinates for the globe
         const hits = db.prepare(`
-            SELECT lat, lon, hostname, country_code, is_blocked, timestamp 
+            SELECT lat, lon, hostname, countryCode, isBlocked, timestamp 
             FROM page_accesses 
             WHERE lat != 0 AND lon != 0
             ORDER BY timestamp DESC 

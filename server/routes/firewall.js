@@ -65,8 +65,8 @@ router.get('/status', adminOnly, (req, res) => {
         const stats = db.prepare(`
             SELECT 
                 COUNT(*) as total_attempts,
-                SUM(CASE WHEN is_blocked = 1 THEN 1 ELSE 0 END) as blocked_attempts,
-                (SELECT countryCode FROM page_accesses WHERE is_blocked = 1 GROUP BY countryCode ORDER BY COUNT(*) DESC LIMIT 1) as top_blocked_country
+                SUM(CASE WHEN isBlocked = 1 THEN 1 ELSE 0 END) as blocked_attempts,
+                (SELECT countryCode FROM page_accesses WHERE isBlocked = 1 GROUP BY countryCode ORDER BY COUNT(*) DESC LIMIT 1) as top_blocked_country
             FROM page_accesses
         `).get();
 
