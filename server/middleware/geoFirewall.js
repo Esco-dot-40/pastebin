@@ -1,4 +1,4 @@
-import db from '../db/firewall.js';
+import db from '../db/index.js';
 import fetch from 'node-fetch';
 
 const EUROPEAN_COUNTRIES = [
@@ -41,19 +41,19 @@ export const geoMiddleware = async (req, res, next) => {
 
     // Source B: Cache (Full lookup)
     const cachedRow = db.prepare(`
-        SELECT country_code, country, region, city, lat, lon, isp 
+        SELECT countryCode, country, region, city, lat, lon, isp 
         FROM page_accesses 
         WHERE ip = ? 
-        AND country_code IS NOT NULL 
-        AND country_code != '??' 
+        AND countryCode IS NOT NULL 
+        AND countryCode != '??' 
         ORDER BY id DESC LIMIT 1
     `).get(cleanIp);
 
-    if (cachedRow && cachedRow.country_code) {
-        if (!countryCode) countryCode = cachedRow.country_code.trim().toUpperCase();
+    if (cachedRow && cachedRow.countryCode) {
+        if (!countryCode) countryCode = cachedRow.countryCode.trim().toUpperCase();
         if (!geoData) {
             geoData = {
-                country_code: cachedRow.country_code,
+                countryCode: cachedRow.countryCode,
                 country: cachedRow.country,
                 region: cachedRow.region,
                 city: cachedRow.city,
@@ -97,7 +97,7 @@ export const geoMiddleware = async (req, res, next) => {
         const usaBlockActive = settings.find(s => s.key === 'usa_block')?.value === '1';
 
         if (lockdownActive && req.path !== '/blocked') {
-            logAccess(cleanIp, req, { country_code: '??' }, 1);
+            logAccess(cleanIp, req, { countryCode: '??' }, 1);
             return res.redirect('/blocked');
         }
 
@@ -191,7 +191,7 @@ export const geoMiddleware = async (req, res, next) => {
             const isUSA = resolvedCountry === 'US';
 
             const isRestricted = (isEurope && europeBlockActive) || (isUSA && usaBlockActive);
-            const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(resolvedCountry);
+            const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE countryCode = ?').get(resolvedCountry);
 
             if ((isRestricted || isManuallyBlocked) && req.path !== '/blocked') {
                 // If they ARE owner or admin, they should have been bypassed at line 80.
@@ -219,19 +219,19 @@ function logAccess(ip, req, geo, isBlocked) {
     try {
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, country_code, region, city, lat, lon, isp, user_agent, proxy, hosting, is_blocked, hostname)
+            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, is_blocked, hostname)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
             req.method,
             geo.country || 'Unknown',
-            (geo.country_code || '??').toUpperCase(),
-            geo.region || 'Unknown',
+            (geo.countryCode || geo.country_code || '??').toUpperCase(),
+            geo.region || geo.regionName || 'Unknown',
             geo.city || 'Unknown',
-            geo.lat || 0,
-            geo.lon || 0,
-            geo.isp || 'Unknown',
+            geo.lat || geo.latitude || 0,
+            geo.lon || geo.longitude || 0,
+            geo.isp || geo.org || 'Unknown',
             req.headers['user-agent'] || '',
             geo.proxy || 0,
             geo.hosting || 0,

@@ -110,6 +110,13 @@ const initialTables = [
             hostname TEXT,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )`
+    },
+    {
+        name: 'firewall_settings',
+        sql: `CREATE TABLE IF NOT EXISTS firewall_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )`
     }
 ];
 
@@ -248,6 +255,19 @@ migrateTable('users', [
     { name: 'username', type: 'TEXT' },
     { name: 'displayName', type: 'TEXT' }
 ]);
+
+// Seed default Firewall Settings
+try {
+    const settings = [
+        { key: 'lockdown_active', value: '0' },
+        { key: 'europe_block', value: '0' },
+        { key: 'usa_block', value: '0' }
+    ];
+    const stmt = db.prepare('INSERT OR IGNORE INTO firewall_settings (key, value) VALUES (?, ?)');
+    settings.forEach(s => stmt.run(s.key, s.value));
+} catch (e) {
+    console.warn('Firewall seeding failed:', e.message);
+}
 
 console.log('✅ SQLite Database Migrations Complete (All columns verified)');
 

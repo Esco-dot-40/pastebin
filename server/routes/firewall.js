@@ -1,5 +1,5 @@
 import express from 'express';
-import db from '../db/firewall.js';
+import db from '../db/index.js';
 
 const router = express.Router();
 
@@ -16,12 +16,12 @@ router.post('/toggle', adminOnly, (req, res) => {
 
     const code = countryCode.toUpperCase();
     try {
-        const existing = db.prepare('SELECT 1 FROM blocked_countries WHERE country_code = ?').get(code);
+        const existing = db.prepare('SELECT 1 FROM blocked_countries WHERE countryCode = ?').get(code);
         if (existing) {
-            db.prepare('DELETE FROM blocked_countries WHERE country_code = ?').run(code);
+            db.prepare('DELETE FROM blocked_countries WHERE countryCode = ?').run(code);
             res.json({ success: true, action: 'removed', countryCode: code });
         } else {
-            db.prepare('INSERT INTO blocked_countries (country_code) VALUES (?)').run(code);
+            db.prepare('INSERT INTO blocked_countries (countryCode) VALUES (?)').run(code);
             res.json({ success: true, action: 'added', countryCode: code });
         }
     } catch (e) {
@@ -39,9 +39,9 @@ router.post('/bulk-toggle', adminOnly, (req, res) => {
             for (const code of codes) {
                 const upperCode = code.toUpperCase();
                 if (action === 'block') {
-                    db.prepare('INSERT OR IGNORE INTO blocked_countries (country_code) VALUES (?)').run(upperCode);
+                    db.prepare('INSERT OR IGNORE INTO blocked_countries (countryCode) VALUES (?)').run(upperCode);
                 } else if (action === 'unblock') {
-                    db.prepare('DELETE FROM blocked_countries WHERE country_code = ?').run(upperCode);
+                    db.prepare('DELETE FROM blocked_countries WHERE countryCode = ?').run(upperCode);
                 }
             }
         });
@@ -55,7 +55,7 @@ router.post('/bulk-toggle', adminOnly, (req, res) => {
 // GET /api/firewall/status: Return current blocklist, lockdown status, and blocked-attempt statistics
 router.get('/status', adminOnly, (req, res) => {
     try {
-        const blockedCountries = db.prepare('SELECT country_code FROM blocked_countries').all().map(r => r.country_code);
+        const blockedCountries = db.prepare('SELECT countryCode FROM blocked_countries').all().map(r => r.countryCode);
         const settings = db.prepare('SELECT * FROM firewall_settings').all();
         const lockdownStatus = settings.find(s => s.key === 'lockdown_active')?.value === '1';
         const europeBlock = settings.find(s => s.key === 'europe_block')?.value === '1';
@@ -66,7 +66,7 @@ router.get('/status', adminOnly, (req, res) => {
             SELECT 
                 COUNT(*) as total_attempts,
                 SUM(CASE WHEN is_blocked = 1 THEN 1 ELSE 0 END) as blocked_attempts,
-                (SELECT country_code FROM page_accesses WHERE is_blocked = 1 GROUP BY country_code ORDER BY COUNT(*) DESC LIMIT 1) as top_blocked_country
+                (SELECT countryCode FROM page_accesses WHERE is_blocked = 1 GROUP BY countryCode ORDER BY COUNT(*) DESC LIMIT 1) as top_blocked_country
             FROM page_accesses
         `).get();
 

@@ -15,7 +15,6 @@ import bannerRouter from './routes/banner.js';
 import firewallRouter from './routes/firewall.js';
 import analyticsRouter from './routes/analytics.js';
 import db from './db/index.js';
-import firewallDb from './db/firewall.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
 import { startAutoBackup } from './services/auto-backup.js';
 import { geoMiddleware } from './middleware/geoFirewall.js';
@@ -35,8 +34,8 @@ app.use(express.static(hubDistPath));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
@@ -74,7 +73,7 @@ export const logEvent = async (req, path, method = 'LOG') => {
             '127.0.0.1';
         const cleanIP = ip.includes('::ffff:') ? ip.split(':').pop() : ip;
         const userAgent = req.headers['user-agent'] || '';
-        firewallDb.prepare(`INSERT INTO page_accesses (path, method, ip, user_agent, country_code) VALUES (?, ?, ?, ?, ?)`).run(path, method, cleanIP, userAgent, '??');
+        db.prepare(`INSERT INTO page_accesses (path, method, ip, userAgent, countryCode) VALUES (?, ?, ?, ?, ?)`).run(path, method, cleanIP, userAgent, '??');
     } catch (e) { }
 };
 
