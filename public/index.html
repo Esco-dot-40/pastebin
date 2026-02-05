@@ -155,26 +155,103 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 10px;
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(20px);
+            gap: 15px;
             padding: 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10001;
         }
 
         .top-action-dock .dock-item {
-            padding: 8px 16px;
+            position: relative;
+            padding: 10px 24px;
             border-radius: 12px;
             text-decoration: none;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.9);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(255, 255, 255, 0.03);
-            transition: all 0.3s;
+            letter-spacing: 2px;
+
+            /* Glassmorphism Base from Cards */
+            background: linear-gradient(135deg,
+                    rgba(15, 15, 25, 0.6) 0%,
+                    rgba(10, 10, 20, 0.7) 100%);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            background-clip: padding-box;
+
+            box-shadow:
+                0 0 0 1px rgba(0, 245, 255, 0.1),
+                0 8px 32px rgba(0, 0, 0, 0.6);
+
+            transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-action-dock .dock-item::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 12px;
+            padding: 2px;
+            background: linear-gradient(90deg,
+                    #00f5ff 0%,
+                    #00d4ff 25%,
+                    #0080ff 50%,
+                    #00d4ff 75%,
+                    #00f5ff 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            opacity: 0.3;
+            animation: borderFlow 3s linear infinite;
+            pointer-events: none;
+        }
+
+        .top-action-dock .dock-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            background: radial-gradient(circle at 50% 0%, rgba(0, 245, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .top-action-dock .dock-item:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow:
+                0 0 0 2px rgba(0, 245, 255, 0.4),
+                0 15px 30px rgba(0, 245, 255, 0.2);
+            color: #fff;
+        }
+
+        .top-action-dock .dock-item:hover::before {
+            opacity: 0.7;
+            animation: borderFlow 1.5s linear infinite;
+        }
+
+        .top-action-dock .dock-item:hover::after {
+            opacity: 1;
+        }
+
+        .dock-item.back-btn {
+            background: linear-gradient(135deg, rgba(40, 10, 25, 0.6) 0%, rgba(20, 5, 15, 0.7) 100%);
+        }
+
+        .dock-item.back-btn::before {
+            background: linear-gradient(90deg, #ff006e 0%, #ff3d8f 100%);
+            opacity: 0.5;
+        }
+
+        .dock-item.back-btn:hover {
+            box-shadow: 0 0 0 2px rgba(255, 0, 110, 0.5), 0 15px 30px rgba(255, 0, 110, 0.2);
         }
 
         /* --- AUTH & MODALS --- */
@@ -1611,6 +1688,9 @@
         <!-- Floating Top Action Dock -->
         <div class="top-action-dock">
             <div class="dock-container">
+                <a href="/" class="dock-item back-btn">
+                    <span class="dock-label">Back</span>
+                </a>
                 <a href="/public" class="dock-item" onclick="window.navigateTo('/public'); return false;">
                     <span class="dock-label">View Pastes</span>
                 </a>
