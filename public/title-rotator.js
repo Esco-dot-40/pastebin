@@ -2,22 +2,21 @@
 (function () {
     console.log("Terminal Title Rotator Online...");
     const domains = [
-        "veroe.space",
-        "q",
-        "veroe.fun",
-        "qu",
-        "quietbin",
-        "qui",
+        "𝘃𝗲𝗿𝗼𝗲.𝘀𝗽𝗮𝗰𝗲",
         "乇丂匚ㄖ 丨丂 匚尺卂乙ㄚ",
-        "quie",
-        "Esco is banished",
-        "quiet",
-        "Esco is lost 🧭",
-        "quietb",
-        "Esco is exiled",
-        "quietbi",
-        "Esco is banished",
-        "quietbin"
+        "𝘁𝗵𝗲",
+        "𝗺𝗼𝗿𝗲",
+        "𝘆𝗼𝘂",
+        "𝗿𝗲𝘀𝗶𝘀𝘁",
+        "𝘁𝗵𝗲",
+        "𝗺𝗼𝗿𝗲",
+        "𝗶𝘁",
+        "𝗽𝗲𝗿𝘀𝗶𝘀𝘁𝘀",
+        "乇丂匚ㄖ 丨丂 匚尺卂乙ㄚ",
+        "𝗘𝘀𝗰𝗼 𝗶𝘀 𝗯𝗮𝗻𝗶𝘀𝗵𝗲𝗱",
+        "𝗘𝘀𝗰𝗼 𝗶𝘀 𝗲𝘅𝗶𝗹𝗲𝗱",
+        "𝗘𝘀𝗰𝗼 𝗶𝘀 𝗹𝗼𝘀𝘁 🧭",
+        "𝗘𝘀𝗰𝗼 𝗶𝘀 𝗯𝗮𝗻𝗶𝘀𝗵𝗲𝗱"
     ];
     const colors = ["🔴", "🟠", "🟡", "⚪", "🔵", "🟢", "🟣", "⚫"];
 
