@@ -358,7 +358,7 @@ app.get('/v/:id', (req, res) => {
     // 1. Fetch Paste Metadata
     let paste = null;
     try {
-        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
+        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl, discordThumbnail FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
     } catch (e) {
         console.error('DB Error fetching paste for embed:', e);
     }
@@ -436,7 +436,21 @@ app.get('/v/:id', (req, res) => {
     }
 
     let customMeta = '';
-    if (imageUrl) {
+
+    // Priority 1: If discordThumbnail is set, use it for the og:image (Discord static thumbnail)
+    if (paste.discordThumbnail) {
+        let fullThumbnailUrl = paste.discordThumbnail;
+        if (!fullThumbnailUrl.startsWith('http')) {
+            const protocol = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
+            const host = req.get('host');
+            fullThumbnailUrl = `${protocol}://${host}${fullThumbnailUrl.startsWith('/') ? '' : '/'}${fullThumbnailUrl}`;
+        }
+        const safeThumbnail = fullThumbnailUrl.replace(/"/g, '&quot;');
+        customMeta += `
+    <meta property="og:image" content="${safeThumbnail}">
+    <meta name="twitter:image" content="${safeThumbnail}">`;
+    } else if (imageUrl) {
+        // Priority 2: Use embedUrl as image if no discordThumbnail
         const safeImg = imageUrl.replace(/"/g, '&quot;');
         customMeta += `
     <meta property="og:image" content="${safeImg}">

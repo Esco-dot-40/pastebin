@@ -206,6 +206,7 @@ migrateTable('pastes', [
     { name: 'folderId', type: 'TEXT' },
     { name: 'password', type: 'TEXT' },
     { name: 'embedUrl', type: 'TEXT' },
+    { name: 'discordThumbnail', type: 'TEXT' },
     { name: 'userId', type: 'TEXT' },
     { name: 'burned', type: 'INTEGER DEFAULT 0' }
 ]);
