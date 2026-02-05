@@ -391,6 +391,11 @@ app.get('/v/:id', (req, res) => {
                 if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
                     videoUrl = fullEmbedUrl;
                     videoType = 'video/mp4';
+                } else if (fullEmbedUrl.match(/\.gif$/i)) {
+                    // GIFs need special treatment for Discord
+                    videoUrl = fullEmbedUrl;
+                    videoType = 'video.other';
+                    imageUrl = fullEmbedUrl; // Also set as image for fallback
                 } else {
                     imageUrl = fullEmbedUrl;
                 }
