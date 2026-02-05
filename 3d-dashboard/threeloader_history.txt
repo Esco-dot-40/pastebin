@@ -1,0 +1,1265 @@
+commit 1409f7e110c13a8579fac1dae258a81dfb71a716
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Wed Feb 4 01:50:29 2026 -0600
+
+    FINAL DEPLOYMENT FIX: Re-enabled asset hashing to force browser refresh and removed problematic diagnostic code. Standardized all React imports.
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 08f9aed..4bca88b 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -14,9 +14,6 @@ import { Lightning } from "./Lightning";
+ import { Rain } from "./Rain";
+ 
+ export const ThreeLoader = ({ progress }) => {
+-    useEffect(() => {
+-        console.log("THREE_LOADER_MOUNTED", progress);
+-    }, []);
+     const textMaterial = useRef();
+     const groupRef = useRef();
+ 
+
+commit 1cb91652e69653c5c3cd02750525cbe3923fd665
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 23:50:42 2026 -0600
+
+    Fix: Added missing useEffect import in ThreeLoader.jsx causing ReferenceError.
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 4060137..08f9aed 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -7,7 +7,7 @@ import {
+     MeshReflectorMaterial
+ } from "@react-three/drei";
+ import { useFrame } from "@react-three/fiber";
+-import { useRef, useMemo } from "react";
++import { useRef, useMemo, useEffect } from "react";
+ import * as THREE from "three";
+ import { easing } from "maath";
+ import { Lightning } from "./Lightning";
+
+commit 5579a8c1464ed43095fbec70c49680ce0712d534
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 23:44:36 2026 -0600
+
+    Nuclear Fix: Disabled build hashing to resolve MIME/404 errors and added detailed diagnostics for black screen.
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 45902b4..4060137 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -14,6 +14,9 @@ import { Lightning } from "./Lightning";
+ import { Rain } from "./Rain";
+ 
+ export const ThreeLoader = ({ progress }) => {
++    useEffect(() => {
++        console.log("THREE_LOADER_MOUNTED", progress);
++    }, []);
+     const textMaterial = useRef();
+     const groupRef = useRef();
+ 
+
+commit 85d64b87d8821e1d916408faeb8363108165dc70
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:54:13 2026 -0600
+
+    Final visual and interaction polish: restored cinematic CameraRig, high-fidelity reflections, and enhanced lightning effects.
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index d5a0856..45902b4 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -9,14 +9,13 @@ import {
+ import { useFrame } from "@react-three/fiber";
+ import { useRef, useMemo } from "react";
+ import * as THREE from "three";
++import { easing } from "maath";
+ import { Lightning } from "./Lightning";
+ import { Rain } from "./Rain";
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const textMaterial = useRef();
+     const groupRef = useRef();
+-    const floorRef = useRef();
+-    const cameraRef = useRef();
+ 
+     // Restricted colors: Green, Blue, Purple
+     const colors = useMemo(() => [
+@@ -29,11 +28,6 @@ export const ThreeLoader = ({ progress }) => {
+     useFrame((state) => {
+         const t = state.clock.elapsedTime;
+ 
+-        // Fly-in Animation: Subtle zoom from deep space
+-        if (state.camera.position.z > 5) {
+-            state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, 5, 0.02);
+-        }
+-
+         if (groupRef.current) {
+             groupRef.current.position.y = Math.sin(t * 0.5) * 0.05;
+         }
+@@ -52,8 +46,8 @@ export const ThreeLoader = ({ progress }) => {
+             textMaterial.current.emissive.copy(textMaterial.current.color);
+ 
+             // 2. Toned down Lightning Effect (Safer pulsing)
+-            const flicker = 0.8 + Math.sin(t * 2) * 0.2; // Smooth sine pulse instead of raw random
+-            const lightningBurst = Math.random() > 0.995 ? 2.5 : 0; // Much lower intensity burst
++            const flicker = 0.8 + Math.sin(t * 2) * 0.2;
++            const lightningBurst = Math.random() > 0.995 ? 2.5 : 0;
+             textMaterial.current.emissiveIntensity = (flicker + lightningBurst);
+         }
+     });
+@@ -87,20 +81,19 @@ export const ThreeLoader = ({ progress }) => {
+             </group>
+ 
+             {/* Perfect Mirror Floor - Razor Sharp & Dark */}
+-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]} ref={floorRef}>
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}>
+                 <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+-                    blur={[0, 0]}
+-                    resolution={1024}
+-                    mixBlur={0}
+-                    mixStrength={100}
+-                    roughness={0}
+-                    depthScale={1}
++                    blur={[300, 30]}
++                    resolution={2048}
++                    mixBlur={1}
++                    mixStrength={80}
++                    roughness={1}
++                    depthScale={1.2}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#000000"
+-                    metalness={1}
+-                    mirror={1}
++                    color="#202020"
++                    metalness={0.8}
+                 />
+             </mesh>
+ 
+@@ -126,9 +119,22 @@ export const ThreeLoader = ({ progress }) => {
+                 </Text>
+             </group>
+ 
++            <CameraRig />
+             <Environment preset="night" />
+         </group>
+     );
+ };
+ 
++function CameraRig() {
++    useFrame((state, delta) => {
++        easing.damp3(
++            state.camera.position,
++            [state.pointer.x * (state.viewport.width / 2), (1 + state.pointer.y) / 2, 5.5],
++            0.5,
++            delta
++        );
++        state.camera.lookAt(0, 0, 0);
++    });
++}
++
+ useFont.preload("/fonts/Poppins-Black.ttf");
+
+commit ae9bffe641adccc9e53cd9b52b0b9fa02328c264
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:19:57 2026 -0600
+
+    Add rain and fly-in to loader, tone down neon pulses for safety, and fix reflections
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 14c3cf3..d5a0856 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -10,11 +10,13 @@ import { useFrame } from "@react-three/fiber";
+ import { useRef, useMemo } from "react";
+ import * as THREE from "three";
+ import { Lightning } from "./Lightning";
++import { Rain } from "./Rain";
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const textMaterial = useRef();
+     const groupRef = useRef();
+     const floorRef = useRef();
++    const cameraRef = useRef();
+ 
+     // Restricted colors: Green, Blue, Purple
+     const colors = useMemo(() => [
+@@ -27,13 +29,18 @@ export const ThreeLoader = ({ progress }) => {
+     useFrame((state) => {
+         const t = state.clock.elapsedTime;
+ 
++        // Fly-in Animation: Subtle zoom from deep space
++        if (state.camera.position.z > 5) {
++            state.camera.position.z = THREE.MathUtils.lerp(state.camera.position.z, 5, 0.02);
++        }
++
+         if (groupRef.current) {
+             groupRef.current.position.y = Math.sin(t * 0.5) * 0.05;
+         }
+ 
+         if (textMaterial.current) {
+-            // 1. Color Cycling (restricted to cool tones)
+-            const colorIndex = (t * 0.5) % colors.length;
++            // 1. Color Cycling (Restricted to cool tones)
++            const colorIndex = (t * 0.3) % colors.length;
+             const nextColorIndex = (colorIndex + 1) % colors.length;
+             const alpha = colorIndex % 1;
+ 
+@@ -44,18 +51,20 @@ export const ThreeLoader = ({ progress }) => {
+             );
+             textMaterial.current.emissive.copy(textMaterial.current.color);
+ 
+-            // 2. Crazy Lightning Effect
+-            // Random flickering and occasional intense bursts
+-            const flicker = Math.random() > 0.96 ? 4 : 0.8 + Math.random() * 0.4;
+-            const lightningBurst = Math.random() > 0.99 ? 8 : 0;
+-            textMaterial.current.emissiveIntensity = flicker + lightningBurst;
++            // 2. Toned down Lightning Effect (Safer pulsing)
++            const flicker = 0.8 + Math.sin(t * 2) * 0.2; // Smooth sine pulse instead of raw random
++            const lightningBurst = Math.random() > 0.995 ? 2.5 : 0; // Much lower intensity burst
++            textMaterial.current.emissiveIntensity = (flicker + lightningBurst);
+         }
+     });
+ 
+     return (
+         <group>
++            {/* Immersive Rain */}
++            <Rain count={1200} />
+             <Lightning />
+-            {/* The Main Text with Color Cycle and Lightning */}
++
++            {/* The Main Text */}
+             <group ref={groupRef}>
+                 <Center position={[0, 0, 0]}>
+                     <Text
+@@ -77,25 +86,25 @@ export const ThreeLoader = ({ progress }) => {
+                 </Center>
+             </group>
+ 
+-            {/* Ultimate Mirror Floor - Razor Sharp */}
+-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]} ref={floorRef}>
++            {/* Perfect Mirror Floor - Razor Sharp & Dark */}
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]} ref={floorRef}>
+                 <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+                     blur={[0, 0]}
+-                    resolution={2048}
++                    resolution={1024}
+                     mixBlur={0}
+                     mixStrength={100}
+                     roughness={0}
+                     depthScale={1}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#000000" // Pitch black floor for best reflection contrast
++                    color="#000000"
+                     metalness={1}
+                     mirror={1}
+                 />
+             </mesh>
+ 
+-            {/* Integrated UI indicators */}
++            {/* Progress UI */}
+             <group position={[0, -2.5, 0]}>
+                 <mesh>
+                     <planeGeometry args={[4, 0.01]} />
+
+commit 48aa752e71a3b190054fec93290bf17d4854e268
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:18:57 2026 -0600
+
+    Full immersive overhaul: added lightning strikes, cool-tone color cycling, pouring rain, and razor-sharp mirror reflections
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 5ff9dd0..14c3cf3 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -7,24 +7,55 @@ import {
+     MeshReflectorMaterial
+ } from "@react-three/drei";
+ import { useFrame } from "@react-three/fiber";
+-import { useRef } from "react";
++import { useRef, useMemo } from "react";
+ import * as THREE from "three";
+-
+-// Vibrant Neon Emerald
+-const neonEmerald = new THREE.Color("#00ff88");
++import { Lightning } from "./Lightning";
+ 
+ export const ThreeLoader = ({ progress }) => {
++    const textMaterial = useRef();
+     const groupRef = useRef();
++    const floorRef = useRef();
++
++    // Restricted colors: Green, Blue, Purple
++    const colors = useMemo(() => [
++        new THREE.Color("#00ff88"), // Emerald
++        new THREE.Color("#0088ff"), // Blue
++        new THREE.Color("#8800ff"), // Purple
++        new THREE.Color("#00ffcc"), // Cyan-ish
++    ], []);
+ 
+     useFrame((state) => {
++        const t = state.clock.elapsedTime;
++
+         if (groupRef.current) {
+-            groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
++            groupRef.current.position.y = Math.sin(t * 0.5) * 0.05;
++        }
++
++        if (textMaterial.current) {
++            // 1. Color Cycling (restricted to cool tones)
++            const colorIndex = (t * 0.5) % colors.length;
++            const nextColorIndex = (colorIndex + 1) % colors.length;
++            const alpha = colorIndex % 1;
++
++            textMaterial.current.color.lerpColors(
++                colors[Math.floor(colorIndex)],
++                colors[Math.floor(nextColorIndex)],
++                alpha
++            );
++            textMaterial.current.emissive.copy(textMaterial.current.color);
++
++            // 2. Crazy Lightning Effect
++            // Random flickering and occasional intense bursts
++            const flicker = Math.random() > 0.96 ? 4 : 0.8 + Math.random() * 0.4;
++            const lightningBurst = Math.random() > 0.99 ? 8 : 0;
++            textMaterial.current.emissiveIntensity = flicker + lightningBurst;
+         }
+     });
+ 
+     return (
+         <group>
+-            {/* The Main Vibrant Text */}
++            <Lightning />
++            {/* The Main Text with Color Cycle and Lightning */}
+             <group ref={groupRef}>
+                 <Center position={[0, 0, 0]}>
+                     <Text
+@@ -36,28 +67,29 @@ export const ThreeLoader = ({ progress }) => {
+                     >
+                         esco.io
+                         <meshStandardMaterial
+-                            color={neonEmerald}
+-                            emissive={neonEmerald}
+-                            emissiveIntensity={2}
++                            ref={textMaterial}
++                            color={colors[0]}
++                            emissive={colors[0]}
++                            emissiveIntensity={1}
+                             toneMapped={false}
+                         />
+                     </Text>
+                 </Center>
+             </group>
+ 
+-            {/* Perfect Mirror Floor */}
+-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
++            {/* Ultimate Mirror Floor - Razor Sharp */}
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]} ref={floorRef}>
+                 <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+-                    blur={[0, 0]} // Remove blur for sharp reflection
+-                    resolution={1024}
++                    blur={[0, 0]}
++                    resolution={2048}
+                     mixBlur={0}
+                     mixStrength={100}
+                     roughness={0}
+-                    depthScale={1.2}
++                    depthScale={1}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#020202"
++                    color="#000000" // Pitch black floor for best reflection contrast
+                     metalness={1}
+                     mirror={1}
+                 />
+@@ -66,45 +98,23 @@ export const ThreeLoader = ({ progress }) => {
+             {/* Integrated UI indicators */}
+             <group position={[0, -2.5, 0]}>
+                 <mesh>
+-                    <planeGeometry args={[4, 0.015]} />
+-                    <meshBasicMaterial color="#001100" transparent opacity={0.5} />
++                    <planeGeometry args={[4, 0.01]} />
++                    <meshBasicMaterial color="#111" transparent opacity={0.3} />
+                 </mesh>
+                 <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
+-                    <planeGeometry args={[(progress / 100) * 4, 0.015]} />
+-                    <meshBasicMaterial color={neonEmerald} />
++                    <planeGeometry args={[(progress / 100) * 4, 0.01]} />
++                    <meshBasicMaterial color="#00ff88" />
+                 </mesh>
+ 
+                 <Text
+                     position-y={-0.3}
+-                    fontSize={0.15}
++                    fontSize={0.12}
+                     font={"/fonts/Poppins-Black.ttf"}
+-                    color={neonEmerald}
+-                    opacity={0.8}
++                    color="#00ff88"
++                    opacity={0.6}
+                 >
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
+-
+-                <group position={[-2, -0.6, 0]}>
+-                    {[
+-                        "Tracing neural pathways...",
+-                        "Bypassing secure uplink...",
+-                        "Decrypting emerald core...",
+-                        "Synchronizing interface...",
+-                        "Establishing dark-net bond...",
+-                    ].slice(0, Math.floor(progress / 21) + 1).map((log, i) => (
+-                        <Text
+-                            key={i}
+-                            position-y={-i * 0.12}
+-                            fontSize={0.09}
+-                            font={"/fonts/Poppins-Black.ttf"}
+-                            color={neonEmerald}
+-                            opacity={0.5}
+-                            anchorX="left"
+-                        >
+-                            {`> ${log}`}
+-                        </Text>
+-                    ))}
+-                </group>
+             </group>
+ 
+             <Environment preset="night" />
+
+commit 470ab292e276a10693ded6535f442c630d636501
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:14:44 2026 -0600
+
+    Restore vibrance and sharp reflections: switched back to neon emerald with perfect mirror floor
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 0a3aa39..5ff9dd0 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -10,23 +10,21 @@ import { useFrame } from "@react-three/fiber";
+ import { useRef } from "react";
+ import * as THREE from "three";
+ 
+-// Dark Emerald Neon Accent
+-const emeraldColor = new THREE.Color("#00ff88");
+-const glowColor = new THREE.Color("#00ff88").multiplyScalar(1.5);
++// Vibrant Neon Emerald
++const neonEmerald = new THREE.Color("#00ff88");
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const groupRef = useRef();
+ 
+     useFrame((state) => {
+         if (groupRef.current) {
+-            // Subtle hover effect
+             groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+         }
+     });
+ 
+     return (
+         <group>
+-            {/* The Main Flat Text */}
++            {/* The Main Vibrant Text */}
+             <group ref={groupRef}>
+                 <Center position={[0, 0, 0]}>
+                     <Text
+@@ -38,30 +36,30 @@ export const ThreeLoader = ({ progress }) => {
+                     >
+                         esco.io
+                         <meshStandardMaterial
+-                            color="#006633"
+-                            emissive="#006633"
+-                            emissiveIntensity={0.5}
++                            color={neonEmerald}
++                            emissive={neonEmerald}
++                            emissiveIntensity={2}
+                             toneMapped={false}
+                         />
+                     </Text>
+                 </Center>
+             </group>
+ 
+-            {/* Reflective Floor - Vital for the look */}
++            {/* Perfect Mirror Floor */}
+             <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
+                 <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+-                    blur={[300, 100]}
++                    blur={[0, 0]} // Remove blur for sharp reflection
+                     resolution={1024}
+-                    mixBlur={1}
+-                    mixStrength={80}
+-                    roughness={0.2}
++                    mixBlur={0}
++                    mixStrength={100}
++                    roughness={0}
+                     depthScale={1.2}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#050505"
+-                    metalness={0.8}
+-                    mirror={0.8}
++                    color="#020202"
++                    metalness={1}
++                    mirror={1}
+                 />
+             </mesh>
+ 
+@@ -73,20 +71,19 @@ export const ThreeLoader = ({ progress }) => {
+                 </mesh>
+                 <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
+                     <planeGeometry args={[(progress / 100) * 4, 0.015]} />
+-                    <meshBasicMaterial color={emeraldColor} />
++                    <meshBasicMaterial color={neonEmerald} />
+                 </mesh>
+ 
+                 <Text
+                     position-y={-0.3}
+                     fontSize={0.15}
+                     font={"/fonts/Poppins-Black.ttf"}
+-                    color={emeraldColor}
++                    color={neonEmerald}
+                     opacity={0.8}
+                 >
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
+ 
+-                {/* Flat Logs */}
+                 <group position={[-2, -0.6, 0]}>
+                     {[
+                         "Tracing neural pathways...",
+@@ -100,8 +97,8 @@ export const ThreeLoader = ({ progress }) => {
+                             position-y={-i * 0.12}
+                             fontSize={0.09}
+                             font={"/fonts/Poppins-Black.ttf"}
+-                            color={emeraldColor}
+-                            opacity={0.4}
++                            color={neonEmerald}
++                            opacity={0.5}
+                             anchorX="left"
+                         >
+                             {`> ${log}`}
+
+commit d4e1d14f75c8791d3ac35f5dbba6a35dd6e8a293
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:13:12 2026 -0600
+
+    Fix reflections and brightness: restored sharp mirror floor with dark emerald theme
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 807ed98..0a3aa39 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -1,7 +1,5 @@
+ import {
+     Text,
+-    RenderTexture,
+-    PerspectiveCamera,
+     Environment,
+     Float,
+     useFont,
+@@ -9,100 +7,61 @@ import {
+     MeshReflectorMaterial
+ } from "@react-three/drei";
+ import { useFrame } from "@react-three/fiber";
+-import { useRef, useState, useMemo, useEffect } from "react";
++import { useRef } from "react";
+ import * as THREE from "three";
+-import { degToRad } from "three/src/math/MathUtils";
+-import { Camping } from "./Camping";
+ 
+ // Dark Emerald Neon Accent
+ const emeraldColor = new THREE.Color("#00ff88");
+-const glowColor = new THREE.Color("#00ff88").multiplyScalar(1.2);
++const glowColor = new THREE.Color("#00ff88").multiplyScalar(1.5);
+ 
+ export const ThreeLoader = ({ progress }) => {
+-    const textMaterial = useRef();
+     const groupRef = useRef();
+ 
+     useFrame((state) => {
+         if (groupRef.current) {
+-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.05;
++            // Subtle hover effect
++            groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+         }
+     });
+ 
+     return (
+         <group>
++            {/* The Main Flat Text */}
+             <group ref={groupRef}>
+-                <Center position={[0, 0.8, 0]}>
++                <Center position={[0, 0, 0]}>
+                     <Text
+                         font={"/fonts/Poppins-Black.ttf"}
+-                        fontSize={0.8}
+-                        letterSpacing={-0.05}
+-                        anchorY="middle"
+-                    >
+-                        esco
+-                        <meshBasicMaterial
+-                            color={glowColor}
+-                            toneMapped={false}
+-                        >
+-                            <RenderTexture attach={"map"}>
+-                                <color attach="background" args={["#000"]} />
+-                                <Environment preset="sunset" />
+-                                <Float floatIntensity={4} rotationIntensity={5}>
+-                                    <Camping
+-                                        scale={1.6}
+-                                        rotation-y={-degToRad(25)}
+-                                        rotation-x={degToRad(40)}
+-                                        position-y={-0.5}
+-                                    />
+-                                </Float>
+-                            </RenderTexture>
+-                        </meshBasicMaterial>
+-                    </Text>
+-                </Center>
+-
+-                <Center position={[0, -0.2, 0]}>
+-                    <Text
+-                        font={"/fonts/Poppins-Black.ttf"}
+-                        fontSize={1.8}
+-                        letterSpacing={-0.08}
++                        fontSize={2.5}
++                        letterSpacing={-0.1}
+                         textAlign="center"
+                         anchorY="middle"
+                     >
+-                        DASHBOARD
+-                        <meshBasicMaterial
+-                            color={glowColor}
++                        esco.io
++                        <meshStandardMaterial
++                            color="#006633"
++                            emissive="#006633"
++                            emissiveIntensity={0.5}
+                             toneMapped={false}
+-                        >
+-                            <RenderTexture attach={"map"}>
+-                                <color attach="background" args={["#000"]} />
+-                                <Environment preset="sunset" />
+-                                <Float floatIntensity={4} rotationIntensity={5}>
+-                                    <Camping
+-                                        scale={2.5}
+-                                        rotation-y={degToRad(45)}
+-                                        rotation-x={degToRad(20)}
+-                                        position-y={-0.5}
+-                                    />
+-                                </Float>
+-                            </RenderTexture>
+-                        </meshBasicMaterial>
++                        />
+                     </Text>
+                 </Center>
+             </group>
+ 
+-            {/* Reflective Floor */}
+-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}>
++            {/* Reflective Floor - Vital for the look */}
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.2, 0]}>
+                 <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+                     blur={[300, 100]}
+                     resolution={1024}
+                     mixBlur={1}
+-                    mixStrength={90}
+-                    roughness={1}
++                    mixStrength={80}
++                    roughness={0.2}
+                     depthScale={1.2}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#020202"
+-                    metalness={0.9}
++                    color="#050505"
++                    metalness={0.8}
++                    mirror={0.8}
+                 />
+             </mesh>
+ 
+@@ -122,11 +81,12 @@ export const ThreeLoader = ({ progress }) => {
+                     fontSize={0.15}
+                     font={"/fonts/Poppins-Black.ttf"}
+                     color={emeraldColor}
+-                    opacity={0.7}
++                    opacity={0.8}
+                 >
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
+ 
++                {/* Flat Logs */}
+                 <group position={[-2, -0.6, 0]}>
+                     {[
+                         "Tracing neural pathways...",
+@@ -138,10 +98,10 @@ export const ThreeLoader = ({ progress }) => {
+                         <Text
+                             key={i}
+                             position-y={-i * 0.12}
+-                            fontSize={0.08}
++                            fontSize={0.09}
+                             font={"/fonts/Poppins-Black.ttf"}
+                             color={emeraldColor}
+-                            opacity={0.3}
++                            opacity={0.4}
+                             anchorX="left"
+                         >
+                             {`> ${log}`}
+@@ -149,6 +109,8 @@ export const ThreeLoader = ({ progress }) => {
+                     ))}
+                 </group>
+             </group>
++
++            <Environment preset="night" />
+         </group>
+     );
+ };
+
+commit 2ebc50f2b52664f5288d036ffce37e06a8ef8fe8
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:08:28 2026 -0600
+
+    Switch to Dark Neon Emerald aesthetic: reduced bloom, pitch black background, and emerald glowing accents
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 760dd4d..807ed98 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -14,8 +14,9 @@ import * as THREE from "three";
+ import { degToRad } from "three/src/math/MathUtils";
+ import { Camping } from "./Camping";
+ 
+-const bloomColor = new THREE.Color("#fff");
+-bloomColor.multiplyScalar(5);
++// Dark Emerald Neon Accent
++const emeraldColor = new THREE.Color("#00ff88");
++const glowColor = new THREE.Color("#00ff88").multiplyScalar(1.2);
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const textMaterial = useRef();
+@@ -23,7 +24,7 @@ export const ThreeLoader = ({ progress }) => {
+ 
+     useFrame((state) => {
+         if (groupRef.current) {
+-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
++            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.05;
+         }
+     });
+ 
+@@ -39,11 +40,11 @@ export const ThreeLoader = ({ progress }) => {
+                     >
+                         esco
+                         <meshBasicMaterial
+-                            color={bloomColor}
++                            color={glowColor}
+                             toneMapped={false}
+                         >
+                             <RenderTexture attach={"map"}>
+-                                <color attach="background" args={["#fff"]} />
++                                <color attach="background" args={["#000"]} />
+                                 <Environment preset="sunset" />
+                                 <Float floatIntensity={4} rotationIntensity={5}>
+                                     <Camping
+@@ -68,11 +69,11 @@ export const ThreeLoader = ({ progress }) => {
+                     >
+                         DASHBOARD
+                         <meshBasicMaterial
+-                            color={bloomColor}
++                            color={glowColor}
+                             toneMapped={false}
+                         >
+                             <RenderTexture attach={"map"}>
+-                                <color attach="background" args={["#fff"]} />
++                                <color attach="background" args={["#000"]} />
+                                 <Environment preset="sunset" />
+                                 <Float floatIntensity={4} rotationIntensity={5}>
+                                     <Camping
+@@ -95,53 +96,52 @@ export const ThreeLoader = ({ progress }) => {
+                     blur={[300, 100]}
+                     resolution={1024}
+                     mixBlur={1}
+-                    mixStrength={80}
++                    mixStrength={90}
+                     roughness={1}
+                     depthScale={1.2}
+                     minDepthThreshold={0.4}
+                     maxDepthThreshold={1.4}
+-                    color="#050505"
+-                    metalness={0.5}
++                    color="#020202"
++                    metalness={0.9}
+                 />
+             </mesh>
+ 
+             {/* Integrated UI indicators */}
+             <group position={[0, -2.5, 0]}>
+                 <mesh>
+-                    <planeGeometry args={[4, 0.02]} />
+-                    <meshBasicMaterial color="#111" transparent opacity={0.5} />
++                    <planeGeometry args={[4, 0.015]} />
++                    <meshBasicMaterial color="#001100" transparent opacity={0.5} />
+                 </mesh>
+                 <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
+-                    <planeGeometry args={[(progress / 100) * 4, 0.02]} />
+-                    <meshBasicMaterial color="#00f2ff" />
++                    <planeGeometry args={[(progress / 100) * 4, 0.015]} />
++                    <meshBasicMaterial color={emeraldColor} />
+                 </mesh>
+ 
+                 <Text
+                     position-y={-0.3}
+                     fontSize={0.15}
+                     font={"/fonts/Poppins-Black.ttf"}
+-                    color="#00f2ff"
+-                    opacity={0.8}
++                    color={emeraldColor}
++                    opacity={0.7}
+                 >
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
+ 
+                 <group position={[-2, -0.6, 0]}>
+                     {[
+-                        "Establishing secure connection...",
+-                        "Bypassing firewall protocols...",
+-                        "Decrypting internal nodes...",
+-                        "Loading neural interface...",
+-                        "Synchronizing orbital satellites...",
+-                        "Injecting custom shaders...",
+-                    ].slice(0, Math.floor(progress / 16) + 1).map((log, i) => (
++                        "Tracing neural pathways...",
++                        "Bypassing secure uplink...",
++                        "Decrypting emerald core...",
++                        "Synchronizing interface...",
++                        "Establishing dark-net bond...",
++                    ].slice(0, Math.floor(progress / 21) + 1).map((log, i) => (
+                         <Text
+                             key={i}
+                             position-y={-i * 0.12}
+-                            fontSize={0.09}
++                            fontSize={0.08}
+                             font={"/fonts/Poppins-Black.ttf"}
+-                            color="#00f2ff"
+-                            opacity={0.4}
++                            color={emeraldColor}
++                            opacity={0.3}
+                             anchorX="left"
+                         >
+                             {`> ${log}`}
+
+commit 68ba7f631a6b92d243ac5d03539c32ca491168f7
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:06:56 2026 -0600
+
+    Go FULL INSANE: accurately replicated the iridescent 'esco DASHBOARD' look from the reference image with intense glow and internal scene reflections
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 89b50ef..760dd4d 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -15,53 +15,87 @@ import { degToRad } from "three/src/math/MathUtils";
+ import { Camping } from "./Camping";
+ 
+ const bloomColor = new THREE.Color("#fff");
+-bloomColor.multiplyScalar(4); // Intense glow for top text
++bloomColor.multiplyScalar(5);
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const textMaterial = useRef();
+-    const [hovered, setHovered] = useState(false);
++    const groupRef = useRef();
++
++    useFrame((state) => {
++        if (groupRef.current) {
++            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
++        }
++    });
+ 
+     return (
+         <group>
+-            <Center top position={[0, 0.5, 0]}>
+-                <Text
+-                    font={"/fonts/Poppins-Black.ttf"}
+-                    lineHeight={0.7}
+-                    textAlign="center"
+-                    anchorY={"middle"}
+-                    fontSize={2}
+-                    letterSpacing={-0.05}
+-                >
+-                    {"ESCO\nDASHBOARD"}
+-                    <meshBasicMaterial
+-                        color={bloomColor}
+-                        toneMapped={false}
+-                        ref={textMaterial}
++            <group ref={groupRef}>
++                <Center position={[0, 0.8, 0]}>
++                    <Text
++                        font={"/fonts/Poppins-Black.ttf"}
++                        fontSize={0.8}
++                        letterSpacing={-0.05}
++                        anchorY="middle"
+                     >
+-                        <RenderTexture attach={"map"}>
+-                            <color attach="background" args={["#000"]} />
+-                            <Environment preset="sunset" />
+-                            <Float floatIntensity={4} rotationIntensity={5}>
+-                                <Camping
+-                                    scale={1.6}
+-                                    rotation-y={-degToRad(25)}
+-                                    rotation-x={degToRad(40)}
+-                                    position-y={-0.5}
+-                                />
+-                            </Float>
+-                        </RenderTexture>
+-                    </meshBasicMaterial>
+-                </Text>
+-            </Center>
++                        esco
++                        <meshBasicMaterial
++                            color={bloomColor}
++                            toneMapped={false}
++                        >
++                            <RenderTexture attach={"map"}>
++                                <color attach="background" args={["#fff"]} />
++                                <Environment preset="sunset" />
++                                <Float floatIntensity={4} rotationIntensity={5}>
++                                    <Camping
++                                        scale={1.6}
++                                        rotation-y={-degToRad(25)}
++                                        rotation-x={degToRad(40)}
++                                        position-y={-0.5}
++                                    />
++                                </Float>
++                            </RenderTexture>
++                        </meshBasicMaterial>
++                    </Text>
++                </Center>
++
++                <Center position={[0, -0.2, 0]}>
++                    <Text
++                        font={"/fonts/Poppins-Black.ttf"}
++                        fontSize={1.8}
++                        letterSpacing={-0.08}
++                        textAlign="center"
++                        anchorY="middle"
++                    >
++                        DASHBOARD
++                        <meshBasicMaterial
++                            color={bloomColor}
++                            toneMapped={false}
++                        >
++                            <RenderTexture attach={"map"}>
++                                <color attach="background" args={["#fff"]} />
++                                <Environment preset="sunset" />
++                                <Float floatIntensity={4} rotationIntensity={5}>
++                                    <Camping
++                                        scale={2.5}
++                                        rotation-y={degToRad(45)}
++                                        rotation-x={degToRad(20)}
++                                        position-y={-0.5}
++                                    />
++                                </Float>
++                            </RenderTexture>
++                        </meshBasicMaterial>
++                    </Text>
++                </Center>
++            </group>
+ 
+             {/* Reflective Floor */}
+-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]}>
+-                <planeGeometry args={[50, 50]} />
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.5, 0]}>
++                <planeGeometry args={[100, 100]} />
+                 <MeshReflectorMaterial
+                     blur={[300, 100]}
+                     resolution={1024}
+                     mixBlur={1}
+-                    mixStrength={50}
++                    mixStrength={80}
+                     roughness={1}
+                     depthScale={1.2}
+                     minDepthThreshold={0.4}
+@@ -72,19 +106,19 @@ export const ThreeLoader = ({ progress }) => {
+             </mesh>
+ 
+             {/* Integrated UI indicators */}
+-            <group position={[0, -1.2, 0]}>
++            <group position={[0, -2.5, 0]}>
+                 <mesh>
+-                    <planeGeometry args={[3, 0.02]} />
++                    <planeGeometry args={[4, 0.02]} />
+                     <meshBasicMaterial color="#111" transparent opacity={0.5} />
+                 </mesh>
+-                <mesh position-x={-1.5 + (progress / 100) * 1.5} position-z={0.01}>
+-                    <planeGeometry args={[(progress / 100) * 3, 0.02]} />
++                <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
++                    <planeGeometry args={[(progress / 100) * 4, 0.02]} />
+                     <meshBasicMaterial color="#00f2ff" />
+                 </mesh>
+ 
+                 <Text
+-                    position-y={-0.2}
+-                    fontSize={0.12}
++                    position-y={-0.3}
++                    fontSize={0.15}
+                     font={"/fonts/Poppins-Black.ttf"}
+                     color="#00f2ff"
+                     opacity={0.8}
+@@ -92,8 +126,7 @@ export const ThreeLoader = ({ progress }) => {
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
+ 
+-                {/* Terminal logs in 3D */}
+-                <group position={[-1.5, -0.4, 0]}>
++                <group position={[-2, -0.6, 0]}>
+                     {[
+                         "Establishing secure connection...",
+                         "Bypassing firewall protocols...",
+@@ -101,13 +134,11 @@ export const ThreeLoader = ({ progress }) => {
+                         "Loading neural interface...",
+                         "Synchronizing orbital satellites...",
+                         "Injecting custom shaders...",
+-                        "Verifying user credentials...",
+-                        "Accessing ESCO.IO core..."
+-                    ].slice(0, Math.floor(progress / 12) + 1).map((log, i) => (
++                    ].slice(0, Math.floor(progress / 16) + 1).map((log, i) => (
+                         <Text
+                             key={i}
+-                            position-y={-i * 0.1}
+-                            fontSize={0.07}
++                            position-y={-i * 0.12}
++                            fontSize={0.09}
+                             font={"/fonts/Poppins-Black.ttf"}
+                             color="#00f2ff"
+                             opacity={0.4}
+
+commit 4c84ecd053c4658c345745eadfb3280f2a5e6f39
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 19:04:45 2026 -0600
+
+    Refine 3D loader to match reference: added reflection, tight typography, and integrated 3D UI logs
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+index 69f0f65..89b50ef 100644
+--- a/src/components/ThreeLoader.jsx
++++ b/src/components/ThreeLoader.jsx
+@@ -6,15 +6,16 @@ import {
+     Float,
+     useFont,
+     Center,
++    MeshReflectorMaterial
+ } from "@react-three/drei";
+ import { useFrame } from "@react-three/fiber";
+-import { useRef, useState, useMemo } from "react";
++import { useRef, useState, useMemo, useEffect } from "react";
+ import * as THREE from "three";
+ import { degToRad } from "three/src/math/MathUtils";
+ import { Camping } from "./Camping";
+ 
+ const bloomColor = new THREE.Color("#fff");
+-bloomColor.multiplyScalar(1.5);
++bloomColor.multiplyScalar(4); // Intense glow for top text
+ 
+ export const ThreeLoader = ({ progress }) => {
+     const textMaterial = useRef();
+@@ -22,15 +23,14 @@ export const ThreeLoader = ({ progress }) => {
+ 
+     return (
+         <group>
+-            <Center top position={[0, 0, 0]}>
++            <Center top position={[0, 0.5, 0]}>
+                 <Text
+                     font={"/fonts/Poppins-Black.ttf"}
+-                    lineHeight={0.8}
++                    lineHeight={0.7}
+                     textAlign="center"
+                     anchorY={"middle"}
+-                    fontSize={1.2}
+-                    onPointerOver={() => setHovered(true)}
+-                    onPointerOut={() => setHovered(false)}
++                    fontSize={2}
++                    letterSpacing={-0.05}
+                 >
+                     {"ESCO\nDASHBOARD"}
+                     <meshBasicMaterial
+@@ -54,26 +54,69 @@ export const ThreeLoader = ({ progress }) => {
+                 </Text>
+             </Center>
+ 
+-            {/* Small loading indicator below text */}
+-            <group position={[0, -1.8, 0]}>
++            {/* Reflective Floor */}
++            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]}>
++                <planeGeometry args={[50, 50]} />
++                <MeshReflectorMaterial
++                    blur={[300, 100]}
++                    resolution={1024}
++                    mixBlur={1}
++                    mixStrength={50}
++                    roughness={1}
++                    depthScale={1.2}
++                    minDepthThreshold={0.4}
++                    maxDepthThreshold={1.4}
++                    color="#050505"
++                    metalness={0.5}
++                />
++            </mesh>
++
++            {/* Integrated UI indicators */}
++            <group position={[0, -1.2, 0]}>
+                 <mesh>
+-                    <planeGeometry args={[4, 0.05]} />
++                    <planeGeometry args={[3, 0.02]} />
+                     <meshBasicMaterial color="#111" transparent opacity={0.5} />
+                 </mesh>
+-                <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
+-                    <planeGeometry args={[(progress / 100) * 4, 0.05]} />
++                <mesh position-x={-1.5 + (progress / 100) * 1.5} position-z={0.01}>
++                    <planeGeometry args={[(progress / 100) * 3, 0.02]} />
+                     <meshBasicMaterial color="#00f2ff" />
+                 </mesh>
+ 
+                 <Text
+-                    position-y={-0.3}
+-                    fontSize={0.15}
++                    position-y={-0.2}
++                    fontSize={0.12}
+                     font={"/fonts/Poppins-Black.ttf"}
+                     color="#00f2ff"
+-                    opacity={0.5}
++                    opacity={0.8}
+                 >
+                     {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
+                 </Text>
++
++                {/* Terminal logs in 3D */}
++                <group position={[-1.5, -0.4, 0]}>
++                    {[
++                        "Establishing secure connection...",
++                        "Bypassing firewall protocols...",
++                        "Decrypting internal nodes...",
++                        "Loading neural interface...",
++                        "Synchronizing orbital satellites...",
++                        "Injecting custom shaders...",
++                        "Verifying user credentials...",
++                        "Accessing ESCO.IO core..."
++                    ].slice(0, Math.floor(progress / 12) + 1).map((log, i) => (
++                        <Text
++                            key={i}
++                            position-y={-i * 0.1}
++                            fontSize={0.07}
++                            font={"/fonts/Poppins-Black.ttf"}
++                            color="#00f2ff"
++                            opacity={0.4}
++                            anchorX="left"
++                        >
++                            {`> ${log}`}
++                        </Text>
++                    ))}
++                </group>
+             </group>
+         </group>
+     );
+
+commit a420e05414892ddd1fc7b3a635182f0a4f636050
+Author: TaverNxyz <voee178@yahoo.com>
+Date:   Tue Feb 3 18:57:13 2026 -0600
+
+    Integrate professional 3D loader with iridescent text and monitor room environment background
+
+diff --git a/src/components/ThreeLoader.jsx b/src/components/ThreeLoader.jsx
+new file mode 100644
+index 0000000..69f0f65
+--- /dev/null
++++ b/src/components/ThreeLoader.jsx
+@@ -0,0 +1,82 @@
++import {
++    Text,
++    RenderTexture,
++    PerspectiveCamera,
++    Environment,
++    Float,
++    useFont,
++    Center,
++} from "@react-three/drei";
++import { useFrame } from "@react-three/fiber";
++import { useRef, useState, useMemo } from "react";
++import * as THREE from "three";
++import { degToRad } from "three/src/math/MathUtils";
++import { Camping } from "./Camping";
++
++const bloomColor = new THREE.Color("#fff");
++bloomColor.multiplyScalar(1.5);
++
++export const ThreeLoader = ({ progress }) => {
++    const textMaterial = useRef();
++    const [hovered, setHovered] = useState(false);
++
++    return (
++        <group>
++            <Center top position={[0, 0, 0]}>
++                <Text
++                    font={"/fonts/Poppins-Black.ttf"}
++                    lineHeight={0.8}
++                    textAlign="center"
++                    anchorY={"middle"}
++                    fontSize={1.2}
++                    onPointerOver={() => setHovered(true)}
++                    onPointerOut={() => setHovered(false)}
++                >
++                    {"ESCO\nDASHBOARD"}
++                    <meshBasicMaterial
++                        color={bloomColor}
++                        toneMapped={false}
++                        ref={textMaterial}
++                    >
++                        <RenderTexture attach={"map"}>
++                            <color attach="background" args={["#000"]} />
++                            <Environment preset="sunset" />
++                            <Float floatIntensity={4} rotationIntensity={5}>
++                                <Camping
++                                    scale={1.6}
++                                    rotation-y={-degToRad(25)}
++                                    rotation-x={degToRad(40)}
++                                    position-y={-0.5}
++                                />
++                            </Float>
++                        </RenderTexture>
++                    </meshBasicMaterial>
++                </Text>
++            </Center>
++
++            {/* Small loading indicator below text */}
++            <group position={[0, -1.8, 0]}>
++                <mesh>
++                    <planeGeometry args={[4, 0.05]} />
++                    <meshBasicMaterial color="#111" transparent opacity={0.5} />
++                </mesh>
++                <mesh position-x={-2 + (progress / 100) * 2} position-z={0.01}>
++                    <planeGeometry args={[(progress / 100) * 4, 0.05]} />
++                    <meshBasicMaterial color="#00f2ff" />
++                </mesh>
++
++                <Text
++                    position-y={-0.3}
++                    fontSize={0.15}
++                    font={"/fonts/Poppins-Black.ttf"}
++                    color="#00f2ff"
++                    opacity={0.5}
++                >
++                    {progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY"}
++                </Text>
++            </group>
++        </group>
++    );
++};
++
++useFont.preload("/fonts/Poppins-Black.ttf");

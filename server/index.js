@@ -30,7 +30,7 @@ app.set('trust proxy', 1);
 
 // Priority Static Assets
 const hubDistPath = path.join(__dirname, '..', '3d-dashboard', 'dist');
-app.use(express.static(hubDistPath));
+app.use(express.static(hubDistPath, { index: false }));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 
 app.use(cors({ origin: true, credentials: true }));
@@ -78,13 +78,19 @@ export const logEvent = async (req, path, method = 'LOG') => {
 };
 
 // Utility to serve HTML with injected meta tags
-const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
-    const indexPath = path.join(__dirname, '..', 'public', 'index.html');
+const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templateType = 'public') => {
+    let indexPath;
+    if (templateType === 'hub') {
+        indexPath = path.join(hubDistPath, 'index.html');
+    } else {
+        indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    }
+
     let html = '';
     try {
         html = fs.readFileSync(indexPath, 'utf-8');
     } catch (err) {
-        console.error('Error reading index.html:', err);
+        console.error(`Error reading index.html (${templateType}):`, err);
         return res.status(500).send('Error loading frontend.');
     }
 
@@ -100,14 +106,20 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 
     const safeTitle = escape(title);
     const safeDesc = escape(description);
     const safeUrl = escape(fullUrl);
 
     const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
-    const imageTag = hasCustomImage ? '' : `<meta property="og:image" content="${escape(defaultImageUrl)}"><meta name="twitter:image" content="${escape(defaultImageUrl)}">`;
+    const imageMeta = hasCustomImage ? '' : `
+    <meta property="og:image" content="${escape(defaultImageUrl)}">
+    <meta name="twitter:image" content="${escape(defaultImageUrl)}">`;
+
+    const isVideo = customMeta.includes('og:video');
+    const twitterCard = isVideo ? 'player' : 'summary_large_image';
 
     let legalScript = '';
     if (req.isRestrictedRegion) {
@@ -120,32 +132,42 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '') => {
     }
 
     const metaBlock = `
-    <meta property="og:site_name" content="${siteName}">
-    <meta property="og:type" content="website">
+    <!-- Primary Meta Tags -->
+    <title>${safeTitle} | ${siteName}</title>
+    <meta name="title" content="${safeTitle} | ${siteName}">
+    <meta name="description" content="${safeDesc}">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="${isVideo ? 'video.other' : 'website'}">
+    <meta property="og:url" content="${safeUrl}">
     <meta property="og:title" content="${safeTitle}">
     <meta property="og:description" content="${safeDesc}">
-    <meta property="og:url" content="${safeUrl}">
-    ${imageTag}
-    <meta name="theme-color" content="${themeColor}">
-    <meta name="twitter:card" content="summary_large_image">
+    <meta property="og:site_name" content="${siteName}">
+    ${imageMeta}
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="${twitterCard}">
+    <meta name="twitter:url" content="${safeUrl}">
     <meta name="twitter:title" content="${safeTitle}">
     <meta name="twitter:description" content="${safeDesc}">
+    
+    <!-- Theme & Colors -->
+    <meta name="theme-color" content="${themeColor}">
     ${customMeta}`;
 
-    if (req.isRestrictedRegion) {
-        console.log(`[HTML] Injecting Regional Legal Notice for ${req.path}`);
-    }
+    // Clean up existing titles to prevent double titles
+    html = html.replace(/<title>.*?<\/title>/gi, '');
 
-    html = html.replace(/<title>.*?<\/title>/, `<title>${safeTitle} | ${siteName}</title>`);
-
-    // Inject Head Meta
-    html = html.replace('</head>', () => `${metaBlock}\n</head>`);
+    // Inject Head Meta at the very top of head for best crawler support
+    html = html.replace(/<head.*?>/i, (match) => `${match}\n${metaBlock}`);
 
     // Inject Body Guard (The Notice)
     if (req.isRestrictedRegion && legalScript) {
         const guardScript = `<script>window.FORCE_LEGAL_NOTICE = true;</script><script>${legalScript}</script>`;
         html = html.replace(/<body.*?>/, (match) => `${match}\n${guardScript}`);
     }
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.send(html);
 };
@@ -228,10 +250,25 @@ app.get('/api/uptime', (req, res) => {
 import accessRouter from './routes/access.js';
 app.use('/api/access', accessRouter);
 
-// Root Redirect/Entry
+// Root Redirect/Entry (Splash Screen)
 app.get('/', (req, res) => {
-    // Serve the Universal Hub directly at the root
-    res.sendFile(path.join(hubDistPath, 'index.html'));
+    // Serve the Universal Hub (3D Loader) with dynamic meta tags
+    serveHtmlWithMeta(
+        req, res,
+        'STATION ALPHA',
+        'Direct uplink to the ephemeral node repository. Aesthetic code and cinematic propagation.',
+        '',
+        'hub'
+    );
+});
+
+// Main Site Entry
+app.get('/home', (req, res) => {
+    serveHtmlWithMeta(
+        req, res,
+        'Home',
+        'Secure node synchronization and ephemeral data storage.'
+    );
 });
 
 // SPA Fallback for Hub
@@ -396,18 +433,26 @@ app.get('/v/:id', (req, res) => {
     let customMeta = '';
     if (imageUrl) {
         const safeImg = imageUrl.replace(/"/g, '&quot;');
-        customMeta += `<meta property="og:image" content="${safeImg}"><meta name="twitter:image" content="${safeImg}">`;
+        customMeta += `
+    <meta property="og:image" content="${safeImg}">
+    <meta name="twitter:image" content="${safeImg}">`;
     }
+
     if (videoUrl) {
         const safeVid = videoUrl.replace(/"/g, '&quot;');
         const safeVidType = videoType.replace(/"/g, '&quot;');
+
+        // For Discord/Twitter player support
         customMeta += `
-                                            <meta property="og:video" content="${safeVid}">
-                                                <meta property="og:video:url" content="${safeVid}">
-                                                    <meta property="og:video:secure_url" content="${safeVid}">
-                                                        <meta property="og:video:type" content="${safeVidType}">
-                                                            <meta property="og:video:width" content="1280">
-                                                                <meta property="og:video:height" content="720">`;
+    <meta property="og:video" content="${safeVid}">
+    <meta property="og:video:url" content="${safeVid}">
+    <meta property="og:video:secure_url" content="${safeVid}">
+    <meta property="og:video:type" content="${safeVidType}">
+    <meta property="og:video:width" content="1280">
+    <meta property="og:video:height" content="720">
+    <meta name="twitter:player" content="${safeVid}">
+    <meta name="twitter:player:width" content="1280">
+    <meta name="twitter:player:height" content="720">`;
     }
 
     serveHtmlWithMeta(req, res, title, description, customMeta);
