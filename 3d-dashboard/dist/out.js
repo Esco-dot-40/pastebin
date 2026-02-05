@@ -1260,7 +1260,7 @@
           }
           return lazyType;
         }
-        function forwardRef2(render3) {
+        function forwardRef(render3) {
           {
             if (render3 != null && render3.$$typeof === REACT_MEMO_TYPE) {
               error("forwardRef requires a render function but received a `memo` component. Instead of forwardRef(memo(...)), use memo(forwardRef(...)).");
@@ -1377,15 +1377,15 @@
           var dispatcher = resolveDispatcher();
           return dispatcher.useReducer(reducer, initialArg, init);
         }
-        function useRef3(initialValue) {
+        function useRef5(initialValue) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useRef(initialValue);
         }
-        function useEffect3(create, deps) {
+        function useEffect4(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useEffect(create, deps);
         }
-        function useLayoutEffect3(create, deps) {
+        function useLayoutEffect2(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useLayoutEffect(create, deps);
         }
@@ -1393,7 +1393,7 @@
           var dispatcher = resolveDispatcher();
           return dispatcher.useCallback(callback, deps);
         }
-        function useMemo4(create, deps) {
+        function useMemo5(create, deps) {
           var dispatcher = resolveDispatcher();
           return dispatcher.useMemo(create, deps);
         }
@@ -1928,14 +1928,14 @@
         var createElement$1 = createElementWithValidation;
         var cloneElement$1 = cloneElementWithValidation;
         var createFactory = createFactoryWithValidation;
-        var Children2 = {
+        var Children = {
           map: mapChildren,
           forEach: forEachChildren,
           count: countChildren,
           toArray,
           only: onlyChild
         };
-        exports.Children = Children2;
+        exports.Children = Children;
         exports.Component = Component;
         exports.PureComponent = PureComponent;
         exports.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = ReactSharedInternals;
@@ -1944,19 +1944,19 @@
         exports.createElement = createElement$1;
         exports.createFactory = createFactory;
         exports.createRef = createRef;
-        exports.forwardRef = forwardRef2;
+        exports.forwardRef = forwardRef;
         exports.isValidElement = isValidElement;
         exports.lazy = lazy;
         exports.memo = memo;
         exports.useCallback = useCallback2;
         exports.useContext = useContext2;
         exports.useDebugValue = useDebugValue;
-        exports.useEffect = useEffect3;
+        exports.useEffect = useEffect4;
         exports.useImperativeHandle = useImperativeHandle;
-        exports.useLayoutEffect = useLayoutEffect3;
-        exports.useMemo = useMemo4;
+        exports.useLayoutEffect = useLayoutEffect2;
+        exports.useMemo = useMemo5;
         exports.useReducer = useReducer;
-        exports.useRef = useRef3;
+        exports.useRef = useRef5;
         exports.useState = useState4;
         exports.version = ReactVersion;
       })();
@@ -45224,7 +45224,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
     __export(exports, {
       default: () => web_default
     });
-    var react6 = __toModule(require_react());
+    var react8 = __toModule(require_react());
     var debounce2 = __toModule(require_debounce());
     function useMeasure2({
       debounce: debounce$1,
@@ -45239,7 +45239,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
       if (!ResizeObserver) {
         throw new Error("This browser does not support ResizeObserver out of the box. See: https://github.com/react-spring/react-use-measure/#resize-observer-polyfills");
       }
-      const [bounds, set] = react6.useState({
+      const [bounds, set] = react8.useState({
         left: 0,
         top: 0,
         width: 0,
@@ -45249,7 +45249,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
         x: 0,
         y: 0
       });
-      const state = react6.useRef({
+      const state = react8.useRef({
         element: null,
         scrollContainers: null,
         resizeObserver: null,
@@ -45257,12 +45257,12 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
       });
       const scrollDebounce = debounce$1 ? typeof debounce$1 === "number" ? debounce$1 : debounce$1.scroll : null;
       const resizeDebounce = debounce$1 ? typeof debounce$1 === "number" ? debounce$1 : debounce$1.resize : null;
-      const mounted = react6.useRef(false);
-      react6.useEffect(() => {
+      const mounted = react8.useRef(false);
+      react8.useEffect(() => {
         mounted.current = true;
         return () => void (mounted.current = false);
       });
-      const [forceRefresh, resizeChange, scrollChange] = react6.useMemo(() => {
+      const [forceRefresh, resizeChange, scrollChange] = react8.useMemo(() => {
         const callback = () => {
           if (!state.current.element)
             return;
@@ -45324,22 +45324,22 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
       };
       useOnWindowScroll(scrollChange, Boolean(scroll));
       useOnWindowResize(resizeChange);
-      react6.useEffect(() => {
+      react8.useEffect(() => {
         removeListeners();
         addListeners();
       }, [scroll, scrollChange, resizeChange]);
-      react6.useEffect(() => removeListeners, []);
+      react8.useEffect(() => removeListeners, []);
       return [ref, bounds, forceRefresh];
     }
     function useOnWindowResize(onWindowResize) {
-      react6.useEffect(() => {
+      react8.useEffect(() => {
         const cb = onWindowResize;
         window.addEventListener("resize", cb);
         return () => void window.removeEventListener("resize", cb);
       }, [onWindowResize]);
     }
     function useOnWindowScroll(onScroll, enabled) {
-      react6.useEffect(() => {
+      react8.useEffect(() => {
         if (enabled) {
           const cb = onScroll;
           window.addEventListener("scroll", cb, {
@@ -45372,11 +45372,11 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
   });
 
   // src/index.jsx
-  var react5 = __toModule(require_react());
+  var react7 = __toModule(require_react());
   var react_dom = __toModule(require_react_dom());
 
   // src/experiments/webgl/loader/index.jsx
-  var react4 = __toModule(require_react());
+  var react6 = __toModule(require_react());
 
   // node_modules/@babel/runtime/helpers/esm/extends.js
   function _extends() {
@@ -75000,6 +75000,10 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
     }
   }
   var catalogue = {};
+  var extend = (objects) => void (catalogue = {
+    ...catalogue,
+    ...objects
+  });
   function applyProps(instance, newProps, oldProps = {}, accumulative = false) {
     const container = instance.__container;
     const sameProps = [];
@@ -75867,9 +75871,6 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
     }, [renderPriority, subscribe]);
     return null;
   }
-  function useThree() {
-    return useContext(stateContext);
-  }
   function buildGraph(object) {
     const data = {
       nodes: {},
@@ -76028,26 +76029,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
     }), children);
   });
 
-  // node_modules/@babel/runtime/helpers/esm/objectWithoutPropertiesLoose.js
-  function _objectWithoutPropertiesLoose(source, excluded) {
-    if (source == null)
-      return {};
-    var target = {};
-    var sourceKeys = Object.keys(source);
-    var key, i2;
-    for (i2 = 0; i2 < sourceKeys.length; i2++) {
-      key = sourceKeys[i2];
-      if (excluded.indexOf(key) >= 0)
-        continue;
-      target[key] = source[key];
-    }
-    return target;
-  }
-
-  // node_modules/drei/Text.js
-  var react3 = __toModule(require_react());
-
-  // node_modules/drei/node_modules/troika-worker-utils/dist/troika-worker-utils.esm.js
+  // node_modules/troika-worker-utils/dist/troika-worker-utils.esm.js
   function BespokeThenable() {
     var state = 0;
     var queue = [];
@@ -76517,7 +76499,7 @@ For more info, visit https://reactjs.org/link/mock-scheduler`);
     }
   });
 
-  // node_modules/drei/node_modules/troika-three-utils/dist/troika-three-utils.esm.js
+  // node_modules/troika-three-utils/dist/troika-three-utils.esm.js
   var voidMainRegExp = /\bvoid\s+main\s*\(\s*\)\s*{/g;
   function expandShaderIncludes(source) {
     const pattern = /^[ \t]*#include +<([\w\d./]+)>/gm;
@@ -76906,7 +76888,7 @@ if (dashing.x + dashing.y > 0.0) {
     }
   };
 
-  // node_modules/drei/node_modules/troika-three-text/dist/troika-three-text.esm.js
+  // node_modules/troika-three-text/dist/troika-three-text.esm.js
   function createSDFGenerator(createGlyphSegmentsIndex2, config) {
     const {sdfExponent, sdfMargin} = config;
     const CURVE_POINTS = 16;
@@ -77282,7 +77264,7 @@ if (dashing.x + dashing.y > 0.0) {
                   caretPositions[charIndex * 3 + 1] = glyphInfo.x + glyphInfo.width + anchorXOffset;
                   caretPositions[charIndex * 3 + 2] = lineYOffset + caretBottomOffset + anchorYOffset;
                   while (charIndex - prevCharIndex > 1) {
-                    caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3 + 1];
+                    caretPositions[(prevCharIndex + 1) * 3] = caretPositions[prevCharIndex * 3];
                     caretPositions[(prevCharIndex + 1) * 3 + 1] = caretPositions[prevCharIndex * 3 + 1];
                     caretPositions[(prevCharIndex + 1) * 3 + 2] = caretPositions[prevCharIndex * 3 + 2];
                     prevCharIndex++;
@@ -77521,3318 +77503,1491 @@ if (dashing.x + dashing.y > 0.0) {
       findNearestSignedDistance
     };
   }
+  /*!
+  Custom build of Typr.ts (https://github.com/fredli74/Typr.ts) for use in Troika text rendering.
+  Original MIT license applies: https://github.com/fredli74/Typr.ts/blob/master/LICENSE
+  */
   function typrFactory() {
-    const window2 = self;
-    var Typr = {};
-    Typr.parse = function(buff) {
-      var bin = Typr._bin;
-      var data = new Uint8Array(buff);
-      var tag = bin.readASCII(data, 0, 4);
-      if (tag == "ttcf") {
-        var offset = 4;
-        var majV = bin.readUshort(data, offset);
-        offset += 2;
-        var minV = bin.readUshort(data, offset);
-        offset += 2;
-        var numF = bin.readUint(data, offset);
-        offset += 4;
-        var fnts = [];
-        for (var i2 = 0; i2 < numF; i2++) {
-          var foff = bin.readUint(data, offset);
-          offset += 4;
-          fnts.push(Typr._readFont(data, foff));
-        }
-        return fnts;
-      } else
-        return [Typr._readFont(data, 0)];
-    };
-    Typr._readFont = function(data, offset) {
-      var bin = Typr._bin;
-      var ooff = offset;
-      var sfnt_version = bin.readFixed(data, offset);
-      offset += 4;
-      var numTables = bin.readUshort(data, offset);
-      offset += 2;
-      var searchRange = bin.readUshort(data, offset);
-      offset += 2;
-      var entrySelector = bin.readUshort(data, offset);
-      offset += 2;
-      var rangeShift = bin.readUshort(data, offset);
-      offset += 2;
-      var tags = [
-        "cmap",
-        "head",
-        "hhea",
-        "maxp",
-        "hmtx",
-        "name",
-        "OS/2",
-        "post",
-        "loca",
-        "glyf",
-        "kern",
-        "CFF ",
-        "GPOS",
-        "GSUB",
-        "SVG "
-      ];
-      var obj = {_data: data, _offset: ooff};
-      var tabs = {};
-      for (var i2 = 0; i2 < numTables; i2++) {
-        var tag = bin.readASCII(data, offset, 4);
-        offset += 4;
-        var checkSum = bin.readUint(data, offset);
-        offset += 4;
-        var toffset = bin.readUint(data, offset);
-        offset += 4;
-        var length = bin.readUint(data, offset);
-        offset += 4;
-        tabs[tag] = {offset: toffset, length};
-      }
-      for (var i2 = 0; i2 < tags.length; i2++) {
-        var t2 = tags[i2];
-        if (tabs[t2])
-          obj[t2.trim()] = Typr[t2.trim()].parse(data, tabs[t2].offset, tabs[t2].length, obj);
-      }
-      return obj;
-    };
-    Typr._tabOffset = function(data, tab, foff) {
-      var bin = Typr._bin;
-      var numTables = bin.readUshort(data, foff + 4);
-      var offset = foff + 12;
-      for (var i2 = 0; i2 < numTables; i2++) {
-        var tag = bin.readASCII(data, offset, 4);
-        offset += 4;
-        var checkSum = bin.readUint(data, offset);
-        offset += 4;
-        var toffset = bin.readUint(data, offset);
-        offset += 4;
-        var length = bin.readUint(data, offset);
-        offset += 4;
-        if (tag == tab)
-          return toffset;
-      }
-      return 0;
-    };
-    Typr._bin = {
-      readFixed: function(data, o2) {
-        return (data[o2] << 8 | data[o2 + 1]) + (data[o2 + 2] << 8 | data[o2 + 3]) / (256 * 256 + 4);
-      },
-      readF2dot14: function(data, o2) {
-        var num = Typr._bin.readShort(data, o2);
-        return num / 16384;
-      },
-      readInt: function(buff, p) {
-        var a = Typr._bin.t.uint8;
-        a[0] = buff[p + 3];
-        a[1] = buff[p + 2];
-        a[2] = buff[p + 1];
-        a[3] = buff[p];
-        return Typr._bin.t.int32[0];
-      },
-      readInt8: function(buff, p) {
-        var a = Typr._bin.t.uint8;
-        a[0] = buff[p];
-        return Typr._bin.t.int8[0];
-      },
-      readShort: function(buff, p) {
-        var a = Typr._bin.t.uint8;
-        a[1] = buff[p];
-        a[0] = buff[p + 1];
-        return Typr._bin.t.int16[0];
-      },
-      readUshort: function(buff, p) {
-        return buff[p] << 8 | buff[p + 1];
-      },
-      readUshorts: function(buff, p, len) {
-        var arr = [];
-        for (var i2 = 0; i2 < len; i2++)
-          arr.push(Typr._bin.readUshort(buff, p + i2 * 2));
-        return arr;
-      },
-      readUint: function(buff, p) {
-        var a = Typr._bin.t.uint8;
-        a[3] = buff[p];
-        a[2] = buff[p + 1];
-        a[1] = buff[p + 2];
-        a[0] = buff[p + 3];
-        return Typr._bin.t.uint32[0];
-      },
-      readUint64: function(buff, p) {
-        return Typr._bin.readUint(buff, p) * (4294967295 + 1) + Typr._bin.readUint(buff, p + 4);
-      },
-      readASCII: function(buff, p, l) {
-        var s = "";
-        for (var i2 = 0; i2 < l; i2++)
-          s += String.fromCharCode(buff[p + i2]);
-        return s;
-      },
-      readUnicode: function(buff, p, l) {
-        var s = "";
-        for (var i2 = 0; i2 < l; i2++) {
-          var c = buff[p++] << 8 | buff[p++];
-          s += String.fromCharCode(c);
-        }
-        return s;
-      },
-      _tdec: window2["TextDecoder"] ? new window2["TextDecoder"]() : null,
-      readUTF8: function(buff, p, l) {
-        var tdec = Typr._bin._tdec;
-        if (tdec && p == 0 && l == buff.length)
-          return tdec["decode"](buff);
-        return Typr._bin.readASCII(buff, p, l);
-      },
-      readBytes: function(buff, p, l) {
-        var arr = [];
-        for (var i2 = 0; i2 < l; i2++)
-          arr.push(buff[p + i2]);
-        return arr;
-      },
-      readASCIIArray: function(buff, p, l) {
-        var s = [];
-        for (var i2 = 0; i2 < l; i2++)
-          s.push(String.fromCharCode(buff[p + i2]));
-        return s;
-      }
-    };
-    Typr._bin.t = {
-      buff: new ArrayBuffer(8)
-    };
-    Typr._bin.t.int8 = new Int8Array(Typr._bin.t.buff);
-    Typr._bin.t.uint8 = new Uint8Array(Typr._bin.t.buff);
-    Typr._bin.t.int16 = new Int16Array(Typr._bin.t.buff);
-    Typr._bin.t.uint16 = new Uint16Array(Typr._bin.t.buff);
-    Typr._bin.t.int32 = new Int32Array(Typr._bin.t.buff);
-    Typr._bin.t.uint32 = new Uint32Array(Typr._bin.t.buff);
-    Typr._lctf = {};
-    Typr._lctf.parse = function(data, offset, length, font, subt) {
-      var bin = Typr._bin;
-      var obj = {};
-      var offset0 = offset;
-      var tableVersion = bin.readFixed(data, offset);
-      offset += 4;
-      var offScriptList = bin.readUshort(data, offset);
-      offset += 2;
-      var offFeatureList = bin.readUshort(data, offset);
-      offset += 2;
-      var offLookupList = bin.readUshort(data, offset);
-      offset += 2;
-      obj.scriptList = Typr._lctf.readScriptList(data, offset0 + offScriptList);
-      obj.featureList = Typr._lctf.readFeatureList(data, offset0 + offFeatureList);
-      obj.lookupList = Typr._lctf.readLookupList(data, offset0 + offLookupList, subt);
-      return obj;
-    };
-    Typr._lctf.readLookupList = function(data, offset, subt) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = [];
-      var count = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < count; i2++) {
-        var noff = bin.readUshort(data, offset);
-        offset += 2;
-        var lut = Typr._lctf.readLookupTable(data, offset0 + noff, subt);
-        obj.push(lut);
-      }
-      return obj;
-    };
-    Typr._lctf.readLookupTable = function(data, offset, subt) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = {tabs: []};
-      obj.ltype = bin.readUshort(data, offset);
-      offset += 2;
-      obj.flag = bin.readUshort(data, offset);
-      offset += 2;
-      var cnt = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < cnt; i2++) {
-        var noff = bin.readUshort(data, offset);
-        offset += 2;
-        var tab = subt(data, obj.ltype, offset0 + noff);
-        obj.tabs.push(tab);
-      }
-      return obj;
-    };
-    Typr._lctf.numOfOnes = function(n2) {
-      var num = 0;
-      for (var i2 = 0; i2 < 32; i2++)
-        if ((n2 >>> i2 & 1) != 0)
-          num++;
-      return num;
-    };
-    Typr._lctf.readClassDef = function(data, offset) {
-      var bin = Typr._bin;
-      var obj = [];
-      var format = bin.readUshort(data, offset);
-      offset += 2;
-      if (format == 1) {
-        var startGlyph = bin.readUshort(data, offset);
-        offset += 2;
-        var glyphCount = bin.readUshort(data, offset);
-        offset += 2;
-        for (var i2 = 0; i2 < glyphCount; i2++) {
-          obj.push(startGlyph + i2);
-          obj.push(startGlyph + i2);
-          obj.push(bin.readUshort(data, offset));
-          offset += 2;
-        }
-      }
-      if (format == 2) {
-        var count = bin.readUshort(data, offset);
-        offset += 2;
-        for (var i2 = 0; i2 < count; i2++) {
-          obj.push(bin.readUshort(data, offset));
-          offset += 2;
-          obj.push(bin.readUshort(data, offset));
-          offset += 2;
-          obj.push(bin.readUshort(data, offset));
-          offset += 2;
-        }
-      }
-      return obj;
-    };
-    Typr._lctf.getInterval = function(tab, val) {
-      for (var i2 = 0; i2 < tab.length; i2 += 3) {
-        var start = tab[i2], end = tab[i2 + 1], index = tab[i2 + 2];
-        if (start <= val && val <= end)
-          return i2;
-      }
-      return -1;
-    };
-    Typr._lctf.readCoverage = function(data, offset) {
-      var bin = Typr._bin;
-      var cvg = {};
-      cvg.fmt = bin.readUshort(data, offset);
-      offset += 2;
-      var count = bin.readUshort(data, offset);
-      offset += 2;
-      if (cvg.fmt == 1)
-        cvg.tab = bin.readUshorts(data, offset, count);
-      if (cvg.fmt == 2)
-        cvg.tab = bin.readUshorts(data, offset, count * 3);
-      return cvg;
-    };
-    Typr._lctf.coverageIndex = function(cvg, val) {
-      var tab = cvg.tab;
-      if (cvg.fmt == 1)
-        return tab.indexOf(val);
-      if (cvg.fmt == 2) {
-        var ind = Typr._lctf.getInterval(tab, val);
-        if (ind != -1)
-          return tab[ind + 2] + (val - tab[ind]);
-      }
-      return -1;
-    };
-    Typr._lctf.readFeatureList = function(data, offset) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = [];
-      var count = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < count; i2++) {
-        var tag = bin.readASCII(data, offset, 4);
-        offset += 4;
-        var noff = bin.readUshort(data, offset);
-        offset += 2;
-        obj.push({tag: tag.trim(), tab: Typr._lctf.readFeatureTable(data, offset0 + noff)});
-      }
-      return obj;
-    };
-    Typr._lctf.readFeatureTable = function(data, offset) {
-      var bin = Typr._bin;
-      var featureParams = bin.readUshort(data, offset);
-      offset += 2;
-      var lookupCount = bin.readUshort(data, offset);
-      offset += 2;
-      var indices = [];
-      for (var i2 = 0; i2 < lookupCount; i2++)
-        indices.push(bin.readUshort(data, offset + 2 * i2));
-      return indices;
-    };
-    Typr._lctf.readScriptList = function(data, offset) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = {};
-      var count = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < count; i2++) {
-        var tag = bin.readASCII(data, offset, 4);
-        offset += 4;
-        var noff = bin.readUshort(data, offset);
-        offset += 2;
-        obj[tag.trim()] = Typr._lctf.readScriptTable(data, offset0 + noff);
-      }
-      return obj;
-    };
-    Typr._lctf.readScriptTable = function(data, offset) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = {};
-      var defLangSysOff = bin.readUshort(data, offset);
-      offset += 2;
-      obj.default = Typr._lctf.readLangSysTable(data, offset0 + defLangSysOff);
-      var langSysCount = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < langSysCount; i2++) {
-        var tag = bin.readASCII(data, offset, 4);
-        offset += 4;
-        var langSysOff = bin.readUshort(data, offset);
-        offset += 2;
-        obj[tag.trim()] = Typr._lctf.readLangSysTable(data, offset0 + langSysOff);
-      }
-      return obj;
-    };
-    Typr._lctf.readLangSysTable = function(data, offset) {
-      var bin = Typr._bin;
-      var obj = {};
-      var lookupOrder = bin.readUshort(data, offset);
-      offset += 2;
-      obj.reqFeature = bin.readUshort(data, offset);
-      offset += 2;
-      var featureCount = bin.readUshort(data, offset);
-      offset += 2;
-      obj.features = bin.readUshorts(data, offset, featureCount);
-      return obj;
-    };
-    Typr.CFF = {};
-    Typr.CFF.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      data = new Uint8Array(data.buffer, offset, length);
-      offset = 0;
-      var major = data[offset];
-      offset++;
-      var minor = data[offset];
-      offset++;
-      var hdrSize = data[offset];
-      offset++;
-      var offsize = data[offset];
-      offset++;
-      var ninds = [];
-      offset = Typr.CFF.readIndex(data, offset, ninds);
-      var names = [];
-      for (var i2 = 0; i2 < ninds.length - 1; i2++)
-        names.push(bin.readASCII(data, offset + ninds[i2], ninds[i2 + 1] - ninds[i2]));
-      offset += ninds[ninds.length - 1];
-      var tdinds = [];
-      offset = Typr.CFF.readIndex(data, offset, tdinds);
-      var topDicts = [];
-      for (var i2 = 0; i2 < tdinds.length - 1; i2++)
-        topDicts.push(Typr.CFF.readDict(data, offset + tdinds[i2], offset + tdinds[i2 + 1]));
-      offset += tdinds[tdinds.length - 1];
-      var topdict = topDicts[0];
-      var sinds = [];
-      offset = Typr.CFF.readIndex(data, offset, sinds);
-      var strings = [];
-      for (var i2 = 0; i2 < sinds.length - 1; i2++)
-        strings.push(bin.readASCII(data, offset + sinds[i2], sinds[i2 + 1] - sinds[i2]));
-      offset += sinds[sinds.length - 1];
-      Typr.CFF.readSubrs(data, offset, topdict);
-      if (topdict.CharStrings) {
-        offset = topdict.CharStrings;
-        var sinds = [];
-        offset = Typr.CFF.readIndex(data, offset, sinds);
-        var cstr = [];
-        for (var i2 = 0; i2 < sinds.length - 1; i2++)
-          cstr.push(bin.readBytes(data, offset + sinds[i2], sinds[i2 + 1] - sinds[i2]));
-        topdict.CharStrings = cstr;
-      }
-      if (topdict.ROS) {
-        offset = topdict.FDArray;
-        var fdind = [];
-        offset = Typr.CFF.readIndex(data, offset, fdind);
-        topdict.FDArray = [];
-        for (var i2 = 0; i2 < fdind.length - 1; i2++) {
-          var dict = Typr.CFF.readDict(data, offset + fdind[i2], offset + fdind[i2 + 1]);
-          Typr.CFF._readFDict(data, dict, strings);
-          topdict.FDArray.push(dict);
-        }
-        offset += fdind[fdind.length - 1];
-        offset = topdict.FDSelect;
-        topdict.FDSelect = [];
-        var fmt = data[offset];
-        offset++;
-        if (fmt == 3) {
-          var rns = bin.readUshort(data, offset);
-          offset += 2;
-          for (var i2 = 0; i2 < rns + 1; i2++) {
-            topdict.FDSelect.push(bin.readUshort(data, offset), data[offset + 2]);
-            offset += 3;
+    return typeof window == "undefined" && (self.window = self), function(r2) {
+      var e2 = {parse: function(r3) {
+        var t3 = e2._bin, a2 = new Uint8Array(r3);
+        if (t3.readASCII(a2, 0, 4) == "ttcf") {
+          var n2 = 4;
+          t3.readUshort(a2, n2);
+          n2 += 2;
+          t3.readUshort(a2, n2);
+          n2 += 2;
+          var o2 = t3.readUint(a2, n2);
+          n2 += 4;
+          for (var s = [], i2 = 0; i2 < o2; i2++) {
+            var h = t3.readUint(a2, n2);
+            n2 += 4, s.push(e2._readFont(a2, h));
           }
-        } else
-          throw fmt;
-      }
-      if (topdict.Encoding)
-        topdict.Encoding = Typr.CFF.readEncoding(data, topdict.Encoding, topdict.CharStrings.length);
-      if (topdict.charset)
-        topdict.charset = Typr.CFF.readCharset(data, topdict.charset, topdict.CharStrings.length);
-      Typr.CFF._readFDict(data, topdict, strings);
-      return topdict;
-    };
-    Typr.CFF._readFDict = function(data, dict, ss) {
-      var offset;
-      if (dict.Private) {
-        offset = dict.Private[1];
-        dict.Private = Typr.CFF.readDict(data, offset, offset + dict.Private[0]);
-        if (dict.Private.Subrs)
-          Typr.CFF.readSubrs(data, offset + dict.Private.Subrs, dict.Private);
-      }
-      for (var p in dict)
-        if (["FamilyName", "FontName", "FullName", "Notice", "version", "Copyright"].indexOf(p) != -1)
-          dict[p] = ss[dict[p] - 426 + 35];
-    };
-    Typr.CFF.readSubrs = function(data, offset, obj) {
-      var bin = Typr._bin;
-      var gsubinds = [];
-      offset = Typr.CFF.readIndex(data, offset, gsubinds);
-      var bias, nSubrs = gsubinds.length;
-      if (nSubrs < 1240)
-        bias = 107;
-      else if (nSubrs < 33900)
-        bias = 1131;
-      else
-        bias = 32768;
-      obj.Bias = bias;
-      obj.Subrs = [];
-      for (var i2 = 0; i2 < gsubinds.length - 1; i2++)
-        obj.Subrs.push(bin.readBytes(data, offset + gsubinds[i2], gsubinds[i2 + 1] - gsubinds[i2]));
-    };
-    Typr.CFF.tableSE = [
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15,
-      16,
-      17,
-      18,
-      19,
-      20,
-      21,
-      22,
-      23,
-      24,
-      25,
-      26,
-      27,
-      28,
-      29,
-      30,
-      31,
-      32,
-      33,
-      34,
-      35,
-      36,
-      37,
-      38,
-      39,
-      40,
-      41,
-      42,
-      43,
-      44,
-      45,
-      46,
-      47,
-      48,
-      49,
-      50,
-      51,
-      52,
-      53,
-      54,
-      55,
-      56,
-      57,
-      58,
-      59,
-      60,
-      61,
-      62,
-      63,
-      64,
-      65,
-      66,
-      67,
-      68,
-      69,
-      70,
-      71,
-      72,
-      73,
-      74,
-      75,
-      76,
-      77,
-      78,
-      79,
-      80,
-      81,
-      82,
-      83,
-      84,
-      85,
-      86,
-      87,
-      88,
-      89,
-      90,
-      91,
-      92,
-      93,
-      94,
-      95,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      96,
-      97,
-      98,
-      99,
-      100,
-      101,
-      102,
-      103,
-      104,
-      105,
-      106,
-      107,
-      108,
-      109,
-      110,
-      0,
-      111,
-      112,
-      113,
-      114,
-      0,
-      115,
-      116,
-      117,
-      118,
-      119,
-      120,
-      121,
-      122,
-      0,
-      123,
-      0,
-      124,
-      125,
-      126,
-      127,
-      128,
-      129,
-      130,
-      131,
-      0,
-      132,
-      133,
-      0,
-      134,
-      135,
-      136,
-      137,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      138,
-      0,
-      139,
-      0,
-      0,
-      0,
-      0,
-      140,
-      141,
-      142,
-      143,
-      0,
-      0,
-      0,
-      0,
-      0,
-      144,
-      0,
-      0,
-      0,
-      145,
-      0,
-      0,
-      146,
-      147,
-      148,
-      149,
-      0,
-      0,
-      0,
-      0
-    ];
-    Typr.CFF.glyphByUnicode = function(cff, code) {
-      for (var i2 = 0; i2 < cff.charset.length; i2++)
-        if (cff.charset[i2] == code)
-          return i2;
-      return -1;
-    };
-    Typr.CFF.glyphBySE = function(cff, charcode) {
-      if (charcode < 0 || charcode > 255)
-        return -1;
-      return Typr.CFF.glyphByUnicode(cff, Typr.CFF.tableSE[charcode]);
-    };
-    Typr.CFF.readEncoding = function(data, offset, num) {
-      var bin = Typr._bin;
-      var array = [".notdef"];
-      var format = data[offset];
-      offset++;
-      if (format == 0) {
-        var nCodes = data[offset];
-        offset++;
-        for (var i2 = 0; i2 < nCodes; i2++)
-          array.push(data[offset + i2]);
-      } else
-        throw "error: unknown encoding format: " + format;
-      return array;
-    };
-    Typr.CFF.readCharset = function(data, offset, num) {
-      var bin = Typr._bin;
-      var charset = [".notdef"];
-      var format = data[offset];
-      offset++;
-      if (format == 0) {
-        for (var i2 = 0; i2 < num; i2++) {
-          var first = bin.readUshort(data, offset);
-          offset += 2;
-          charset.push(first);
+          return s;
         }
-      } else if (format == 1 || format == 2) {
-        while (charset.length < num) {
-          var first = bin.readUshort(data, offset);
-          offset += 2;
-          var nLeft = 0;
-          if (format == 1) {
-            nLeft = data[offset];
-            offset++;
-          } else {
-            nLeft = bin.readUshort(data, offset);
-            offset += 2;
-          }
-          for (var i2 = 0; i2 <= nLeft; i2++) {
-            charset.push(first);
-            first++;
-          }
+        return [e2._readFont(a2, 0)];
+      }, _readFont: function(r3, t3) {
+        var a2 = e2._bin, n2 = t3;
+        a2.readFixed(r3, t3);
+        t3 += 4;
+        var o2 = a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var s = ["cmap", "head", "hhea", "maxp", "hmtx", "name", "OS/2", "post", "loca", "glyf", "kern", "CFF ", "GPOS", "GSUB", "SVG "], i2 = {_data: r3, _offset: n2}, h = {}, f = 0; f < o2; f++) {
+          var d = a2.readASCII(r3, t3, 4);
+          t3 += 4;
+          a2.readUint(r3, t3);
+          t3 += 4;
+          var u = a2.readUint(r3, t3);
+          t3 += 4;
+          var l = a2.readUint(r3, t3);
+          t3 += 4, h[d] = {offset: u, length: l};
         }
-      } else
-        throw "error: format: " + format;
-      return charset;
-    };
-    Typr.CFF.readIndex = function(data, offset, inds) {
-      var bin = Typr._bin;
-      var count = bin.readUshort(data, offset) + 1;
-      offset += 2;
-      var offsize = data[offset];
-      offset++;
-      if (offsize == 1)
-        for (var i2 = 0; i2 < count; i2++)
-          inds.push(data[offset + i2]);
-      else if (offsize == 2)
-        for (var i2 = 0; i2 < count; i2++)
-          inds.push(bin.readUshort(data, offset + i2 * 2));
-      else if (offsize == 3)
-        for (var i2 = 0; i2 < count; i2++)
-          inds.push(bin.readUint(data, offset + i2 * 3 - 1) & 16777215);
-      else if (count != 1)
-        throw "unsupported offset size: " + offsize + ", count: " + count;
-      offset += count * offsize;
-      return offset - 1;
-    };
-    Typr.CFF.getCharString = function(data, offset, o2) {
-      var bin = Typr._bin;
-      var b0 = data[offset], b1 = data[offset + 1], b2 = data[offset + 2], b3 = data[offset + 3], b4 = data[offset + 4];
-      var vs = 1;
-      var op = null, val = null;
-      if (b0 <= 20) {
-        op = b0;
-        vs = 1;
-      }
-      if (b0 == 12) {
-        op = b0 * 100 + b1;
-        vs = 2;
-      }
-      if (21 <= b0 && b0 <= 27) {
-        op = b0;
-        vs = 1;
-      }
-      if (b0 == 28) {
-        val = bin.readShort(data, offset + 1);
-        vs = 3;
-      }
-      if (29 <= b0 && b0 <= 31) {
-        op = b0;
-        vs = 1;
-      }
-      if (32 <= b0 && b0 <= 246) {
-        val = b0 - 139;
-        vs = 1;
-      }
-      if (247 <= b0 && b0 <= 250) {
-        val = (b0 - 247) * 256 + b1 + 108;
-        vs = 2;
-      }
-      if (251 <= b0 && b0 <= 254) {
-        val = -(b0 - 251) * 256 - b1 - 108;
-        vs = 2;
-      }
-      if (b0 == 255) {
-        val = bin.readInt(data, offset + 1) / 65535;
-        vs = 5;
-      }
-      o2.val = val != null ? val : "o" + op;
-      o2.size = vs;
-    };
-    Typr.CFF.readCharString = function(data, offset, length) {
-      var end = offset + length;
-      var bin = Typr._bin;
-      var arr = [];
-      while (offset < end) {
-        var b0 = data[offset], b1 = data[offset + 1], b2 = data[offset + 2], b3 = data[offset + 3], b4 = data[offset + 4];
-        var vs = 1;
-        var op = null, val = null;
-        if (b0 <= 20) {
-          op = b0;
-          vs = 1;
+        for (f = 0; f < s.length; f++) {
+          var v = s[f];
+          h[v] && (i2[v.trim()] = e2[v.trim()].parse(r3, h[v].offset, h[v].length, i2));
         }
-        if (b0 == 12) {
-          op = b0 * 100 + b1;
-          vs = 2;
-        }
-        if (b0 == 19 || b0 == 20) {
-          op = b0;
-          vs = 2;
-        }
-        if (21 <= b0 && b0 <= 27) {
-          op = b0;
-          vs = 1;
-        }
-        if (b0 == 28) {
-          val = bin.readShort(data, offset + 1);
-          vs = 3;
-        }
-        if (29 <= b0 && b0 <= 31) {
-          op = b0;
-          vs = 1;
-        }
-        if (32 <= b0 && b0 <= 246) {
-          val = b0 - 139;
-          vs = 1;
-        }
-        if (247 <= b0 && b0 <= 250) {
-          val = (b0 - 247) * 256 + b1 + 108;
-          vs = 2;
-        }
-        if (251 <= b0 && b0 <= 254) {
-          val = -(b0 - 251) * 256 - b1 - 108;
-          vs = 2;
-        }
-        if (b0 == 255) {
-          val = bin.readInt(data, offset + 1) / 65535;
-          vs = 5;
-        }
-        arr.push(val != null ? val : "o" + op);
-        offset += vs;
-      }
-      return arr;
-    };
-    Typr.CFF.readDict = function(data, offset, end) {
-      var bin = Typr._bin;
-      var dict = {};
-      var carr = [];
-      while (offset < end) {
-        var b0 = data[offset], b1 = data[offset + 1], b2 = data[offset + 2], b3 = data[offset + 3], b4 = data[offset + 4];
-        var vs = 1;
-        var key = null, val = null;
-        if (b0 == 28) {
-          val = bin.readShort(data, offset + 1);
-          vs = 3;
-        }
-        if (b0 == 29) {
-          val = bin.readInt(data, offset + 1);
-          vs = 5;
-        }
-        if (32 <= b0 && b0 <= 246) {
-          val = b0 - 139;
-          vs = 1;
-        }
-        if (247 <= b0 && b0 <= 250) {
-          val = (b0 - 247) * 256 + b1 + 108;
-          vs = 2;
-        }
-        if (251 <= b0 && b0 <= 254) {
-          val = -(b0 - 251) * 256 - b1 - 108;
-          vs = 2;
-        }
-        if (b0 == 255) {
-          val = bin.readInt(data, offset + 1) / 65535;
-          vs = 5;
-          throw "unknown number";
-        }
-        if (b0 == 30) {
-          var nibs = [];
-          vs = 1;
-          while (true) {
-            var b = data[offset + vs];
-            vs++;
-            var nib0 = b >> 4, nib1 = b & 15;
-            if (nib0 != 15)
-              nibs.push(nib0);
-            if (nib1 != 15)
-              nibs.push(nib1);
-            if (nib1 == 15)
-              break;
-          }
-          var s = "";
-          var chars = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ".", "e", "e-", "reserved", "-", "endOfNumber"];
-          for (var i2 = 0; i2 < nibs.length; i2++)
-            s += chars[nibs[i2]];
-          val = parseFloat(s);
-        }
-        if (b0 <= 21) {
-          var keys = [
-            "version",
-            "Notice",
-            "FullName",
-            "FamilyName",
-            "Weight",
-            "FontBBox",
-            "BlueValues",
-            "OtherBlues",
-            "FamilyBlues",
-            "FamilyOtherBlues",
-            "StdHW",
-            "StdVW",
-            "escape",
-            "UniqueID",
-            "XUID",
-            "charset",
-            "Encoding",
-            "CharStrings",
-            "Private",
-            "Subrs",
-            "defaultWidthX",
-            "nominalWidthX"
-          ];
-          key = keys[b0];
-          vs = 1;
-          if (b0 == 12) {
-            var keys = [
-              "Copyright",
-              "isFixedPitch",
-              "ItalicAngle",
-              "UnderlinePosition",
-              "UnderlineThickness",
-              "PaintType",
-              "CharstringType",
-              "FontMatrix",
-              "StrokeWidth",
-              "BlueScale",
-              "BlueShift",
-              "BlueFuzz",
-              "StemSnapH",
-              "StemSnapV",
-              "ForceBold",
-              0,
-              0,
-              "LanguageGroup",
-              "ExpansionFactor",
-              "initialRandomSeed",
-              "SyntheticBase",
-              "PostScript",
-              "BaseFontName",
-              "BaseFontBlend",
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              "ROS",
-              "CIDFontVersion",
-              "CIDFontRevision",
-              "CIDFontType",
-              "CIDCount",
-              "UIDBase",
-              "FDArray",
-              "FDSelect",
-              "FontName"
-            ];
-            key = keys[b1];
-            vs = 2;
-          }
-        }
-        if (key != null) {
-          dict[key] = carr.length == 1 ? carr[0] : carr;
-          carr = [];
-        } else
-          carr.push(val);
-        offset += vs;
-      }
-      return dict;
-    };
-    Typr.cmap = {};
-    Typr.cmap.parse = function(data, offset, length) {
-      data = new Uint8Array(data.buffer, offset, length);
-      offset = 0;
-      var bin = Typr._bin;
-      var obj = {};
-      var version2 = bin.readUshort(data, offset);
-      offset += 2;
-      var numTables = bin.readUshort(data, offset);
-      offset += 2;
-      var offs = [];
-      obj.tables = [];
-      for (var i2 = 0; i2 < numTables; i2++) {
-        var platformID = bin.readUshort(data, offset);
-        offset += 2;
-        var encodingID = bin.readUshort(data, offset);
-        offset += 2;
-        var noffset = bin.readUint(data, offset);
-        offset += 4;
-        var id = "p" + platformID + "e" + encodingID;
-        var tind = offs.indexOf(noffset);
-        if (tind == -1) {
-          tind = obj.tables.length;
-          var subt;
-          offs.push(noffset);
-          var format = bin.readUshort(data, noffset);
-          if (format == 0)
-            subt = Typr.cmap.parse0(data, noffset);
-          else if (format == 4)
-            subt = Typr.cmap.parse4(data, noffset);
-          else if (format == 6)
-            subt = Typr.cmap.parse6(data, noffset);
-          else if (format == 12)
-            subt = Typr.cmap.parse12(data, noffset);
-          else
-            console.log("unknown format: " + format, platformID, encodingID, noffset);
-          obj.tables.push(subt);
-        }
-        if (obj[id] != null)
-          throw "multiple tables for one platform+encoding";
-        obj[id] = tind;
-      }
-      return obj;
-    };
-    Typr.cmap.parse0 = function(data, offset) {
-      var bin = Typr._bin;
-      var obj = {};
-      obj.format = bin.readUshort(data, offset);
-      offset += 2;
-      var len = bin.readUshort(data, offset);
-      offset += 2;
-      var lang = bin.readUshort(data, offset);
-      offset += 2;
-      obj.map = [];
-      for (var i2 = 0; i2 < len - 6; i2++)
-        obj.map.push(data[offset + i2]);
-      return obj;
-    };
-    Typr.cmap.parse4 = function(data, offset) {
-      var bin = Typr._bin;
-      var offset0 = offset;
-      var obj = {};
-      obj.format = bin.readUshort(data, offset);
-      offset += 2;
-      var length = bin.readUshort(data, offset);
-      offset += 2;
-      var language = bin.readUshort(data, offset);
-      offset += 2;
-      var segCountX2 = bin.readUshort(data, offset);
-      offset += 2;
-      var segCount = segCountX2 / 2;
-      obj.searchRange = bin.readUshort(data, offset);
-      offset += 2;
-      obj.entrySelector = bin.readUshort(data, offset);
-      offset += 2;
-      obj.rangeShift = bin.readUshort(data, offset);
-      offset += 2;
-      obj.endCount = bin.readUshorts(data, offset, segCount);
-      offset += segCount * 2;
-      offset += 2;
-      obj.startCount = bin.readUshorts(data, offset, segCount);
-      offset += segCount * 2;
-      obj.idDelta = [];
-      for (var i2 = 0; i2 < segCount; i2++) {
-        obj.idDelta.push(bin.readShort(data, offset));
-        offset += 2;
-      }
-      obj.idRangeOffset = bin.readUshorts(data, offset, segCount);
-      offset += segCount * 2;
-      obj.glyphIdArray = [];
-      while (offset < offset0 + length) {
-        obj.glyphIdArray.push(bin.readUshort(data, offset));
-        offset += 2;
-      }
-      return obj;
-    };
-    Typr.cmap.parse6 = function(data, offset) {
-      var bin = Typr._bin;
-      var obj = {};
-      obj.format = bin.readUshort(data, offset);
-      offset += 2;
-      var length = bin.readUshort(data, offset);
-      offset += 2;
-      var language = bin.readUshort(data, offset);
-      offset += 2;
-      obj.firstCode = bin.readUshort(data, offset);
-      offset += 2;
-      var entryCount = bin.readUshort(data, offset);
-      offset += 2;
-      obj.glyphIdArray = [];
-      for (var i2 = 0; i2 < entryCount; i2++) {
-        obj.glyphIdArray.push(bin.readUshort(data, offset));
-        offset += 2;
-      }
-      return obj;
-    };
-    Typr.cmap.parse12 = function(data, offset) {
-      var bin = Typr._bin;
-      var obj = {};
-      obj.format = bin.readUshort(data, offset);
-      offset += 2;
-      offset += 2;
-      var length = bin.readUint(data, offset);
-      offset += 4;
-      var lang = bin.readUint(data, offset);
-      offset += 4;
-      var nGroups = bin.readUint(data, offset);
-      offset += 4;
-      obj.groups = [];
-      for (var i2 = 0; i2 < nGroups; i2++) {
-        var off = offset + i2 * 12;
-        var startCharCode = bin.readUint(data, off + 0);
-        var endCharCode = bin.readUint(data, off + 4);
-        var startGlyphID = bin.readUint(data, off + 8);
-        obj.groups.push([startCharCode, endCharCode, startGlyphID]);
-      }
-      return obj;
-    };
-    Typr.glyf = {};
-    Typr.glyf.parse = function(data, offset, length, font) {
-      var obj = [];
-      for (var g = 0; g < font.maxp.numGlyphs; g++)
-        obj.push(null);
-      return obj;
-    };
-    Typr.glyf._parseGlyf = function(font, g) {
-      var bin = Typr._bin;
-      var data = font._data;
-      var offset = Typr._tabOffset(data, "glyf", font._offset) + font.loca[g];
-      if (font.loca[g] == font.loca[g + 1])
-        return null;
-      var gl = {};
-      gl.noc = bin.readShort(data, offset);
-      offset += 2;
-      gl.xMin = bin.readShort(data, offset);
-      offset += 2;
-      gl.yMin = bin.readShort(data, offset);
-      offset += 2;
-      gl.xMax = bin.readShort(data, offset);
-      offset += 2;
-      gl.yMax = bin.readShort(data, offset);
-      offset += 2;
-      if (gl.xMin >= gl.xMax || gl.yMin >= gl.yMax)
-        return null;
-      if (gl.noc > 0) {
-        gl.endPts = [];
-        for (var i2 = 0; i2 < gl.noc; i2++) {
-          gl.endPts.push(bin.readUshort(data, offset));
-          offset += 2;
-        }
-        var instructionLength = bin.readUshort(data, offset);
-        offset += 2;
-        if (data.length - offset < instructionLength)
-          return null;
-        gl.instructions = bin.readBytes(data, offset, instructionLength);
-        offset += instructionLength;
-        var crdnum = gl.endPts[gl.noc - 1] + 1;
-        gl.flags = [];
-        for (var i2 = 0; i2 < crdnum; i2++) {
-          var flag = data[offset];
-          offset++;
-          gl.flags.push(flag);
-          if ((flag & 8) != 0) {
-            var rep = data[offset];
-            offset++;
-            for (var j = 0; j < rep; j++) {
-              gl.flags.push(flag);
-              i2++;
-            }
-          }
-        }
-        gl.xs = [];
-        for (var i2 = 0; i2 < crdnum; i2++) {
-          var i8 = (gl.flags[i2] & 2) != 0, same = (gl.flags[i2] & 16) != 0;
-          if (i8) {
-            gl.xs.push(same ? data[offset] : -data[offset]);
-            offset++;
-          } else {
-            if (same)
-              gl.xs.push(0);
-            else {
-              gl.xs.push(bin.readShort(data, offset));
-              offset += 2;
-            }
-          }
-        }
-        gl.ys = [];
-        for (var i2 = 0; i2 < crdnum; i2++) {
-          var i8 = (gl.flags[i2] & 4) != 0, same = (gl.flags[i2] & 32) != 0;
-          if (i8) {
-            gl.ys.push(same ? data[offset] : -data[offset]);
-            offset++;
-          } else {
-            if (same)
-              gl.ys.push(0);
-            else {
-              gl.ys.push(bin.readShort(data, offset));
-              offset += 2;
-            }
-          }
-        }
-        var x = 0, y = 0;
-        for (var i2 = 0; i2 < crdnum; i2++) {
-          x += gl.xs[i2];
-          y += gl.ys[i2];
-          gl.xs[i2] = x;
-          gl.ys[i2] = y;
-        }
-      } else {
-        var ARG_1_AND_2_ARE_WORDS = 1 << 0;
-        var ARGS_ARE_XY_VALUES = 1 << 1;
-        var WE_HAVE_A_SCALE = 1 << 3;
-        var MORE_COMPONENTS = 1 << 5;
-        var WE_HAVE_AN_X_AND_Y_SCALE = 1 << 6;
-        var WE_HAVE_A_TWO_BY_TWO = 1 << 7;
-        var WE_HAVE_INSTRUCTIONS = 1 << 8;
-        gl.parts = [];
-        var flags;
-        do {
-          flags = bin.readUshort(data, offset);
-          offset += 2;
-          var part = {m: {a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0}, p1: -1, p2: -1};
-          gl.parts.push(part);
-          part.glyphIndex = bin.readUshort(data, offset);
-          offset += 2;
-          if (flags & ARG_1_AND_2_ARE_WORDS) {
-            var arg1 = bin.readShort(data, offset);
-            offset += 2;
-            var arg2 = bin.readShort(data, offset);
-            offset += 2;
-          } else {
-            var arg1 = bin.readInt8(data, offset);
-            offset++;
-            var arg2 = bin.readInt8(data, offset);
-            offset++;
-          }
-          if (flags & ARGS_ARE_XY_VALUES) {
-            part.m.tx = arg1;
-            part.m.ty = arg2;
-          } else {
-            part.p1 = arg1;
-            part.p2 = arg2;
-          }
-          if (flags & WE_HAVE_A_SCALE) {
-            part.m.a = part.m.d = bin.readF2dot14(data, offset);
-            offset += 2;
-          } else if (flags & WE_HAVE_AN_X_AND_Y_SCALE) {
-            part.m.a = bin.readF2dot14(data, offset);
-            offset += 2;
-            part.m.d = bin.readF2dot14(data, offset);
-            offset += 2;
-          } else if (flags & WE_HAVE_A_TWO_BY_TWO) {
-            part.m.a = bin.readF2dot14(data, offset);
-            offset += 2;
-            part.m.b = bin.readF2dot14(data, offset);
-            offset += 2;
-            part.m.c = bin.readF2dot14(data, offset);
-            offset += 2;
-            part.m.d = bin.readF2dot14(data, offset);
-            offset += 2;
-          }
-        } while (flags & MORE_COMPONENTS);
-        if (flags & WE_HAVE_INSTRUCTIONS) {
-          var numInstr = bin.readUshort(data, offset);
-          offset += 2;
-          gl.instr = [];
-          for (var i2 = 0; i2 < numInstr; i2++) {
-            gl.instr.push(data[offset]);
-            offset++;
-          }
-        }
-      }
-      return gl;
-    };
-    Typr.GPOS = {};
-    Typr.GPOS.parse = function(data, offset, length, font) {
-      return Typr._lctf.parse(data, offset, length, font, Typr.GPOS.subt);
-    };
-    Typr.GPOS.subt = function(data, ltype, offset) {
-      var bin = Typr._bin, offset0 = offset, tab = {};
-      tab.fmt = bin.readUshort(data, offset);
-      offset += 2;
-      if (ltype == 1 || ltype == 2 || ltype == 3 || ltype == 7 || ltype == 8 && tab.fmt <= 2) {
-        var covOff = bin.readUshort(data, offset);
-        offset += 2;
-        tab.coverage = Typr._lctf.readCoverage(data, covOff + offset0);
-      }
-      if (ltype == 1 && tab.fmt == 1) {
-        var valFmt1 = bin.readUshort(data, offset);
-        offset += 2;
-        var ones1 = Typr._lctf.numOfOnes(valFmt1);
-        if (valFmt1 != 0)
-          tab.pos = Typr.GPOS.readValueRecord(data, offset, valFmt1);
-      } else if (ltype == 2) {
-        var valFmt1 = bin.readUshort(data, offset);
-        offset += 2;
-        var valFmt2 = bin.readUshort(data, offset);
-        offset += 2;
-        var ones1 = Typr._lctf.numOfOnes(valFmt1);
-        var ones2 = Typr._lctf.numOfOnes(valFmt2);
-        if (tab.fmt == 1) {
-          tab.pairsets = [];
-          var psc = bin.readUshort(data, offset);
-          offset += 2;
-          for (var i2 = 0; i2 < psc; i2++) {
-            var psoff = offset0 + bin.readUshort(data, offset);
-            offset += 2;
-            var pvc = bin.readUshort(data, psoff);
-            psoff += 2;
-            var arr = [];
-            for (var j = 0; j < pvc; j++) {
-              var gid2 = bin.readUshort(data, psoff);
-              psoff += 2;
-              var value1, value2;
-              if (valFmt1 != 0) {
-                value1 = Typr.GPOS.readValueRecord(data, psoff, valFmt1);
-                psoff += ones1 * 2;
-              }
-              if (valFmt2 != 0) {
-                value2 = Typr.GPOS.readValueRecord(data, psoff, valFmt2);
-                psoff += ones2 * 2;
-              }
-              arr.push({gid2, val1: value1, val2: value2});
-            }
-            tab.pairsets.push(arr);
-          }
-        }
-        if (tab.fmt == 2) {
-          var classDef1 = bin.readUshort(data, offset);
-          offset += 2;
-          var classDef2 = bin.readUshort(data, offset);
-          offset += 2;
-          var class1Count = bin.readUshort(data, offset);
-          offset += 2;
-          var class2Count = bin.readUshort(data, offset);
-          offset += 2;
-          tab.classDef1 = Typr._lctf.readClassDef(data, offset0 + classDef1);
-          tab.classDef2 = Typr._lctf.readClassDef(data, offset0 + classDef2);
-          tab.matrix = [];
-          for (var i2 = 0; i2 < class1Count; i2++) {
-            var row = [];
-            for (var j = 0; j < class2Count; j++) {
-              var value1 = null, value2 = null;
-              if (tab.valFmt1 != 0) {
-                value1 = Typr.GPOS.readValueRecord(data, offset, tab.valFmt1);
-                offset += ones1 * 2;
-              }
-              if (tab.valFmt2 != 0) {
-                value2 = Typr.GPOS.readValueRecord(data, offset, tab.valFmt2);
-                offset += ones2 * 2;
-              }
-              row.push({val1: value1, val2: value2});
-            }
-            tab.matrix.push(row);
-          }
-        }
-      } else
-        ;
-      return tab;
-    };
-    Typr.GPOS.readValueRecord = function(data, offset, valFmt) {
-      var bin = Typr._bin;
-      var arr = [];
-      arr.push(valFmt & 1 ? bin.readShort(data, offset) : 0);
-      offset += valFmt & 1 ? 2 : 0;
-      arr.push(valFmt & 2 ? bin.readShort(data, offset) : 0);
-      offset += valFmt & 2 ? 2 : 0;
-      arr.push(valFmt & 4 ? bin.readShort(data, offset) : 0);
-      offset += valFmt & 4 ? 2 : 0;
-      arr.push(valFmt & 8 ? bin.readShort(data, offset) : 0);
-      offset += valFmt & 8 ? 2 : 0;
-      return arr;
-    };
-    Typr.GSUB = {};
-    Typr.GSUB.parse = function(data, offset, length, font) {
-      return Typr._lctf.parse(data, offset, length, font, Typr.GSUB.subt);
-    };
-    Typr.GSUB.subt = function(data, ltype, offset) {
-      var bin = Typr._bin, offset0 = offset, tab = {};
-      tab.fmt = bin.readUshort(data, offset);
-      offset += 2;
-      if (ltype != 1 && ltype != 4 && ltype != 5 && ltype != 6)
-        return null;
-      if (ltype == 1 || ltype == 4 || ltype == 5 && tab.fmt <= 2 || ltype == 6 && tab.fmt <= 2) {
-        var covOff = bin.readUshort(data, offset);
-        offset += 2;
-        tab.coverage = Typr._lctf.readCoverage(data, offset0 + covOff);
-      }
-      if (ltype == 1) {
-        if (tab.fmt == 1) {
-          tab.delta = bin.readShort(data, offset);
-          offset += 2;
-        } else if (tab.fmt == 2) {
-          var cnt = bin.readUshort(data, offset);
-          offset += 2;
-          tab.newg = bin.readUshorts(data, offset, cnt);
-          offset += tab.newg.length * 2;
-        }
-      } else if (ltype == 4) {
-        tab.vals = [];
-        var cnt = bin.readUshort(data, offset);
-        offset += 2;
-        for (var i2 = 0; i2 < cnt; i2++) {
-          var loff = bin.readUshort(data, offset);
-          offset += 2;
-          tab.vals.push(Typr.GSUB.readLigatureSet(data, offset0 + loff));
-        }
-      } else if (ltype == 5) {
-        if (tab.fmt == 2) {
-          var cDefOffset = bin.readUshort(data, offset);
-          offset += 2;
-          tab.cDef = Typr._lctf.readClassDef(data, offset0 + cDefOffset);
-          tab.scset = [];
-          var subClassSetCount = bin.readUshort(data, offset);
-          offset += 2;
-          for (var i2 = 0; i2 < subClassSetCount; i2++) {
-            var scsOff = bin.readUshort(data, offset);
-            offset += 2;
-            tab.scset.push(scsOff == 0 ? null : Typr.GSUB.readSubClassSet(data, offset0 + scsOff));
-          }
-        }
-      } else if (ltype == 6) {
-        if (tab.fmt == 3) {
-          for (var i2 = 0; i2 < 3; i2++) {
-            var cnt = bin.readUshort(data, offset);
-            offset += 2;
-            var cvgs = [];
-            for (var j = 0; j < cnt; j++)
-              cvgs.push(Typr._lctf.readCoverage(data, offset0 + bin.readUshort(data, offset + j * 2)));
-            offset += cnt * 2;
-            if (i2 == 0)
-              tab.backCvg = cvgs;
-            if (i2 == 1)
-              tab.inptCvg = cvgs;
-            if (i2 == 2)
-              tab.ahedCvg = cvgs;
-          }
-          var cnt = bin.readUshort(data, offset);
-          offset += 2;
-          tab.lookupRec = Typr.GSUB.readSubstLookupRecords(data, offset, cnt);
-        }
-      }
-      return tab;
-    };
-    Typr.GSUB.readSubClassSet = function(data, offset) {
-      var rUs = Typr._bin.readUshort, offset0 = offset, lset = [];
-      var cnt = rUs(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < cnt; i2++) {
-        var loff = rUs(data, offset);
-        offset += 2;
-        lset.push(Typr.GSUB.readSubClassRule(data, offset0 + loff));
-      }
-      return lset;
-    };
-    Typr.GSUB.readSubClassRule = function(data, offset) {
-      var rUs = Typr._bin.readUshort, rule = {};
-      var gcount = rUs(data, offset);
-      offset += 2;
-      var scount = rUs(data, offset);
-      offset += 2;
-      rule.input = [];
-      for (var i2 = 0; i2 < gcount - 1; i2++) {
-        rule.input.push(rUs(data, offset));
-        offset += 2;
-      }
-      rule.substLookupRecords = Typr.GSUB.readSubstLookupRecords(data, offset, scount);
-      return rule;
-    };
-    Typr.GSUB.readSubstLookupRecords = function(data, offset, cnt) {
-      var rUs = Typr._bin.readUshort;
-      var out = [];
-      for (var i2 = 0; i2 < cnt; i2++) {
-        out.push(rUs(data, offset), rUs(data, offset + 2));
-        offset += 4;
-      }
-      return out;
-    };
-    Typr.GSUB.readChainSubClassSet = function(data, offset) {
-      var bin = Typr._bin, offset0 = offset, lset = [];
-      var cnt = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < cnt; i2++) {
-        var loff = bin.readUshort(data, offset);
-        offset += 2;
-        lset.push(Typr.GSUB.readChainSubClassRule(data, offset0 + loff));
-      }
-      return lset;
-    };
-    Typr.GSUB.readChainSubClassRule = function(data, offset) {
-      var bin = Typr._bin, rule = {};
-      var pps = ["backtrack", "input", "lookahead"];
-      for (var pi = 0; pi < pps.length; pi++) {
-        var cnt = bin.readUshort(data, offset);
-        offset += 2;
-        if (pi == 1)
-          cnt--;
-        rule[pps[pi]] = bin.readUshorts(data, offset, cnt);
-        offset += rule[pps[pi]].length * 2;
-      }
-      var cnt = bin.readUshort(data, offset);
-      offset += 2;
-      rule.subst = bin.readUshorts(data, offset, cnt * 2);
-      offset += rule.subst.length * 2;
-      return rule;
-    };
-    Typr.GSUB.readLigatureSet = function(data, offset) {
-      var bin = Typr._bin, offset0 = offset, lset = [];
-      var lcnt = bin.readUshort(data, offset);
-      offset += 2;
-      for (var j = 0; j < lcnt; j++) {
-        var loff = bin.readUshort(data, offset);
-        offset += 2;
-        lset.push(Typr.GSUB.readLigature(data, offset0 + loff));
-      }
-      return lset;
-    };
-    Typr.GSUB.readLigature = function(data, offset) {
-      var bin = Typr._bin, lig = {chain: []};
-      lig.nglyph = bin.readUshort(data, offset);
-      offset += 2;
-      var ccnt = bin.readUshort(data, offset);
-      offset += 2;
-      for (var k = 0; k < ccnt - 1; k++) {
-        lig.chain.push(bin.readUshort(data, offset));
-        offset += 2;
-      }
-      return lig;
-    };
-    Typr.head = {};
-    Typr.head.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {};
-      var tableVersion = bin.readFixed(data, offset);
-      offset += 4;
-      obj.fontRevision = bin.readFixed(data, offset);
-      offset += 4;
-      var checkSumAdjustment = bin.readUint(data, offset);
-      offset += 4;
-      var magicNumber = bin.readUint(data, offset);
-      offset += 4;
-      obj.flags = bin.readUshort(data, offset);
-      offset += 2;
-      obj.unitsPerEm = bin.readUshort(data, offset);
-      offset += 2;
-      obj.created = bin.readUint64(data, offset);
-      offset += 8;
-      obj.modified = bin.readUint64(data, offset);
-      offset += 8;
-      obj.xMin = bin.readShort(data, offset);
-      offset += 2;
-      obj.yMin = bin.readShort(data, offset);
-      offset += 2;
-      obj.xMax = bin.readShort(data, offset);
-      offset += 2;
-      obj.yMax = bin.readShort(data, offset);
-      offset += 2;
-      obj.macStyle = bin.readUshort(data, offset);
-      offset += 2;
-      obj.lowestRecPPEM = bin.readUshort(data, offset);
-      offset += 2;
-      obj.fontDirectionHint = bin.readShort(data, offset);
-      offset += 2;
-      obj.indexToLocFormat = bin.readShort(data, offset);
-      offset += 2;
-      obj.glyphDataFormat = bin.readShort(data, offset);
-      offset += 2;
-      return obj;
-    };
-    Typr.hhea = {};
-    Typr.hhea.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {};
-      var tableVersion = bin.readFixed(data, offset);
-      offset += 4;
-      obj.ascender = bin.readShort(data, offset);
-      offset += 2;
-      obj.descender = bin.readShort(data, offset);
-      offset += 2;
-      obj.lineGap = bin.readShort(data, offset);
-      offset += 2;
-      obj.advanceWidthMax = bin.readUshort(data, offset);
-      offset += 2;
-      obj.minLeftSideBearing = bin.readShort(data, offset);
-      offset += 2;
-      obj.minRightSideBearing = bin.readShort(data, offset);
-      offset += 2;
-      obj.xMaxExtent = bin.readShort(data, offset);
-      offset += 2;
-      obj.caretSlopeRise = bin.readShort(data, offset);
-      offset += 2;
-      obj.caretSlopeRun = bin.readShort(data, offset);
-      offset += 2;
-      obj.caretOffset = bin.readShort(data, offset);
-      offset += 2;
-      offset += 4 * 2;
-      obj.metricDataFormat = bin.readShort(data, offset);
-      offset += 2;
-      obj.numberOfHMetrics = bin.readUshort(data, offset);
-      offset += 2;
-      return obj;
-    };
-    Typr.hmtx = {};
-    Typr.hmtx.parse = function(data, offset, length, font) {
-      var bin = Typr._bin;
-      var obj = {};
-      obj.aWidth = [];
-      obj.lsBearing = [];
-      var aw = 0, lsb = 0;
-      for (var i2 = 0; i2 < font.maxp.numGlyphs; i2++) {
-        if (i2 < font.hhea.numberOfHMetrics) {
-          aw = bin.readUshort(data, offset);
-          offset += 2;
-          lsb = bin.readShort(data, offset);
-          offset += 2;
-        }
-        obj.aWidth.push(aw);
-        obj.lsBearing.push(lsb);
-      }
-      return obj;
-    };
-    Typr.kern = {};
-    Typr.kern.parse = function(data, offset, length, font) {
-      var bin = Typr._bin;
-      var version2 = bin.readUshort(data, offset);
-      offset += 2;
-      if (version2 == 1)
-        return Typr.kern.parseV1(data, offset - 2, length, font);
-      var nTables = bin.readUshort(data, offset);
-      offset += 2;
-      var map = {glyph1: [], rval: []};
-      for (var i2 = 0; i2 < nTables; i2++) {
-        offset += 2;
-        var length = bin.readUshort(data, offset);
-        offset += 2;
-        var coverage = bin.readUshort(data, offset);
-        offset += 2;
-        var format = coverage >>> 8;
-        format &= 15;
-        if (format == 0)
-          offset = Typr.kern.readFormat0(data, offset, map);
-        else
-          throw "unknown kern table format: " + format;
-      }
-      return map;
-    };
-    Typr.kern.parseV1 = function(data, offset, length, font) {
-      var bin = Typr._bin;
-      var version2 = bin.readFixed(data, offset);
-      offset += 4;
-      var nTables = bin.readUint(data, offset);
-      offset += 4;
-      var map = {glyph1: [], rval: []};
-      for (var i2 = 0; i2 < nTables; i2++) {
-        var length = bin.readUint(data, offset);
-        offset += 4;
-        var coverage = bin.readUshort(data, offset);
-        offset += 2;
-        var tupleIndex = bin.readUshort(data, offset);
-        offset += 2;
-        var format = coverage >>> 8;
-        format &= 15;
-        if (format == 0)
-          offset = Typr.kern.readFormat0(data, offset, map);
-        else
-          throw "unknown kern table format: " + format;
-      }
-      return map;
-    };
-    Typr.kern.readFormat0 = function(data, offset, map) {
-      var bin = Typr._bin;
-      var pleft = -1;
-      var nPairs = bin.readUshort(data, offset);
-      offset += 2;
-      var searchRange = bin.readUshort(data, offset);
-      offset += 2;
-      var entrySelector = bin.readUshort(data, offset);
-      offset += 2;
-      var rangeShift = bin.readUshort(data, offset);
-      offset += 2;
-      for (var j = 0; j < nPairs; j++) {
-        var left = bin.readUshort(data, offset);
-        offset += 2;
-        var right = bin.readUshort(data, offset);
-        offset += 2;
-        var value = bin.readShort(data, offset);
-        offset += 2;
-        if (left != pleft) {
-          map.glyph1.push(left);
-          map.rval.push({glyph2: [], vals: []});
-        }
-        var rval = map.rval[map.rval.length - 1];
-        rval.glyph2.push(right);
-        rval.vals.push(value);
-        pleft = left;
-      }
-      return offset;
-    };
-    Typr.loca = {};
-    Typr.loca.parse = function(data, offset, length, font) {
-      var bin = Typr._bin;
-      var obj = [];
-      var ver = font.head.indexToLocFormat;
-      var len = font.maxp.numGlyphs + 1;
-      if (ver == 0)
-        for (var i2 = 0; i2 < len; i2++)
-          obj.push(bin.readUshort(data, offset + (i2 << 1)) << 1);
-      if (ver == 1)
-        for (var i2 = 0; i2 < len; i2++)
-          obj.push(bin.readUint(data, offset + (i2 << 2)));
-      return obj;
-    };
-    Typr.maxp = {};
-    Typr.maxp.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {};
-      var ver = bin.readUint(data, offset);
-      offset += 4;
-      obj.numGlyphs = bin.readUshort(data, offset);
-      offset += 2;
-      if (ver == 65536) {
-        obj.maxPoints = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxContours = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxCompositePoints = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxCompositeContours = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxZones = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxTwilightPoints = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxStorage = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxFunctionDefs = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxInstructionDefs = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxStackElements = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxSizeOfInstructions = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxComponentElements = bin.readUshort(data, offset);
-        offset += 2;
-        obj.maxComponentDepth = bin.readUshort(data, offset);
-        offset += 2;
-      }
-      return obj;
-    };
-    Typr.name = {};
-    Typr.name.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {};
-      var format = bin.readUshort(data, offset);
-      offset += 2;
-      var count = bin.readUshort(data, offset);
-      offset += 2;
-      var stringOffset = bin.readUshort(data, offset);
-      offset += 2;
-      var names = [
-        "copyright",
-        "fontFamily",
-        "fontSubfamily",
-        "ID",
-        "fullName",
-        "version",
-        "postScriptName",
-        "trademark",
-        "manufacturer",
-        "designer",
-        "description",
-        "urlVendor",
-        "urlDesigner",
-        "licence",
-        "licenceURL",
-        "---",
-        "typoFamilyName",
-        "typoSubfamilyName",
-        "compatibleFull",
-        "sampleText",
-        "postScriptCID",
-        "wwsFamilyName",
-        "wwsSubfamilyName",
-        "lightPalette",
-        "darkPalette"
-      ];
-      var offset0 = offset;
-      for (var i2 = 0; i2 < count; i2++) {
-        var platformID = bin.readUshort(data, offset);
-        offset += 2;
-        var encodingID = bin.readUshort(data, offset);
-        offset += 2;
-        var languageID = bin.readUshort(data, offset);
-        offset += 2;
-        var nameID = bin.readUshort(data, offset);
-        offset += 2;
-        var slen = bin.readUshort(data, offset);
-        offset += 2;
-        var noffset = bin.readUshort(data, offset);
-        offset += 2;
-        var cname = names[nameID];
-        var soff = offset0 + count * 12 + noffset;
-        var str;
-        if (platformID == 0)
-          str = bin.readUnicode(data, soff, slen / 2);
-        else if (platformID == 3 && encodingID == 0)
-          str = bin.readUnicode(data, soff, slen / 2);
-        else if (encodingID == 0)
-          str = bin.readASCII(data, soff, slen);
-        else if (encodingID == 1)
-          str = bin.readUnicode(data, soff, slen / 2);
-        else if (encodingID == 3)
-          str = bin.readUnicode(data, soff, slen / 2);
-        else if (platformID == 1) {
-          str = bin.readASCII(data, soff, slen);
-          console.log("reading unknown MAC encoding " + encodingID + " as ASCII");
-        } else
-          throw "unknown encoding " + encodingID + ", platformID: " + platformID;
-        var tid = "p" + platformID + "," + languageID.toString(16);
-        if (obj[tid] == null)
-          obj[tid] = {};
-        obj[tid][cname] = str;
-        obj[tid]._lang = languageID;
-      }
-      for (var p in obj)
-        if (obj[p].postScriptName != null && obj[p]._lang == 1033)
-          return obj[p];
-      for (var p in obj)
-        if (obj[p].postScriptName != null && obj[p]._lang == 0)
-          return obj[p];
-      for (var p in obj)
-        if (obj[p].postScriptName != null && obj[p]._lang == 3084)
-          return obj[p];
-      for (var p in obj)
-        if (obj[p].postScriptName != null)
-          return obj[p];
-      var tname;
-      for (var p in obj) {
-        tname = p;
-        break;
-      }
-      console.log("returning name table with languageID " + obj[tname]._lang);
-      return obj[tname];
-    };
-    Typr["OS/2"] = {};
-    Typr["OS/2"].parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var ver = bin.readUshort(data, offset);
-      offset += 2;
-      var obj = {};
-      if (ver == 0)
-        Typr["OS/2"].version0(data, offset, obj);
-      else if (ver == 1)
-        Typr["OS/2"].version1(data, offset, obj);
-      else if (ver == 2 || ver == 3 || ver == 4)
-        Typr["OS/2"].version2(data, offset, obj);
-      else if (ver == 5)
-        Typr["OS/2"].version5(data, offset, obj);
-      else
-        throw "unknown OS/2 table version: " + ver;
-      return obj;
-    };
-    Typr["OS/2"].version0 = function(data, offset, obj) {
-      var bin = Typr._bin;
-      obj.xAvgCharWidth = bin.readShort(data, offset);
-      offset += 2;
-      obj.usWeightClass = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usWidthClass = bin.readUshort(data, offset);
-      offset += 2;
-      obj.fsType = bin.readUshort(data, offset);
-      offset += 2;
-      obj.ySubscriptXSize = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySubscriptYSize = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySubscriptXOffset = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySubscriptYOffset = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySuperscriptXSize = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySuperscriptYSize = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySuperscriptXOffset = bin.readShort(data, offset);
-      offset += 2;
-      obj.ySuperscriptYOffset = bin.readShort(data, offset);
-      offset += 2;
-      obj.yStrikeoutSize = bin.readShort(data, offset);
-      offset += 2;
-      obj.yStrikeoutPosition = bin.readShort(data, offset);
-      offset += 2;
-      obj.sFamilyClass = bin.readShort(data, offset);
-      offset += 2;
-      obj.panose = bin.readBytes(data, offset, 10);
-      offset += 10;
-      obj.ulUnicodeRange1 = bin.readUint(data, offset);
-      offset += 4;
-      obj.ulUnicodeRange2 = bin.readUint(data, offset);
-      offset += 4;
-      obj.ulUnicodeRange3 = bin.readUint(data, offset);
-      offset += 4;
-      obj.ulUnicodeRange4 = bin.readUint(data, offset);
-      offset += 4;
-      obj.achVendID = [bin.readInt8(data, offset), bin.readInt8(data, offset + 1), bin.readInt8(data, offset + 2), bin.readInt8(data, offset + 3)];
-      offset += 4;
-      obj.fsSelection = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usFirstCharIndex = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usLastCharIndex = bin.readUshort(data, offset);
-      offset += 2;
-      obj.sTypoAscender = bin.readShort(data, offset);
-      offset += 2;
-      obj.sTypoDescender = bin.readShort(data, offset);
-      offset += 2;
-      obj.sTypoLineGap = bin.readShort(data, offset);
-      offset += 2;
-      obj.usWinAscent = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usWinDescent = bin.readUshort(data, offset);
-      offset += 2;
-      return offset;
-    };
-    Typr["OS/2"].version1 = function(data, offset, obj) {
-      var bin = Typr._bin;
-      offset = Typr["OS/2"].version0(data, offset, obj);
-      obj.ulCodePageRange1 = bin.readUint(data, offset);
-      offset += 4;
-      obj.ulCodePageRange2 = bin.readUint(data, offset);
-      offset += 4;
-      return offset;
-    };
-    Typr["OS/2"].version2 = function(data, offset, obj) {
-      var bin = Typr._bin;
-      offset = Typr["OS/2"].version1(data, offset, obj);
-      obj.sxHeight = bin.readShort(data, offset);
-      offset += 2;
-      obj.sCapHeight = bin.readShort(data, offset);
-      offset += 2;
-      obj.usDefault = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usBreak = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usMaxContext = bin.readUshort(data, offset);
-      offset += 2;
-      return offset;
-    };
-    Typr["OS/2"].version5 = function(data, offset, obj) {
-      var bin = Typr._bin;
-      offset = Typr["OS/2"].version2(data, offset, obj);
-      obj.usLowerOpticalPointSize = bin.readUshort(data, offset);
-      offset += 2;
-      obj.usUpperOpticalPointSize = bin.readUshort(data, offset);
-      offset += 2;
-      return offset;
-    };
-    Typr.post = {};
-    Typr.post.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {};
-      obj.version = bin.readFixed(data, offset);
-      offset += 4;
-      obj.italicAngle = bin.readFixed(data, offset);
-      offset += 4;
-      obj.underlinePosition = bin.readShort(data, offset);
-      offset += 2;
-      obj.underlineThickness = bin.readShort(data, offset);
-      offset += 2;
-      return obj;
-    };
-    Typr.SVG = {};
-    Typr.SVG.parse = function(data, offset, length) {
-      var bin = Typr._bin;
-      var obj = {entries: []};
-      var offset0 = offset;
-      var tableVersion = bin.readUshort(data, offset);
-      offset += 2;
-      var svgDocIndexOffset = bin.readUint(data, offset);
-      offset += 4;
-      var reserved = bin.readUint(data, offset);
-      offset += 4;
-      offset = svgDocIndexOffset + offset0;
-      var numEntries = bin.readUshort(data, offset);
-      offset += 2;
-      for (var i2 = 0; i2 < numEntries; i2++) {
-        var startGlyphID = bin.readUshort(data, offset);
-        offset += 2;
-        var endGlyphID = bin.readUshort(data, offset);
-        offset += 2;
-        var svgDocOffset = bin.readUint(data, offset);
-        offset += 4;
-        var svgDocLength = bin.readUint(data, offset);
-        offset += 4;
-        var sbuf = new Uint8Array(data.buffer, offset0 + svgDocOffset + svgDocIndexOffset, svgDocLength);
-        var svg = bin.readUTF8(sbuf, 0, sbuf.length);
-        for (var f = startGlyphID; f <= endGlyphID; f++) {
-          obj.entries[f] = svg;
-        }
-      }
-      return obj;
-    };
-    Typr.SVG.toPath = function(str) {
-      var pth = {cmds: [], crds: []};
-      if (str == null)
-        return pth;
-      var prsr = new DOMParser();
-      var doc = prsr["parseFromString"](str, "image/svg+xml");
-      var svg = doc.firstChild;
-      while (svg.tagName != "svg")
-        svg = svg.nextSibling;
-      var vb = svg.getAttribute("viewBox");
-      if (vb)
-        vb = vb.trim().split(" ").map(parseFloat);
-      else
-        vb = [0, 0, 1e3, 1e3];
-      Typr.SVG._toPath(svg.children, pth);
-      for (var i2 = 0; i2 < pth.crds.length; i2 += 2) {
-        var x = pth.crds[i2], y = pth.crds[i2 + 1];
-        x -= vb[0];
-        y -= vb[1];
-        y = -y;
-        pth.crds[i2] = x;
-        pth.crds[i2 + 1] = y;
-      }
-      return pth;
-    };
-    Typr.SVG._toPath = function(nds, pth, fill) {
-      for (var ni = 0; ni < nds.length; ni++) {
-        var nd = nds[ni], tn = nd.tagName;
-        var cfl = nd.getAttribute("fill");
-        if (cfl == null)
-          cfl = fill;
-        if (tn == "g")
-          Typr.SVG._toPath(nd.children, pth, cfl);
-        else if (tn == "path") {
-          pth.cmds.push(cfl ? cfl : "#000000");
-          var d = nd.getAttribute("d");
-          var toks = Typr.SVG._tokens(d);
-          Typr.SVG._toksToPath(toks, pth);
-          pth.cmds.push("X");
-        } else if (tn == "defs")
-          ;
-        else
-          console.log(tn, nd);
-      }
-    };
-    Typr.SVG._tokens = function(d) {
-      var ts = [], off = 0, rn = false, cn = "";
-      while (off < d.length) {
-        var cc = d.charCodeAt(off), ch = d.charAt(off);
-        off++;
-        var isNum = 48 <= cc && cc <= 57 || ch == "." || ch == "-";
-        if (rn) {
-          if (ch == "-") {
-            ts.push(parseFloat(cn));
-            cn = ch;
-          } else if (isNum)
-            cn += ch;
-          else {
-            ts.push(parseFloat(cn));
-            if (ch != "," && ch != " ")
-              ts.push(ch);
-            rn = false;
-          }
-        } else {
-          if (isNum) {
-            cn = ch;
-            rn = true;
-          } else if (ch != "," && ch != " ")
-            ts.push(ch);
-        }
-      }
-      if (rn)
-        ts.push(parseFloat(cn));
-      return ts;
-    };
-    Typr.SVG._toksToPath = function(ts, pth) {
-      var i2 = 0, x = 0, y = 0, ox = 0, oy = 0;
-      var pc = {M: 2, L: 2, H: 1, V: 1, S: 4, C: 6};
-      var cmds = pth.cmds, crds = pth.crds;
-      while (i2 < ts.length) {
-        var cmd = ts[i2];
-        i2++;
-        if (cmd == "z") {
-          cmds.push("Z");
-          x = ox;
-          y = oy;
-        } else {
-          var cmu = cmd.toUpperCase();
-          var ps = pc[cmu], reps = Typr.SVG._reps(ts, i2, ps);
-          for (var j = 0; j < reps; j++) {
-            var xi = 0, yi = 0;
-            if (cmd != cmu) {
-              xi = x;
-              yi = y;
-            }
-            if (cmu == "M") {
-              x = xi + ts[i2++];
-              y = yi + ts[i2++];
-              cmds.push("M");
-              crds.push(x, y);
-              ox = x;
-              oy = y;
-            } else if (cmu == "L") {
-              x = xi + ts[i2++];
-              y = yi + ts[i2++];
-              cmds.push("L");
-              crds.push(x, y);
-            } else if (cmu == "H") {
-              x = xi + ts[i2++];
-              cmds.push("L");
-              crds.push(x, y);
-            } else if (cmu == "V") {
-              y = yi + ts[i2++];
-              cmds.push("L");
-              crds.push(x, y);
-            } else if (cmu == "C") {
-              var x1 = xi + ts[i2++], y1 = yi + ts[i2++], x2 = xi + ts[i2++], y2 = yi + ts[i2++], x3 = xi + ts[i2++], y3 = yi + ts[i2++];
-              cmds.push("C");
-              crds.push(x1, y1, x2, y2, x3, y3);
-              x = x3;
-              y = y3;
-            } else if (cmu == "S") {
-              var co = Math.max(crds.length - 4, 0);
-              var x1 = x + x - crds[co], y1 = y + y - crds[co + 1];
-              var x2 = xi + ts[i2++], y2 = yi + ts[i2++], x3 = xi + ts[i2++], y3 = yi + ts[i2++];
-              cmds.push("C");
-              crds.push(x1, y1, x2, y2, x3, y3);
-              x = x3;
-              y = y3;
-            } else
-              console.log("Unknown SVG command " + cmd);
-          }
-        }
-      }
-    };
-    Typr.SVG._reps = function(ts, off, ps) {
-      var i2 = off;
-      while (i2 < ts.length) {
-        if (typeof ts[i2] == "string")
-          break;
-        i2 += ps;
-      }
-      return (i2 - off) / ps;
-    };
-    if (Typr == null)
-      Typr = {};
-    if (Typr.U == null)
-      Typr.U = {};
-    Typr.U.codeToGlyph = function(font, code) {
-      var cmap = font.cmap;
-      var tind = -1;
-      if (cmap.p0e4 != null)
-        tind = cmap.p0e4;
-      else if (cmap.p3e1 != null)
-        tind = cmap.p3e1;
-      else if (cmap.p1e0 != null)
-        tind = cmap.p1e0;
-      else if (cmap.p0e3 != null)
-        tind = cmap.p0e3;
-      if (tind == -1)
-        throw "no familiar platform and encoding!";
-      var tab = cmap.tables[tind];
-      if (tab.format == 0) {
-        if (code >= tab.map.length)
-          return 0;
-        return tab.map[code];
-      } else if (tab.format == 4) {
-        var sind = -1;
-        for (var i2 = 0; i2 < tab.endCount.length; i2++)
-          if (code <= tab.endCount[i2]) {
-            sind = i2;
-            break;
-          }
-        if (sind == -1)
-          return 0;
-        if (tab.startCount[sind] > code)
-          return 0;
-        var gli = 0;
-        if (tab.idRangeOffset[sind] != 0)
-          gli = tab.glyphIdArray[code - tab.startCount[sind] + (tab.idRangeOffset[sind] >> 1) - (tab.idRangeOffset.length - sind)];
-        else
-          gli = code + tab.idDelta[sind];
-        return gli & 65535;
-      } else if (tab.format == 12) {
-        if (code > tab.groups[tab.groups.length - 1][1])
-          return 0;
-        for (var i2 = 0; i2 < tab.groups.length; i2++) {
-          var grp = tab.groups[i2];
-          if (grp[0] <= code && code <= grp[1])
-            return grp[2] + (code - grp[0]);
+        return i2;
+      }, _tabOffset: function(r3, t3, a2) {
+        for (var n2 = e2._bin, o2 = n2.readUshort(r3, a2 + 4), s = a2 + 12, i2 = 0; i2 < o2; i2++) {
+          var h = n2.readASCII(r3, s, 4);
+          s += 4;
+          n2.readUint(r3, s);
+          s += 4;
+          var f = n2.readUint(r3, s);
+          s += 4;
+          n2.readUint(r3, s);
+          if (s += 4, h == t3)
+            return f;
         }
         return 0;
-      } else
-        throw "unknown cmap table format " + tab.format;
-    };
-    Typr.U.glyphToPath = function(font, gid) {
-      var path = {cmds: [], crds: []};
-      if (font.SVG && font.SVG.entries[gid]) {
-        var p = font.SVG.entries[gid];
-        if (p == null)
-          return path;
-        if (typeof p == "string") {
-          p = Typr.SVG.toPath(p);
-          font.SVG.entries[gid] = p;
+      }};
+      e2._bin = {readFixed: function(r3, e3) {
+        return (r3[e3] << 8 | r3[e3 + 1]) + (r3[e3 + 2] << 8 | r3[e3 + 3]) / 65540;
+      }, readF2dot14: function(r3, t3) {
+        return e2._bin.readShort(r3, t3) / 16384;
+      }, readInt: function(r3, t3) {
+        var a2 = e2._bin.t.uint8;
+        return a2[0] = r3[t3 + 3], a2[1] = r3[t3 + 2], a2[2] = r3[t3 + 1], a2[3] = r3[t3], e2._bin.t.int32[0];
+      }, readInt8: function(r3, t3) {
+        return e2._bin.t.uint8[0] = r3[t3], e2._bin.t.int8[0];
+      }, readShort: function(r3, t3) {
+        var a2 = e2._bin.t.uint8;
+        return a2[1] = r3[t3], a2[0] = r3[t3 + 1], e2._bin.t.int16[0];
+      }, readUshort: function(r3, e3) {
+        return r3[e3] << 8 | r3[e3 + 1];
+      }, readUshorts: function(r3, t3, a2) {
+        for (var n2 = [], o2 = 0; o2 < a2; o2++)
+          n2.push(e2._bin.readUshort(r3, t3 + 2 * o2));
+        return n2;
+      }, readUint: function(r3, t3) {
+        var a2 = e2._bin.t.uint8;
+        return a2[3] = r3[t3], a2[2] = r3[t3 + 1], a2[1] = r3[t3 + 2], a2[0] = r3[t3 + 3], e2._bin.t.uint32[0];
+      }, readUint64: function(r3, t3) {
+        return 4294967296 * e2._bin.readUint(r3, t3) + e2._bin.readUint(r3, t3 + 4);
+      }, readASCII: function(r3, e3, t3) {
+        for (var a2 = "", n2 = 0; n2 < t3; n2++)
+          a2 += String.fromCharCode(r3[e3 + n2]);
+        return a2;
+      }, readUnicode: function(r3, e3, t3) {
+        for (var a2 = "", n2 = 0; n2 < t3; n2++) {
+          var o2 = r3[e3++] << 8 | r3[e3++];
+          a2 += String.fromCharCode(o2);
         }
-        return p;
-      } else if (font.CFF) {
-        var state = {x: 0, y: 0, stack: [], nStems: 0, haveWidth: false, width: font.CFF.Private ? font.CFF.Private.defaultWidthX : 0, open: false};
-        var cff = font.CFF, pdct = font.CFF.Private;
-        if (cff.ROS) {
-          var gi = 0;
-          while (cff.FDSelect[gi + 2] <= gid)
-            gi += 2;
-          pdct = cff.FDArray[cff.FDSelect[gi + 1]].Private;
+        return a2;
+      }, _tdec: typeof window != "undefined" && window.TextDecoder ? new window.TextDecoder() : null, readUTF8: function(r3, t3, a2) {
+        var n2 = e2._bin._tdec;
+        return n2 && t3 == 0 && a2 == r3.length ? n2.decode(r3) : e2._bin.readASCII(r3, t3, a2);
+      }, readBytes: function(r3, e3, t3) {
+        for (var a2 = [], n2 = 0; n2 < t3; n2++)
+          a2.push(r3[e3 + n2]);
+        return a2;
+      }, readASCIIArray: function(r3, e3, t3) {
+        for (var a2 = [], n2 = 0; n2 < t3; n2++)
+          a2.push(String.fromCharCode(r3[e3 + n2]));
+        return a2;
+      }}, e2._bin.t = {buff: new ArrayBuffer(8)}, e2._bin.t.int8 = new Int8Array(e2._bin.t.buff), e2._bin.t.uint8 = new Uint8Array(e2._bin.t.buff), e2._bin.t.int16 = new Int16Array(e2._bin.t.buff), e2._bin.t.uint16 = new Uint16Array(e2._bin.t.buff), e2._bin.t.int32 = new Int32Array(e2._bin.t.buff), e2._bin.t.uint32 = new Uint32Array(e2._bin.t.buff), e2._lctf = {}, e2._lctf.parse = function(r3, t3, a2, n2, o2) {
+        var s = e2._bin, i2 = {}, h = t3;
+        s.readFixed(r3, t3);
+        t3 += 4;
+        var f = s.readUshort(r3, t3);
+        t3 += 2;
+        var d = s.readUshort(r3, t3);
+        t3 += 2;
+        var u = s.readUshort(r3, t3);
+        return t3 += 2, i2.scriptList = e2._lctf.readScriptList(r3, h + f), i2.featureList = e2._lctf.readFeatureList(r3, h + d), i2.lookupList = e2._lctf.readLookupList(r3, h + u, o2), i2;
+      }, e2._lctf.readLookupList = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = t3, s = [], i2 = n2.readUshort(r3, t3);
+        t3 += 2;
+        for (var h = 0; h < i2; h++) {
+          var f = n2.readUshort(r3, t3);
+          t3 += 2;
+          var d = e2._lctf.readLookupTable(r3, o2 + f, a2);
+          s.push(d);
         }
-        Typr.U._drawCFF(font.CFF.CharStrings[gid], state, cff, pdct, path);
-      } else if (font.glyf) {
-        Typr.U._drawGlyf(gid, font, path);
-      }
-      return path;
-    };
-    Typr.U._drawGlyf = function(gid, font, path) {
-      var gl = font.glyf[gid];
-      if (gl == null)
-        gl = font.glyf[gid] = Typr.glyf._parseGlyf(font, gid);
-      if (gl != null) {
-        if (gl.noc > -1)
-          Typr.U._simpleGlyph(gl, path);
-        else
-          Typr.U._compoGlyph(gl, font, path);
-      }
-    };
-    Typr.U._simpleGlyph = function(gl, p) {
-      for (var c = 0; c < gl.noc; c++) {
-        var i0 = c == 0 ? 0 : gl.endPts[c - 1] + 1;
-        var il = gl.endPts[c];
-        for (var i2 = i0; i2 <= il; i2++) {
-          var pr = i2 == i0 ? il : i2 - 1;
-          var nx = i2 == il ? i0 : i2 + 1;
-          var onCurve = gl.flags[i2] & 1;
-          var prOnCurve = gl.flags[pr] & 1;
-          var nxOnCurve = gl.flags[nx] & 1;
-          var x = gl.xs[i2], y = gl.ys[i2];
-          if (i2 == i0) {
-            if (onCurve) {
-              if (prOnCurve)
-                Typr.U.P.moveTo(p, gl.xs[pr], gl.ys[pr]);
-              else {
-                Typr.U.P.moveTo(p, x, y);
-                continue;
-              }
-            } else {
-              if (prOnCurve)
-                Typr.U.P.moveTo(p, gl.xs[pr], gl.ys[pr]);
-              else
-                Typr.U.P.moveTo(p, (gl.xs[pr] + x) / 2, (gl.ys[pr] + y) / 2);
-            }
+        return s;
+      }, e2._lctf.readLookupTable = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = t3, s = {tabs: []};
+        s.ltype = n2.readUshort(r3, t3), t3 += 2, s.flag = n2.readUshort(r3, t3), t3 += 2;
+        var i2 = n2.readUshort(r3, t3);
+        t3 += 2;
+        for (var h = s.ltype, f = 0; f < i2; f++) {
+          var d = n2.readUshort(r3, t3);
+          t3 += 2;
+          var u = a2(r3, h, o2 + d, s);
+          s.tabs.push(u);
+        }
+        return s;
+      }, e2._lctf.numOfOnes = function(r3) {
+        for (var e3 = 0, t3 = 0; t3 < 32; t3++)
+          (r3 >>> t3 & 1) != 0 && e3++;
+        return e3;
+      }, e2._lctf.readClassDef = function(r3, t3) {
+        var a2 = e2._bin, n2 = [], o2 = a2.readUshort(r3, t3);
+        if (t3 += 2, o2 == 1) {
+          var s = a2.readUshort(r3, t3);
+          t3 += 2;
+          var i2 = a2.readUshort(r3, t3);
+          t3 += 2;
+          for (var h = 0; h < i2; h++)
+            n2.push(s + h), n2.push(s + h), n2.push(a2.readUshort(r3, t3)), t3 += 2;
+        }
+        if (o2 == 2) {
+          var f = a2.readUshort(r3, t3);
+          t3 += 2;
+          for (h = 0; h < f; h++)
+            n2.push(a2.readUshort(r3, t3)), t3 += 2, n2.push(a2.readUshort(r3, t3)), t3 += 2, n2.push(a2.readUshort(r3, t3)), t3 += 2;
+        }
+        return n2;
+      }, e2._lctf.getInterval = function(r3, e3) {
+        for (var t3 = 0; t3 < r3.length; t3 += 3) {
+          var a2 = r3[t3], n2 = r3[t3 + 1];
+          r3[t3 + 2];
+          if (a2 <= e3 && e3 <= n2)
+            return t3;
+        }
+        return -1;
+      }, e2._lctf.readCoverage = function(r3, t3) {
+        var a2 = e2._bin, n2 = {};
+        n2.fmt = a2.readUshort(r3, t3), t3 += 2;
+        var o2 = a2.readUshort(r3, t3);
+        return t3 += 2, n2.fmt == 1 && (n2.tab = a2.readUshorts(r3, t3, o2)), n2.fmt == 2 && (n2.tab = a2.readUshorts(r3, t3, 3 * o2)), n2;
+      }, e2._lctf.coverageIndex = function(r3, t3) {
+        var a2 = r3.tab;
+        if (r3.fmt == 1)
+          return a2.indexOf(t3);
+        if (r3.fmt == 2) {
+          var n2 = e2._lctf.getInterval(a2, t3);
+          if (n2 != -1)
+            return a2[n2 + 2] + (t3 - a2[n2]);
+        }
+        return -1;
+      }, e2._lctf.readFeatureList = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = [], s = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = a2.readASCII(r3, t3, 4);
+          t3 += 4;
+          var f = a2.readUshort(r3, t3);
+          t3 += 2;
+          var d = e2._lctf.readFeatureTable(r3, n2 + f);
+          d.tag = h.trim(), o2.push(d);
+        }
+        return o2;
+      }, e2._lctf.readFeatureTable = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = {}, s = a2.readUshort(r3, t3);
+        t3 += 2, s > 0 && (o2.featureParams = n2 + s);
+        var i2 = a2.readUshort(r3, t3);
+        t3 += 2, o2.tab = [];
+        for (var h = 0; h < i2; h++)
+          o2.tab.push(a2.readUshort(r3, t3 + 2 * h));
+        return o2;
+      }, e2._lctf.readScriptList = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = {}, s = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = a2.readASCII(r3, t3, 4);
+          t3 += 4;
+          var f = a2.readUshort(r3, t3);
+          t3 += 2, o2[h.trim()] = e2._lctf.readScriptTable(r3, n2 + f);
+        }
+        return o2;
+      }, e2._lctf.readScriptTable = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = {}, s = a2.readUshort(r3, t3);
+        t3 += 2, o2.default = e2._lctf.readLangSysTable(r3, n2 + s);
+        var i2 = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var h = 0; h < i2; h++) {
+          var f = a2.readASCII(r3, t3, 4);
+          t3 += 4;
+          var d = a2.readUshort(r3, t3);
+          t3 += 2, o2[f.trim()] = e2._lctf.readLangSysTable(r3, n2 + d);
+        }
+        return o2;
+      }, e2._lctf.readLangSysTable = function(r3, t3) {
+        var a2 = e2._bin, n2 = {};
+        a2.readUshort(r3, t3);
+        t3 += 2, n2.reqFeature = a2.readUshort(r3, t3), t3 += 2;
+        var o2 = a2.readUshort(r3, t3);
+        return t3 += 2, n2.features = a2.readUshorts(r3, t3, o2), n2;
+      }, e2.CFF = {}, e2.CFF.parse = function(r3, t3, a2) {
+        var n2 = e2._bin;
+        (r3 = new Uint8Array(r3.buffer, t3, a2))[t3 = 0], r3[++t3], r3[++t3], r3[++t3];
+        t3++;
+        var o2 = [];
+        t3 = e2.CFF.readIndex(r3, t3, o2);
+        for (var s = [], i2 = 0; i2 < o2.length - 1; i2++)
+          s.push(n2.readASCII(r3, t3 + o2[i2], o2[i2 + 1] - o2[i2]));
+        t3 += o2[o2.length - 1];
+        var h = [];
+        t3 = e2.CFF.readIndex(r3, t3, h);
+        var f = [];
+        for (i2 = 0; i2 < h.length - 1; i2++)
+          f.push(e2.CFF.readDict(r3, t3 + h[i2], t3 + h[i2 + 1]));
+        t3 += h[h.length - 1];
+        var d = f[0], u = [];
+        t3 = e2.CFF.readIndex(r3, t3, u);
+        var l = [];
+        for (i2 = 0; i2 < u.length - 1; i2++)
+          l.push(n2.readASCII(r3, t3 + u[i2], u[i2 + 1] - u[i2]));
+        if (t3 += u[u.length - 1], e2.CFF.readSubrs(r3, t3, d), d.CharStrings) {
+          t3 = d.CharStrings;
+          u = [];
+          t3 = e2.CFF.readIndex(r3, t3, u);
+          var v = [];
+          for (i2 = 0; i2 < u.length - 1; i2++)
+            v.push(n2.readBytes(r3, t3 + u[i2], u[i2 + 1] - u[i2]));
+          d.CharStrings = v;
+        }
+        if (d.ROS) {
+          t3 = d.FDArray;
+          var c = [];
+          t3 = e2.CFF.readIndex(r3, t3, c), d.FDArray = [];
+          for (i2 = 0; i2 < c.length - 1; i2++) {
+            var p = e2.CFF.readDict(r3, t3 + c[i2], t3 + c[i2 + 1]);
+            e2.CFF._readFDict(r3, p, l), d.FDArray.push(p);
           }
-          if (onCurve) {
-            if (prOnCurve)
-              Typr.U.P.lineTo(p, x, y);
-          } else {
-            if (nxOnCurve)
-              Typr.U.P.qcurveTo(p, x, y, gl.xs[nx], gl.ys[nx]);
-            else
-              Typr.U.P.qcurveTo(p, x, y, (x + gl.xs[nx]) / 2, (y + gl.ys[nx]) / 2);
+          t3 += c[c.length - 1], t3 = d.FDSelect, d.FDSelect = [];
+          var U = r3[t3];
+          if (t3++, U != 3)
+            throw U;
+          var g = n2.readUshort(r3, t3);
+          t3 += 2;
+          for (i2 = 0; i2 < g + 1; i2++)
+            d.FDSelect.push(n2.readUshort(r3, t3), r3[t3 + 2]), t3 += 3;
+        }
+        return d.Encoding && (d.Encoding = e2.CFF.readEncoding(r3, d.Encoding, d.CharStrings.length)), d.charset && (d.charset = e2.CFF.readCharset(r3, d.charset, d.CharStrings.length)), e2.CFF._readFDict(r3, d, l), d;
+      }, e2.CFF._readFDict = function(r3, t3, a2) {
+        var n2;
+        for (var o2 in t3.Private && (n2 = t3.Private[1], t3.Private = e2.CFF.readDict(r3, n2, n2 + t3.Private[0]), t3.Private.Subrs && e2.CFF.readSubrs(r3, n2 + t3.Private.Subrs, t3.Private)), t3)
+          ["FamilyName", "FontName", "FullName", "Notice", "version", "Copyright"].indexOf(o2) != -1 && (t3[o2] = a2[t3[o2] - 426 + 35]);
+      }, e2.CFF.readSubrs = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = [];
+        t3 = e2.CFF.readIndex(r3, t3, o2);
+        var s, i2 = o2.length;
+        s = i2 < 1240 ? 107 : i2 < 33900 ? 1131 : 32768, a2.Bias = s, a2.Subrs = [];
+        for (var h = 0; h < o2.length - 1; h++)
+          a2.Subrs.push(n2.readBytes(r3, t3 + o2[h], o2[h + 1] - o2[h]));
+      }, e2.CFF.tableSE = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 0, 111, 112, 113, 114, 0, 115, 116, 117, 118, 119, 120, 121, 122, 0, 123, 0, 124, 125, 126, 127, 128, 129, 130, 131, 0, 132, 133, 0, 134, 135, 136, 137, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 138, 0, 139, 0, 0, 0, 0, 140, 141, 142, 143, 0, 0, 0, 0, 0, 144, 0, 0, 0, 145, 0, 0, 146, 147, 148, 149, 0, 0, 0, 0], e2.CFF.glyphByUnicode = function(r3, e3) {
+        for (var t3 = 0; t3 < r3.charset.length; t3++)
+          if (r3.charset[t3] == e3)
+            return t3;
+        return -1;
+      }, e2.CFF.glyphBySE = function(r3, t3) {
+        return t3 < 0 || t3 > 255 ? -1 : e2.CFF.glyphByUnicode(r3, e2.CFF.tableSE[t3]);
+      }, e2.CFF.readEncoding = function(r3, t3, a2) {
+        e2._bin;
+        var n2 = [".notdef"], o2 = r3[t3];
+        if (t3++, o2 != 0)
+          throw "error: unknown encoding format: " + o2;
+        var s = r3[t3];
+        t3++;
+        for (var i2 = 0; i2 < s; i2++)
+          n2.push(r3[t3 + i2]);
+        return n2;
+      }, e2.CFF.readCharset = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = [".notdef"], s = r3[t3];
+        if (t3++, s == 0)
+          for (var i2 = 0; i2 < a2; i2++) {
+            var h = n2.readUshort(r3, t3);
+            t3 += 2, o2.push(h);
+          }
+        else {
+          if (s != 1 && s != 2)
+            throw "error: format: " + s;
+          for (; o2.length < a2; ) {
+            h = n2.readUshort(r3, t3);
+            t3 += 2;
+            var f = 0;
+            s == 1 ? (f = r3[t3], t3++) : (f = n2.readUshort(r3, t3), t3 += 2);
+            for (i2 = 0; i2 <= f; i2++)
+              o2.push(h), h++;
           }
         }
-        Typr.U.P.closePath(p);
-      }
-    };
-    Typr.U._compoGlyph = function(gl, font, p) {
-      for (var j = 0; j < gl.parts.length; j++) {
-        var path = {cmds: [], crds: []};
-        var prt = gl.parts[j];
-        Typr.U._drawGlyf(prt.glyphIndex, font, path);
-        var m = prt.m;
-        for (var i2 = 0; i2 < path.crds.length; i2 += 2) {
-          var x = path.crds[i2], y = path.crds[i2 + 1];
-          p.crds.push(x * m.a + y * m.b + m.tx);
-          p.crds.push(x * m.c + y * m.d + m.ty);
+        return o2;
+      }, e2.CFF.readIndex = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = n2.readUshort(r3, t3) + 1, s = r3[t3 += 2];
+        if (t3++, s == 1)
+          for (var i2 = 0; i2 < o2; i2++)
+            a2.push(r3[t3 + i2]);
+        else if (s == 2)
+          for (i2 = 0; i2 < o2; i2++)
+            a2.push(n2.readUshort(r3, t3 + 2 * i2));
+        else if (s == 3)
+          for (i2 = 0; i2 < o2; i2++)
+            a2.push(16777215 & n2.readUint(r3, t3 + 3 * i2 - 1));
+        else if (o2 != 1)
+          throw "unsupported offset size: " + s + ", count: " + o2;
+        return (t3 += o2 * s) - 1;
+      }, e2.CFF.getCharString = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = r3[t3], s = r3[t3 + 1], i2 = (r3[t3 + 2], r3[t3 + 3], r3[t3 + 4], 1), h = null, f = null;
+        o2 <= 20 && (h = o2, i2 = 1), o2 == 12 && (h = 100 * o2 + s, i2 = 2), 21 <= o2 && o2 <= 27 && (h = o2, i2 = 1), o2 == 28 && (f = n2.readShort(r3, t3 + 1), i2 = 3), 29 <= o2 && o2 <= 31 && (h = o2, i2 = 1), 32 <= o2 && o2 <= 246 && (f = o2 - 139, i2 = 1), 247 <= o2 && o2 <= 250 && (f = 256 * (o2 - 247) + s + 108, i2 = 2), 251 <= o2 && o2 <= 254 && (f = 256 * -(o2 - 251) - s - 108, i2 = 2), o2 == 255 && (f = n2.readInt(r3, t3 + 1) / 65535, i2 = 5), a2.val = f != null ? f : "o" + h, a2.size = i2;
+      }, e2.CFF.readCharString = function(r3, t3, a2) {
+        for (var n2 = t3 + a2, o2 = e2._bin, s = []; t3 < n2; ) {
+          var i2 = r3[t3], h = r3[t3 + 1], f = (r3[t3 + 2], r3[t3 + 3], r3[t3 + 4], 1), d = null, u = null;
+          i2 <= 20 && (d = i2, f = 1), i2 == 12 && (d = 100 * i2 + h, f = 2), i2 != 19 && i2 != 20 || (d = i2, f = 2), 21 <= i2 && i2 <= 27 && (d = i2, f = 1), i2 == 28 && (u = o2.readShort(r3, t3 + 1), f = 3), 29 <= i2 && i2 <= 31 && (d = i2, f = 1), 32 <= i2 && i2 <= 246 && (u = i2 - 139, f = 1), 247 <= i2 && i2 <= 250 && (u = 256 * (i2 - 247) + h + 108, f = 2), 251 <= i2 && i2 <= 254 && (u = 256 * -(i2 - 251) - h - 108, f = 2), i2 == 255 && (u = o2.readInt(r3, t3 + 1) / 65535, f = 5), s.push(u != null ? u : "o" + d), t3 += f;
         }
-        for (var i2 = 0; i2 < path.cmds.length; i2++)
-          p.cmds.push(path.cmds[i2]);
-      }
-    };
-    Typr.U._getGlyphClass = function(g, cd) {
-      var intr = Typr._lctf.getInterval(cd, g);
-      return intr == -1 ? 0 : cd[intr + 2];
-    };
-    Typr.U.getPairAdjustment = function(font, g1, g2) {
-      if (font.GPOS) {
-        var gpos = font["GPOS"];
-        var llist = gpos.lookupList, flist = gpos.featureList;
-        var tused = [];
-        for (var i2 = 0; i2 < flist.length; i2++) {
-          var fl = flist[i2];
-          if (fl.tag != "kern")
-            continue;
-          for (var ti = 0; ti < fl.tab.length; ti++) {
-            if (tused[fl.tab[ti]])
-              continue;
-            tused[fl.tab[ti]] = true;
-            var tab = llist[fl.tab[ti]];
-            for (var j = 0; j < tab.tabs.length; j++) {
-              if (tab.tabs[i2] == null)
-                continue;
-              var ltab = tab.tabs[j], ind;
-              if (ltab.coverage) {
-                ind = Typr._lctf.coverageIndex(ltab.coverage, g1);
-                if (ind == -1)
-                  continue;
-              }
-              if (tab.ltype == 1)
-                ;
-              else if (tab.ltype == 2) {
-                var adj;
-                if (ltab.fmt == 1) {
-                  var right = ltab.pairsets[ind];
-                  for (var i2 = 0; i2 < right.length; i2++)
-                    if (right[i2].gid2 == g2)
-                      adj = right[i2];
-                } else if (ltab.fmt == 2) {
-                  var c1 = Typr.U._getGlyphClass(g1, ltab.classDef1);
-                  var c2 = Typr.U._getGlyphClass(g2, ltab.classDef2);
-                  adj = ltab.matrix[c1][c2];
-                }
-                if (adj && adj.val2)
-                  return adj.val2[2];
-              }
-            }
-          }
-        }
-      }
-      if (font.kern) {
-        var ind1 = font.kern.glyph1.indexOf(g1);
-        if (ind1 != -1) {
-          var ind2 = font.kern.rval[ind1].glyph2.indexOf(g2);
-          if (ind2 != -1)
-            return font.kern.rval[ind1].vals[ind2];
-        }
-      }
-      return 0;
-    };
-    Typr.U.stringToGlyphs = function(font, str) {
-      var gls = [];
-      for (var i2 = 0; i2 < str.length; i2++) {
-        var cc = str.codePointAt(i2);
-        if (cc > 65535)
-          i2++;
-        gls.push(Typr.U.codeToGlyph(font, cc));
-      }
-      for (var i2 = 0; i2 < str.length; i2++) {
-        var cc = str.codePointAt(i2);
-        if (cc == 2367) {
-          var t2 = gls[i2 - 1];
-          gls[i2 - 1] = gls[i2];
-          gls[i2] = t2;
-        }
-        if (cc > 65535)
-          i2++;
-      }
-      var gsub = font["GSUB"];
-      if (gsub == null)
-        return gls;
-      var llist = gsub.lookupList, flist = gsub.featureList;
-      var cligs = [
-        "rlig",
-        "liga",
-        "mset",
-        "isol",
-        "init",
-        "fina",
-        "medi",
-        "half",
-        "pres",
-        "blws"
-      ];
-      var tused = [];
-      for (var fi = 0; fi < flist.length; fi++) {
-        var fl = flist[fi];
-        if (cligs.indexOf(fl.tag) == -1)
-          continue;
-        for (var ti = 0; ti < fl.tab.length; ti++) {
-          if (tused[fl.tab[ti]])
-            continue;
-          tused[fl.tab[ti]] = true;
-          var tab = llist[fl.tab[ti]];
-          for (var ci = 0; ci < gls.length; ci++) {
-            var feat = Typr.U._getWPfeature(str, ci);
-            if ("isol,init,fina,medi".indexOf(fl.tag) != -1 && fl.tag != feat)
-              continue;
-            Typr.U._applySubs(gls, ci, tab, llist);
-          }
-        }
-      }
-      return gls;
-    };
-    Typr.U._getWPfeature = function(str, ci) {
-      var wsep = '\n	" ,.:;!?()  \u060C';
-      var R = "\u0622\u0623\u0624\u0625\u0627\u0629\u062F\u0630\u0631\u0632\u0648\u0671\u0672\u0673\u0675\u0676\u0677\u0688\u0689\u068A\u068B\u068C\u068D\u068E\u068F\u0690\u0691\u0692\u0693\u0694\u0695\u0696\u0697\u0698\u0699\u06C0\u06C3\u06C4\u06C5\u06C6\u06C7\u06C8\u06C9\u06CA\u06CB\u06CD\u06CF\u06D2\u06D3\u06D5\u06EE\u06EF\u0710\u0715\u0716\u0717\u0718\u0719\u071E\u0728\u072A\u072C\u072F\u074D\u0759\u075A\u075B\u076B\u076C\u0771\u0773\u0774\u0778\u0779\u0840\u0846\u0847\u0849\u0854\u0867\u0869\u086A\u08AA\u08AB\u08AC\u08AE\u08B1\u08B2\u08B9\u0AC5\u0AC7\u0AC9\u0ACA\u0ACE\u0ACF\u0AD0\u0AD1\u0AD2\u0ADD\u0AE1\u0AE4\u0AEF\u0B81\u0B83\u0B84\u0B85\u0B89\u0B8C\u0B8E\u0B8F\u0B91\u0BA9\u0BAA\u0BAB\u0BAC";
-      var L = "\uA872\u0ACD\u0AD7";
-      var slft = ci == 0 || wsep.indexOf(str[ci - 1]) != -1;
-      var srgt = ci == str.length - 1 || wsep.indexOf(str[ci + 1]) != -1;
-      if (!slft && R.indexOf(str[ci - 1]) != -1)
-        slft = true;
-      if (!srgt && R.indexOf(str[ci]) != -1)
-        srgt = true;
-      if (!srgt && L.indexOf(str[ci + 1]) != -1)
-        srgt = true;
-      if (!slft && L.indexOf(str[ci]) != -1)
-        slft = true;
-      var feat = null;
-      if (slft)
-        feat = srgt ? "isol" : "init";
-      else
-        feat = srgt ? "fina" : "medi";
-      return feat;
-    };
-    Typr.U._applySubs = function(gls, ci, tab, llist) {
-      var rlim = gls.length - ci - 1;
-      for (var j = 0; j < tab.tabs.length; j++) {
-        if (tab.tabs[j] == null)
-          continue;
-        var ltab = tab.tabs[j], ind;
-        if (ltab.coverage) {
-          ind = Typr._lctf.coverageIndex(ltab.coverage, gls[ci]);
-          if (ind == -1)
-            continue;
-        }
-        if (tab.ltype == 1) {
-          var gl = gls[ci];
-          if (ltab.fmt == 1)
-            gls[ci] = gls[ci] + ltab.delta;
-          else
-            gls[ci] = ltab.newg[ind];
-        } else if (tab.ltype == 4) {
-          var vals = ltab.vals[ind];
-          for (var k = 0; k < vals.length; k++) {
-            var lig = vals[k], rl = lig.chain.length;
-            if (rl > rlim)
-              continue;
-            var good = true, em1 = 0;
-            for (var l = 0; l < rl; l++) {
-              while (gls[ci + em1 + (1 + l)] == -1)
-                em1++;
-              if (lig.chain[l] != gls[ci + em1 + (1 + l)])
-                good = false;
-            }
-            if (!good)
-              continue;
-            gls[ci] = lig.nglyph;
-            for (var l = 0; l < rl + em1; l++)
-              gls[ci + l + 1] = -1;
-            break;
-          }
-        } else if (tab.ltype == 5 && ltab.fmt == 2) {
-          var cind = Typr._lctf.getInterval(ltab.cDef, gls[ci]);
-          var cls = ltab.cDef[cind + 2], scs = ltab.scset[cls];
-          for (var i2 = 0; i2 < scs.length; i2++) {
-            var sc = scs[i2], inp = sc.input;
-            if (inp.length > rlim)
-              continue;
-            var good = true;
-            for (var l = 0; l < inp.length; l++) {
-              var cind2 = Typr._lctf.getInterval(ltab.cDef, gls[ci + 1 + l]);
-              if (cind == -1 && ltab.cDef[cind2 + 2] != inp[l]) {
-                good = false;
+        return s;
+      }, e2.CFF.readDict = function(r3, t3, a2) {
+        for (var n2 = e2._bin, o2 = {}, s = []; t3 < a2; ) {
+          var i2 = r3[t3], h = r3[t3 + 1], f = (r3[t3 + 2], r3[t3 + 3], r3[t3 + 4], 1), d = null, u = null;
+          if (i2 == 28 && (u = n2.readShort(r3, t3 + 1), f = 3), i2 == 29 && (u = n2.readInt(r3, t3 + 1), f = 5), 32 <= i2 && i2 <= 246 && (u = i2 - 139, f = 1), 247 <= i2 && i2 <= 250 && (u = 256 * (i2 - 247) + h + 108, f = 2), 251 <= i2 && i2 <= 254 && (u = 256 * -(i2 - 251) - h - 108, f = 2), i2 == 255)
+            throw u = n2.readInt(r3, t3 + 1) / 65535, f = 5, "unknown number";
+          if (i2 == 30) {
+            var l = [];
+            for (f = 1; ; ) {
+              var v = r3[t3 + f];
+              f++;
+              var c = v >> 4, p = 15 & v;
+              if (c != 15 && l.push(c), p != 15 && l.push(p), p == 15)
                 break;
+            }
+            for (var U = "", g = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, ".", "e", "e-", "reserved", "-", "endOfNumber"], S = 0; S < l.length; S++)
+              U += g[l[S]];
+            u = parseFloat(U);
+          }
+          if (i2 <= 21) {
+            if (d = ["version", "Notice", "FullName", "FamilyName", "Weight", "FontBBox", "BlueValues", "OtherBlues", "FamilyBlues", "FamilyOtherBlues", "StdHW", "StdVW", "escape", "UniqueID", "XUID", "charset", "Encoding", "CharStrings", "Private", "Subrs", "defaultWidthX", "nominalWidthX"][i2], f = 1, i2 == 12)
+              d = ["Copyright", "isFixedPitch", "ItalicAngle", "UnderlinePosition", "UnderlineThickness", "PaintType", "CharstringType", "FontMatrix", "StrokeWidth", "BlueScale", "BlueShift", "BlueFuzz", "StemSnapH", "StemSnapV", "ForceBold", 0, 0, "LanguageGroup", "ExpansionFactor", "initialRandomSeed", "SyntheticBase", "PostScript", "BaseFontName", "BaseFontBlend", 0, 0, 0, 0, 0, 0, "ROS", "CIDFontVersion", "CIDFontRevision", "CIDFontType", "CIDCount", "UIDBase", "FDArray", "FDSelect", "FontName"][h], f = 2;
+          }
+          d != null ? (o2[d] = s.length == 1 ? s[0] : s, s = []) : s.push(u), t3 += f;
+        }
+        return o2;
+      }, e2.cmap = {}, e2.cmap.parse = function(r3, t3, a2) {
+        r3 = new Uint8Array(r3.buffer, t3, a2), t3 = 0;
+        var n2 = e2._bin, o2 = {};
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        var s = n2.readUshort(r3, t3);
+        t3 += 2;
+        var i2 = [];
+        o2.tables = [];
+        for (var h = 0; h < s; h++) {
+          var f = n2.readUshort(r3, t3);
+          t3 += 2;
+          var d = n2.readUshort(r3, t3);
+          t3 += 2;
+          var u = n2.readUint(r3, t3);
+          t3 += 4;
+          var l = "p" + f + "e" + d, v = i2.indexOf(u);
+          if (v == -1) {
+            var c;
+            v = o2.tables.length, i2.push(u);
+            var p = n2.readUshort(r3, u);
+            p == 0 ? c = e2.cmap.parse0(r3, u) : p == 4 ? c = e2.cmap.parse4(r3, u) : p == 6 ? c = e2.cmap.parse6(r3, u) : p == 12 ? c = e2.cmap.parse12(r3, u) : console.debug("unknown format: " + p, f, d, u), o2.tables.push(c);
+          }
+          if (o2[l] != null)
+            throw "multiple tables for one platform+encoding";
+          o2[l] = v;
+        }
+        return o2;
+      }, e2.cmap.parse0 = function(r3, t3) {
+        var a2 = e2._bin, n2 = {};
+        n2.format = a2.readUshort(r3, t3), t3 += 2;
+        var o2 = a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2, n2.map = [];
+        for (var s = 0; s < o2 - 6; s++)
+          n2.map.push(r3[t3 + s]);
+        return n2;
+      }, e2.cmap.parse4 = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = {};
+        o2.format = a2.readUshort(r3, t3), t3 += 2;
+        var s = a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2;
+        var i2 = a2.readUshort(r3, t3);
+        t3 += 2;
+        var h = i2 / 2;
+        o2.searchRange = a2.readUshort(r3, t3), t3 += 2, o2.entrySelector = a2.readUshort(r3, t3), t3 += 2, o2.rangeShift = a2.readUshort(r3, t3), t3 += 2, o2.endCount = a2.readUshorts(r3, t3, h), t3 += 2 * h, t3 += 2, o2.startCount = a2.readUshorts(r3, t3, h), t3 += 2 * h, o2.idDelta = [];
+        for (var f = 0; f < h; f++)
+          o2.idDelta.push(a2.readShort(r3, t3)), t3 += 2;
+        for (o2.idRangeOffset = a2.readUshorts(r3, t3, h), t3 += 2 * h, o2.glyphIdArray = []; t3 < n2 + s; )
+          o2.glyphIdArray.push(a2.readUshort(r3, t3)), t3 += 2;
+        return o2;
+      }, e2.cmap.parse6 = function(r3, t3) {
+        var a2 = e2._bin, n2 = {};
+        n2.format = a2.readUshort(r3, t3), t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2;
+        a2.readUshort(r3, t3);
+        t3 += 2, n2.firstCode = a2.readUshort(r3, t3), t3 += 2;
+        var o2 = a2.readUshort(r3, t3);
+        t3 += 2, n2.glyphIdArray = [];
+        for (var s = 0; s < o2; s++)
+          n2.glyphIdArray.push(a2.readUshort(r3, t3)), t3 += 2;
+        return n2;
+      }, e2.cmap.parse12 = function(r3, t3) {
+        var a2 = e2._bin, n2 = {};
+        n2.format = a2.readUshort(r3, t3), t3 += 2, t3 += 2;
+        a2.readUint(r3, t3);
+        t3 += 4;
+        a2.readUint(r3, t3);
+        t3 += 4;
+        var o2 = a2.readUint(r3, t3);
+        t3 += 4, n2.groups = [];
+        for (var s = 0; s < o2; s++) {
+          var i2 = t3 + 12 * s, h = a2.readUint(r3, i2 + 0), f = a2.readUint(r3, i2 + 4), d = a2.readUint(r3, i2 + 8);
+          n2.groups.push([h, f, d]);
+        }
+        return n2;
+      }, e2.glyf = {}, e2.glyf.parse = function(r3, e3, t3, a2) {
+        for (var n2 = [], o2 = 0; o2 < a2.maxp.numGlyphs; o2++)
+          n2.push(null);
+        return n2;
+      }, e2.glyf._parseGlyf = function(r3, t3) {
+        var a2 = e2._bin, n2 = r3._data, o2 = e2._tabOffset(n2, "glyf", r3._offset) + r3.loca[t3];
+        if (r3.loca[t3] == r3.loca[t3 + 1])
+          return null;
+        var s = {};
+        if (s.noc = a2.readShort(n2, o2), o2 += 2, s.xMin = a2.readShort(n2, o2), o2 += 2, s.yMin = a2.readShort(n2, o2), o2 += 2, s.xMax = a2.readShort(n2, o2), o2 += 2, s.yMax = a2.readShort(n2, o2), o2 += 2, s.xMin >= s.xMax || s.yMin >= s.yMax)
+          return null;
+        if (s.noc > 0) {
+          s.endPts = [];
+          for (var i2 = 0; i2 < s.noc; i2++)
+            s.endPts.push(a2.readUshort(n2, o2)), o2 += 2;
+          var h = a2.readUshort(n2, o2);
+          if (o2 += 2, n2.length - o2 < h)
+            return null;
+          s.instructions = a2.readBytes(n2, o2, h), o2 += h;
+          var f = s.endPts[s.noc - 1] + 1;
+          s.flags = [];
+          for (i2 = 0; i2 < f; i2++) {
+            var d = n2[o2];
+            if (o2++, s.flags.push(d), (8 & d) != 0) {
+              var u = n2[o2];
+              o2++;
+              for (var l = 0; l < u; l++)
+                s.flags.push(d), i2++;
+            }
+          }
+          s.xs = [];
+          for (i2 = 0; i2 < f; i2++) {
+            var v = (2 & s.flags[i2]) != 0, c = (16 & s.flags[i2]) != 0;
+            v ? (s.xs.push(c ? n2[o2] : -n2[o2]), o2++) : c ? s.xs.push(0) : (s.xs.push(a2.readShort(n2, o2)), o2 += 2);
+          }
+          s.ys = [];
+          for (i2 = 0; i2 < f; i2++) {
+            v = (4 & s.flags[i2]) != 0, c = (32 & s.flags[i2]) != 0;
+            v ? (s.ys.push(c ? n2[o2] : -n2[o2]), o2++) : c ? s.ys.push(0) : (s.ys.push(a2.readShort(n2, o2)), o2 += 2);
+          }
+          var p = 0, U = 0;
+          for (i2 = 0; i2 < f; i2++)
+            p += s.xs[i2], U += s.ys[i2], s.xs[i2] = p, s.ys[i2] = U;
+        } else {
+          var g;
+          s.parts = [];
+          do {
+            g = a2.readUshort(n2, o2), o2 += 2;
+            var S = {m: {a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0}, p1: -1, p2: -1};
+            if (s.parts.push(S), S.glyphIndex = a2.readUshort(n2, o2), o2 += 2, 1 & g) {
+              var m = a2.readShort(n2, o2);
+              o2 += 2;
+              var b = a2.readShort(n2, o2);
+              o2 += 2;
+            } else {
+              m = a2.readInt8(n2, o2);
+              o2++;
+              b = a2.readInt8(n2, o2);
+              o2++;
+            }
+            2 & g ? (S.m.tx = m, S.m.ty = b) : (S.p1 = m, S.p2 = b), 8 & g ? (S.m.a = S.m.d = a2.readF2dot14(n2, o2), o2 += 2) : 64 & g ? (S.m.a = a2.readF2dot14(n2, o2), o2 += 2, S.m.d = a2.readF2dot14(n2, o2), o2 += 2) : 128 & g && (S.m.a = a2.readF2dot14(n2, o2), o2 += 2, S.m.b = a2.readF2dot14(n2, o2), o2 += 2, S.m.c = a2.readF2dot14(n2, o2), o2 += 2, S.m.d = a2.readF2dot14(n2, o2), o2 += 2);
+          } while (32 & g);
+          if (256 & g) {
+            var y = a2.readUshort(n2, o2);
+            o2 += 2, s.instr = [];
+            for (i2 = 0; i2 < y; i2++)
+              s.instr.push(n2[o2]), o2++;
+          }
+        }
+        return s;
+      }, e2.GPOS = {}, e2.GPOS.parse = function(r3, t3, a2, n2) {
+        return e2._lctf.parse(r3, t3, a2, n2, e2.GPOS.subt);
+      }, e2.GPOS.subt = function(r3, t3, a2, n2) {
+        var o2 = e2._bin, s = a2, i2 = {};
+        if (i2.fmt = o2.readUshort(r3, a2), a2 += 2, t3 == 1 || t3 == 2 || t3 == 3 || t3 == 7 || t3 == 8 && i2.fmt <= 2) {
+          var h = o2.readUshort(r3, a2);
+          a2 += 2, i2.coverage = e2._lctf.readCoverage(r3, h + s);
+        }
+        if (t3 == 1 && i2.fmt == 1) {
+          var f = o2.readUshort(r3, a2);
+          a2 += 2;
+          var d = e2._lctf.numOfOnes(f);
+          f != 0 && (i2.pos = e2.GPOS.readValueRecord(r3, a2, f));
+        } else if (t3 == 2 && i2.fmt >= 1 && i2.fmt <= 2) {
+          f = o2.readUshort(r3, a2);
+          a2 += 2;
+          var u = o2.readUshort(r3, a2);
+          a2 += 2;
+          d = e2._lctf.numOfOnes(f);
+          var l = e2._lctf.numOfOnes(u);
+          if (i2.fmt == 1) {
+            i2.pairsets = [];
+            var v = o2.readUshort(r3, a2);
+            a2 += 2;
+            for (var c = 0; c < v; c++) {
+              var p = s + o2.readUshort(r3, a2);
+              a2 += 2;
+              var U = o2.readUshort(r3, p);
+              p += 2;
+              for (var g = [], S = 0; S < U; S++) {
+                var m = o2.readUshort(r3, p);
+                p += 2, f != 0 && (x = e2.GPOS.readValueRecord(r3, p, f), p += 2 * d), u != 0 && (P = e2.GPOS.readValueRecord(r3, p, u), p += 2 * l), g.push({gid2: m, val1: x, val2: P});
               }
-            }
-            if (!good)
-              continue;
-            var lrs = sc.substLookupRecords;
-            for (var k = 0; k < lrs.length; k += 2) {
-              var gi = lrs[k], tabi = lrs[k + 1];
+              i2.pairsets.push(g);
             }
           }
-        } else if (tab.ltype == 6 && ltab.fmt == 3) {
-          if (!Typr.U._glsCovered(gls, ltab.backCvg, ci - ltab.backCvg.length))
-            continue;
-          if (!Typr.U._glsCovered(gls, ltab.inptCvg, ci))
-            continue;
-          if (!Typr.U._glsCovered(gls, ltab.ahedCvg, ci + ltab.inptCvg.length))
-            continue;
-          var lr = ltab.lookupRec;
-          for (var i2 = 0; i2 < lr.length; i2 += 2) {
-            var cind = lr[i2], tab2 = llist[lr[i2 + 1]];
-            Typr.U._applySubs(gls, ci + cind, tab2, llist);
+          if (i2.fmt == 2) {
+            var b = o2.readUshort(r3, a2);
+            a2 += 2;
+            var y = o2.readUshort(r3, a2);
+            a2 += 2;
+            var _ = o2.readUshort(r3, a2);
+            a2 += 2;
+            var F = o2.readUshort(r3, a2);
+            a2 += 2, i2.classDef1 = e2._lctf.readClassDef(r3, s + b), i2.classDef2 = e2._lctf.readClassDef(r3, s + y), i2.matrix = [];
+            for (c = 0; c < _; c++) {
+              var C = [];
+              for (S = 0; S < F; S++) {
+                var x = null, P = null;
+                f != 0 && (x = e2.GPOS.readValueRecord(r3, a2, f), a2 += 2 * d), u != 0 && (P = e2.GPOS.readValueRecord(r3, a2, u), a2 += 2 * l), C.push({val1: x, val2: P});
+              }
+              i2.matrix.push(C);
+            }
           }
+        } else {
+          if (t3 == 9 && i2.fmt == 1) {
+            var I = o2.readUshort(r3, a2);
+            a2 += 2;
+            var G = o2.readUint(r3, a2);
+            if (a2 += 4, n2.ltype == 9)
+              n2.ltype = I;
+            else if (n2.ltype != I)
+              throw "invalid extension substitution";
+            return e2.GPOS.subt(r3, n2.ltype, s + G);
+          }
+          console.debug("unsupported GPOS table LookupType", t3, "format", i2.fmt);
         }
-      }
-    };
-    Typr.U._glsCovered = function(gls, cvgs, ci) {
-      for (var i2 = 0; i2 < cvgs.length; i2++) {
-        var ind = Typr._lctf.coverageIndex(cvgs[i2], gls[ci + i2]);
-        if (ind == -1)
-          return false;
-      }
-      return true;
-    };
-    Typr.U.glyphsToPath = function(font, gls, clr) {
-      var tpath = {cmds: [], crds: []};
-      var x = 0;
-      for (var i2 = 0; i2 < gls.length; i2++) {
-        var gid = gls[i2];
-        if (gid == -1)
-          continue;
-        var gid2 = i2 < gls.length - 1 && gls[i2 + 1] != -1 ? gls[i2 + 1] : 0;
-        var path = Typr.U.glyphToPath(font, gid);
-        for (var j = 0; j < path.crds.length; j += 2) {
-          tpath.crds.push(path.crds[j] + x);
-          tpath.crds.push(path.crds[j + 1]);
+        return i2;
+      }, e2.GPOS.readValueRecord = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = [];
+        return o2.push(1 & a2 ? n2.readShort(r3, t3) : 0), t3 += 1 & a2 ? 2 : 0, o2.push(2 & a2 ? n2.readShort(r3, t3) : 0), t3 += 2 & a2 ? 2 : 0, o2.push(4 & a2 ? n2.readShort(r3, t3) : 0), t3 += 4 & a2 ? 2 : 0, o2.push(8 & a2 ? n2.readShort(r3, t3) : 0), t3 += 8 & a2 ? 2 : 0, o2;
+      }, e2.GSUB = {}, e2.GSUB.parse = function(r3, t3, a2, n2) {
+        return e2._lctf.parse(r3, t3, a2, n2, e2.GSUB.subt);
+      }, e2.GSUB.subt = function(r3, t3, a2, n2) {
+        var o2 = e2._bin, s = a2, i2 = {};
+        if (i2.fmt = o2.readUshort(r3, a2), a2 += 2, t3 != 1 && t3 != 4 && t3 != 5 && t3 != 6)
+          return null;
+        if (t3 == 1 || t3 == 4 || t3 == 5 && i2.fmt <= 2 || t3 == 6 && i2.fmt <= 2) {
+          var h = o2.readUshort(r3, a2);
+          a2 += 2, i2.coverage = e2._lctf.readCoverage(r3, s + h);
         }
-        if (clr)
-          tpath.cmds.push(clr);
-        for (var j = 0; j < path.cmds.length; j++)
-          tpath.cmds.push(path.cmds[j]);
-        if (clr)
-          tpath.cmds.push("X");
-        x += font.hmtx.aWidth[gid];
-        if (i2 < gls.length - 1)
-          x += Typr.U.getPairAdjustment(font, gid, gid2);
-      }
-      return tpath;
-    };
-    Typr.U.pathToSVG = function(path, prec) {
-      if (prec == null)
-        prec = 5;
-      var out = [], co = 0, lmap = {M: 2, L: 2, Q: 4, C: 6};
-      for (var i2 = 0; i2 < path.cmds.length; i2++) {
-        var cmd = path.cmds[i2], cn = co + (lmap[cmd] ? lmap[cmd] : 0);
-        out.push(cmd);
-        while (co < cn) {
-          var c = path.crds[co++];
-          out.push(parseFloat(c.toFixed(prec)) + (co == cn ? "" : " "));
+        if (t3 == 1 && i2.fmt >= 1 && i2.fmt <= 2) {
+          if (i2.fmt == 1)
+            i2.delta = o2.readShort(r3, a2), a2 += 2;
+          else if (i2.fmt == 2) {
+            var f = o2.readUshort(r3, a2);
+            a2 += 2, i2.newg = o2.readUshorts(r3, a2, f), a2 += 2 * i2.newg.length;
+          }
+        } else if (t3 == 4) {
+          i2.vals = [];
+          f = o2.readUshort(r3, a2);
+          a2 += 2;
+          for (var d = 0; d < f; d++) {
+            var u = o2.readUshort(r3, a2);
+            a2 += 2, i2.vals.push(e2.GSUB.readLigatureSet(r3, s + u));
+          }
+        } else if (t3 == 5 && i2.fmt == 2) {
+          if (i2.fmt == 2) {
+            var l = o2.readUshort(r3, a2);
+            a2 += 2, i2.cDef = e2._lctf.readClassDef(r3, s + l), i2.scset = [];
+            var v = o2.readUshort(r3, a2);
+            a2 += 2;
+            for (d = 0; d < v; d++) {
+              var c = o2.readUshort(r3, a2);
+              a2 += 2, i2.scset.push(c == 0 ? null : e2.GSUB.readSubClassSet(r3, s + c));
+            }
+          }
+        } else if (t3 == 6 && i2.fmt == 3) {
+          if (i2.fmt == 3) {
+            for (d = 0; d < 3; d++) {
+              f = o2.readUshort(r3, a2);
+              a2 += 2;
+              for (var p = [], U = 0; U < f; U++)
+                p.push(e2._lctf.readCoverage(r3, s + o2.readUshort(r3, a2 + 2 * U)));
+              a2 += 2 * f, d == 0 && (i2.backCvg = p), d == 1 && (i2.inptCvg = p), d == 2 && (i2.ahedCvg = p);
+            }
+            f = o2.readUshort(r3, a2);
+            a2 += 2, i2.lookupRec = e2.GSUB.readSubstLookupRecords(r3, a2, f);
+          }
+        } else {
+          if (t3 == 7 && i2.fmt == 1) {
+            var g = o2.readUshort(r3, a2);
+            a2 += 2;
+            var S = o2.readUint(r3, a2);
+            if (a2 += 4, n2.ltype == 9)
+              n2.ltype = g;
+            else if (n2.ltype != g)
+              throw "invalid extension substitution";
+            return e2.GSUB.subt(r3, n2.ltype, s + S);
+          }
+          console.debug("unsupported GSUB table LookupType", t3, "format", i2.fmt);
         }
-      }
-      return out.join("");
-    };
-    Typr.U.pathToContext = function(path, ctx) {
-      var c = 0, crds = path.crds;
-      for (var j = 0; j < path.cmds.length; j++) {
-        var cmd = path.cmds[j];
-        if (cmd == "M") {
-          ctx.moveTo(crds[c], crds[c + 1]);
-          c += 2;
-        } else if (cmd == "L") {
-          ctx.lineTo(crds[c], crds[c + 1]);
-          c += 2;
-        } else if (cmd == "C") {
-          ctx.bezierCurveTo(crds[c], crds[c + 1], crds[c + 2], crds[c + 3], crds[c + 4], crds[c + 5]);
-          c += 6;
-        } else if (cmd == "Q") {
-          ctx.quadraticCurveTo(crds[c], crds[c + 1], crds[c + 2], crds[c + 3]);
-          c += 4;
-        } else if (cmd.charAt(0) == "#") {
-          ctx.beginPath();
-          ctx.fillStyle = cmd;
-        } else if (cmd == "Z") {
-          ctx.closePath();
-        } else if (cmd == "X") {
-          ctx.fill();
+        return i2;
+      }, e2.GSUB.readSubClassSet = function(r3, t3) {
+        var a2 = e2._bin.readUshort, n2 = t3, o2 = [], s = a2(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = a2(r3, t3);
+          t3 += 2, o2.push(e2.GSUB.readSubClassRule(r3, n2 + h));
         }
-      }
-    };
-    Typr.U.P = {};
-    Typr.U.P.moveTo = function(p, x, y) {
-      p.cmds.push("M");
-      p.crds.push(x, y);
-    };
-    Typr.U.P.lineTo = function(p, x, y) {
-      p.cmds.push("L");
-      p.crds.push(x, y);
-    };
-    Typr.U.P.curveTo = function(p, a, b, c, d, e2, f) {
-      p.cmds.push("C");
-      p.crds.push(a, b, c, d, e2, f);
-    };
-    Typr.U.P.qcurveTo = function(p, a, b, c, d) {
-      p.cmds.push("Q");
-      p.crds.push(a, b, c, d);
-    };
-    Typr.U.P.closePath = function(p) {
-      p.cmds.push("Z");
-    };
-    Typr.U._drawCFF = function(cmds, state, font, pdct, p) {
-      var stack = state.stack;
-      var nStems = state.nStems, haveWidth = state.haveWidth, width = state.width, open = state.open;
-      var i2 = 0;
-      var x = state.x, y = state.y, c1x = 0, c1y = 0, c2x = 0, c2y = 0, c3x = 0, c3y = 0, c4x = 0, c4y = 0, jpx = 0, jpy = 0;
-      var o2 = {val: 0, size: 0};
-      while (i2 < cmds.length) {
-        Typr.CFF.getCharString(cmds, i2, o2);
-        var v = o2.val;
-        i2 += o2.size;
-        if (v == "o1" || v == "o18") {
-          var hasWidthArg;
-          hasWidthArg = stack.length % 2 !== 0;
-          if (hasWidthArg && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
+        return o2;
+      }, e2.GSUB.readSubClassRule = function(r3, t3) {
+        var a2 = e2._bin.readUshort, n2 = {}, o2 = a2(r3, t3), s = a2(r3, t3 += 2);
+        t3 += 2, n2.input = [];
+        for (var i2 = 0; i2 < o2 - 1; i2++)
+          n2.input.push(a2(r3, t3)), t3 += 2;
+        return n2.substLookupRecords = e2.GSUB.readSubstLookupRecords(r3, t3, s), n2;
+      }, e2.GSUB.readSubstLookupRecords = function(r3, t3, a2) {
+        for (var n2 = e2._bin.readUshort, o2 = [], s = 0; s < a2; s++)
+          o2.push(n2(r3, t3), n2(r3, t3 + 2)), t3 += 4;
+        return o2;
+      }, e2.GSUB.readChainSubClassSet = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = [], s = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = a2.readUshort(r3, t3);
+          t3 += 2, o2.push(e2.GSUB.readChainSubClassRule(r3, n2 + h));
+        }
+        return o2;
+      }, e2.GSUB.readChainSubClassRule = function(r3, t3) {
+        for (var a2 = e2._bin, n2 = {}, o2 = ["backtrack", "input", "lookahead"], s = 0; s < o2.length; s++) {
+          var i2 = a2.readUshort(r3, t3);
+          t3 += 2, s == 1 && i2--, n2[o2[s]] = a2.readUshorts(r3, t3, i2), t3 += 2 * n2[o2[s]].length;
+        }
+        i2 = a2.readUshort(r3, t3);
+        return t3 += 2, n2.subst = a2.readUshorts(r3, t3, 2 * i2), t3 += 2 * n2.subst.length, n2;
+      }, e2.GSUB.readLigatureSet = function(r3, t3) {
+        var a2 = e2._bin, n2 = t3, o2 = [], s = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = a2.readUshort(r3, t3);
+          t3 += 2, o2.push(e2.GSUB.readLigature(r3, n2 + h));
+        }
+        return o2;
+      }, e2.GSUB.readLigature = function(r3, t3) {
+        var a2 = e2._bin, n2 = {chain: []};
+        n2.nglyph = a2.readUshort(r3, t3), t3 += 2;
+        var o2 = a2.readUshort(r3, t3);
+        t3 += 2;
+        for (var s = 0; s < o2 - 1; s++)
+          n2.chain.push(a2.readUshort(r3, t3)), t3 += 2;
+        return n2;
+      }, e2.head = {}, e2.head.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {};
+        n2.readFixed(r3, t3);
+        t3 += 4, o2.fontRevision = n2.readFixed(r3, t3), t3 += 4;
+        n2.readUint(r3, t3);
+        t3 += 4;
+        n2.readUint(r3, t3);
+        return t3 += 4, o2.flags = n2.readUshort(r3, t3), t3 += 2, o2.unitsPerEm = n2.readUshort(r3, t3), t3 += 2, o2.created = n2.readUint64(r3, t3), t3 += 8, o2.modified = n2.readUint64(r3, t3), t3 += 8, o2.xMin = n2.readShort(r3, t3), t3 += 2, o2.yMin = n2.readShort(r3, t3), t3 += 2, o2.xMax = n2.readShort(r3, t3), t3 += 2, o2.yMax = n2.readShort(r3, t3), t3 += 2, o2.macStyle = n2.readUshort(r3, t3), t3 += 2, o2.lowestRecPPEM = n2.readUshort(r3, t3), t3 += 2, o2.fontDirectionHint = n2.readShort(r3, t3), t3 += 2, o2.indexToLocFormat = n2.readShort(r3, t3), t3 += 2, o2.glyphDataFormat = n2.readShort(r3, t3), t3 += 2, o2;
+      }, e2.hhea = {}, e2.hhea.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {};
+        n2.readFixed(r3, t3);
+        return t3 += 4, o2.ascender = n2.readShort(r3, t3), t3 += 2, o2.descender = n2.readShort(r3, t3), t3 += 2, o2.lineGap = n2.readShort(r3, t3), t3 += 2, o2.advanceWidthMax = n2.readUshort(r3, t3), t3 += 2, o2.minLeftSideBearing = n2.readShort(r3, t3), t3 += 2, o2.minRightSideBearing = n2.readShort(r3, t3), t3 += 2, o2.xMaxExtent = n2.readShort(r3, t3), t3 += 2, o2.caretSlopeRise = n2.readShort(r3, t3), t3 += 2, o2.caretSlopeRun = n2.readShort(r3, t3), t3 += 2, o2.caretOffset = n2.readShort(r3, t3), t3 += 2, t3 += 8, o2.metricDataFormat = n2.readShort(r3, t3), t3 += 2, o2.numberOfHMetrics = n2.readUshort(r3, t3), t3 += 2, o2;
+      }, e2.hmtx = {}, e2.hmtx.parse = function(r3, t3, a2, n2) {
+        for (var o2 = e2._bin, s = {aWidth: [], lsBearing: []}, i2 = 0, h = 0, f = 0; f < n2.maxp.numGlyphs; f++)
+          f < n2.hhea.numberOfHMetrics && (i2 = o2.readUshort(r3, t3), t3 += 2, h = o2.readShort(r3, t3), t3 += 2), s.aWidth.push(i2), s.lsBearing.push(h);
+        return s;
+      }, e2.kern = {}, e2.kern.parse = function(r3, t3, a2, n2) {
+        var o2 = e2._bin, s = o2.readUshort(r3, t3);
+        if (t3 += 2, s == 1)
+          return e2.kern.parseV1(r3, t3 - 2, a2, n2);
+        var i2 = o2.readUshort(r3, t3);
+        t3 += 2;
+        for (var h = {glyph1: [], rval: []}, f = 0; f < i2; f++) {
+          t3 += 2;
+          a2 = o2.readUshort(r3, t3);
+          t3 += 2;
+          var d = o2.readUshort(r3, t3);
+          t3 += 2;
+          var u = d >>> 8;
+          if ((u &= 15) != 0)
+            throw "unknown kern table format: " + u;
+          t3 = e2.kern.readFormat0(r3, t3, h);
+        }
+        return h;
+      }, e2.kern.parseV1 = function(r3, t3, a2, n2) {
+        var o2 = e2._bin;
+        o2.readFixed(r3, t3);
+        t3 += 4;
+        var s = o2.readUint(r3, t3);
+        t3 += 4;
+        for (var i2 = {glyph1: [], rval: []}, h = 0; h < s; h++) {
+          o2.readUint(r3, t3);
+          t3 += 4;
+          var f = o2.readUshort(r3, t3);
+          t3 += 2;
+          o2.readUshort(r3, t3);
+          t3 += 2;
+          var d = f >>> 8;
+          if ((d &= 15) != 0)
+            throw "unknown kern table format: " + d;
+          t3 = e2.kern.readFormat0(r3, t3, i2);
+        }
+        return i2;
+      }, e2.kern.readFormat0 = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = -1, s = n2.readUshort(r3, t3);
+        t3 += 2;
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        for (var i2 = 0; i2 < s; i2++) {
+          var h = n2.readUshort(r3, t3);
+          t3 += 2;
+          var f = n2.readUshort(r3, t3);
+          t3 += 2;
+          var d = n2.readShort(r3, t3);
+          t3 += 2, h != o2 && (a2.glyph1.push(h), a2.rval.push({glyph2: [], vals: []}));
+          var u = a2.rval[a2.rval.length - 1];
+          u.glyph2.push(f), u.vals.push(d), o2 = h;
+        }
+        return t3;
+      }, e2.loca = {}, e2.loca.parse = function(r3, t3, a2, n2) {
+        var o2 = e2._bin, s = [], i2 = n2.head.indexToLocFormat, h = n2.maxp.numGlyphs + 1;
+        if (i2 == 0)
+          for (var f = 0; f < h; f++)
+            s.push(o2.readUshort(r3, t3 + (f << 1)) << 1);
+        if (i2 == 1)
+          for (f = 0; f < h; f++)
+            s.push(o2.readUint(r3, t3 + (f << 2)));
+        return s;
+      }, e2.maxp = {}, e2.maxp.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {}, s = n2.readUint(r3, t3);
+        return t3 += 4, o2.numGlyphs = n2.readUshort(r3, t3), t3 += 2, s == 65536 && (o2.maxPoints = n2.readUshort(r3, t3), t3 += 2, o2.maxContours = n2.readUshort(r3, t3), t3 += 2, o2.maxCompositePoints = n2.readUshort(r3, t3), t3 += 2, o2.maxCompositeContours = n2.readUshort(r3, t3), t3 += 2, o2.maxZones = n2.readUshort(r3, t3), t3 += 2, o2.maxTwilightPoints = n2.readUshort(r3, t3), t3 += 2, o2.maxStorage = n2.readUshort(r3, t3), t3 += 2, o2.maxFunctionDefs = n2.readUshort(r3, t3), t3 += 2, o2.maxInstructionDefs = n2.readUshort(r3, t3), t3 += 2, o2.maxStackElements = n2.readUshort(r3, t3), t3 += 2, o2.maxSizeOfInstructions = n2.readUshort(r3, t3), t3 += 2, o2.maxComponentElements = n2.readUshort(r3, t3), t3 += 2, o2.maxComponentDepth = n2.readUshort(r3, t3), t3 += 2), o2;
+      }, e2.name = {}, e2.name.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {};
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        var s = n2.readUshort(r3, t3);
+        t3 += 2;
+        n2.readUshort(r3, t3);
+        for (var i2, h = ["copyright", "fontFamily", "fontSubfamily", "ID", "fullName", "version", "postScriptName", "trademark", "manufacturer", "designer", "description", "urlVendor", "urlDesigner", "licence", "licenceURL", "---", "typoFamilyName", "typoSubfamilyName", "compatibleFull", "sampleText", "postScriptCID", "wwsFamilyName", "wwsSubfamilyName", "lightPalette", "darkPalette"], f = t3 += 2, d = 0; d < s; d++) {
+          var u = n2.readUshort(r3, t3);
+          t3 += 2;
+          var l = n2.readUshort(r3, t3);
+          t3 += 2;
+          var v = n2.readUshort(r3, t3);
+          t3 += 2;
+          var c = n2.readUshort(r3, t3);
+          t3 += 2;
+          var p = n2.readUshort(r3, t3);
+          t3 += 2;
+          var U = n2.readUshort(r3, t3);
+          t3 += 2;
+          var g, S = h[c], m = f + 12 * s + U;
+          if (u == 0)
+            g = n2.readUnicode(r3, m, p / 2);
+          else if (u == 3 && l == 0)
+            g = n2.readUnicode(r3, m, p / 2);
+          else if (l == 0)
+            g = n2.readASCII(r3, m, p);
+          else if (l == 1)
+            g = n2.readUnicode(r3, m, p / 2);
+          else if (l == 3)
+            g = n2.readUnicode(r3, m, p / 2);
+          else {
+            if (u != 1)
+              throw "unknown encoding " + l + ", platformID: " + u;
+            g = n2.readASCII(r3, m, p), console.debug("reading unknown MAC encoding " + l + " as ASCII");
           }
-          nStems += stack.length >> 1;
-          stack.length = 0;
-          haveWidth = true;
-        } else if (v == "o3" || v == "o23") {
-          var hasWidthArg;
-          hasWidthArg = stack.length % 2 !== 0;
-          if (hasWidthArg && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
-          }
-          nStems += stack.length >> 1;
-          stack.length = 0;
-          haveWidth = true;
-        } else if (v == "o4") {
-          if (stack.length > 1 && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
-            haveWidth = true;
-          }
-          if (open)
-            Typr.U.P.closePath(p);
-          y += stack.pop();
-          Typr.U.P.moveTo(p, x, y);
-          open = true;
-        } else if (v == "o5") {
-          while (stack.length > 0) {
-            x += stack.shift();
-            y += stack.shift();
-            Typr.U.P.lineTo(p, x, y);
-          }
-        } else if (v == "o6" || v == "o7") {
-          var count = stack.length;
-          var isX = v == "o6";
-          for (var j = 0; j < count; j++) {
-            var sval = stack.shift();
-            if (isX)
-              x += sval;
-            else
-              y += sval;
-            isX = !isX;
-            Typr.U.P.lineTo(p, x, y);
-          }
-        } else if (v == "o8" || v == "o24") {
-          var count = stack.length;
-          var index = 0;
-          while (index + 6 <= count) {
-            c1x = x + stack.shift();
-            c1y = y + stack.shift();
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            x = c2x + stack.shift();
-            y = c2y + stack.shift();
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, x, y);
-            index += 6;
-          }
-          if (v == "o24") {
-            x += stack.shift();
-            y += stack.shift();
-            Typr.U.P.lineTo(p, x, y);
-          }
-        } else if (v == "o11")
+          var b = "p" + u + "," + v.toString(16);
+          o2[b] == null && (o2[b] = {}), o2[b][S !== void 0 ? S : c] = g, o2[b]._lang = v;
+        }
+        for (var y in o2)
+          if (o2[y].postScriptName != null && o2[y]._lang == 1033)
+            return o2[y];
+        for (var y in o2)
+          if (o2[y].postScriptName != null && o2[y]._lang == 0)
+            return o2[y];
+        for (var y in o2)
+          if (o2[y].postScriptName != null && o2[y]._lang == 3084)
+            return o2[y];
+        for (var y in o2)
+          if (o2[y].postScriptName != null)
+            return o2[y];
+        for (var y in o2) {
+          i2 = y;
           break;
-        else if (v == "o1234" || v == "o1235" || v == "o1236" || v == "o1237") {
-          if (v == "o1234") {
-            c1x = x + stack.shift();
-            c1y = y;
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            jpx = c2x + stack.shift();
-            jpy = c2y;
-            c3x = jpx + stack.shift();
-            c3y = c2y;
-            c4x = c3x + stack.shift();
-            c4y = y;
-            x = c4x + stack.shift();
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, jpx, jpy);
-            Typr.U.P.curveTo(p, c3x, c3y, c4x, c4y, x, y);
-          }
-          if (v == "o1235") {
-            c1x = x + stack.shift();
-            c1y = y + stack.shift();
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            jpx = c2x + stack.shift();
-            jpy = c2y + stack.shift();
-            c3x = jpx + stack.shift();
-            c3y = jpy + stack.shift();
-            c4x = c3x + stack.shift();
-            c4y = c3y + stack.shift();
-            x = c4x + stack.shift();
-            y = c4y + stack.shift();
-            stack.shift();
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, jpx, jpy);
-            Typr.U.P.curveTo(p, c3x, c3y, c4x, c4y, x, y);
-          }
-          if (v == "o1236") {
-            c1x = x + stack.shift();
-            c1y = y + stack.shift();
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            jpx = c2x + stack.shift();
-            jpy = c2y;
-            c3x = jpx + stack.shift();
-            c3y = c2y;
-            c4x = c3x + stack.shift();
-            c4y = c3y + stack.shift();
-            x = c4x + stack.shift();
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, jpx, jpy);
-            Typr.U.P.curveTo(p, c3x, c3y, c4x, c4y, x, y);
-          }
-          if (v == "o1237") {
-            c1x = x + stack.shift();
-            c1y = y + stack.shift();
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            jpx = c2x + stack.shift();
-            jpy = c2y + stack.shift();
-            c3x = jpx + stack.shift();
-            c3y = jpy + stack.shift();
-            c4x = c3x + stack.shift();
-            c4y = c3y + stack.shift();
-            if (Math.abs(c4x - x) > Math.abs(c4y - y)) {
-              x = c4x + stack.shift();
-            } else {
-              y = c4y + stack.shift();
-            }
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, jpx, jpy);
-            Typr.U.P.curveTo(p, c3x, c3y, c4x, c4y, x, y);
-          }
-        } else if (v == "o14") {
-          if (stack.length > 0 && !haveWidth) {
-            width = stack.shift() + font.nominalWidthX;
-            haveWidth = true;
-          }
-          if (stack.length == 4) {
-            var adx = stack.shift();
-            var ady = stack.shift();
-            var bchar = stack.shift();
-            var achar = stack.shift();
-            var bind = Typr.CFF.glyphBySE(font, bchar);
-            var aind = Typr.CFF.glyphBySE(font, achar);
-            Typr.U._drawCFF(font.CharStrings[bind], state, font, pdct, p);
-            state.x = adx;
-            state.y = ady;
-            Typr.U._drawCFF(font.CharStrings[aind], state, font, pdct, p);
-          }
-          if (open) {
-            Typr.U.P.closePath(p);
-            open = false;
-          }
-        } else if (v == "o19" || v == "o20") {
-          var hasWidthArg;
-          hasWidthArg = stack.length % 2 !== 0;
-          if (hasWidthArg && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
-          }
-          nStems += stack.length >> 1;
-          stack.length = 0;
-          haveWidth = true;
-          i2 += nStems + 7 >> 3;
-        } else if (v == "o21") {
-          if (stack.length > 2 && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
-            haveWidth = true;
-          }
-          y += stack.pop();
-          x += stack.pop();
-          if (open)
-            Typr.U.P.closePath(p);
-          Typr.U.P.moveTo(p, x, y);
-          open = true;
-        } else if (v == "o22") {
-          if (stack.length > 1 && !haveWidth) {
-            width = stack.shift() + pdct.nominalWidthX;
-            haveWidth = true;
-          }
-          x += stack.pop();
-          if (open)
-            Typr.U.P.closePath(p);
-          Typr.U.P.moveTo(p, x, y);
-          open = true;
-        } else if (v == "o25") {
-          while (stack.length > 6) {
-            x += stack.shift();
-            y += stack.shift();
-            Typr.U.P.lineTo(p, x, y);
-          }
-          c1x = x + stack.shift();
-          c1y = y + stack.shift();
-          c2x = c1x + stack.shift();
-          c2y = c1y + stack.shift();
-          x = c2x + stack.shift();
-          y = c2y + stack.shift();
-          Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, x, y);
-        } else if (v == "o26") {
-          if (stack.length % 2) {
-            x += stack.shift();
-          }
-          while (stack.length > 0) {
-            c1x = x;
-            c1y = y + stack.shift();
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            x = c2x;
-            y = c2y + stack.shift();
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, x, y);
-          }
-        } else if (v == "o27") {
-          if (stack.length % 2) {
-            y += stack.shift();
-          }
-          while (stack.length > 0) {
-            c1x = x + stack.shift();
-            c1y = y;
-            c2x = c1x + stack.shift();
-            c2y = c1y + stack.shift();
-            x = c2x + stack.shift();
-            y = c2y;
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, x, y);
-          }
-        } else if (v == "o10" || v == "o29") {
-          var obj = v == "o10" ? pdct : font;
-          if (stack.length == 0) {
-            console.log("error: empty stack");
-          } else {
-            var ind = stack.pop();
-            var subr = obj.Subrs[ind + obj.Bias];
-            state.x = x;
-            state.y = y;
-            state.nStems = nStems;
-            state.haveWidth = haveWidth;
-            state.width = width;
-            state.open = open;
-            Typr.U._drawCFF(subr, state, font, pdct, p);
-            x = state.x;
-            y = state.y;
-            nStems = state.nStems;
-            haveWidth = state.haveWidth;
-            width = state.width;
-            open = state.open;
-          }
-        } else if (v == "o30" || v == "o31") {
-          var count, count1 = stack.length;
-          var index = 0;
-          var alternate = v == "o31";
-          count = count1 & ~2;
-          index += count1 - count;
-          while (index < count) {
-            if (alternate) {
-              c1x = x + stack.shift();
-              c1y = y;
-              c2x = c1x + stack.shift();
-              c2y = c1y + stack.shift();
-              y = c2y + stack.shift();
-              if (count - index == 5) {
-                x = c2x + stack.shift();
-                index++;
+        }
+        return console.debug("returning name table with languageID " + o2[i2]._lang), o2[i2];
+      }, e2["OS/2"] = {}, e2["OS/2"].parse = function(r3, t3, a2) {
+        var n2 = e2._bin.readUshort(r3, t3);
+        t3 += 2;
+        var o2 = {};
+        if (n2 == 0)
+          e2["OS/2"].version0(r3, t3, o2);
+        else if (n2 == 1)
+          e2["OS/2"].version1(r3, t3, o2);
+        else if (n2 == 2 || n2 == 3 || n2 == 4)
+          e2["OS/2"].version2(r3, t3, o2);
+        else {
+          if (n2 != 5)
+            throw "unknown OS/2 table version: " + n2;
+          e2["OS/2"].version5(r3, t3, o2);
+        }
+        return o2;
+      }, e2["OS/2"].version0 = function(r3, t3, a2) {
+        var n2 = e2._bin;
+        return a2.xAvgCharWidth = n2.readShort(r3, t3), t3 += 2, a2.usWeightClass = n2.readUshort(r3, t3), t3 += 2, a2.usWidthClass = n2.readUshort(r3, t3), t3 += 2, a2.fsType = n2.readUshort(r3, t3), t3 += 2, a2.ySubscriptXSize = n2.readShort(r3, t3), t3 += 2, a2.ySubscriptYSize = n2.readShort(r3, t3), t3 += 2, a2.ySubscriptXOffset = n2.readShort(r3, t3), t3 += 2, a2.ySubscriptYOffset = n2.readShort(r3, t3), t3 += 2, a2.ySuperscriptXSize = n2.readShort(r3, t3), t3 += 2, a2.ySuperscriptYSize = n2.readShort(r3, t3), t3 += 2, a2.ySuperscriptXOffset = n2.readShort(r3, t3), t3 += 2, a2.ySuperscriptYOffset = n2.readShort(r3, t3), t3 += 2, a2.yStrikeoutSize = n2.readShort(r3, t3), t3 += 2, a2.yStrikeoutPosition = n2.readShort(r3, t3), t3 += 2, a2.sFamilyClass = n2.readShort(r3, t3), t3 += 2, a2.panose = n2.readBytes(r3, t3, 10), t3 += 10, a2.ulUnicodeRange1 = n2.readUint(r3, t3), t3 += 4, a2.ulUnicodeRange2 = n2.readUint(r3, t3), t3 += 4, a2.ulUnicodeRange3 = n2.readUint(r3, t3), t3 += 4, a2.ulUnicodeRange4 = n2.readUint(r3, t3), t3 += 4, a2.achVendID = [n2.readInt8(r3, t3), n2.readInt8(r3, t3 + 1), n2.readInt8(r3, t3 + 2), n2.readInt8(r3, t3 + 3)], t3 += 4, a2.fsSelection = n2.readUshort(r3, t3), t3 += 2, a2.usFirstCharIndex = n2.readUshort(r3, t3), t3 += 2, a2.usLastCharIndex = n2.readUshort(r3, t3), t3 += 2, a2.sTypoAscender = n2.readShort(r3, t3), t3 += 2, a2.sTypoDescender = n2.readShort(r3, t3), t3 += 2, a2.sTypoLineGap = n2.readShort(r3, t3), t3 += 2, a2.usWinAscent = n2.readUshort(r3, t3), t3 += 2, a2.usWinDescent = n2.readUshort(r3, t3), t3 += 2;
+      }, e2["OS/2"].version1 = function(r3, t3, a2) {
+        var n2 = e2._bin;
+        return t3 = e2["OS/2"].version0(r3, t3, a2), a2.ulCodePageRange1 = n2.readUint(r3, t3), t3 += 4, a2.ulCodePageRange2 = n2.readUint(r3, t3), t3 += 4;
+      }, e2["OS/2"].version2 = function(r3, t3, a2) {
+        var n2 = e2._bin;
+        return t3 = e2["OS/2"].version1(r3, t3, a2), a2.sxHeight = n2.readShort(r3, t3), t3 += 2, a2.sCapHeight = n2.readShort(r3, t3), t3 += 2, a2.usDefault = n2.readUshort(r3, t3), t3 += 2, a2.usBreak = n2.readUshort(r3, t3), t3 += 2, a2.usMaxContext = n2.readUshort(r3, t3), t3 += 2;
+      }, e2["OS/2"].version5 = function(r3, t3, a2) {
+        var n2 = e2._bin;
+        return t3 = e2["OS/2"].version2(r3, t3, a2), a2.usLowerOpticalPointSize = n2.readUshort(r3, t3), t3 += 2, a2.usUpperOpticalPointSize = n2.readUshort(r3, t3), t3 += 2;
+      }, e2.post = {}, e2.post.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {};
+        return o2.version = n2.readFixed(r3, t3), t3 += 4, o2.italicAngle = n2.readFixed(r3, t3), t3 += 4, o2.underlinePosition = n2.readShort(r3, t3), t3 += 2, o2.underlineThickness = n2.readShort(r3, t3), t3 += 2, o2;
+      }, e2.SVG = {}, e2.SVG.parse = function(r3, t3, a2) {
+        var n2 = e2._bin, o2 = {entries: []}, s = t3;
+        n2.readUshort(r3, t3);
+        t3 += 2;
+        var i2 = n2.readUint(r3, t3);
+        t3 += 4;
+        n2.readUint(r3, t3);
+        t3 += 4, t3 = i2 + s;
+        var h = n2.readUshort(r3, t3);
+        t3 += 2;
+        for (var f = 0; f < h; f++) {
+          var d = n2.readUshort(r3, t3);
+          t3 += 2;
+          var u = n2.readUshort(r3, t3);
+          t3 += 2;
+          var l = n2.readUint(r3, t3);
+          t3 += 4;
+          var v = n2.readUint(r3, t3);
+          t3 += 4;
+          for (var c = new Uint8Array(r3.buffer, s + l + i2, v), p = n2.readUTF8(c, 0, c.length), U = d; U <= u; U++)
+            o2.entries[U] = p;
+        }
+        return o2;
+      }, e2.SVG.toPath = function(r3) {
+        var t3 = {cmds: [], crds: []};
+        if (r3 == null)
+          return t3;
+        for (var a2 = new DOMParser().parseFromString(r3, "image/svg+xml").firstChild; a2.tagName != "svg"; )
+          a2 = a2.nextSibling;
+        var n2 = a2.getAttribute("viewBox");
+        n2 = n2 ? n2.trim().split(" ").map(parseFloat) : [0, 0, 1e3, 1e3], e2.SVG._toPath(a2.children, t3);
+        for (var o2 = 0; o2 < t3.crds.length; o2 += 2) {
+          var s = t3.crds[o2], i2 = t3.crds[o2 + 1];
+          s -= n2[0], i2 = -(i2 -= n2[1]), t3.crds[o2] = s, t3.crds[o2 + 1] = i2;
+        }
+        return t3;
+      }, e2.SVG._toPath = function(r3, t3, a2) {
+        for (var n2 = 0; n2 < r3.length; n2++) {
+          var o2 = r3[n2], s = o2.tagName, i2 = o2.getAttribute("fill");
+          if (i2 == null && (i2 = a2), s == "g")
+            e2.SVG._toPath(o2.children, t3, i2);
+          else if (s == "path") {
+            t3.cmds.push(i2 || "#000000");
+            var h = o2.getAttribute("d"), f = e2.SVG._tokens(h);
+            e2.SVG._toksToPath(f, t3), t3.cmds.push("X");
+          } else
+            s == "defs" || console.debug(s, o2);
+        }
+      }, e2.SVG._tokens = function(r3) {
+        for (var e3 = [], t3 = 0, a2 = false, n2 = ""; t3 < r3.length; ) {
+          var o2 = r3.charCodeAt(t3), s = r3.charAt(t3);
+          t3++;
+          var i2 = 48 <= o2 && o2 <= 57 || s == "." || s == "-";
+          a2 ? s == "-" ? (e3.push(parseFloat(n2)), n2 = s) : i2 ? n2 += s : (e3.push(parseFloat(n2)), s != "," && s != " " && e3.push(s), a2 = false) : i2 ? (n2 = s, a2 = true) : s != "," && s != " " && e3.push(s);
+        }
+        return a2 && e3.push(parseFloat(n2)), e3;
+      }, e2.SVG._toksToPath = function(r3, t3) {
+        for (var a2 = 0, n2 = 0, o2 = 0, s = 0, i2 = 0, h = {M: 2, L: 2, H: 1, V: 1, S: 4, C: 6}, f = t3.cmds, d = t3.crds; a2 < r3.length; ) {
+          var u = r3[a2];
+          if (a2++, u == "z")
+            f.push("Z"), n2 = s, o2 = i2;
+          else
+            for (var l = u.toUpperCase(), v = h[l], c = e2.SVG._reps(r3, a2, v), p = 0; p < c; p++) {
+              var U = 0, g = 0;
+              if (u != l && (U = n2, g = o2), l == "M")
+                n2 = U + r3[a2++], o2 = g + r3[a2++], f.push("M"), d.push(n2, o2), s = n2, i2 = o2;
+              else if (l == "L")
+                n2 = U + r3[a2++], o2 = g + r3[a2++], f.push("L"), d.push(n2, o2);
+              else if (l == "H")
+                n2 = U + r3[a2++], f.push("L"), d.push(n2, o2);
+              else if (l == "V")
+                o2 = g + r3[a2++], f.push("L"), d.push(n2, o2);
+              else if (l == "C") {
+                var S = U + r3[a2++], m = g + r3[a2++], b = U + r3[a2++], y = g + r3[a2++], _ = U + r3[a2++], F = g + r3[a2++];
+                f.push("C"), d.push(S, m, b, y, _, F), n2 = _, o2 = F;
+              } else if (l == "S") {
+                var C = Math.max(d.length - 4, 0);
+                S = n2 + n2 - d[C], m = o2 + o2 - d[C + 1], b = U + r3[a2++], y = g + r3[a2++], _ = U + r3[a2++], F = g + r3[a2++];
+                f.push("C"), d.push(S, m, b, y, _, F), n2 = _, o2 = F;
               } else
-                x = c2x;
-              alternate = false;
-            } else {
-              c1x = x;
-              c1y = y + stack.shift();
-              c2x = c1x + stack.shift();
-              c2y = c1y + stack.shift();
-              x = c2x + stack.shift();
-              if (count - index == 5) {
-                y = c2y + stack.shift();
-                index++;
-              } else
-                y = c2y;
-              alternate = true;
+                console.debug("Unknown SVG command " + u);
             }
-            Typr.U.P.curveTo(p, c1x, c1y, c2x, c2y, x, y);
-            index += 4;
+        }
+      }, e2.SVG._reps = function(r3, e3, t3) {
+        for (var a2 = e3; a2 < r3.length && typeof r3[a2] != "string"; )
+          a2 += t3;
+        return (a2 - e3) / t3;
+      }, e2 == null && (e2 = {}), e2.U == null && (e2.U = {}), e2.U.codeToGlyph = function(r3, e3) {
+        var t3 = r3.cmap, a2 = -1;
+        if (t3.p0e4 != null ? a2 = t3.p0e4 : t3.p3e1 != null ? a2 = t3.p3e1 : t3.p1e0 != null ? a2 = t3.p1e0 : t3.p0e3 != null && (a2 = t3.p0e3), a2 == -1)
+          throw "no familiar platform and encoding!";
+        var n2 = t3.tables[a2];
+        if (n2.format == 0)
+          return e3 >= n2.map.length ? 0 : n2.map[e3];
+        if (n2.format == 4) {
+          for (var o2 = -1, s = 0; s < n2.endCount.length; s++)
+            if (e3 <= n2.endCount[s]) {
+              o2 = s;
+              break;
+            }
+          if (o2 == -1)
+            return 0;
+          if (n2.startCount[o2] > e3)
+            return 0;
+          return 65535 & (n2.idRangeOffset[o2] != 0 ? n2.glyphIdArray[e3 - n2.startCount[o2] + (n2.idRangeOffset[o2] >> 1) - (n2.idRangeOffset.length - o2)] : e3 + n2.idDelta[o2]);
+        }
+        if (n2.format == 12) {
+          if (e3 > n2.groups[n2.groups.length - 1][1])
+            return 0;
+          for (s = 0; s < n2.groups.length; s++) {
+            var i2 = n2.groups[s];
+            if (i2[0] <= e3 && e3 <= i2[1])
+              return i2[2] + (e3 - i2[0]);
           }
-        } else if ((v + "").charAt(0) == "o") {
-          console.log("Unknown operation: " + v, cmds);
-          throw v;
+          return 0;
+        }
+        throw "unknown cmap table format " + n2.format;
+      }, e2.U.glyphToPath = function(r3, t3) {
+        var a2 = {cmds: [], crds: []};
+        if (r3.SVG && r3.SVG.entries[t3]) {
+          var n2 = r3.SVG.entries[t3];
+          return n2 == null ? a2 : (typeof n2 == "string" && (n2 = e2.SVG.toPath(n2), r3.SVG.entries[t3] = n2), n2);
+        }
+        if (r3.CFF) {
+          var o2 = {x: 0, y: 0, stack: [], nStems: 0, haveWidth: false, width: r3.CFF.Private ? r3.CFF.Private.defaultWidthX : 0, open: false}, s = r3.CFF, i2 = r3.CFF.Private;
+          if (s.ROS) {
+            for (var h = 0; s.FDSelect[h + 2] <= t3; )
+              h += 2;
+            i2 = s.FDArray[s.FDSelect[h + 1]].Private;
+          }
+          e2.U._drawCFF(r3.CFF.CharStrings[t3], o2, s, i2, a2);
         } else
-          stack.push(v);
-      }
-      state.x = x;
-      state.y = y;
-      state.nStems = nStems;
-      state.haveWidth = haveWidth;
-      state.width = width;
-      state.open = open;
-    };
-    return Typr;
-  }
-  function woff2otfFactory() {
-    const tinyInflate = function() {
-      const module = {};
-      var TINF_OK = 0;
-      var TINF_DATA_ERROR = -3;
-      function Tree() {
-        this.table = new Uint16Array(16);
-        this.trans = new Uint16Array(288);
-      }
-      function Data(source, dest) {
-        this.source = source;
-        this.sourceIndex = 0;
-        this.tag = 0;
-        this.bitcount = 0;
-        this.dest = dest;
-        this.destLen = 0;
-        this.ltree = new Tree();
-        this.dtree = new Tree();
-      }
-      var sltree = new Tree();
-      var sdtree = new Tree();
-      var length_bits = new Uint8Array(30);
-      var length_base = new Uint16Array(30);
-      var dist_bits = new Uint8Array(30);
-      var dist_base = new Uint16Array(30);
-      var clcidx = new Uint8Array([
-        16,
-        17,
-        18,
-        0,
-        8,
-        7,
-        9,
-        6,
-        10,
-        5,
-        11,
-        4,
-        12,
-        3,
-        13,
-        2,
-        14,
-        1,
-        15
-      ]);
-      var code_tree = new Tree();
-      var lengths = new Uint8Array(288 + 32);
-      function tinf_build_bits_base(bits, base, delta, first) {
-        var i2, sum;
-        for (i2 = 0; i2 < delta; ++i2)
-          bits[i2] = 0;
-        for (i2 = 0; i2 < 30 - delta; ++i2)
-          bits[i2 + delta] = i2 / delta | 0;
-        for (sum = first, i2 = 0; i2 < 30; ++i2) {
-          base[i2] = sum;
-          sum += 1 << bits[i2];
+          r3.glyf && e2.U._drawGlyf(t3, r3, a2);
+        return a2;
+      }, e2.U._drawGlyf = function(r3, t3, a2) {
+        var n2 = t3.glyf[r3];
+        n2 == null && (n2 = t3.glyf[r3] = e2.glyf._parseGlyf(t3, r3)), n2 != null && (n2.noc > -1 ? e2.U._simpleGlyph(n2, a2) : e2.U._compoGlyph(n2, t3, a2));
+      }, e2.U._simpleGlyph = function(r3, t3) {
+        for (var a2 = 0; a2 < r3.noc; a2++) {
+          for (var n2 = a2 == 0 ? 0 : r3.endPts[a2 - 1] + 1, o2 = r3.endPts[a2], s = n2; s <= o2; s++) {
+            var i2 = s == n2 ? o2 : s - 1, h = s == o2 ? n2 : s + 1, f = 1 & r3.flags[s], d = 1 & r3.flags[i2], u = 1 & r3.flags[h], l = r3.xs[s], v = r3.ys[s];
+            if (s == n2)
+              if (f) {
+                if (!d) {
+                  e2.U.P.moveTo(t3, l, v);
+                  continue;
+                }
+                e2.U.P.moveTo(t3, r3.xs[i2], r3.ys[i2]);
+              } else
+                d ? e2.U.P.moveTo(t3, r3.xs[i2], r3.ys[i2]) : e2.U.P.moveTo(t3, (r3.xs[i2] + l) / 2, (r3.ys[i2] + v) / 2);
+            f ? d && e2.U.P.lineTo(t3, l, v) : u ? e2.U.P.qcurveTo(t3, l, v, r3.xs[h], r3.ys[h]) : e2.U.P.qcurveTo(t3, l, v, (l + r3.xs[h]) / 2, (v + r3.ys[h]) / 2);
+          }
+          e2.U.P.closePath(t3);
         }
-      }
-      function tinf_build_fixed_trees(lt, dt) {
-        var i2;
-        for (i2 = 0; i2 < 7; ++i2)
-          lt.table[i2] = 0;
-        lt.table[7] = 24;
-        lt.table[8] = 152;
-        lt.table[9] = 112;
-        for (i2 = 0; i2 < 24; ++i2)
-          lt.trans[i2] = 256 + i2;
-        for (i2 = 0; i2 < 144; ++i2)
-          lt.trans[24 + i2] = i2;
-        for (i2 = 0; i2 < 8; ++i2)
-          lt.trans[24 + 144 + i2] = 280 + i2;
-        for (i2 = 0; i2 < 112; ++i2)
-          lt.trans[24 + 144 + 8 + i2] = 144 + i2;
-        for (i2 = 0; i2 < 5; ++i2)
-          dt.table[i2] = 0;
-        dt.table[5] = 32;
-        for (i2 = 0; i2 < 32; ++i2)
-          dt.trans[i2] = i2;
-      }
-      var offs = new Uint16Array(16);
-      function tinf_build_tree(t2, lengths2, off, num) {
-        var i2, sum;
-        for (i2 = 0; i2 < 16; ++i2)
-          t2.table[i2] = 0;
-        for (i2 = 0; i2 < num; ++i2)
-          t2.table[lengths2[off + i2]]++;
-        t2.table[0] = 0;
-        for (sum = 0, i2 = 0; i2 < 16; ++i2) {
-          offs[i2] = sum;
-          sum += t2.table[i2];
+      }, e2.U._compoGlyph = function(r3, t3, a2) {
+        for (var n2 = 0; n2 < r3.parts.length; n2++) {
+          var o2 = {cmds: [], crds: []}, s = r3.parts[n2];
+          e2.U._drawGlyf(s.glyphIndex, t3, o2);
+          for (var i2 = s.m, h = 0; h < o2.crds.length; h += 2) {
+            var f = o2.crds[h], d = o2.crds[h + 1];
+            a2.crds.push(f * i2.a + d * i2.b + i2.tx), a2.crds.push(f * i2.c + d * i2.d + i2.ty);
+          }
+          for (h = 0; h < o2.cmds.length; h++)
+            a2.cmds.push(o2.cmds[h]);
         }
-        for (i2 = 0; i2 < num; ++i2) {
-          if (lengths2[off + i2])
-            t2.trans[offs[lengths2[off + i2]]++] = i2;
+      }, e2.U._getGlyphClass = function(r3, t3) {
+        var a2 = e2._lctf.getInterval(t3, r3);
+        return a2 == -1 ? 0 : t3[a2 + 2];
+      }, e2.U.getPairAdjustment = function(r3, t3, a2) {
+        var n2 = 0;
+        if (r3.GPOS)
+          for (var o2 = r3.GPOS, s = o2.lookupList, i2 = o2.featureList, h = [], f = 0; f < i2.length; f++) {
+            var d = i2[f];
+            if (d.tag == "kern") {
+              for (var u = 0; u < d.tab.length; u++)
+                if (!h[d.tab[u]]) {
+                  h[d.tab[u]] = true;
+                  for (var l = s[d.tab[u]], v = 0; v < l.tabs.length; v++)
+                    if (l.tabs[v] != null) {
+                      var c, p = l.tabs[v];
+                      if (!p.coverage || (c = e2._lctf.coverageIndex(p.coverage, t3)) != -1) {
+                        if (l.ltype == 1)
+                          ;
+                        else if (l.ltype == 2) {
+                          var U;
+                          if (p.fmt == 1) {
+                            var g = p.pairsets[c];
+                            for (f = 0; f < g.length; f++)
+                              g[f].gid2 == a2 && (U = g[f]);
+                          } else if (p.fmt == 2) {
+                            var S = e2.U._getGlyphClass(t3, p.classDef1), m = e2.U._getGlyphClass(a2, p.classDef2);
+                            U = p.matrix[S][m];
+                          }
+                          U && U.val1 && U.val1[2] && (n2 += U.val1[2]), U && U.val2 && U.val2[0] && (n2 += U.val2[0]);
+                        }
+                      }
+                    }
+                }
+            }
+          }
+        if (r3.kern) {
+          var b = r3.kern.glyph1.indexOf(t3);
+          if (b != -1) {
+            var y = r3.kern.rval[b].glyph2.indexOf(a2);
+            y != -1 && (n2 += r3.kern.rval[b].vals[y]);
+          }
         }
-      }
-      function tinf_getbit(d) {
-        if (!d.bitcount--) {
-          d.tag = d.source[d.sourceIndex++];
-          d.bitcount = 7;
+        return n2;
+      }, e2.U.stringToGlyphs = function(r3, t3) {
+        for (var a2 = [], n2 = 0; n2 < t3.length; n2++) {
+          (o2 = t3.codePointAt(n2)) > 65535 && n2++, a2.push(e2.U.codeToGlyph(r3, o2));
         }
-        var bit = d.tag & 1;
-        d.tag >>>= 1;
-        return bit;
-      }
-      function tinf_read_bits(d, num, base) {
-        if (!num)
-          return base;
-        while (d.bitcount < 24) {
-          d.tag |= d.source[d.sourceIndex++] << d.bitcount;
-          d.bitcount += 8;
+        for (n2 = 0; n2 < t3.length; n2++) {
+          var o2;
+          if ((o2 = t3.codePointAt(n2)) == 2367) {
+            var s = a2[n2 - 1];
+            a2[n2 - 1] = a2[n2], a2[n2] = s;
+          }
+          o2 > 65535 && n2++;
         }
-        var val = d.tag & 65535 >>> 16 - num;
-        d.tag >>>= num;
-        d.bitcount -= num;
-        return val + base;
-      }
-      function tinf_decode_symbol(d, t2) {
-        while (d.bitcount < 24) {
-          d.tag |= d.source[d.sourceIndex++] << d.bitcount;
-          d.bitcount += 8;
-        }
-        var sum = 0, cur = 0, len = 0;
-        var tag = d.tag;
-        do {
-          cur = 2 * cur + (tag & 1);
-          tag >>>= 1;
-          ++len;
-          sum += t2.table[len];
-          cur -= t2.table[len];
-        } while (cur >= 0);
-        d.tag = tag;
-        d.bitcount -= len;
-        return t2.trans[sum + cur];
-      }
-      function tinf_decode_trees(d, lt, dt) {
-        var hlit, hdist, hclen;
-        var i2, num, length;
-        hlit = tinf_read_bits(d, 5, 257);
-        hdist = tinf_read_bits(d, 5, 1);
-        hclen = tinf_read_bits(d, 4, 4);
-        for (i2 = 0; i2 < 19; ++i2)
-          lengths[i2] = 0;
-        for (i2 = 0; i2 < hclen; ++i2) {
-          var clen = tinf_read_bits(d, 3, 0);
-          lengths[clcidx[i2]] = clen;
-        }
-        tinf_build_tree(code_tree, lengths, 0, 19);
-        for (num = 0; num < hlit + hdist; ) {
-          var sym = tinf_decode_symbol(d, code_tree);
-          switch (sym) {
-            case 16:
-              var prev = lengths[num - 1];
-              for (length = tinf_read_bits(d, 2, 3); length; --length) {
-                lengths[num++] = prev;
+        var i2 = r3.GSUB;
+        if (i2 == null)
+          return a2;
+        for (var h = i2.lookupList, f = i2.featureList, d = ["rlig", "liga", "mset", "isol", "init", "fina", "medi", "half", "pres", "blws"], u = [], l = 0; l < f.length; l++) {
+          var v = f[l];
+          if (d.indexOf(v.tag) != -1) {
+            for (var c = 0; c < v.tab.length; c++)
+              if (!u[v.tab[c]]) {
+                u[v.tab[c]] = true;
+                for (var p = h[v.tab[c]], U = 0; U < a2.length; U++) {
+                  var g = e2.U._getWPfeature(t3, U);
+                  "isol,init,fina,medi".indexOf(v.tag) != -1 && v.tag != g || e2.U._applySubs(a2, U, p, h);
+                }
               }
+          }
+        }
+        return a2;
+      }, e2.U._getWPfeature = function(r3, e3) {
+        var t3 = '\n	" ,.:;!?()  \u060C', a2 = "\u0622\u0623\u0624\u0625\u0627\u0629\u062F\u0630\u0631\u0632\u0648\u0671\u0672\u0673\u0675\u0676\u0677\u0688\u0689\u068A\u068B\u068C\u068D\u068E\u068F\u0690\u0691\u0692\u0693\u0694\u0695\u0696\u0697\u0698\u0699\u06C0\u06C3\u06C4\u06C5\u06C6\u06C7\u06C8\u06C9\u06CA\u06CB\u06CD\u06CF\u06D2\u06D3\u06D5\u06EE\u06EF\u0710\u0715\u0716\u0717\u0718\u0719\u071E\u0728\u072A\u072C\u072F\u074D\u0759\u075A\u075B\u076B\u076C\u0771\u0773\u0774\u0778\u0779\u0840\u0846\u0847\u0849\u0854\u0867\u0869\u086A\u08AA\u08AB\u08AC\u08AE\u08B1\u08B2\u08B9\u0AC5\u0AC7\u0AC9\u0ACA\u0ACE\u0ACF\u0AD0\u0AD1\u0AD2\u0ADD\u0AE1\u0AE4\u0AEF\u0B81\u0B83\u0B84\u0B85\u0B89\u0B8C\u0B8E\u0B8F\u0B91\u0BA9\u0BAA\u0BAB\u0BAC", n2 = e3 == 0 || t3.indexOf(r3[e3 - 1]) != -1, o2 = e3 == r3.length - 1 || t3.indexOf(r3[e3 + 1]) != -1;
+        n2 || a2.indexOf(r3[e3 - 1]) == -1 || (n2 = true), o2 || a2.indexOf(r3[e3]) == -1 || (o2 = true), o2 || "\uA872\u0ACD\u0AD7".indexOf(r3[e3 + 1]) == -1 || (o2 = true), n2 || "\uA872\u0ACD\u0AD7".indexOf(r3[e3]) == -1 || (n2 = true);
+        return n2 ? o2 ? "isol" : "init" : o2 ? "fina" : "medi";
+      }, e2.U._applySubs = function(r3, t3, a2, n2) {
+        for (var o2 = r3.length - t3 - 1, s = 0; s < a2.tabs.length; s++)
+          if (a2.tabs[s] != null) {
+            var i2, h = a2.tabs[s];
+            if (!h.coverage || (i2 = e2._lctf.coverageIndex(h.coverage, r3[t3])) != -1) {
+              if (a2.ltype == 1) {
+                r3[t3];
+                h.fmt == 1 ? r3[t3] = r3[t3] + h.delta : r3[t3] = h.newg[i2];
+              } else if (a2.ltype == 4)
+                for (var f = h.vals[i2], d = 0; d < f.length; d++) {
+                  var u = f[d], l = u.chain.length;
+                  if (!(l > o2)) {
+                    for (var v = true, c = 0, p = 0; p < l; p++) {
+                      for (; r3[t3 + c + (1 + p)] == -1; )
+                        c++;
+                      u.chain[p] != r3[t3 + c + (1 + p)] && (v = false);
+                    }
+                    if (v) {
+                      r3[t3] = u.nglyph;
+                      for (p = 0; p < l + c; p++)
+                        r3[t3 + p + 1] = -1;
+                      break;
+                    }
+                  }
+                }
+              else if (a2.ltype == 5 && h.fmt == 2)
+                for (var U = e2._lctf.getInterval(h.cDef, r3[t3]), g = h.cDef[U + 2], S = h.scset[g], m = 0; m < S.length; m++) {
+                  var b = S[m], y = b.input;
+                  if (!(y.length > o2)) {
+                    for (v = true, p = 0; p < y.length; p++) {
+                      var _ = e2._lctf.getInterval(h.cDef, r3[t3 + 1 + p]);
+                      if (U == -1 && h.cDef[_ + 2] != y[p]) {
+                        v = false;
+                        break;
+                      }
+                    }
+                    if (v) {
+                      var F = b.substLookupRecords;
+                      for (d = 0; d < F.length; d += 2)
+                        F[d], F[d + 1];
+                    }
+                  }
+                }
+              else if (a2.ltype == 6 && h.fmt == 3) {
+                if (!e2.U._glsCovered(r3, h.backCvg, t3 - h.backCvg.length))
+                  continue;
+                if (!e2.U._glsCovered(r3, h.inptCvg, t3))
+                  continue;
+                if (!e2.U._glsCovered(r3, h.ahedCvg, t3 + h.inptCvg.length))
+                  continue;
+                var C = h.lookupRec;
+                for (m = 0; m < C.length; m += 2) {
+                  U = C[m];
+                  var x = n2[C[m + 1]];
+                  e2.U._applySubs(r3, t3 + U, x, n2);
+                }
+              }
+            }
+          }
+      }, e2.U._glsCovered = function(r3, t3, a2) {
+        for (var n2 = 0; n2 < t3.length; n2++) {
+          if (e2._lctf.coverageIndex(t3[n2], r3[a2 + n2]) == -1)
+            return false;
+        }
+        return true;
+      }, e2.U.glyphsToPath = function(r3, t3, a2) {
+        for (var n2 = {cmds: [], crds: []}, o2 = 0, s = 0; s < t3.length; s++) {
+          var i2 = t3[s];
+          if (i2 != -1) {
+            for (var h = s < t3.length - 1 && t3[s + 1] != -1 ? t3[s + 1] : 0, f = e2.U.glyphToPath(r3, i2), d = 0; d < f.crds.length; d += 2)
+              n2.crds.push(f.crds[d] + o2), n2.crds.push(f.crds[d + 1]);
+            a2 && n2.cmds.push(a2);
+            for (d = 0; d < f.cmds.length; d++)
+              n2.cmds.push(f.cmds[d]);
+            a2 && n2.cmds.push("X"), o2 += r3.hmtx.aWidth[i2], s < t3.length - 1 && (o2 += e2.U.getPairAdjustment(r3, i2, h));
+          }
+        }
+        return n2;
+      }, e2.U.pathToSVG = function(r3, e3) {
+        e3 == null && (e3 = 5);
+        for (var t3 = [], a2 = 0, n2 = {M: 2, L: 2, Q: 4, C: 6}, o2 = 0; o2 < r3.cmds.length; o2++) {
+          var s = r3.cmds[o2], i2 = a2 + (n2[s] ? n2[s] : 0);
+          for (t3.push(s); a2 < i2; ) {
+            var h = r3.crds[a2++];
+            t3.push(parseFloat(h.toFixed(e3)) + (a2 == i2 ? "" : " "));
+          }
+        }
+        return t3.join("");
+      }, e2.U.pathToContext = function(r3, e3) {
+        for (var t3 = 0, a2 = r3.crds, n2 = 0; n2 < r3.cmds.length; n2++) {
+          var o2 = r3.cmds[n2];
+          o2 == "M" ? (e3.moveTo(a2[t3], a2[t3 + 1]), t3 += 2) : o2 == "L" ? (e3.lineTo(a2[t3], a2[t3 + 1]), t3 += 2) : o2 == "C" ? (e3.bezierCurveTo(a2[t3], a2[t3 + 1], a2[t3 + 2], a2[t3 + 3], a2[t3 + 4], a2[t3 + 5]), t3 += 6) : o2 == "Q" ? (e3.quadraticCurveTo(a2[t3], a2[t3 + 1], a2[t3 + 2], a2[t3 + 3]), t3 += 4) : o2.charAt(0) == "#" ? (e3.beginPath(), e3.fillStyle = o2) : o2 == "Z" ? e3.closePath() : o2 == "X" && e3.fill();
+        }
+      }, e2.U.P = {}, e2.U.P.moveTo = function(r3, e3, t3) {
+        r3.cmds.push("M"), r3.crds.push(e3, t3);
+      }, e2.U.P.lineTo = function(r3, e3, t3) {
+        r3.cmds.push("L"), r3.crds.push(e3, t3);
+      }, e2.U.P.curveTo = function(r3, e3, t3, a2, n2, o2, s) {
+        r3.cmds.push("C"), r3.crds.push(e3, t3, a2, n2, o2, s);
+      }, e2.U.P.qcurveTo = function(r3, e3, t3, a2, n2) {
+        r3.cmds.push("Q"), r3.crds.push(e3, t3, a2, n2);
+      }, e2.U.P.closePath = function(r3) {
+        r3.cmds.push("Z");
+      }, e2.U._drawCFF = function(r3, t3, a2, n2, o2) {
+        for (var s = t3.stack, i2 = t3.nStems, h = t3.haveWidth, f = t3.width, d = t3.open, u = 0, l = t3.x, v = t3.y, c = 0, p = 0, U = 0, g = 0, S = 0, m = 0, b = 0, y = 0, _ = 0, F = 0, C = {val: 0, size: 0}; u < r3.length; ) {
+          e2.CFF.getCharString(r3, u, C);
+          var x = C.val;
+          if (u += C.size, x == "o1" || x == "o18")
+            s.length % 2 != 0 && !h && (f = s.shift() + n2.nominalWidthX), i2 += s.length >> 1, s.length = 0, h = true;
+          else if (x == "o3" || x == "o23") {
+            s.length % 2 != 0 && !h && (f = s.shift() + n2.nominalWidthX), i2 += s.length >> 1, s.length = 0, h = true;
+          } else if (x == "o4")
+            s.length > 1 && !h && (f = s.shift() + n2.nominalWidthX, h = true), d && e2.U.P.closePath(o2), v += s.pop(), e2.U.P.moveTo(o2, l, v), d = true;
+          else if (x == "o5")
+            for (; s.length > 0; )
+              l += s.shift(), v += s.shift(), e2.U.P.lineTo(o2, l, v);
+          else if (x == "o6" || x == "o7")
+            for (var P = s.length, I = x == "o6", G = 0; G < P; G++) {
+              var w = s.shift();
+              I ? l += w : v += w, I = !I, e2.U.P.lineTo(o2, l, v);
+            }
+          else if (x == "o8" || x == "o24") {
+            P = s.length;
+            for (var T = 0; T + 6 <= P; )
+              c = l + s.shift(), p = v + s.shift(), U = c + s.shift(), g = p + s.shift(), l = U + s.shift(), v = g + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, l, v), T += 6;
+            x == "o24" && (l += s.shift(), v += s.shift(), e2.U.P.lineTo(o2, l, v));
+          } else {
+            if (x == "o11")
+              break;
+            if (x == "o1234" || x == "o1235" || x == "o1236" || x == "o1237")
+              x == "o1234" && (p = v, U = (c = l + s.shift()) + s.shift(), F = g = p + s.shift(), m = g, y = v, l = (b = (S = (_ = U + s.shift()) + s.shift()) + s.shift()) + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, _, F), e2.U.P.curveTo(o2, S, m, b, y, l, v)), x == "o1235" && (c = l + s.shift(), p = v + s.shift(), U = c + s.shift(), g = p + s.shift(), _ = U + s.shift(), F = g + s.shift(), S = _ + s.shift(), m = F + s.shift(), b = S + s.shift(), y = m + s.shift(), l = b + s.shift(), v = y + s.shift(), s.shift(), e2.U.P.curveTo(o2, c, p, U, g, _, F), e2.U.P.curveTo(o2, S, m, b, y, l, v)), x == "o1236" && (c = l + s.shift(), p = v + s.shift(), U = c + s.shift(), F = g = p + s.shift(), m = g, b = (S = (_ = U + s.shift()) + s.shift()) + s.shift(), y = m + s.shift(), l = b + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, _, F), e2.U.P.curveTo(o2, S, m, b, y, l, v)), x == "o1237" && (c = l + s.shift(), p = v + s.shift(), U = c + s.shift(), g = p + s.shift(), _ = U + s.shift(), F = g + s.shift(), S = _ + s.shift(), m = F + s.shift(), b = S + s.shift(), y = m + s.shift(), Math.abs(b - l) > Math.abs(y - v) ? l = b + s.shift() : v = y + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, _, F), e2.U.P.curveTo(o2, S, m, b, y, l, v));
+            else if (x == "o14") {
+              if (s.length > 0 && !h && (f = s.shift() + a2.nominalWidthX, h = true), s.length == 4) {
+                var O = s.shift(), k = s.shift(), D = s.shift(), B = s.shift(), A = e2.CFF.glyphBySE(a2, D), L = e2.CFF.glyphBySE(a2, B);
+                e2.U._drawCFF(a2.CharStrings[A], t3, a2, n2, o2), t3.x = O, t3.y = k, e2.U._drawCFF(a2.CharStrings[L], t3, a2, n2, o2);
+              }
+              d && (e2.U.P.closePath(o2), d = false);
+            } else if (x == "o19" || x == "o20") {
+              s.length % 2 != 0 && !h && (f = s.shift() + n2.nominalWidthX), i2 += s.length >> 1, s.length = 0, h = true, u += i2 + 7 >> 3;
+            } else if (x == "o21")
+              s.length > 2 && !h && (f = s.shift() + n2.nominalWidthX, h = true), v += s.pop(), l += s.pop(), d && e2.U.P.closePath(o2), e2.U.P.moveTo(o2, l, v), d = true;
+            else if (x == "o22")
+              s.length > 1 && !h && (f = s.shift() + n2.nominalWidthX, h = true), l += s.pop(), d && e2.U.P.closePath(o2), e2.U.P.moveTo(o2, l, v), d = true;
+            else if (x == "o25") {
+              for (; s.length > 6; )
+                l += s.shift(), v += s.shift(), e2.U.P.lineTo(o2, l, v);
+              c = l + s.shift(), p = v + s.shift(), U = c + s.shift(), g = p + s.shift(), l = U + s.shift(), v = g + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, l, v);
+            } else if (x == "o26")
+              for (s.length % 2 && (l += s.shift()); s.length > 0; )
+                c = l, p = v + s.shift(), l = U = c + s.shift(), v = (g = p + s.shift()) + s.shift(), e2.U.P.curveTo(o2, c, p, U, g, l, v);
+            else if (x == "o27")
+              for (s.length % 2 && (v += s.shift()); s.length > 0; )
+                p = v, U = (c = l + s.shift()) + s.shift(), g = p + s.shift(), l = U + s.shift(), v = g, e2.U.P.curveTo(o2, c, p, U, g, l, v);
+            else if (x == "o10" || x == "o29") {
+              var R = x == "o10" ? n2 : a2;
+              if (s.length == 0)
+                console.debug("error: empty stack");
+              else {
+                var V = s.pop(), M = R.Subrs[V + R.Bias];
+                t3.x = l, t3.y = v, t3.nStems = i2, t3.haveWidth = h, t3.width = f, t3.open = d, e2.U._drawCFF(M, t3, a2, n2, o2), l = t3.x, v = t3.y, i2 = t3.nStems, h = t3.haveWidth, f = t3.width, d = t3.open;
+              }
+            } else if (x == "o30" || x == "o31") {
+              var W = s.length, N = (T = 0, x == "o31");
+              for (T += W - (P = -3 & W); T < P; )
+                N ? (p = v, U = (c = l + s.shift()) + s.shift(), v = (g = p + s.shift()) + s.shift(), P - T == 5 ? (l = U + s.shift(), T++) : l = U, N = false) : (c = l, p = v + s.shift(), U = c + s.shift(), g = p + s.shift(), l = U + s.shift(), P - T == 5 ? (v = g + s.shift(), T++) : v = g, N = true), e2.U.P.curveTo(o2, c, p, U, g, l, v), T += 4;
+            } else {
+              if ((x + "").charAt(0) == "o")
+                throw console.debug("Unknown operation: " + x, r3), x;
+              s.push(x);
+            }
+          }
+        }
+        t3.x = l, t3.y = v, t3.nStems = i2, t3.haveWidth = h, t3.width = f, t3.open = d;
+      };
+      var t2 = e2, a = {Typr: t2};
+      return r2.Typr = t2, r2.default = a, r2;
+    }({}).Typr;
+  }
+  /*!
+  Custom bundle of woff2otf (https://github.com/arty-name/woff2otf) with tiny-inflate 
+  (https://github.com/foliojs/tiny-inflate) for use in Troika text rendering. 
+  Original licenses apply: 
+  - tiny-inflate: https://github.com/foliojs/tiny-inflate/blob/master/LICENSE (MIT)
+  - woff2otf.js: https://github.com/arty-name/woff2otf/blob/master/woff2otf.js (Apache2)
+  */
+  function woff2otfFactory() {
+    return function(t2) {
+      function e2() {
+        this.table = new Uint16Array(16), this.trans = new Uint16Array(288);
+      }
+      function r2(t3, r3) {
+        this.source = t3, this.sourceIndex = 0, this.tag = 0, this.bitcount = 0, this.dest = r3, this.destLen = 0, this.ltree = new e2(), this.dtree = new e2();
+      }
+      var n2 = new e2(), o2 = new e2(), a = new Uint8Array(30), s = new Uint16Array(30), i2 = new Uint8Array(30), u = new Uint16Array(30), f = new Uint8Array([16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15]), c = new e2(), g = new Uint8Array(320);
+      function b(t3, e3, r3, n3) {
+        var o3, a2;
+        for (o3 = 0; o3 < r3; ++o3)
+          t3[o3] = 0;
+        for (o3 = 0; o3 < 30 - r3; ++o3)
+          t3[o3 + r3] = o3 / r3 | 0;
+        for (a2 = n3, o3 = 0; o3 < 30; ++o3)
+          e3[o3] = a2, a2 += 1 << t3[o3];
+      }
+      var d = new Uint16Array(16);
+      function h(t3, e3, r3, n3) {
+        var o3, a2;
+        for (o3 = 0; o3 < 16; ++o3)
+          t3.table[o3] = 0;
+        for (o3 = 0; o3 < n3; ++o3)
+          t3.table[e3[r3 + o3]]++;
+        for (t3.table[0] = 0, a2 = 0, o3 = 0; o3 < 16; ++o3)
+          d[o3] = a2, a2 += t3.table[o3];
+        for (o3 = 0; o3 < n3; ++o3)
+          e3[r3 + o3] && (t3.trans[d[e3[r3 + o3]]++] = o3);
+      }
+      function l(t3) {
+        t3.bitcount-- || (t3.tag = t3.source[t3.sourceIndex++], t3.bitcount = 7);
+        var e3 = 1 & t3.tag;
+        return t3.tag >>>= 1, e3;
+      }
+      function v(t3, e3, r3) {
+        if (!e3)
+          return r3;
+        for (; t3.bitcount < 24; )
+          t3.tag |= t3.source[t3.sourceIndex++] << t3.bitcount, t3.bitcount += 8;
+        var n3 = t3.tag & 65535 >>> 16 - e3;
+        return t3.tag >>>= e3, t3.bitcount -= e3, n3 + r3;
+      }
+      function w(t3, e3) {
+        for (; t3.bitcount < 24; )
+          t3.tag |= t3.source[t3.sourceIndex++] << t3.bitcount, t3.bitcount += 8;
+        var r3 = 0, n3 = 0, o3 = 0, a2 = t3.tag;
+        do {
+          n3 = 2 * n3 + (1 & a2), a2 >>>= 1, ++o3, r3 += e3.table[o3], n3 -= e3.table[o3];
+        } while (n3 >= 0);
+        return t3.tag = a2, t3.bitcount -= o3, e3.trans[r3 + n3];
+      }
+      function L(t3, e3, r3) {
+        var n3, o3, a2, s2, i3, u2;
+        for (n3 = v(t3, 5, 257), o3 = v(t3, 5, 1), a2 = v(t3, 4, 4), s2 = 0; s2 < 19; ++s2)
+          g[s2] = 0;
+        for (s2 = 0; s2 < a2; ++s2) {
+          var b2 = v(t3, 3, 0);
+          g[f[s2]] = b2;
+        }
+        for (h(c, g, 0, 19), i3 = 0; i3 < n3 + o3; ) {
+          var d2 = w(t3, c);
+          switch (d2) {
+            case 16:
+              var l2 = g[i3 - 1];
+              for (u2 = v(t3, 2, 3); u2; --u2)
+                g[i3++] = l2;
               break;
             case 17:
-              for (length = tinf_read_bits(d, 3, 3); length; --length) {
-                lengths[num++] = 0;
-              }
+              for (u2 = v(t3, 3, 3); u2; --u2)
+                g[i3++] = 0;
               break;
             case 18:
-              for (length = tinf_read_bits(d, 7, 11); length; --length) {
-                lengths[num++] = 0;
-              }
+              for (u2 = v(t3, 7, 11); u2; --u2)
+                g[i3++] = 0;
               break;
             default:
-              lengths[num++] = sym;
-              break;
+              g[i3++] = d2;
           }
         }
-        tinf_build_tree(lt, lengths, 0, hlit);
-        tinf_build_tree(dt, lengths, hlit, hdist);
+        h(e3, g, 0, n3), h(r3, g, n3, o3);
       }
-      function tinf_inflate_block_data(d, lt, dt) {
-        while (1) {
-          var sym = tinf_decode_symbol(d, lt);
-          if (sym === 256) {
-            return TINF_OK;
-          }
-          if (sym < 256) {
-            d.dest[d.destLen++] = sym;
-          } else {
-            var length, dist, offs2;
-            var i2;
-            sym -= 257;
-            length = tinf_read_bits(d, length_bits[sym], length_base[sym]);
-            dist = tinf_decode_symbol(d, dt);
-            offs2 = d.destLen - tinf_read_bits(d, dist_bits[dist], dist_base[dist]);
-            for (i2 = offs2; i2 < offs2 + length; ++i2) {
-              d.dest[d.destLen++] = d.dest[i2];
-            }
-          }
+      function U(t3, e3, r3) {
+        for (; ; ) {
+          var n3, o3, f2, c2, g2 = w(t3, e3);
+          if (g2 === 256)
+            return 0;
+          if (g2 < 256)
+            t3.dest[t3.destLen++] = g2;
+          else
+            for (n3 = v(t3, a[g2 -= 257], s[g2]), o3 = w(t3, r3), c2 = f2 = t3.destLen - v(t3, i2[o3], u[o3]); c2 < f2 + n3; ++c2)
+              t3.dest[t3.destLen++] = t3.dest[c2];
         }
       }
-      function tinf_inflate_uncompressed_block(d) {
-        var length, invlength;
-        var i2;
-        while (d.bitcount > 8) {
-          d.sourceIndex--;
-          d.bitcount -= 8;
-        }
-        length = d.source[d.sourceIndex + 1];
-        length = 256 * length + d.source[d.sourceIndex];
-        invlength = d.source[d.sourceIndex + 3];
-        invlength = 256 * invlength + d.source[d.sourceIndex + 2];
-        if (length !== (~invlength & 65535))
-          return TINF_DATA_ERROR;
-        d.sourceIndex += 4;
-        for (i2 = length; i2; --i2)
-          d.dest[d.destLen++] = d.source[d.sourceIndex++];
-        d.bitcount = 0;
-        return TINF_OK;
+      function m(t3) {
+        for (var e3, r3; t3.bitcount > 8; )
+          t3.sourceIndex--, t3.bitcount -= 8;
+        if ((e3 = 256 * (e3 = t3.source[t3.sourceIndex + 1]) + t3.source[t3.sourceIndex]) !== (65535 & ~(256 * t3.source[t3.sourceIndex + 3] + t3.source[t3.sourceIndex + 2])))
+          return -3;
+        for (t3.sourceIndex += 4, r3 = e3; r3; --r3)
+          t3.dest[t3.destLen++] = t3.source[t3.sourceIndex++];
+        return t3.bitcount = 0, 0;
       }
-      function tinf_uncompress(source, dest) {
-        var d = new Data(source, dest);
-        var bfinal, btype, res;
+      !function(t3, e3) {
+        var r3;
+        for (r3 = 0; r3 < 7; ++r3)
+          t3.table[r3] = 0;
+        for (t3.table[7] = 24, t3.table[8] = 152, t3.table[9] = 112, r3 = 0; r3 < 24; ++r3)
+          t3.trans[r3] = 256 + r3;
+        for (r3 = 0; r3 < 144; ++r3)
+          t3.trans[24 + r3] = r3;
+        for (r3 = 0; r3 < 8; ++r3)
+          t3.trans[168 + r3] = 280 + r3;
+        for (r3 = 0; r3 < 112; ++r3)
+          t3.trans[176 + r3] = 144 + r3;
+        for (r3 = 0; r3 < 5; ++r3)
+          e3.table[r3] = 0;
+        for (e3.table[5] = 32, r3 = 0; r3 < 32; ++r3)
+          e3.trans[r3] = r3;
+      }(n2, o2), b(a, s, 4, 3), b(i2, u, 2, 1), a[28] = 0, s[28] = 258;
+      var y = function(t3, e3) {
+        var a2, s2, i3 = new r2(t3, e3);
         do {
-          bfinal = tinf_getbit(d);
-          btype = tinf_read_bits(d, 2, 0);
-          switch (btype) {
+          switch (a2 = l(i3), v(i3, 2, 0)) {
             case 0:
-              res = tinf_inflate_uncompressed_block(d);
+              s2 = m(i3);
               break;
             case 1:
-              res = tinf_inflate_block_data(d, sltree, sdtree);
+              s2 = U(i3, n2, o2);
               break;
             case 2:
-              tinf_decode_trees(d, d.ltree, d.dtree);
-              res = tinf_inflate_block_data(d, d.ltree, d.dtree);
+              L(i3, i3.ltree, i3.dtree), s2 = U(i3, i3.ltree, i3.dtree);
               break;
             default:
-              res = TINF_DATA_ERROR;
+              s2 = -3;
           }
-          if (res !== TINF_OK)
+          if (s2 !== 0)
             throw new Error("Data error");
-        } while (!bfinal);
-        if (d.destLen < d.dest.length) {
-          if (typeof d.dest.slice === "function")
-            return d.dest.slice(0, d.destLen);
-          else
-            return d.dest.subarray(0, d.destLen);
-        }
-        return d.dest;
-      }
-      tinf_build_fixed_trees(sltree, sdtree);
-      tinf_build_bits_base(length_bits, length_base, 4, 3);
-      tinf_build_bits_base(dist_bits, dist_base, 2, 1);
-      length_bits[28] = 0;
-      length_base[28] = 258;
-      module.exports = tinf_uncompress;
-      return module.exports;
-    }();
-    function convert_streams(bufferIn, tinyInflate2) {
-      var dataViewIn = new DataView(bufferIn);
-      var offsetIn = 0;
-      function read2() {
-        var uint16 = dataViewIn.getUint16(offsetIn);
-        offsetIn += 2;
-        return uint16;
-      }
-      function read4() {
-        var uint32 = dataViewIn.getUint32(offsetIn);
-        offsetIn += 4;
-        return uint32;
-      }
-      function write2(uint16) {
-        dataViewOut.setUint16(offsetOut, uint16);
-        offsetOut += 2;
-      }
-      function write4(uint32) {
-        dataViewOut.setUint32(offsetOut, uint32);
-        offsetOut += 4;
-      }
-      var WOFFHeader = {
-        signature: read4(),
-        flavor: read4(),
-        length: read4(),
-        numTables: read2(),
-        reserved: read2(),
-        totalSfntSize: read4(),
-        majorVersion: read2(),
-        minorVersion: read2(),
-        metaOffset: read4(),
-        metaLength: read4(),
-        metaOrigLength: read4(),
-        privOffset: read4(),
-        privLength: read4()
+        } while (!a2);
+        return i3.destLen < i3.dest.length ? typeof i3.dest.slice == "function" ? i3.dest.slice(0, i3.destLen) : i3.dest.subarray(0, i3.destLen) : i3.dest;
       };
-      var entrySelector = 0;
-      while (Math.pow(2, entrySelector) <= WOFFHeader.numTables) {
-        entrySelector++;
-      }
-      entrySelector--;
-      var searchRange = Math.pow(2, entrySelector) * 16;
-      var rangeShift = WOFFHeader.numTables * 16 - searchRange;
-      var offset = 4 + 2 + 2 + 2 + 2;
-      var TableDirectoryEntries = [];
-      for (var i2 = 0; i2 < WOFFHeader.numTables; i2++) {
-        TableDirectoryEntries.push({
-          tag: read4(),
-          offset: read4(),
-          compLength: read4(),
-          origLength: read4(),
-          origChecksum: read4()
-        });
-        offset += 4 * 4;
-      }
-      var arrayOut = new Uint8Array(4 + 2 + 2 + 2 + 2 + TableDirectoryEntries.length * (4 + 4 + 4 + 4) + TableDirectoryEntries.reduce(function(acc, entry) {
-        return acc + entry.origLength + 4;
-      }, 0));
-      var bufferOut = arrayOut.buffer;
-      var dataViewOut = new DataView(bufferOut);
-      var offsetOut = 0;
-      write4(WOFFHeader.flavor);
-      write2(WOFFHeader.numTables);
-      write2(searchRange);
-      write2(entrySelector);
-      write2(rangeShift);
-      TableDirectoryEntries.forEach(function(TableDirectoryEntry) {
-        write4(TableDirectoryEntry.tag);
-        write4(TableDirectoryEntry.origChecksum);
-        write4(offset);
-        write4(TableDirectoryEntry.origLength);
-        TableDirectoryEntry.outOffset = offset;
-        offset += TableDirectoryEntry.origLength;
-        if (offset % 4 != 0) {
-          offset += 4 - offset % 4;
+      return t2.convert_streams = function(t3) {
+        var e3 = new DataView(t3), r3 = 0;
+        function n3() {
+          var t4 = e3.getUint16(r3);
+          return r3 += 2, t4;
         }
-      });
-      var size;
-      TableDirectoryEntries.forEach(function(TableDirectoryEntry) {
-        var compressedData = bufferIn.slice(TableDirectoryEntry.offset, TableDirectoryEntry.offset + TableDirectoryEntry.compLength);
-        if (TableDirectoryEntry.compLength != TableDirectoryEntry.origLength) {
-          var uncompressedData = new Uint8Array(TableDirectoryEntry.origLength);
-          tinyInflate2(new Uint8Array(compressedData, 2), uncompressedData);
-        } else {
-          uncompressedData = new Uint8Array(compressedData);
+        function o3() {
+          var t4 = e3.getUint32(r3);
+          return r3 += 4, t4;
         }
-        arrayOut.set(uncompressedData, TableDirectoryEntry.outOffset);
-        offset = TableDirectoryEntry.outOffset + TableDirectoryEntry.origLength;
-        var padding = 0;
-        if (offset % 4 != 0) {
-          padding = 4 - offset % 4;
+        function a2(t4) {
+          w2.setUint16(L2, t4), L2 += 2;
         }
-        arrayOut.set(new Uint8Array(padding).buffer, TableDirectoryEntry.outOffset + TableDirectoryEntry.origLength);
-        size = offset + padding;
-      });
-      return bufferOut.slice(0, size);
-    }
-    return function(buffer) {
-      return convert_streams(buffer, tinyInflate);
-    };
+        function s2(t4) {
+          w2.setUint32(L2, t4), L2 += 4;
+        }
+        for (var i3 = {signature: o3(), flavor: o3(), length: o3(), numTables: n3(), reserved: n3(), totalSfntSize: o3(), majorVersion: n3(), minorVersion: n3(), metaOffset: o3(), metaLength: o3(), metaOrigLength: o3(), privOffset: o3(), privLength: o3()}, u2 = 0; Math.pow(2, u2) <= i3.numTables; )
+          u2++;
+        u2--;
+        for (var f2 = 16 * Math.pow(2, u2), c2 = 16 * i3.numTables - f2, g2 = 12, b2 = [], d2 = 0; d2 < i3.numTables; d2++)
+          b2.push({tag: o3(), offset: o3(), compLength: o3(), origLength: o3(), origChecksum: o3()}), g2 += 16;
+        var h2, l2 = new Uint8Array(12 + 16 * b2.length + b2.reduce(function(t4, e4) {
+          return t4 + e4.origLength + 4;
+        }, 0)), v2 = l2.buffer, w2 = new DataView(v2), L2 = 0;
+        return s2(i3.flavor), a2(i3.numTables), a2(f2), a2(u2), a2(c2), b2.forEach(function(t4) {
+          s2(t4.tag), s2(t4.origChecksum), s2(g2), s2(t4.origLength), t4.outOffset = g2, (g2 += t4.origLength) % 4 != 0 && (g2 += 4 - g2 % 4);
+        }), b2.forEach(function(e4) {
+          var r4 = t3.slice(e4.offset, e4.offset + e4.compLength);
+          if (e4.compLength != e4.origLength) {
+            var n4 = new Uint8Array(e4.origLength);
+            y(new Uint8Array(r4, 2), n4);
+          } else
+            n4 = new Uint8Array(r4);
+          l2.set(n4, e4.outOffset);
+          var o4 = 0;
+          (g2 = e4.outOffset + e4.origLength) % 4 != 0 && (o4 = 4 - g2 % 4), l2.set(new Uint8Array(o4).buffer, e4.outOffset + e4.origLength), h2 = g2 + o4;
+        }), v2.slice(0, h2);
+      }, t2;
+    }({}).convert_streams;
   }
   function parserFactory(Typr, woff2otf) {
     const cmdArgLengths = {
@@ -80853,7 +79008,8 @@ if (dashing.x + dashing.y > 0.0) {
           const fontScale = 1 / fontObj.unitsPerEm * fontSize;
           const glyphIndices = Typr.U.stringToGlyphs(typrFont, text);
           let charIndex = 0;
-          glyphIndices.forEach((glyphIndex) => {
+          let prevGlyphIndex = -1;
+          glyphIndices.forEach((glyphIndex, i2) => {
             if (glyphIndex !== -1) {
               let glyphObj = glyphMap[glyphIndex];
               if (!glyphObj) {
@@ -80862,9 +79018,9 @@ if (dashing.x + dashing.y > 0.0) {
                 if (crds.length) {
                   xMin = yMin = Infinity;
                   xMax = yMax = -Infinity;
-                  for (let i2 = 0, len = crds.length; i2 < len; i2 += 2) {
-                    let x = crds[i2];
-                    let y = crds[i2 + 1];
+                  for (let i3 = 0, len = crds.length; i3 < len; i3 += 2) {
+                    let x = crds[i3];
+                    let y = crds[i3 + 1];
                     if (x < xMin)
                       xMin = x;
                     if (y < yMin)
@@ -80888,10 +79044,10 @@ if (dashing.x + dashing.y > 0.0) {
                   forEachPathCommand(callback2) {
                     let argsIndex = 0;
                     const argsArray = [];
-                    for (let i2 = 0, len = cmds.length; i2 < len; i2++) {
-                      const numArgs = cmdArgLengths[cmds[i2]];
+                    for (let i3 = 0, len = cmds.length; i3 < len; i3++) {
+                      const numArgs = cmdArgLengths[cmds[i3]];
                       argsArray.length = 1 + numArgs;
-                      argsArray[0] = cmds[i2];
+                      argsArray[0] = cmds[i3];
                       for (let j = 1; j <= numArgs; j++) {
                         argsArray[j] = crds[argsIndex++];
                       }
@@ -80900,6 +79056,9 @@ if (dashing.x + dashing.y > 0.0) {
                   }
                 };
               }
+              if (prevGlyphIndex !== -1) {
+                glyphX += Typr.U.getPairAdjustment(typrFont, prevGlyphIndex, glyphIndex) * fontScale;
+              }
               callback.call(null, glyphObj, glyphX, charIndex);
               if (glyphObj.advanceWidth) {
                 glyphX += glyphObj.advanceWidth * fontScale;
@@ -80907,6 +79066,7 @@ if (dashing.x + dashing.y > 0.0) {
               if (letterSpacing) {
                 glyphX += letterSpacing * fontSize;
               }
+              prevGlyphIndex = glyphIndex;
             }
             charIndex += text.codePointAt(charIndex) > 65535 ? 2 : 1;
           });
@@ -81379,7 +79539,7 @@ if (alpha == 0.0) {
       "sdfGlyphSize"
     ];
     const COPYABLE_PROPS = SYNCABLE_PROPS.concat("material", "color", "depthOffset", "clipRect", "orientation", "glyphGeometryDetail");
-    class Text3 extends Mesh {
+    class Text2 extends Mesh {
       constructor() {
         const geometry2 = new GlyphsGeometry();
         super(geometry2, null);
@@ -81602,7 +79762,7 @@ if (alpha == 0.0) {
     }
     SYNCABLE_PROPS.forEach((prop) => {
       const privateKey = "_private_" + prop;
-      Object.defineProperty(Text3.prototype, prop, {
+      Object.defineProperty(Text2.prototype, prop, {
         get() {
           return this[privateKey];
         },
@@ -81615,7 +79775,7 @@ if (alpha == 0.0) {
       });
     });
     let deprMsgShown = false;
-    Object.defineProperty(Text3.prototype, "anchor", {
+    Object.defineProperty(Text2.prototype, "anchor", {
       get() {
         return this._deprecated_anchor;
       },
@@ -81633,363 +79793,312 @@ if (alpha == 0.0) {
         }
       }
     });
-    return Text3;
+    return Text2;
   })();
   var _rectsCache = new WeakMap();
   var _caretsByRowCache = new WeakMap();
 
-  // node_modules/drei/Text.js
-  var Text2 = /* @__PURE__ */ react3.forwardRef((_ref, ref) => {
-    let {
-      anchorX = "center",
-      anchorY = "middle",
-      children,
-      onSync
-    } = _ref, props = _objectWithoutPropertiesLoose(_ref, ["anchorX", "anchorY", "children", "onSync"]);
-    const {
-      invalidate: invalidate2
-    } = useThree();
-    const [troikaMesh] = react3.useState(() => new Text());
-    const [nodes, text] = react3.useMemo(() => {
-      let n2 = [];
-      let t2 = "";
-      react3.Children.forEach(children, (child) => {
-        if (typeof child === "string") {
-          t2 += child;
-        } else {
-          n2.push(child);
-        }
-      });
-      return [n2, t2];
-    }, [children]);
-    react3.useLayoutEffect(() => void troikaMesh.sync(() => {
-      invalidate2();
-      if (onSync)
-        onSync(troikaMesh);
-    }));
-    return /* @__PURE__ */ react3.default.createElement("primitive", _extends({
-      dispose: void 0,
-      object: troikaMesh,
-      ref,
-      text,
-      anchorX,
-      anchorY
-    }, props), nodes);
-  });
+  // src/experiments/webgl/loader/ThreeLoader.jsx
+  var react5 = __toModule(require_react());
 
-  // src/experiments/webgl/loader/index.jsx
-  function ParticleField() {
-    const pointsRef = react4.useRef();
-    const particleCount = 3e3;
-    const particles = react4.useMemo(() => {
-      const positions = new Float32Array(particleCount * 3);
-      const colors = new Float32Array(particleCount * 3);
-      for (let i2 = 0; i2 < particleCount; i2++) {
-        positions[i2 * 3] = (Math.random() - 0.5) * 30;
-        positions[i2 * 3 + 1] = (Math.random() - 0.5) * 30;
-        positions[i2 * 3 + 2] = (Math.random() - 0.5) * 30;
-        const color = new Color();
-        const hue = Math.random() * 0.2 + 0.5;
-        color.setHSL(hue, 1, 0.5);
-        colors[i2 * 3] = color.r;
-        colors[i2 * 3 + 1] = color.g;
-        colors[i2 * 3 + 2] = color.b;
+  // src/experiments/webgl/loader/Lightning.jsx
+  var react3 = __toModule(require_react());
+  var Lightning = () => {
+    const [active, setActive] = react3.useState(false);
+    const points = react3.useMemo(() => {
+      const p = [];
+      let current = new Vector3(0, 5, 0);
+      for (let i2 = 0; i2 < 20; i2++) {
+        p.push(current.clone());
+        current.add(new Vector3((Math.random() - 0.5) * 4, -0.6, (Math.random() - 0.5) * 2));
       }
-      return {positions, colors};
-    }, []);
-    useFrame(({clock}) => {
-      if (pointsRef.current) {
-        pointsRef.current.rotation.y = clock.getElapsedTime() * 0.03;
-        pointsRef.current.rotation.x = Math.sin(clock.getElapsedTime() * 0.02) * 0.2;
+      return p;
+    }, [active]);
+    useFrame((state) => {
+      if (Math.random() > 0.97) {
+        setActive(true);
+        setTimeout(() => setActive(false), 50 + Math.random() * 150);
       }
     });
-    return /* @__PURE__ */ react4.default.createElement("points", {
-      ref: pointsRef
-    }, /* @__PURE__ */ react4.default.createElement("bufferGeometry", null, /* @__PURE__ */ react4.default.createElement("bufferAttribute", {
+    if (!active)
+      return null;
+    const posArray = new Float32Array(points.flatMap((p) => [p.x, p.y, p.z]));
+    return /* @__PURE__ */ React.createElement("group", {
+      position: [(Math.random() - 0.5) * 30, 8, (Math.random() - 0.5) * 20]
+    }, /* @__PURE__ */ React.createElement("line", null, /* @__PURE__ */ React.createElement("bufferGeometry", null, /* @__PURE__ */ React.createElement("bufferAttribute", {
       attachObject: ["attributes", "position"],
-      count: particleCount,
-      array: particles.positions,
+      count: points.length,
+      array: posArray,
       itemSize: 3
-    }), /* @__PURE__ */ react4.default.createElement("bufferAttribute", {
-      attachObject: ["attributes", "color"],
-      count: particleCount,
-      array: particles.colors,
-      itemSize: 3
-    })), /* @__PURE__ */ react4.default.createElement("pointsMaterial", {
-      size: 0.08,
-      vertexColors: true,
+    })), /* @__PURE__ */ React.createElement("lineBasicMaterial", {
+      color: "#ffffff",
+      linewidth: 3,
       transparent: true,
-      opacity: 0.7,
-      sizeAttenuation: true,
-      blending: AdditiveBlending
+      opacity: 1
+    })), /* @__PURE__ */ React.createElement("pointLight", {
+      intensity: 100,
+      distance: 100,
+      color: "#00ff88"
+    }), /* @__PURE__ */ React.createElement("pointLight", {
+      intensity: 50,
+      distance: 50,
+      color: "#ffffff"
     }));
-  }
-  function AnimatedText({text, position, scale = 1, delay = 0, color = "#00ffff"}) {
-    const textRef = react4.useRef();
-    const [opacity, setOpacity] = react4.useState(0);
-    react4.useEffect(() => {
-      const timer = setTimeout(() => {
-        const fadeInterval = setInterval(() => {
-          setOpacity((prev) => {
-            if (prev >= 1) {
-              clearInterval(fadeInterval);
-              return 1;
-            }
-            return prev + 0.05;
-          });
-        }, 50);
-      }, delay);
-      return () => clearTimeout(timer);
-    }, [delay]);
-    useFrame(({clock}) => {
-      if (textRef.current && opacity > 0) {
-        textRef.current.position.y = position[1] + Math.sin(clock.getElapsedTime() * 1.5 + delay / 100) * 0.08;
-        if (Math.random() < 0.01) {
-          textRef.current.position.x = position[0] + (Math.random() - 0.5) * 0.05;
-        } else {
-          textRef.current.position.x = position[0];
+  };
+
+  // src/experiments/webgl/loader/Rain.jsx
+  var react4 = __toModule(require_react());
+  var Rain = ({count = 1e3}) => {
+    const points = react4.useRef();
+    const [positions, velocities] = react4.useMemo(() => {
+      const pos = new Float32Array(count * 3);
+      const vel = new Float32Array(count);
+      for (let i2 = 0; i2 < count; i2++) {
+        pos[i2 * 3] = (Math.random() - 0.5) * 20;
+        pos[i2 * 3 + 1] = Math.random() * 20;
+        pos[i2 * 3 + 2] = (Math.random() - 0.5) * 20;
+        vel[i2] = 0.1 + Math.random() * 0.2;
+      }
+      return [pos, vel];
+    }, [count]);
+    useFrame(() => {
+      if (!points.current)
+        return;
+      const posAttr = points.current.geometry.attributes.position;
+      for (let i2 = 0; i2 < count; i2++) {
+        posAttr.array[i2 * 3 + 1] -= velocities[i2];
+        if (posAttr.array[i2 * 3 + 1] < -5) {
+          posAttr.array[i2 * 3 + 1] = 15;
         }
       }
+      posAttr.needsUpdate = true;
     });
-    return /* @__PURE__ */ react4.default.createElement("group", {
-      ref: textRef,
-      position,
-      scale: [scale, scale, scale]
-    }, /* @__PURE__ */ react4.default.createElement(Text2, {
-      fontSize: 0.8,
-      color,
+    return /* @__PURE__ */ React.createElement("points", {
+      ref: points
+    }, /* @__PURE__ */ React.createElement("bufferGeometry", null, /* @__PURE__ */ React.createElement("bufferAttribute", {
+      attachObject: ["attributes", "position"],
+      count: positions.length / 3,
+      array: positions,
+      itemSize: 3
+    })), /* @__PURE__ */ React.createElement("pointsMaterial", {
+      size: 0.05,
+      color: "#ffffff",
+      transparent: true,
+      opacity: 0.3,
+      sizeAttenuation: true
+    }));
+  };
+
+  // src/experiments/webgl/loader/ThreeLoader.jsx
+  extend({Text});
+  var ThreeLoader = ({progress}) => {
+    const textMaterial = react5.useRef();
+    const groupRef = react5.useRef();
+    const textMeshRef = react5.useRef();
+    const colors = react5.useMemo(() => [
+      new Color("#00ff88"),
+      new Color("#0088ff"),
+      new Color("#8800ff"),
+      new Color("#00ffcc")
+    ], []);
+    useFrame((state) => {
+      const t2 = state.clock.elapsedTime;
+      if (groupRef.current) {
+        groupRef.current.position.y = Math.sin(t2 * 0.5) * 0.05;
+      }
+      if (textMaterial.current) {
+        const colorIndex = t2 * 0.3 % colors.length;
+        const nextColorIndex = (colorIndex + 1) % colors.length;
+        const alpha = colorIndex % 1;
+        textMaterial.current.color.lerpColors(colors[Math.floor(colorIndex)], colors[Math.floor(nextColorIndex)], alpha);
+        textMaterial.current.emissive.copy(textMaterial.current.color);
+        const flicker = 0.8 + Math.sin(t2 * 2) * 0.2;
+        const lightningBurst = Math.random() > 0.995 ? 2.5 : 0;
+        textMaterial.current.emissiveIntensity = flicker + lightningBurst;
+      }
+      const targetX = state.mouse.x * (state.viewport.width / 2);
+      const targetY = (1 + state.mouse.y) / 2;
+      state.camera.position.x += (targetX - state.camera.position.x) * 0.05;
+      state.camera.position.y += (targetY - state.camera.position.y) * 0.05;
+      state.camera.lookAt(0, 0, 0);
+    });
+    react5.useEffect(() => {
+      if (textMeshRef.current) {
+        textMeshRef.current.sync();
+      }
+    }, []);
+    return /* @__PURE__ */ React.createElement("group", null, /* @__PURE__ */ React.createElement(Rain, {
+      count: 1200
+    }), /* @__PURE__ */ React.createElement(Lightning, null), /* @__PURE__ */ React.createElement("group", {
+      ref: groupRef
+    }, /* @__PURE__ */ React.createElement("mesh", {
+      position: [0, 0, 0]
+    }, /* @__PURE__ */ React.createElement("text", {
+      ref: textMeshRef,
+      text: "esco.io",
+      fontSize: 2.5,
+      maxWidth: 200,
+      lineHeight: 1,
+      letterSpacing: -0.1,
+      textAlign: "center",
+      font: "/fonts/Poppins-Black.ttf",
       anchorX: "center",
       anchorY: "middle",
-      outlineWidth: 0.03,
+      outlineWidth: 0.05,
       outlineColor: "#000000"
-    }, text, /* @__PURE__ */ react4.default.createElement("meshStandardMaterial", {
-      color,
-      emissive: color,
-      emissiveIntensity: 0.8,
-      transparent: true,
-      opacity
-    })));
-  }
-  function LoadingRing() {
-    const ringRef = react4.useRef();
-    const ring2Ref = react4.useRef();
-    useFrame(({clock}) => {
-      if (ringRef.current) {
-        ringRef.current.rotation.z = clock.getElapsedTime() * 1.5;
-      }
-      if (ring2Ref.current) {
-        ring2Ref.current.rotation.z = -clock.getElapsedTime() * 2;
-      }
-    });
-    return /* @__PURE__ */ react4.default.createElement("group", {
-      position: [0, -1.8, 0]
-    }, /* @__PURE__ */ react4.default.createElement("mesh", {
-      ref: ringRef
-    }, /* @__PURE__ */ react4.default.createElement("torusGeometry", {
-      args: [2, 0.06, 16, 100]
-    }), /* @__PURE__ */ react4.default.createElement("meshStandardMaterial", {
-      color: "#00ffff",
-      emissive: "#00ffff",
-      emissiveIntensity: 1.5,
-      metalness: 0.9,
-      roughness: 0.1,
-      transparent: true,
-      opacity: 0.8
-    })), /* @__PURE__ */ react4.default.createElement("mesh", {
-      ref: ring2Ref
-    }, /* @__PURE__ */ react4.default.createElement("torusGeometry", {
-      args: [1.7, 0.04, 16, 100]
-    }), /* @__PURE__ */ react4.default.createElement("meshStandardMaterial", {
-      color: "#ff00ff",
-      emissive: "#ff00ff",
-      emissiveIntensity: 1.5,
-      metalness: 0.9,
-      roughness: 0.1,
-      transparent: true,
-      opacity: 0.6
-    })));
-  }
-  function GlowingSphere({position, color, speed = 1, radius = 2}) {
-    const meshRef = react4.useRef();
-    useFrame(({clock}) => {
-      if (meshRef.current) {
-        const t2 = clock.getElapsedTime() * speed;
-        meshRef.current.position.x = position[0] + Math.cos(t2) * radius;
-        meshRef.current.position.z = position[2] + Math.sin(t2) * radius;
-        meshRef.current.position.y = position[1] + Math.sin(t2 * 2) * 0.3;
-        const pulse = Math.sin(t2 * 3) * 0.2 + 0.8;
-        meshRef.current.scale.setScalar(pulse * 0.25);
-      }
-    });
-    return /* @__PURE__ */ react4.default.createElement("mesh", {
-      ref: meshRef,
-      position
-    }, /* @__PURE__ */ react4.default.createElement("sphereGeometry", {
-      args: [0.25, 32, 32]
-    }), /* @__PURE__ */ react4.default.createElement("meshStandardMaterial", {
-      color,
-      emissive: color,
-      emissiveIntensity: 3,
-      transparent: true,
-      opacity: 0.8,
+    }, /* @__PURE__ */ React.createElement("meshStandardMaterial", {
+      ref: textMaterial,
+      attach: "material",
+      color: colors[0],
+      emissive: colors[0],
+      emissiveIntensity: 1,
       toneMapped: false
-    }), /* @__PURE__ */ react4.default.createElement("pointLight", {
-      color,
-      intensity: 2,
-      distance: 5
-    }));
-  }
-  function CoreSphere() {
-    const meshRef = react4.useRef();
-    useFrame(({clock}) => {
-      if (meshRef.current) {
-        const pulse = Math.sin(clock.getElapsedTime() * 2) * 0.1 + 0.9;
-        meshRef.current.scale.setScalar(pulse);
-        meshRef.current.rotation.x += 5e-3;
-        meshRef.current.rotation.y += 7e-3;
-      }
-    });
-    return /* @__PURE__ */ react4.default.createElement("mesh", {
-      ref: meshRef,
-      position: [0, 0, -1]
-    }, /* @__PURE__ */ react4.default.createElement("icosahedronGeometry", {
-      args: [0.5, 1]
-    }), /* @__PURE__ */ react4.default.createElement("meshStandardMaterial", {
-      color: "#ffffff",
-      emissive: "#00ffff",
-      emissiveIntensity: 2,
-      wireframe: true,
+    })))), /* @__PURE__ */ React.createElement("mesh", {
+      rotation: [-Math.PI / 2, 0, 0],
+      position: [0, -1.5, 0]
+    }, /* @__PURE__ */ React.createElement("planeGeometry", {
+      attach: "geometry",
+      args: [100, 100]
+    }), /* @__PURE__ */ React.createElement("meshStandardMaterial", {
+      attach: "material",
+      color: "#202020",
+      metalness: 0.9,
+      roughness: 0.1
+    })), /* @__PURE__ */ React.createElement("group", {
+      position: [0, -2.5, 0]
+    }, /* @__PURE__ */ React.createElement("mesh", null, /* @__PURE__ */ React.createElement("planeGeometry", {
+      attach: "geometry",
+      args: [4, 0.01]
+    }), /* @__PURE__ */ React.createElement("meshBasicMaterial", {
+      attach: "material",
+      color: "#111",
       transparent: true,
       opacity: 0.3
-    }));
-  }
-  function GridFloor() {
-    const gridRef = react4.useRef();
-    useFrame(({clock}) => {
-      if (gridRef.current) {
-        gridRef.current.position.y = -3 + Math.sin(clock.getElapsedTime()) * 0.1;
-      }
-    });
-    return /* @__PURE__ */ react4.default.createElement("mesh", {
-      ref: gridRef,
-      rotation: [-Math.PI / 2, 0, 0],
-      position: [0, -3, 0]
-    }, /* @__PURE__ */ react4.default.createElement("planeGeometry", {
-      args: [20, 20, 20, 20]
-    }), /* @__PURE__ */ react4.default.createElement("meshBasicMaterial", {
-      color: "#00ffff",
-      wireframe: true,
+    })), /* @__PURE__ */ React.createElement("mesh", {
+      position: [-2 + progress / 100 * 2, 0, 0.01]
+    }, /* @__PURE__ */ React.createElement("planeGeometry", {
+      attach: "geometry",
+      args: [progress / 100 * 4, 0.01]
+    }), /* @__PURE__ */ React.createElement("meshBasicMaterial", {
+      attach: "material",
+      color: "#00ff88"
+    })), /* @__PURE__ */ React.createElement("mesh", {
+      position: [0, -0.3, 0]
+    }, /* @__PURE__ */ React.createElement("text", {
+      text: progress < 100 ? `INITIALIZING SYSTEM: ${progress}%` : "SYSTEM READY",
+      fontSize: 0.12,
+      font: "/fonts/Poppins-Black.ttf",
+      anchorX: "center",
+      anchorY: "middle"
+    }, /* @__PURE__ */ React.createElement("meshStandardMaterial", {
+      attach: "material",
+      color: "#00ff88",
       transparent: true,
-      opacity: 0.2
-    }));
-  }
-  function LoaderScene() {
-    const [progress, setProgress] = react4.useState(0);
-    const [statusText, setStatusText] = react4.useState("INITIALIZING");
-    react4.useEffect(() => {
-      const statuses = [
-        "INITIALIZING",
-        "LOADING ASSETS",
-        "COMPILING SHADERS",
-        "ESTABLISHING CONNECTION",
-        "ALMOST READY",
-        "COMPLETE"
-      ];
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          const newProgress = prev + 1;
-          const statusIndex = Math.floor(newProgress / 100 * (statuses.length - 1));
-          setStatusText(statuses[statusIndex]);
-          if (newProgress >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-              window.location.href = "/";
-            }, 1e3);
-            return 100;
-          }
-          return newProgress;
-        });
-      }, 40);
-      return () => clearInterval(interval);
-    }, []);
-    return /* @__PURE__ */ react4.default.createElement(react4.default.Fragment, null, /* @__PURE__ */ react4.default.createElement("color", {
-      attach: "background",
-      args: ["#000000"]
-    }), /* @__PURE__ */ react4.default.createElement("fog", {
-      attach: "fog",
-      args: ["#000408", 8, 20]
-    }), /* @__PURE__ */ react4.default.createElement("ambientLight", {
+      opacity: 0.6
+    })))), /* @__PURE__ */ React.createElement("ambientLight", {
       intensity: 0.2
-    }), /* @__PURE__ */ react4.default.createElement("pointLight", {
+    }), /* @__PURE__ */ React.createElement("pointLight", {
       position: [10, 10, 10],
       intensity: 1.5,
       color: "#00ffff"
-    }), /* @__PURE__ */ react4.default.createElement("pointLight", {
+    }), /* @__PURE__ */ React.createElement("pointLight", {
       position: [-10, -10, -10],
       intensity: 1.5,
       color: "#ff00ff"
-    }), /* @__PURE__ */ react4.default.createElement("spotLight", {
+    }), /* @__PURE__ */ React.createElement("spotLight", {
       position: [0, 8, 0],
       angle: 0.4,
       penumbra: 1,
       intensity: 2,
       color: "#ffffff"
-    }), /* @__PURE__ */ react4.default.createElement(ParticleField, null), /* @__PURE__ */ react4.default.createElement(GridFloor, null), /* @__PURE__ */ react4.default.createElement(CoreSphere, null), /* @__PURE__ */ react4.default.createElement(GlowingSphere, {
-      position: [0, 0, 0],
-      color: "#00ffff",
-      speed: 0.8,
-      radius: 2.5
-    }), /* @__PURE__ */ react4.default.createElement(GlowingSphere, {
-      position: [0, 0, 0],
-      color: "#ff00ff",
-      speed: 1.2,
-      radius: 2
-    }), /* @__PURE__ */ react4.default.createElement(GlowingSphere, {
-      position: [0, 0, 0],
-      color: "#ffff00",
-      speed: 1,
-      radius: 3
-    }), /* @__PURE__ */ react4.default.createElement(LoadingRing, null), /* @__PURE__ */ react4.default.createElement(AnimatedText, {
-      text: "esco.io",
-      position: [0, 0.2, 0],
-      scale: 1.3,
-      delay: 200,
-      color: "#00ffff"
-    }), /* @__PURE__ */ react4.default.createElement(AnimatedText, {
-      text: statusText,
-      position: [0, -2.8, 0],
-      scale: 0.4,
-      delay: 600,
-      color: "#ff00ff"
-    }), /* @__PURE__ */ react4.default.createElement(AnimatedText, {
-      text: `${progress}%`,
-      position: [0, -3.4, 0],
-      scale: 0.5,
-      delay: 800,
-      color: "#00ffff"
+    }), /* @__PURE__ */ React.createElement("fog", {
+      attach: "fog",
+      args: ["#000408", 8, 20]
     }));
-  }
+  };
+
+  // src/experiments/webgl/loader/index.jsx
   function Loader2() {
-    return /* @__PURE__ */ react4.default.createElement("div", {
+    const [progress, setProgress] = react6.useState(0);
+    const [started, setStarted] = react6.useState(false);
+    react6.useEffect(() => {
+      const interval = setInterval(() => {
+        setProgress((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 1;
+        });
+      }, 40);
+      return () => clearInterval(interval);
+    }, []);
+    const handleStart = () => {
+      setStarted(true);
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
+    };
+    return /* @__PURE__ */ react6.default.createElement("div", {
       style: {
         width: "100vw",
         height: "100vh",
         background: "#000",
         margin: 0,
         padding: 0,
-        overflow: "hidden"
+        overflow: "hidden",
+        position: "relative"
       }
-    }, /* @__PURE__ */ react4.default.createElement(Canvas, {
-      camera: {position: [0, 0, 6], fov: 75},
+    }, /* @__PURE__ */ react6.default.createElement(Canvas, {
+      camera: {position: [0, 0, 5.5], fov: 75},
       gl: {
         antialias: true,
         alpha: false,
         powerPreference: "high-performance"
       }
-    }, /* @__PURE__ */ react4.default.createElement(LoaderScene, null)));
+    }, /* @__PURE__ */ react6.default.createElement("color", {
+      attach: "background",
+      args: ["#000000"]
+    }), /* @__PURE__ */ react6.default.createElement(ThreeLoader, {
+      progress
+    })), progress === 100 && !started && /* @__PURE__ */ react6.default.createElement("div", {
+      style: {
+        position: "absolute",
+        bottom: "15%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 9999
+      }
+    }, /* @__PURE__ */ react6.default.createElement("button", {
+      onClick: handleStart,
+      style: {
+        cursor: "pointer",
+        background: "transparent",
+        border: "2px solid #00ff88",
+        color: "#00ff88",
+        padding: "12px 30px",
+        fontSize: "1rem",
+        fontWeight: "bold",
+        boxShadow: "0 0 15px #00ff88",
+        transition: "all 0.3s ease",
+        fontFamily: "monospace",
+        textTransform: "uppercase",
+        letterSpacing: "2px"
+      },
+      onMouseEnter: (e2) => {
+        e2.target.style.backgroundColor = "#00ff88";
+        e2.target.style.color = "#000";
+        e2.target.style.transform = "scale(1.1)";
+      },
+      onMouseLeave: (e2) => {
+        e2.target.style.backgroundColor = "transparent";
+        e2.target.style.color = "#00ff88";
+        e2.target.style.transform = "scale(1)";
+      }
+    }, "ACCESS CORE")));
   }
 
   // src/index.jsx
-  react_dom.render(/* @__PURE__ */ react5.default.createElement(Loader2, null), document.getElementById("app"));
+  react_dom.render(/* @__PURE__ */ react7.default.createElement(Loader2, null), document.getElementById("app"));
 })();
 //# sourceMappingURL=out.js.map
