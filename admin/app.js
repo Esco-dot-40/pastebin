@@ -1325,7 +1325,9 @@ function initGlobe() {
         const heatmapContainer = document.getElementById('chartdiv');
         if (!heatmapContainer || globeRootVar) return;
 
-        if (typeof am5 === 'undefined') {
+        // Check if all amCharts libraries are ready
+        if (typeof am5 === 'undefined' || typeof am5map === 'undefined' || typeof am5geodata_worldLow === 'undefined') {
+            console.log('amCharts components not ready, retrying...');
             setTimeout(initGlobe, 500);
             return;
         }
@@ -1343,36 +1345,40 @@ function initGlobe() {
             paddingBottom: 20, paddingTop: 20, paddingLeft: 20, paddingRight: 20
         }));
 
+        // Ocean Background
+        const backgroundSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {}));
+        backgroundSeries.mapPolygons.template.setAll({
+            fill: am5.color(0x0a0f19),
+            fillOpacity: 0.5,
+            strokeOpacity: 0
+        });
+        backgroundSeries.data.push({
+            geometry: am5map.getGeoCircle({ center: { latitude: 0, longitude: 0 }, radius: 89.9 })
+        });
+
         const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
             geoJSON: am5geodata_worldLow
         }));
 
-        window.firewallPolygonSeries = polygonSeries; // Assign globally for updates
+        window.firewallPolygonSeries = polygonSeries;
 
         polygonSeries.mapPolygons.template.setAll({
             tooltipText: "{name}",
             toggleKey: "active",
             interactive: true,
-            fill: am5.color(0x2d2d3a),
+            fill: am5.color(0x1e293b),
             stroke: am5.color(0x00f5ff),
             strokeWidth: 0.5,
-            strokeOpacity: 0.2
+            strokeOpacity: 0.3
         });
 
         polygonSeries.mapPolygons.template.events.on("click", function (ev) {
-            const dataItem = ev.target.dataItem;
-            const countryCode = dataItem.dataContext.id;
-            const countryName = dataItem.dataContext.name;
+            const countryCode = ev.target.dataItem.dataContext.id;
+            const countryName = ev.target.dataItem.dataContext.name;
 
-            // Toggle Visual
-            const isActive = !ev.target.isDown; // isDown is toggled automatically by 'active' toggleKey
-            // But we want to rely on our API sync
-
-            // Call Global Toggle
             if (window.toggleCountryBlock) {
-                // Check current state from our activeBlocks array to flip it
-                const isBlocked = window.activeBlocks ? window.activeBlocks.includes(countryCode) : false;
-                // We want to flip it
+                // Access 'activeBlocks' from the correct scope (defined below in app.js)
+                const isBlocked = activeBlocks.includes(countryCode.toUpperCase());
                 window.toggleCountryBlock(countryCode, countryName, !isBlocked);
             }
         });
@@ -1384,20 +1390,9 @@ function initGlobe() {
 
         polygonSeries.mapPolygons.template.states.create("active", {
             fill: am5.color(0xff0055),
-            fillOpacity: 0.8,
+            fillOpacity: 1,
             stroke: am5.color(0xff0055),
             strokeOpacity: 1
-        });
-
-        // Space Background
-        let backgroundSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {}));
-        backgroundSeries.mapPolygons.template.setAll({
-            fill: am5.color(0x000000),
-            fillOpacity: 0.1,
-            strokeOpacity: 0
-        });
-        backgroundSeries.data.push({
-            geometry: am5map.getGeoCircle({ center: { latitude: 0, longitude: 0 }, radius: 90 })
         });
 
         // Auto Rotate
@@ -1405,14 +1400,19 @@ function initGlobe() {
             key: "rotationX",
             from: 0,
             to: 360,
-            duration: 30000,
+            duration: 40000,
             loops: Infinity
         });
 
-        window.firewallPolygonSeries = polygonSeries;
-        updateGlobeVisualization();
+        chart.appear(1000, 100);
 
-    } catch (e) { console.error('Globe init failed:', e); }
+        // Initial sync if data exists
+        if (activeBlocks.length > 0) {
+            updateFirewallGlobe(activeBlocks);
+        }
+    } catch (e) {
+        console.error('❌ Firewall Globe init failed:', e);
+    }
 }
 
 function updateGlobeVisualization() {
