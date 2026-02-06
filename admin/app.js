@@ -92,8 +92,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         loadBanner()
     ]);
 
-    // Initialize Map
+    // Initialize Maps
     initMainMap();
+    initGlobe();
 
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
