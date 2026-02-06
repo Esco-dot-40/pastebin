@@ -100,8 +100,18 @@ window.addEventListener('DOMContentLoaded', () => {
     try {
         initMainMap();
         initGlobe();
+
+        // Firewall Page Specifics
+        if (document.getElementById('firewallList')) {
+            loadFirewallList();
+        }
+
+        const fwSearch = document.getElementById('firewallSearch');
+        if (fwSearch) {
+            fwSearch.addEventListener('input', (e) => loadFirewallList(e.target.value));
+        }
     } catch (e) {
-        console.error('Map initialization failed:', e);
+        console.error('Map/Firewall initialization failed:', e);
     }
 
     // Set refresh intervals
@@ -1479,6 +1489,12 @@ async function loadGlobalAnalytics() {
         if (activeVisitorsEl) {
             activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
         }
+
+        // Update Firewall Stats if on firewall page
+        const blockedCountEl = document.getElementById('fw-blocked-count');
+        const threatsCountEl = document.getElementById('fw-threats-count');
+        if (blockedCountEl) blockedCountEl.textContent = data.blockedCountries || 0;
+        if (threatsCountEl) threatsCountEl.textContent = data.totalThreats || 0;
     } catch (e) {
         console.error('Failed to load global analytics:', e);
     }
@@ -1934,6 +1950,7 @@ async function loadFirewallList(query = '') {
         if (data.success) {
             // New API returns 'blocklist' as an array of codes
             activeBlocks = data.blocklist || [];
+            updateFirewallGlobe(activeBlocks);
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
 
@@ -1997,7 +2014,19 @@ function getFlagEmoji(countryCode) {
     return String.fromCodePoint(...codePoints);
 }
 
+function updateFirewallGlobe(blockedCodes) {
+    if (!window.firewallPolygonSeries) return;
+
+    const heatmapData = blockedCodes.map(code => ({
+        id: code,
+        settings: { fill: am5.color(0xff0055), fillOpacity: 1 }
+    }));
+
+    window.firewallPolygonSeries.data.setAll(heatmapData);
+}
+
 window.toggleCountryBlock = toggleCountryBlock;
 window.getFlagEmoji = getFlagEmoji;
 window.loadFirewallList = loadFirewallList;
+window.updateFirewallGlobe = updateFirewallGlobe;
 

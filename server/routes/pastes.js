@@ -234,11 +234,19 @@ router.get('/analytics', requireAuth, (req, res) => {
             SELECT path as name, COUNT(*) as count FROM page_accesses GROUP BY path ORDER BY count DESC LIMIT 20
         `).all();
 
+        const blockedCountries = db.prepare('SELECT COUNT(*) as count FROM blocked_countries').get().count;
+        const totalThreats = db.prepare(`
+            SELECT (SELECT COUNT(*) FROM page_accesses WHERE isBlocked = 1) + 
+                   (SELECT COUNT(*) FROM paste_views WHERE isBlocked = 1) as count
+        `).get().count;
+
         res.json({
             totalVisits,
             uniqueVisitors,
             activeNow,
             uniqueLocations,
+            blockedCountries,
+            totalThreats,
             newVisitors: visitorStats.newVisitors,
             returningVisitors: visitorStats.returningVisitors,
             platforms,
