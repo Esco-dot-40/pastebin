@@ -1284,6 +1284,95 @@ async function deleteKey(id) {
 
 // Integrated Analytics Logic
 // Integrated Analytics Logic
+// Firewall Globe Logic
+function initGlobe() {
+    try {
+        const heatmapContainer = document.getElementById('chartdiv');
+        if (!heatmapContainer) return;
+
+        if (typeof am5 === 'undefined') {
+            setTimeout(initGlobe, 500);
+            return;
+        }
+
+        const root = am5.Root.new("chartdiv");
+
+        root.setThemes([am5themes_Animated.new(root)]);
+
+        const chart = root.container.children.push(am5map.MapChart.new(root, {
+            panX: "rotateX",
+            panY: "rotateY",
+            projection: am5map.geoOrthographic(),
+            homeGeoPoint: { latitude: 20, longitude: -20 },
+            paddingBottom: 20, paddingTop: 20, paddingLeft: 20, paddingRight: 20
+        }));
+
+        const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
+            geoJSON: am5geodata_worldLow
+        }));
+
+        polygonSeries.mapPolygons.template.setAll({
+            tooltipText: "{name}",
+            toggleKey: "active",
+            interactive: true,
+            fill: am5.color(0x2d2d3a),
+            stroke: am5.color(0x00f5ff),
+            strokeWidth: 0.5,
+            strokeOpacity: 0.2
+        });
+
+        polygonSeries.mapPolygons.template.states.create("hover", {
+            fill: am5.color(0x00f5ff),
+            fillOpacity: 0.2
+        });
+
+        polygonSeries.mapPolygons.template.states.create("active", {
+            fill: am5.color(0xff0055),
+            fillOpacity: 0.8,
+            stroke: am5.color(0xff0055),
+            strokeOpacity: 1
+        });
+
+        // Space Background
+        let backgroundSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {}));
+        backgroundSeries.mapPolygons.template.setAll({
+            fill: am5.color(0x000000),
+            fillOpacity: 0.1,
+            strokeOpacity: 0
+        });
+        backgroundSeries.data.push({
+            geometry: am5map.getGeoCircle({ center: { latitude: 0, longitude: 0 }, radius: 90 })
+        });
+
+        // Auto Rotate
+        chart.animate({
+            key: "rotationX",
+            from: 0,
+            to: 360,
+            duration: 30000,
+            loops: Infinity
+        });
+
+        window.firewallPolygonSeries = polygonSeries;
+        updateGlobeVisualization();
+
+    } catch (e) { console.error('Globe init failed:', e); }
+}
+
+function updateGlobeVisualization() {
+    if (!window.firewallPolygonSeries || !activeBlocks) return;
+
+    window.firewallPolygonSeries.mapPolygons.each(function (polygon) {
+        if (activeBlocks.includes(polygon.dataItem.dataContext.id)) {
+            polygon.states.applyAnimate("active");
+        } else {
+            polygon.states.create("default", { fill: am5.color(0x2d2d3a) });
+            polygon.states.applyAnimate("default");
+        }
+    });
+}
+
+// Integrated Analytics Logic
 function initMainMap() {
     try {
         const heatmapContainer = document.getElementById('mainHeatmap');
