@@ -1311,6 +1311,8 @@ function initGlobe() {
             geoJSON: am5geodata_worldLow
         }));
 
+        window.firewallPolygonSeries = polygonSeries; // Assign globally for updates
+
         polygonSeries.mapPolygons.template.setAll({
             tooltipText: "{name}",
             toggleKey: "active",
@@ -1463,6 +1465,7 @@ async function loadGlobalAnalytics() {
         updateDashboardStats(data);
         updateMainMap(data.locations || []);
         updateTrafficFeed(data.recentActivity || []);
+        renderAnalyticsTable(data.logs || []);
 
         // Update active visitors in header
         if (activeVisitorsEl) {
@@ -1508,6 +1511,44 @@ function updateTrafficFeed(activity) {
             </div>
         `;
     }).join('');
+}
+
+function renderAnalyticsTable(logs) {
+    const tbody = document.getElementById('analyticsTableBody');
+    if (!tbody) return;
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = logs.slice(0, 10).map(log => {
+        const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const plat = parseUserAgent(log.userAgent);
+        const flag = getFlagEmoji(log.countryCode);
+
+        return `
+            <tr>
+                <td>${time}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${log.ip}</td>
+                <td>${flag} ${log.countryCode || '??'}</td>
+                <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
+                <td><span class="badge" style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">${log.method}</span></td>
+                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
+                <td><span class="status-dot ${log.isBlocked ? '' : 'online'}"></span> ${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function parseUserAgent(ua) {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('iPhone')) return 'iPhone';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('Macintosh')) return 'MacOS';
+    if (ua.includes('Linux')) return 'Linux';
+    return 'Other';
 }
 
 function animateValue(obj, value) {
