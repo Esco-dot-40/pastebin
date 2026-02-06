@@ -83,21 +83,29 @@ const pasteSearchInput = document.getElementById('pasteSearch');
 const logoutBtn = document.getElementById('logoutBtn');
 
 // Initialize
-window.addEventListener('DOMContentLoaded', async () => {
-    // Initial data load
-    await Promise.all([
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('Admin Console Initializing...');
+
+    // Initial data load (non-blocking)
+    Promise.allSettled([
         loadPasteList(),
         loadFolderList(),
         loadGlobalAnalytics(),
         loadBanner()
-    ]);
+    ]).then(() => {
+        console.log('Async data loaded/settled');
+    });
 
-    // Initialize Maps
-    initMainMap();
-    initGlobe();
+    // Initialize Maps (Immediate)
+    try {
+        initMainMap();
+        initGlobe();
+    } catch (e) {
+        console.error('Map initialization failed:', e);
+    }
 
     // Set refresh intervals
-    setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
+    setInterval(loadGlobalAnalytics, 30000);
 });
 
 // Event Listeners
