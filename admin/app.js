@@ -1321,17 +1321,16 @@ async function deleteKey(id) {
 // Integrated Analytics Logic
 let globeRootVar;
 function initGlobe() {
+    const container = document.getElementById('chartdiv');
+    if (!container || globeRootVar) return;
+
+    // Wait for amCharts components
+    if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
+        setTimeout(initGlobe, 250);
+        return;
+    }
+
     try {
-        const heatmapContainer = document.getElementById('chartdiv');
-        if (!heatmapContainer || globeRootVar) return;
-
-        // Check if all amCharts libraries are ready
-        if (typeof am5 === 'undefined' || typeof am5map === 'undefined' || typeof am5geodata_worldLow === 'undefined') {
-            console.log('amCharts components not ready, retrying...');
-            setTimeout(initGlobe, 500);
-            return;
-        }
-
         const root = am5.Root.new("chartdiv");
         globeRootVar = root;
 
@@ -1340,25 +1339,25 @@ function initGlobe() {
         const chart = root.container.children.push(am5map.MapChart.new(root, {
             panX: "rotateX",
             panY: "rotateY",
+            wheelY: "none",
             projection: am5map.geoOrthographic(),
-            homeGeoPoint: { latitude: 20, longitude: -20 },
-            paddingBottom: 20, paddingTop: 20, paddingLeft: 20, paddingRight: 20
+            homeGeoPoint: { latitude: 20, longitude: -20 }
         }));
 
-        // Ocean Background
-        const backgroundSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {}));
-        backgroundSeries.mapPolygons.template.setAll({
-            fill: am5.color(0x0a0f19),
-            fillOpacity: 0.5,
+        // Background / Water
+        chart.series.push(am5map.MapPolygonSeries.new(root, {})).mapPolygons.template.setAll({
+            fill: am5.color(0x050508),
             strokeOpacity: 0
         });
-        backgroundSeries.data.push({
-            geometry: am5map.getGeoCircle({ center: { latitude: 0, longitude: 0 }, radius: 89.9 })
-        });
 
+        // World Map
         const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
-            geoJSON: am5geodata_worldLow
+            geoJSON: (typeof am5geodata_worldLow !== 'undefined') ? am5geodata_worldLow : null
         }));
+
+        if (!polygonSeries.get("geoJSON")) {
+            console.error("Geodata not found. Check worldLow.js include.");
+        }
 
         window.firewallPolygonSeries = polygonSeries;
 
@@ -1366,10 +1365,10 @@ function initGlobe() {
             tooltipText: "{name}",
             toggleKey: "active",
             interactive: true,
-            fill: am5.color(0x1e293b),
+            fill: am5.color(0x232331),
             stroke: am5.color(0x00f5ff),
             strokeWidth: 0.5,
-            strokeOpacity: 0.3
+            strokeOpacity: 0.2
         });
 
         polygonSeries.mapPolygons.template.events.on("click", function (ev) {
@@ -1377,41 +1376,40 @@ function initGlobe() {
             const countryName = ev.target.dataItem.dataContext.name;
 
             if (window.toggleCountryBlock) {
-                // Access 'activeBlocks' from the correct scope (defined below in app.js)
-                const isBlocked = activeBlocks.includes(countryCode.toUpperCase());
+                // Check if activeBlocks is available and contains the code
+                const isBlocked = (typeof activeBlocks !== 'undefined') ? activeBlocks.includes(countryCode.toUpperCase()) : false;
                 window.toggleCountryBlock(countryCode, countryName, !isBlocked);
             }
         });
 
         polygonSeries.mapPolygons.template.states.create("hover", {
             fill: am5.color(0x00f5ff),
-            fillOpacity: 0.2
+            fillOpacity: 0.3
         });
 
         polygonSeries.mapPolygons.template.states.create("active", {
             fill: am5.color(0xff0055),
-            fillOpacity: 1,
+            fillOpacity: 0.9,
             stroke: am5.color(0xff0055),
             strokeOpacity: 1
         });
 
-        // Auto Rotate
         chart.animate({
             key: "rotationX",
             from: 0,
             to: 360,
-            duration: 40000,
+            duration: 60000,
             loops: Infinity
         });
 
         chart.appear(1000, 100);
 
-        // Initial sync if data exists
-        if (activeBlocks.length > 0) {
+        // Sync initial data
+        if (typeof activeBlocks !== 'undefined' && activeBlocks.length > 0) {
             updateFirewallGlobe(activeBlocks);
         }
     } catch (e) {
-        console.error('❌ Firewall Globe init failed:', e);
+        console.error('Firewall Globe Error:', e);
     }
 }
 
