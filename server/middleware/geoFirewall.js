@@ -217,10 +217,17 @@ export const geoMiddleware = async (req, res, next) => {
 
 function logAccess(ip, req, geo, isBlocked) {
     try {
+        const user = req.session?.user || {};
+        // Fallback: check if admin session exists but no user object
+        const isAdmin = req.session?.isAdmin;
+        const userId = user.id || (isAdmin ? 'admin-root' : null);
+        const username = user.username || (isAdmin ? 'Admin' : null);
+        const email = user.email || null;
+
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
@@ -236,7 +243,11 @@ function logAccess(ip, req, geo, isBlocked) {
             geo.proxy || 0,
             geo.hosting || 0,
             isBlocked ? 1 : 0,
-            req.get('host') || 'unknown'
+            req.get('host') || 'unknown',
+            userId,
+            username,
+            email,
+            req.get('referrer') || ''
         );
     } catch (e) {
         console.error('Failed to log access:', e.message);

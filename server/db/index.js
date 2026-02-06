@@ -195,7 +195,10 @@ migrateTable('page_accesses', deepLocColumns);
 
 // Ensure all extra columns exist
 migrateTable('page_accesses', [
-    { name: 'referrer', type: 'TEXT' }
+    { name: 'referrer', type: 'TEXT' },
+    { name: 'userId', type: 'TEXT' },
+    { name: 'username', type: 'TEXT' },
+    { name: 'email', type: 'TEXT' }
 ]);
 
 // Ensure all paste columns exist

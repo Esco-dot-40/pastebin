@@ -176,17 +176,40 @@
                 <div class="widget-trend" style="color: var(--success);">Firewall operational</div>
             </div>
 
-            <!-- Global Map Widget -->
-            <div class="widget widget-map">
-                <div class="heatmap-header">
-                    <h3 style="font-family: var(--font-heading); letter-spacing: 0.5px;">Global Signal Propagation</h3>
-                    <div class="heatmap-legend">
-                        <span class="legend-item"><span class="dot pink"></span> Intrusive Traffic</span>
-                        <span class="legend-item"><span class="dot blue"></span> Optimized Uplink</span>
+            <!-- Detailed Analytics Panel (Hardened) -->
+            <div class="widget widget-analytics"
+                style="grid-column: span 2; grid-row: span 2; overflow: hidden; display: flex; flex-direction: column;">
+                <div class="widget-title" style="margin-bottom: 15px;">
+                    <span>Live Traffic Intelligence</span>
+                    <div style="display: flex; gap: 8px;">
+                        <span class="badge"
+                            style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">REAL-TIME</span>
                     </div>
                 </div>
-                <div id="mainHeatmap" class="map-frame"
-                    style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);"></div>
+
+                <div class="analytics-table-container">
+                    <table class="analytics-table">
+                        <thead>
+                            <tr>
+                                <th>TIME</th>
+                                <th>IP ADDRESS</th>
+                                <th>GEO</th>
+                                <th>PLATFORM</th>
+                                <th>METHOD</th>
+                                <th>PATH</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <!-- Populated by JS -->
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 20px;">
+                                    Initializing Neural Net...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- Real-time Activity Widget -->

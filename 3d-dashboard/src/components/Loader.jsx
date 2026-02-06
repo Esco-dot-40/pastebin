@@ -26,7 +26,7 @@ export const Loader = ({ started, onStarted, progress }) => {
                 whileHover={{ scale: 1.1, backgroundColor: "#00ff88", color: "#000" }}
                 whileTap={{ scale: 0.9 }}
                 onClick={(e) => {
-                  window.location.href = 'https://veroe.space';
+                  onStarted();
                 }}
                 style={{
                   pointerEvents: 'auto',
