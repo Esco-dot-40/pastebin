@@ -1321,6 +1321,24 @@ function initGlobe() {
             strokeOpacity: 0.2
         });
 
+        polygonSeries.mapPolygons.template.events.on("click", function (ev) {
+            const dataItem = ev.target.dataItem;
+            const countryCode = dataItem.dataContext.id;
+            const countryName = dataItem.dataContext.name;
+
+            // Toggle Visual
+            const isActive = !ev.target.isDown; // isDown is toggled automatically by 'active' toggleKey
+            // But we want to rely on our API sync
+
+            // Call Global Toggle
+            if (window.toggleCountryBlock) {
+                // Check current state from our activeBlocks array to flip it
+                const isBlocked = window.activeBlocks ? window.activeBlocks.includes(countryCode) : false;
+                // We want to flip it
+                window.toggleCountryBlock(countryCode, countryName, !isBlocked);
+            }
+        });
+
         polygonSeries.mapPolygons.template.states.create("hover", {
             fill: am5.color(0x00f5ff),
             fillOpacity: 0.2
@@ -1748,7 +1766,7 @@ function renderLogs(logs, query = '') {
                     <th style="padding: 12px;">Timestamp</th>
                     <th style="padding: 12px;">Method</th>
                     <th style="padding: 12px;">Path</th>
-                    <th style="padding: 12px;">Identity (IP)</th>
+                    <th style="padding: 12px;">Identity (User/IP)</th>
                     <th style="padding: 12px;">Location</th>
                     <th style="padding: 12px;">Actions</th>
                 </tr>
@@ -1760,7 +1778,9 @@ function renderLogs(logs, query = '') {
                         <td style="padding: 12px;"><span class="badge ${log.method === 'ADMIN_LOGIN' ? 'badge-glow' : ''}" style="background: rgba(0,245,255,0.1); color: #00f5ff; padding: 2px 6px; border-radius: 4px;">${log.method}</span></td>
                         <td style="padding: 12px; color: #fff; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                         <td style="padding: 12px;">
-                            <div>${log.ip}</div>
+                            ${log.username ? `<div style="color: #00f5ff; font-weight: 700;">${log.username}</div>` : ''}
+                            <div style="font-family: monospace; ${log.username ? 'font-size: 0.75rem; opacity: 0.7;' : ''}">${log.ip}</div>
+                            ${log.email ? `<div style="font-size: 0.65rem; color: rgba(255,255,255,0.4);">${log.email}</div>` : ''}
                             ${log.reverse ? `<small style="color: rgba(255,255,255,0.2); font-size: 0.65rem;">${log.reverse}</small>` : ''}
                         </td>
                         <td style="padding: 12px; color: rgba(255,255,255,0.6);">
