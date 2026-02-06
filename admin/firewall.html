@@ -4,132 +4,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECURITY_CORE | NEXUS_CREATIVE_TECH</title>
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@500;800&family=Orbitron:wght@900&display=swap">
-    <link rel="stylesheet" href="firewall.css">
+    <title>Global Firewall | veroe.space Admin</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
 
     <!-- amCharts 5 -->
     <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+    <link rel="icon" type="image/png" href="/public/favicon.png">
+    <style>
+        .firewall-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .fw-sidebar {
+            background: rgba(10, 10, 15, 0.95);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .fw-main {
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
+        }
+
+        #chartdiv {
+            width: 100%;
+            height: 100%;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .fw-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .fw-stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .fw-list-container {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid var(--border);
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .fw-country-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .fw-country-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .fw-country-item.blocked {
+            color: #ff0055;
+        }
+    </style>
 </head>
 
-<body class="admin-theme">
-    <div class="hologram-overlay"></div>
+<body>
+    <div class="firewall-layout">
+        <aside class="fw-sidebar">
+            <a href="/adminperm/" class="back-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                </svg>
+                Back to Dashboard
+            </a>
 
-    <div class="dashboard-wrapper">
-        <!-- Sidebar: Controls -->
-        <aside class="sidebar-controls">
-            <header class="sidebar-header">
-                <div class="system-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                </div>
-                <div class="title-stack">
-                    <h1>SYSTEM_FIREWALL</h1>
-                    <span class="sub-line">CORE_v4.5_ULTIMATE</span>
-                </div>
-            </header>
+            <h2 style="font-family: var(--font-heading); margin-bottom: 5px;">Firewall Control</h2>
+            <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 20px;">Global Geo-Blocking Node</p>
 
-            <div class="status-box">
-                <div class="status-indicator">
-                    <span class="dot pulse"></span>
-                    SYSTEM_OPERATIONAL
+            <div class="fw-stats">
+                <div class="fw-stat-box">
+                    <div id="fw-blocked-count" style="font-size: 1.5rem; font-weight: 700; color: #ff0055;">--</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary);">BLOCKED REGIONS</div>
                 </div>
-                <div class="uptime-stat">UPTIME: <span id="uptime-val">99.998%</span></div>
+                <div class="fw-stat-box">
+                    <div id="fw-threats-count" style="font-size: 1.5rem; font-weight: 700; color: #ff0055;">--</div>
+                    <div style="font-size: 0.7rem; color: var(--text-tertiary);">THREATS</div>
+                </div>
             </div>
 
-            <div class="panels-stack">
-                <!-- Global Protocols -->
-                <div class="hud-panel">
-                    <div class="hud-header">GLOBAL_PROTOCOLS</div>
-                    <div class="toggle-list">
-                        <div class="toggle-item">
-                            <div class="toggle-info">
-                                <span class="t-name">LOCKDOWN_MODE</span>
-                                <span class="t-desc">BLOCK ALL EXTERNAL</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="lockdown-toggle" onchange="updateLockdown()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-item">
-                            <div class="toggle-info">
-                                <span class="t-name">EUROPE_BLOCK</span>
-                                <span class="t-desc">50+ REGIONS</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="europe-block-toggle" onchange="updateLockdown()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        <div class="toggle-item">
-                            <div class="toggle-info">
-                                <span class="t-name">USA_BLOCK</span>
-                                <span class="t-desc">NORTH AMERICAN ARCH</span>
-                            </div>
-                            <label class="switch">
-                                <input type="checkbox" id="usa-block-toggle" onchange="updateLockdown()">
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
+            <input type="text" id="firewallSearch" class="neon-input" placeholder="Search Country..."
+                style="margin-bottom: 10px;">
 
-                <!-- Admin Whitelist -->
-                <div class="hud-panel">
-                    <div class="hud-header">AUTHORIZED_IP_WHITELIST</div>
-                    <div class="input-stack">
-                        <input type="text" id="admin-ip-input" placeholder="IP_ADDRESS (CSV FORMAT)">
-                        <button class="hud-btn" onclick="updateLockdown()">SYNC_PERMISSIONS</button>
-                    </div>
-                </div>
-
-                <!-- Core Metrics -->
-                <div class="hud-panel">
-                    <div class="hud-header">CORE_METRICS</div>
-                    <div class="metrics-row">
-                        <div class="m-box">
-                            <div class="m-val" id="stat-blocked-regions">--</div>
-                            <div class="m-lbl">BLOCKED</div>
-                        </div>
-                        <div class="m-box">
-                            <div class="m-val" id="stat-threats">--</div>
-                            <div class="m-lbl">THREATS</div>
-                        </div>
-                    </div>
-                </div>
+            <div id="firewallList" class="fw-list-container">
+                <!-- Populated by JS -->
             </div>
         </aside>
 
-        <!-- Main Workspace: Globe -->
-        <main class="globe-workspace">
+        <main class="fw-main">
             <div id="chartdiv"></div>
-            <div class="globe-label">INTERACTIVE_GEOSPATIAL_FIREWALL</div>
-        </main>
 
-        <!-- Right: Granular Search -->
-        <aside class="sidebar-search">
-            <div class="hud-panel full-height">
-                <div class="hud-header">GRANULAR_DATABASE</div>
-                <div class="search-wrap">
-                    <input type="text" id="country-search" placeholder="SEARCH_REGION..." oninput="filterCountries()">
-                </div>
-                <div id="country-grid" class="country-scroll-grid">
-                    <!-- Dynamic Grid -->
+            <!-- Overlay Legend -->
+            <div style="position: absolute; bottom: 30px; left: 30px; pointer-events: none;">
+                <div class="heatmap-legend"
+                    style="background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px; backdrop-filter: blur(10px); pointer-events: auto;">
+                    <span class="legend-item"><span class="dot" style="background: #ff0055;"></span> Blocked</span>
+                    <span class="legend-item"><span class="dot pink"></span> High Traffic</span>
+                    <span class="legend-item"><span class="dot blue"></span> Operational</span>
                 </div>
             </div>
-        </aside>
+        </main>
     </div>
 
-    <!-- Notification system -->
-    <div id="notifications"></div>
-
-    <script src="firewall.js"></script>
+    <script src="../shared/api.js?v=10"></script>
+    <script src="app.js?v=11"></script>
 </body>
 
 </html>
