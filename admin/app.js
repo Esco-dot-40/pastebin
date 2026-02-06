@@ -110,6 +110,24 @@ window.addEventListener('DOMContentLoaded', () => {
         if (fwSearch) {
             fwSearch.addEventListener('input', (e) => loadFirewallList(e.target.value));
         }
+
+        const usaBtn = document.getElementById('toggleUSA');
+        const euBtn = document.getElementById('toggleEurope');
+
+        if (usaBtn) {
+            usaBtn.addEventListener('click', () => {
+                const isBlocked = activeBlocks.includes('US');
+                bulkToggle(['US'], isBlocked ? 'unblock' : 'block');
+            });
+        }
+
+        if (euBtn) {
+            euBtn.addEventListener('click', () => {
+                const euCountries = ['AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'MD', 'MC', 'ME', 'NL', 'MK', 'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH', 'UA', 'GB', 'VA'];
+                const someBlocked = euCountries.some(c => activeBlocks.includes(c));
+                bulkToggle(euCountries, someBlocked ? 'unblock' : 'block');
+            });
+        }
     } catch (e) {
         console.error('Map/Firewall initialization failed:', e);
     }
@@ -1301,12 +1319,11 @@ async function deleteKey(id) {
 }
 
 // Integrated Analytics Logic
-// Integrated Analytics Logic
-// Firewall Globe Logic
+let globeRootVar;
 function initGlobe() {
     try {
         const heatmapContainer = document.getElementById('chartdiv');
-        if (!heatmapContainer) return;
+        if (!heatmapContainer || globeRootVar) return;
 
         if (typeof am5 === 'undefined') {
             setTimeout(initGlobe, 500);
@@ -1314,6 +1331,7 @@ function initGlobe() {
         }
 
         const root = am5.Root.new("chartdiv");
+        globeRootVar = root;
 
         root.setThemes([am5themes_Animated.new(root)]);
 
@@ -1410,11 +1428,11 @@ function updateGlobeVisualization() {
     });
 }
 
-// Integrated Analytics Logic
+let mainMapRoot;
 function initMainMap() {
     try {
         const heatmapContainer = document.getElementById('mainHeatmap');
-        if (!heatmapContainer) return;
+        if (!heatmapContainer || mainMapRoot) return;
 
         if (typeof am5 === 'undefined') {
             setTimeout(initMainMap, 500);
@@ -1422,6 +1440,7 @@ function initMainMap() {
         }
 
         const root = am5.Root.new("mainHeatmap");
+        mainMapRoot = root;
         amRoot = root;
 
         root.setThemes([
@@ -1483,7 +1502,7 @@ async function loadGlobalAnalytics() {
         updateDashboardStats(data);
         updateMainMap(data.locations || []);
         updateTrafficFeed(data.recentActivity || []);
-        renderAnalyticsTable(data.logs || []);
+        renderAnalyticsTable(data.recentActivity || []);
 
         // Update active visitors in header
         if (activeVisitorsEl) {
@@ -2029,4 +2048,22 @@ window.toggleCountryBlock = toggleCountryBlock;
 window.getFlagEmoji = getFlagEmoji;
 window.loadFirewallList = loadFirewallList;
 window.updateFirewallGlobe = updateFirewallGlobe;
+
+async function bulkToggle(countries, action) {
+    try {
+        const res = await fetch('/api/firewall/bulk-toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ countries, action })
+        });
+        if (res.ok) {
+            loadFirewallList();
+            loadGlobalAnalytics();
+        }
+    } catch (e) {
+        console.error('Bulk toggle failed', e);
+        alert('Bulk operation failed: ' + e.message);
+    }
+}
 
