@@ -186,7 +186,14 @@ const deepLocColumns = [
     { name: 'isBlocked', type: 'INTEGER DEFAULT 0' },
     { name: 'district', type: 'TEXT' },
     { name: 'timezone', type: 'TEXT' },
-    { name: 'currency', type: 'TEXT' }
+    { name: 'currency', type: 'TEXT' },
+    { name: 'browserName', type: 'TEXT' },
+    { name: 'browserVersion', type: 'TEXT' },
+    { name: 'osName', type: 'TEXT' },
+    { name: 'osVersion', type: 'TEXT' },
+    { name: 'deviceModel', type: 'TEXT' },
+    { name: 'deviceType', type: 'TEXT' },
+    { name: 'fingerprint', type: 'TEXT' }
 ];
 
 migrateTable('paste_views', deepLocColumns);
@@ -195,7 +202,10 @@ migrateTable('page_accesses', deepLocColumns);
 
 // Ensure all extra columns exist
 migrateTable('page_accesses', [
-    { name: 'referrer', type: 'TEXT' }
+    { name: 'referrer', type: 'TEXT' },
+    { name: 'userId', type: 'TEXT' },
+    { name: 'username', type: 'TEXT' },
+    { name: 'email', type: 'TEXT' }
 ]);
 
 // Ensure all paste columns exist

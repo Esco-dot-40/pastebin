@@ -83,20 +83,57 @@ const pasteSearchInput = document.getElementById('pasteSearch');
 const logoutBtn = document.getElementById('logoutBtn');
 
 // Initialize
-window.addEventListener('DOMContentLoaded', async () => {
-    // Initial data load
-    await Promise.all([
+window.addEventListener('DOMContentLoaded', () => {
+    console.log('Admin Console Initializing...');
+
+    // Initial data load (non-blocking)
+    Promise.allSettled([
         loadPasteList(),
         loadFolderList(),
         loadGlobalAnalytics(),
         loadBanner()
-    ]);
+    ]).then(() => {
+        console.log('Async data loaded/settled');
+    });
 
-    // Initialize Map
-    initMainMap();
+    // Initialize Maps (Immediate)
+    try {
+        initMainMap();
+        initGlobe();
+
+        // Firewall Page Specifics
+        if (document.getElementById('firewallList')) {
+            loadFirewallList();
+        }
+
+        const fwSearch = document.getElementById('firewallSearch');
+        if (fwSearch) {
+            fwSearch.addEventListener('input', (e) => loadFirewallList(e.target.value));
+        }
+
+        const usaBtn = document.getElementById('toggleUSA');
+        const euBtn = document.getElementById('toggleEurope');
+
+        if (usaBtn) {
+            usaBtn.addEventListener('click', () => {
+                const isBlocked = activeBlocks.includes('US');
+                bulkToggle(['US'], isBlocked ? 'unblock' : 'block');
+            });
+        }
+
+        if (euBtn) {
+            euBtn.addEventListener('click', () => {
+                const euCountries = ['AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'MD', 'MC', 'ME', 'NL', 'MK', 'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH', 'UA', 'GB', 'VA'];
+                const someBlocked = euCountries.some(c => activeBlocks.includes(c));
+                bulkToggle(euCountries, someBlocked ? 'unblock' : 'block');
+            });
+        }
+    } catch (e) {
+        console.error('Map/Firewall initialization failed:', e);
+    }
 
     // Set refresh intervals
-    setInterval(loadGlobalAnalytics, 30000); // UI updates every 30s
+    setInterval(loadGlobalAnalytics, 30000);
 });
 
 // Event Listeners
@@ -156,11 +193,40 @@ if (usersModal) {
 
 if (updateBannerBtn) updateBannerBtn.addEventListener('click', updateBanner);
 
-if (pasteSearchInput) {
-    pasteSearchInput.addEventListener('input', () => {
-        loadPasteList(pasteSearchInput.value);
+// Navigation / Tab System
+function switchTab(tabId) {
+    // Update Sidebar
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
     });
+
+    // Update Views
+    document.querySelectorAll('.view-content').forEach(view => {
+        view.style.display = view.id === `${tabId}-view` ? 'block' : 'none';
+        if (view.id === `${tabId}-view`) view.classList.add('active');
+        else view.classList.remove('active');
+    });
+
+    // Update Header
+    const titleMap = {
+        'dashboard': 'Command Center',
+        'traffic': 'Traffic Telemetry',
+        'pastes': 'Payload Management'
+    };
+    const titleEl = document.getElementById('view-title');
+    if (titleEl) titleEl.textContent = titleMap[tabId] || 'Command Center';
+
+    // Load tab-specific data
+    if (tabId === 'pastes') loadPasteList();
+    if (tabId === 'traffic') loadLogs();
 }
+
+window.switchTab = switchTab;
+
+// Bind Tab Clicks
+document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
@@ -179,45 +245,29 @@ const logsBtn = document.getElementById('logsBtn');
 const logsModal = document.getElementById('logsModal');
 const closeLogsBtn = document.getElementById('closeLogsBtn');
 const logsList = document.getElementById('logsList');
-const clearAllLogsBtn = document.getElementById('clearAllLogsBtn');
-const logsSearch = document.getElementById('logsSearch');
+const clearAllLogsBtn = document.getElementById('clearLogsBtn'); // Shared with redesigned traffic view
+const trafficSearch = document.getElementById('trafficSearch');
 
 if (logsBtn) {
     logsBtn.addEventListener('click', () => {
-        logsModal.classList.add('active');
-        loadLogs();
+        switchTab('traffic');
     });
 }
-if (closeLogsBtn) closeLogsBtn.addEventListener('click', () => logsModal.classList.remove('active'));
 if (clearAllLogsBtn) {
     clearAllLogsBtn.addEventListener('click', async () => {
-        if (!confirm('EXTERMINATE ALL LOGS? This cannot be undone.')) return;
+        if (!confirm('EXTERMINATE ALL TRAFFIC LOGS? This cannot be undone.')) return;
         try {
             const res = await fetch('/api/analytics/logs-clear', { method: 'DELETE', credentials: 'include' });
-            if (res.ok) loadLogs();
+            if (res.ok) {
+                loadLogs();
+                loadGlobalAnalytics();
+            }
         } catch (e) { alert('Failed to clear logs'); }
     });
 }
-if (logsSearch) {
-    logsSearch.addEventListener('input', () => {
-        loadLogs(logsSearch.value);
-    });
-}
-
-if (firewallBtn) {
-    firewallBtn.addEventListener('click', () => {
-        window.location.href = '/adminperm/firewall.html';
-    });
-}
-if (closeFirewallBtn) closeFirewallBtn.addEventListener('click', () => firewallModal.classList.remove('active'));
-if (firewallSearch) {
-    firewallSearch.addEventListener('input', () => {
-        loadFirewallList(firewallSearch.value);
-    });
-}
-if (firewallModal) {
-    firewallModal.addEventListener('click', (e) => {
-        if (e.target === firewallModal) firewallModal.classList.remove('active');
+if (trafficSearch) {
+    trafficSearch.addEventListener('input', () => {
+        loadLogs(trafficSearch.value);
     });
 }
 
@@ -1282,11 +1332,206 @@ async function deleteKey(id) {
 }
 
 // Integrated Analytics Logic
-// Integrated Analytics Logic
+let globeRootVar;
+function initGlobe() {
+    const container = document.getElementById('chartdiv');
+    if (!container || globeRootVar) return;
+
+    // Wait for amCharts components
+    if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
+        setTimeout(initGlobe, 250);
+        return;
+    }
+
+    try {
+        const root = am5.Root.new("chartdiv");
+        globeRootVar = root;
+
+        root.setThemes([am5themes_Animated.new(root)]);
+
+        const chart = root.container.children.push(am5map.MapChart.new(root, {
+            panX: "rotateX",
+            panY: "rotateY",
+            wheelY: "none",
+            projection: am5map.geoOrthographic(),
+            homeGeoPoint: { latitude: 20, longitude: -20 }
+        }));
+
+        // Background / Water
+        chart.series.push(am5map.MapPolygonSeries.new(root, {})).mapPolygons.template.setAll({
+            fill: am5.color(0x050508),
+            strokeOpacity: 0
+        });
+
+        // World Map
+        const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
+            geoJSON: (typeof am5geodata_worldLow !== 'undefined') ? am5geodata_worldLow : null
+        }));
+
+        if (!polygonSeries.get("geoJSON")) {
+            console.error("Geodata not found. Check worldLow.js include.");
+        }
+
+        window.firewallPolygonSeries = polygonSeries;
+
+        polygonSeries.mapPolygons.template.setAll({
+            tooltipText: "{name}",
+            toggleKey: "active",
+            interactive: true,
+            fill: am5.color(0x232331),
+            stroke: am5.color(0x00f5ff),
+            strokeWidth: 0.5,
+            strokeOpacity: 0.2
+        });
+
+        polygonSeries.mapPolygons.template.events.on("click", function (ev) {
+            const countryCode = ev.target.dataItem.dataContext.id;
+            const countryName = ev.target.dataItem.dataContext.name;
+
+            if (window.toggleCountryBlock) {
+                // Check if activeBlocks is available and contains the code
+                const isBlocked = (typeof activeBlocks !== 'undefined') ? activeBlocks.includes(countryCode.toUpperCase()) : false;
+                window.toggleCountryBlock(countryCode, countryName, !isBlocked);
+            }
+        });
+
+        polygonSeries.mapPolygons.template.states.create("hover", {
+            fill: am5.color(0x00f5ff),
+            fillOpacity: 0.3
+        });
+
+        polygonSeries.mapPolygons.template.states.create("active", {
+            fill: am5.color(0xff0055),
+            fillOpacity: 0.9,
+            stroke: am5.color(0xff0055),
+            strokeOpacity: 1
+        });
+
+        chart.animate({
+            key: "rotationX",
+            from: 0,
+            to: 360,
+            duration: 60000,
+            loops: Infinity
+        });
+
+        chart.appear(1000, 100);
+
+        // Sync initial data
+        if (typeof activeBlocks !== 'undefined' && activeBlocks.length > 0) {
+            updateFirewallGlobe(activeBlocks);
+        }
+
+        // --- NEW: Live Hits Series ---
+        const pointSeries = chart.series.push(am5map.MapPointSeries.new(root, {}));
+        window.globePointSeries = pointSeries;
+
+        pointSeries.bullets.push(function () {
+            const circle = am5.Circle.new(root, {
+                radius: 4,
+                tooltipText: "{hostname} ({countryCode})",
+                fill: am5.color(0x00f5ff),
+                stroke: root.interfaceColors.get("background"),
+                strokeWidth: 2,
+                tooltipY: 0
+            });
+
+            const circle2 = am5.Circle.new(root, {
+                radius: 4,
+                fill: am5.color(0x00f5ff),
+                fillOpacity: 0.5
+            });
+
+            circle2.animate({
+                key: "scale",
+                from: 1,
+                to: 5,
+                duration: 1000,
+                loops: Infinity
+            });
+
+            circle2.animate({
+                key: "opacity",
+                from: 0.5,
+                to: 0,
+                duration: 1000,
+                loops: Infinity
+            });
+
+            return am5.Bullet.new(root, {
+                sprite: am5.Container.new(root, {
+                    children: [circle2, circle]
+                })
+            });
+        });
+
+        // Start fetching live hits
+        fetchGlobeHits();
+        setInterval(fetchGlobeHits, 5000);
+
+    } catch (e) {
+        console.error('Firewall Globe Error:', e);
+    }
+}
+
+async function fetchGlobeHits() {
+    if (!window.globePointSeries) return;
+    try {
+        const res = await fetch('/api/analytics/universal-telemetry');
+        const hits = await res.json();
+
+        // Map hits to amCharts format
+        const points = hits.map(h => ({
+            geometry: { type: "Point", coordinates: [h.lon, h.lat] },
+            hostname: h.hostname || 'Unknown',
+            countryCode: h.countryCode || '??',
+            isBlocked: h.isBlocked
+        }));
+
+        window.globePointSeries.data.setAll(points);
+
+        // Update real-time feed if it exists
+        if (hits && hits.length > 0) {
+            updateTrafficFeed(hits.map(h => ({
+                source: 'page',
+                path: h.path || 'Access',
+                ip: h.ip || 'Unknown',
+                city: h.city || 'Unknown',
+                countryCode: h.countryCode || '??',
+                timestamp: h.timestamp || Date.now(),
+                isBlocked: h.isBlocked
+            })));
+        }
+
+        // Update active visitors count if element exists
+        const visitorCount = document.getElementById('activeVisitors');
+        if (visitorCount) {
+            const uniqueIPs = new Set(hits.map(h => h.ip || Math.random())).size;
+            visitorCount.textContent = `${uniqueIPs} Active Visitors`;
+        }
+    } catch (e) {
+        console.error("Globe Telemetry Error:", e);
+    }
+}
+
+function updateGlobeVisualization() {
+    if (!window.firewallPolygonSeries || !activeBlocks) return;
+
+    window.firewallPolygonSeries.mapPolygons.each(function (polygon) {
+        if (activeBlocks.includes(polygon.dataItem.dataContext.id)) {
+            polygon.states.applyAnimate("active");
+        } else {
+            polygon.states.create("default", { fill: am5.color(0x2d2d3a) });
+            polygon.states.applyAnimate("default");
+        }
+    });
+}
+
+let mainMapRoot;
 function initMainMap() {
     try {
         const heatmapContainer = document.getElementById('mainHeatmap');
-        if (!heatmapContainer) return;
+        if (!heatmapContainer || mainMapRoot) return;
 
         if (typeof am5 === 'undefined') {
             setTimeout(initMainMap, 500);
@@ -1294,6 +1539,7 @@ function initMainMap() {
         }
 
         const root = am5.Root.new("mainHeatmap");
+        mainMapRoot = root;
         amRoot = root;
 
         root.setThemes([
@@ -1355,11 +1601,18 @@ async function loadGlobalAnalytics() {
         updateDashboardStats(data);
         updateMainMap(data.locations || []);
         updateTrafficFeed(data.recentActivity || []);
+        renderAnalyticsTable(data.recentActivity || []);
 
         // Update active visitors in header
         if (activeVisitorsEl) {
             activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
         }
+
+        // Update Firewall Stats if on firewall page
+        const blockedCountEl = document.getElementById('fw-blocked-count');
+        const threatsCountEl = document.getElementById('fw-threats-count');
+        if (blockedCountEl) blockedCountEl.textContent = data.blockedCountries || 0;
+        if (threatsCountEl) threatsCountEl.textContent = data.totalThreats || 0;
     } catch (e) {
         console.error('Failed to load global analytics:', e);
     }
@@ -1380,26 +1633,67 @@ function updateTrafficFeed(activity) {
         return;
     }
 
-    feed.innerHTML = activity.slice(0, 15).map(a => {
+    feed.innerHTML = activity.slice(0, 10).map(a => {
         const time = new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const isPaste = a.source === 'paste';
         const flag = getFlagEmoji(a.countryCode);
+        const isBlocked = a.isBlocked;
 
         return `
-            <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; animation: slideInFeed 0.3s ease-out;">
-                <div style="display: flex; flex-direction: column;">
+            <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; animation: slideInFeed 0.3s ease-out;">
+                <div style="display: flex; flex-direction: column; overflow: hidden;">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="color: ${isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'}; font-weight: 700;">[${a.source.toUpperCase()}]</span>
-                        <span style="color: var(--text-primary);">${a.path}</span>
+                        <span style="color: ${isPaste ? 'var(--secondary-start)' : (isBlocked ? '#ff0055' : 'var(--primary-start)')}; font-weight: 700; font-size: 0.7rem;">
+                            [${isBlocked ? 'BLOCKED' : a.source.toUpperCase()}]
+                        </span>
+                        <span style="color: var(--text-primary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
                     </div>
-                    <div style="font-size: 0.65rem; color: var(--text-tertiary); margin-top: 2px;">
-                        ${flag} ${a.city || 'Unknown'}, ${a.countryCode || '??'} • ${a.ip}
+                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
+                        ${flag} ${a.city || 'Unknown'} • ${a.ip}
                     </div>
                 </div>
-                <div style="font-size: 0.65rem; color: var(--primary-start); font-weight: 700;">${time}</div>
+                <div style="font-size: 0.7rem; color: var(--primary-start); font-weight: 700; font-family: var(--font-mono);">${time}</div>
             </div>
         `;
     }).join('');
+}
+
+function renderAnalyticsTable(logs) {
+    const tbody = document.getElementById('analyticsTableBody');
+    if (!tbody) return;
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = logs.slice(0, 10).map(log => {
+        const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const plat = parseUserAgent(log.userAgent);
+        const flag = getFlagEmoji(log.countryCode);
+
+        return `
+            <tr>
+                <td>${time}</td>
+                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${log.ip}</td>
+                <td>${flag} ${log.countryCode || '??'}</td>
+                <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
+                <td><span class="badge" style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">${log.method}</span></td>
+                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
+                <td><span class="status-dot ${log.isBlocked ? '' : 'online'}"></span> ${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function parseUserAgent(ua) {
+    if (!ua) return 'Unknown';
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('iPhone')) return 'iPhone';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('Macintosh')) return 'MacOS';
+    if (ua.includes('Linux')) return 'Linux';
+    return 'Other';
 }
 
 function animateValue(obj, value) {
@@ -1634,56 +1928,44 @@ async function loadLogs(query = '') {
 }
 
 function renderLogs(logs, query = '') {
-    const container = document.getElementById('logsList');
-    if (!container) return;
+    const tbody = document.getElementById('analyticsTableBody');
+    if (!tbody) return;
 
     const filtered = query
         ? logs.filter(l =>
             l.ip.includes(query) ||
-            (l.path && l.path.includes(query)) ||
+            (l.path && l.path.toLowerCase().includes(query.toLowerCase())) ||
             (l.userAgent && l.userAgent.toLowerCase().includes(query.toLowerCase())) ||
-            (l.method && l.method.includes(query.toUpperCase()))
+            (l.method && l.method.includes(query.toUpperCase())) ||
+            (l.city && l.city.toLowerCase().includes(query.toLowerCase()))
         )
         : logs;
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="padding: 40px; text-align: center; color: rgba(255,255,255,0.2); font-family: monospace;">NO RECORDS FOUND FOR CURRENT SECTOR</div>`;
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
         return;
     }
 
-    container.innerHTML = `
-        <table style="width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;">
-            <thead style="position: sticky; top: 0; background: #1a1a1f; z-index: 10;">
-                <tr style="text-align: left; border-bottom: 2px solid rgba(255,255,255,0.1);">
-                    <th style="padding: 12px;">Timestamp</th>
-                    <th style="padding: 12px;">Method</th>
-                    <th style="padding: 12px;">Path</th>
-                    <th style="padding: 12px;">Identity (IP)</th>
-                    <th style="padding: 12px;">Location</th>
-                    <th style="padding: 12px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${filtered.map(log => `
-                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); hover: background: rgba(255,255,255,0.02);">
-                        <td style="padding: 12px; color: rgba(255,255,255,0.4);">${formatDateTime(log.timestamp)}</td>
-                        <td style="padding: 12px;"><span class="badge ${log.method === 'ADMIN_LOGIN' ? 'badge-glow' : ''}" style="background: rgba(0,245,255,0.1); color: #00f5ff; padding: 2px 6px; border-radius: 4px;">${log.method}</span></td>
-                        <td style="padding: 12px; color: #fff; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
-                        <td style="padding: 12px;">
-                            <div>${log.ip}</div>
-                            ${log.reverse ? `<small style="color: rgba(255,255,255,0.2); font-size: 0.65rem;">${log.reverse}</small>` : ''}
-                        </td>
-                        <td style="padding: 12px; color: rgba(255,255,255,0.6);">
-                            ${log.city || 'Unknown'}${log.countryCode ? `, ${log.countryCode}` : ''}
-                        </td>
-                        <td style="padding: 12px;">
-                            <button onclick="deleteLog(${log.id})" class="btn-mini-icon" style="color: #ff0050;">🗑️</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    tbody.innerHTML = filtered.map(log => {
+        const time = new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const plat = parseUserAgent(log.userAgent);
+        const flag = getFlagEmoji(log.countryCode);
+
+        return `
+            <tr>
+                <td style="color: var(--text-secondary); font-size: 0.8rem;">${time}</td>
+                <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
+                <td>${flag} ${log.city || 'Unknown'}</td>
+                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
+                <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
+                <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct'}</td>
+                <td style="display: flex; align-items: center; gap: 8px;">
+                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}">${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</span>
+                    <button onclick="deleteLog(${log.id})" style="background: none; border: none; cursor: pointer; opacity: 0.5;">🗑️</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 }
 
 async function deleteLog(id) {
@@ -1775,6 +2057,7 @@ async function loadFirewallList(query = '') {
         if (data.success) {
             // New API returns 'blocklist' as an array of codes
             activeBlocks = data.blocklist || [];
+            updateFirewallGlobe(activeBlocks);
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
 
@@ -1838,7 +2121,37 @@ function getFlagEmoji(countryCode) {
     return String.fromCodePoint(...codePoints);
 }
 
+function updateFirewallGlobe(blockedCodes) {
+    if (!window.firewallPolygonSeries) return;
+
+    const heatmapData = blockedCodes.map(code => ({
+        id: code,
+        settings: { fill: am5.color(0xff0055), fillOpacity: 1 }
+    }));
+
+    window.firewallPolygonSeries.data.setAll(heatmapData);
+}
+
 window.toggleCountryBlock = toggleCountryBlock;
 window.getFlagEmoji = getFlagEmoji;
 window.loadFirewallList = loadFirewallList;
+window.updateFirewallGlobe = updateFirewallGlobe;
+
+async function bulkToggle(countries, action) {
+    try {
+        const res = await fetch('/api/firewall/bulk-toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ countries, action })
+        });
+        if (res.ok) {
+            loadFirewallList();
+            loadGlobalAnalytics();
+        }
+    } catch (e) {
+        console.error('Bulk toggle failed', e);
+        alert('Bulk operation failed: ' + e.message);
+    }
+}
 

@@ -1,5 +1,7 @@
 import db from '../db/index.js';
 import fetch from 'node-fetch';
+import { UAParser } from 'ua-parser-js';
+import crypto from 'crypto';
 
 const EUROPEAN_COUNTRIES = [
     'AD', 'AL', 'AT', 'AX', 'BA', 'BE', 'BG', 'BY', 'CH', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FO', 'FR', 'GB', 'GG', 'GI', 'GR', 'HR', 'HU', 'IE', 'IM', 'IS', 'IT', 'JE', 'LI', 'LT', 'LU', 'LV', 'MC', 'MD', 'ME', 'MK', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'RS', 'RU', 'SE', 'SI', 'SJ', 'SK', 'SM', 'UA', 'VA'
@@ -62,7 +64,6 @@ export const geoMiddleware = async (req, res, next) => {
                 isp: cachedRow.isp
             };
         }
-        console.log(`[GEO] Cache -> ${countryCode} (${cachedRow.city || 'Unknown'})`);
     }
 
     // 3. Hierarchical Security Bypasses
@@ -71,12 +72,6 @@ export const geoMiddleware = async (req, res, next) => {
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
-
-    // Check for Manual Overrides immediately
-    if (req.query.testRestrict === '1' || req.query.testDutch === '1') {
-        req.isRestrictedRegion = true;
-        console.log(`[GEO] Manual override active for ${cleanIp}`);
-    }
 
     // Primary bypass: Whitelist IPs, Admin Session, or Localhouse
     const isAdminIp = adminIps.includes(cleanIp);
@@ -96,120 +91,54 @@ export const geoMiddleware = async (req, res, next) => {
         const europeBlockActive = settings.find(s => s.key === 'europe_block')?.value === '1';
         const usaBlockActive = settings.find(s => s.key === 'usa_block')?.value === '1';
 
-        if (lockdownActive && req.path !== '/blocked') {
+        if (lockdownActive) {
             logAccess(cleanIp, req, { countryCode: '??' }, 1);
             return res.redirect('/blocked');
         }
 
-        // Deep Lookup Phase (Only if city data is missing or refresh requested)
+        // Deep Lookup Phase
         const needsLookup = !geoData || !geoData.city || geoData.city === 'Unknown' || geoData.city === '';
 
         if (needsLookup || req.query.refreshGeo === '1') {
             try {
-                // Tier 1: ipapi.co
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2000);
-                try {
-                    const response = await fetch(`https://ipapi.co/${cleanIp}/json/`, { signal: controller.signal });
-                    clearTimeout(timeoutId);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (!data.error && data.country_code && data.country_code.length === 2 && data.country_code !== '??') {
-                            geoData = {
-                                country_code: data.country_code.toUpperCase(),
-                                country: data.country_name,
-                                region: data.region,
-                                city: data.city,
-                                lat: data.latitude,
-                                lon: data.longitude,
-                                isp: data.org
-                            };
-                        }
-                    }
-                } catch (e) { }
-
-                // Tier 2: ip-api.com
-                if (!geoData) {
-                    const fbController = new AbortController();
-                    const fbTimeoutId = setTimeout(() => fbController.abort(), 2000);
-                    try {
-                        const fbResponse = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,countryCode,country,regionName,city,lat,lon,isp`, { signal: fbController.signal });
-                        clearTimeout(fbTimeoutId);
-                        if (fbResponse.ok) {
-                            const fbData = await fbResponse.json();
-                            if (fbData.status === 'success' && fbData.countryCode) {
-                                geoData = {
-                                    country_code: fbData.countryCode.toUpperCase(),
-                                    country: fbData.country,
-                                    region: fbData.regionName,
-                                    city: fbData.city,
-                                    lat: fbData.lat,
-                                    lon: fbData.lon,
-                                    isp: fbData.isp
-                                };
-                            }
-                        }
-                    } catch (e) { }
+                const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,countryCode,country,regionName,city,lat,lon,isp,org,as,proxy,hosting,mobile,reverse`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    geoData = {
+                        countryCode: data.countryCode,
+                        country: data.country,
+                        region: data.regionName,
+                        city: data.city,
+                        lat: data.lat,
+                        lon: data.lon,
+                        isp: data.isp,
+                        proxy: data.proxy ? 1 : 0,
+                        hosting: data.hosting ? 1 : 0,
+                        mobile: data.mobile ? 1 : 0,
+                        reverse: data.reverse
+                    };
                 }
-
-                // Tier 3: freeipapi.com
-                if (!geoData) {
-                    const t3Controller = new AbortController();
-                    const t3TimeoutId = setTimeout(() => t3Controller.abort(), 2000);
-                    try {
-                        const t3Response = await fetch(`https://freeipapi.com/api/json/${cleanIp}`, { signal: t3Controller.signal });
-                        clearTimeout(t3TimeoutId);
-                        if (t3Response.ok) {
-                            const t3Data = await t3Response.json();
-                            if (t3Data.countryCode) {
-                                geoData = {
-                                    country_code: t3Data.countryCode.toUpperCase(),
-                                    country: t3Data.countryName,
-                                    region: t3Data.region,
-                                    city: t3Data.cityName,
-                                    lat: t3Data.latitude,
-                                    lon: t3Data.longitude
-                                };
-                            }
-                        }
-                    } catch (e) { }
-                }
-            } catch (apiError) {
-                console.error(`[GEO] All lookup tiers failed for ${cleanIp}`);
-            }
+            } catch (e) { }
         }
 
-        // UNIFIED RESOLUTION: Combine all sources (CF > Lookup > Cache)
-        const finalLookupCountry = geoData?.country_code || countryCode;
-        const resolvedCountry = finalLookupCountry?.toUpperCase();
-
-        console.log(`[GEO-DEBUG] User: ${cleanIp} | Country: ${resolvedCountry || '??'} | IsAdmin: ${isSessionAdmin}`);
+        const resolvedCountry = geoData?.countryCode || countryCode;
 
         if (resolvedCountry) {
-            // High-Security Lockout: Check if region is restricted (Europe) OR manually blocked
             const isEurope = EUROPEAN_COUNTRIES.includes(resolvedCountry);
             const isUSA = resolvedCountry === 'US';
-
             const isRestricted = (isEurope && europeBlockActive) || (isUSA && usaBlockActive);
             const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE countryCode = ?').get(resolvedCountry);
 
-            if ((isRestricted || isManuallyBlocked) && req.path !== '/blocked') {
-                // If they ARE owner or admin, they should have been bypassed at line 80.
-                // If they reach here, it means the bypass logic failed.
-
+            if (isRestricted || isManuallyBlocked) {
                 req.isRestrictedRegion = true;
-                logAccess(cleanIp, req, geoData || { country_code: resolvedCountry }, 1);
-                console.log(`[GEO] !!! BLOCKING !!! -> IP: ${cleanIp} | Country: ${resolvedCountry}`);
+                logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry }, 1);
                 return res.redirect('/blocked');
             }
         }
 
-        // Log allowed access
-        logAccess(cleanIp, req, geoData || { country_code: resolvedCountry || '??' }, 0);
-
+        logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, 0);
     } catch (err) {
         console.error('Firewall Middleware Error:', err);
-        // Fail-open
     }
 
     next();
@@ -217,10 +146,24 @@ export const geoMiddleware = async (req, res, next) => {
 
 function logAccess(ip, req, geo, isBlocked) {
     try {
+        const ua = req.headers['user-agent'] || '';
+        const parser = new UAParser(ua);
+        const result = parser.getResult();
+
+        const user = req.session?.user || {};
+        const isAdmin = req.session?.isAdmin;
+        const userId = user.id || (isAdmin ? 'admin-root' : null);
+        const username = user.username || (isAdmin ? 'Admin' : null);
+
+        // Generate a simple fingerprint (not perfect, but hardening)
+        const fingerprint = crypto.createHash('md5')
+            .update(`${ip}-${ua}-${req.get('accept-language') || ''}`)
+            .digest('hex');
+
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer, browserName, browserVersion, osName, osVersion, deviceModel, deviceType, fingerprint)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
@@ -232,11 +175,22 @@ function logAccess(ip, req, geo, isBlocked) {
             geo.lat || geo.latitude || 0,
             geo.lon || geo.longitude || 0,
             geo.isp || geo.org || 'Unknown',
-            req.headers['user-agent'] || '',
+            ua,
             geo.proxy || 0,
             geo.hosting || 0,
             isBlocked ? 1 : 0,
-            req.get('host') || 'unknown'
+            req.get('host') || 'unknown',
+            userId,
+            username,
+            user.email || null,
+            req.get('referrer') || '',
+            result.browser.name || 'Unknown',
+            result.browser.version || 'Unknown',
+            result.os.name || 'Unknown',
+            result.os.version || 'Unknown',
+            result.device.model || 'Unknown',
+            result.device.type || 'desktop',
+            fingerprint
         );
     } catch (e) {
         console.error('Failed to log access:', e.message);

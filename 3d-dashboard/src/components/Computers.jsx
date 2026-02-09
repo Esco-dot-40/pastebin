@@ -44,7 +44,7 @@ export function Computers({ onSelect, ...props }) {
     { id: 'tnt', name: 'tnt.veroe.fun', color: '#ff4444', url: 'https://tnt.veroe.fun/', video: '/lovense.mp4' },
     { id: 'spelling', name: 'spell.velarixsolutions.nl', color: '#00ffcc', url: 'https://spell.velarixsolutions.nl/', video: '/spellingbee.mp4' },
     { id: 'farkle', name: 'farkle.velarixsolutions.nl', color: '#ffaa00', url: 'https://farkle.velarixsolutions.nl/', video: '/farkle.mp4' },
-    { id: 'spotify', name: 'spoti.veroe.fun', color: '#1DB954', url: 'https://spoti.veroe.fun/', image: '/spotify.png' },
+    { id: 'spotify', name: 'spoti.veroe.fun', color: '#1DB954', url: 'https://spoti.veroe.fun/', video: '/spotify.mp4' },
   ]
 
   return (

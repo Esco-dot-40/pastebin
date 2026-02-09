@@ -222,9 +222,9 @@ router.get('/analytics', requireAuth, (req, res) => {
         // Recent Activity (Still need some detailed rows)
         const recentActivity = db.prepare(`
             SELECT * FROM (
-                SELECT 'paste' as source, '/v/' || pasteId as path, ip, city, country, countryCode, timestamp FROM paste_views
+                SELECT 'paste' as source, '/v/' || pasteId as path, ip, city, country, countryCode, 'GET' as method, userAgent, 0 as isBlocked, timestamp FROM paste_views
                 UNION ALL
-                SELECT 'page' as source, path, ip, city, country, countryCode, timestamp FROM page_accesses
+                SELECT 'page' as source, path, ip, city, country, countryCode, method, userAgent, isBlocked, timestamp FROM page_accesses
             ) ORDER BY timestamp DESC LIMIT 50
         `).all();
 
@@ -234,11 +234,19 @@ router.get('/analytics', requireAuth, (req, res) => {
             SELECT path as name, COUNT(*) as count FROM page_accesses GROUP BY path ORDER BY count DESC LIMIT 20
         `).all();
 
+        const blockedCountries = db.prepare('SELECT COUNT(*) as count FROM blocked_countries').get().count;
+        const totalThreats = db.prepare(`
+            SELECT (SELECT COUNT(*) FROM page_accesses WHERE isBlocked = 1) + 
+                   (SELECT COUNT(*) FROM paste_views WHERE isBlocked = 1) as count
+        `).get().count;
+
         res.json({
             totalVisits,
             uniqueVisitors,
             activeNow,
             uniqueLocations,
+            blockedCountries,
+            totalThreats,
             newVisitors: visitorStats.newVisitors,
             returningVisitors: visitorStats.returningVisitors,
             platforms,
