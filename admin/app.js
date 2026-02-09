@@ -1331,6 +1331,57 @@ async function deleteKey(id) {
     } catch (e) { alert('Failed to delete'); }
 }
 
+// Main Dashboard Map
+function initMainMap() {
+    const container = document.getElementById('mainHeatmap');
+    if (!container) return;
+
+    if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
+        setTimeout(initMainMap, 300);
+        return;
+    }
+
+    const root = am5.Root.new("mainHeatmap");
+    root.setThemes([am5themes_Animated.new(root)]);
+
+    const chart = root.container.children.push(am5map.MapChart.new(root, {
+        panX: "rotateX",
+        panY: "none",
+        projection: am5map.geoMercator(),
+        homeGeoPoint: { latitude: 20, longitude: 0 }
+    }));
+
+    // Background
+    chart.series.push(am5map.MapPolygonSeries.new(root, {})).mapPolygons.template.setAll({
+        fill: am5.color(0x050508),
+        strokeOpacity: 0
+    });
+
+    const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
+        geoJSON: am5geodata_worldLow,
+        exclude: ["AQ"]
+    }));
+
+    polygonSeries.mapPolygons.template.setAll({
+        tooltipText: "{name}",
+        interactive: true,
+        fill: am5.color(0x1a1a24),
+        stroke: am5.color(0x00f5ff),
+        strokeWidth: 0.5,
+        strokeOpacity: 0.15
+    });
+
+    polygonSeries.mapPolygons.template.states.create("hover", {
+        fill: am5.color(0x00f5ff),
+        fillOpacity: 0.3
+    });
+
+    // Add zoom control
+    // chart.set("zoomControl", am5map.ZoomControl.new(root, {}));
+
+    window.mainMapRoot = root;
+}
+
 // Integrated Analytics Logic
 let globeRootVar;
 function initGlobe() {
