@@ -18,6 +18,9 @@ import db from './db/index.js';
 import sqlite3SessionStore from 'better-sqlite3-session-store';
 import { startAutoBackup } from './services/auto-backup.js';
 import { geoMiddleware } from './middleware/geoFirewall.js';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+
 const SqliteStore = sqlite3SessionStore(session);
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +31,24 @@ const PORT = process.env.PORT || 3000;
 
 app.set('trust proxy', 1);
 
-// Priority Static Assets
+// 1. Security Hardening Layer
+app.use(helmet({
+    contentSecurityPolicy: false, // Disabled for 3D/AmCharts compatibility, but other headers stay
+    crossOriginEmbedderPolicy: false
+}));
+
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: { error: 'Too many requests from this sector, please wait.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Apply rate limiting to all API routes
+app.use('/api/', apiLimiter);
+
+// 2. Priority Static Assets
 const hubDistPath = path.join(__dirname, '..', '3d-dashboard', 'dist');
 app.use(express.static(hubDistPath, { index: false }));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
@@ -47,20 +67,21 @@ app.use(session({
         client: db,
         expired: {
             clear: true,
-            intervalMs: 900000 // 15 mins
+            intervalMs: 3600000 // 1 hour
         }
     }),
-    secret: process.env.SESSION_SECRET || 'minimal-secret',
+    secret: process.env.SESSION_SECRET || 'veroe-alpha-link-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 1 week
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+        sameSite: 'lax'
     }
 }));
 
-// High-Security Geo-Firewall & Analytics Engine
+// 3. High-Security Geo-Firewall & Analytics Engine
 app.use(geoMiddleware);
 
 // Helper for manual events

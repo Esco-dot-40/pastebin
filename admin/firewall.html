@@ -141,10 +141,17 @@
             </div>
 
             <input type="text" id="firewallSearch" class="neon-input" placeholder="Search Country..."
-                style="margin-bottom: 10px;">
+                style="margin-bottom: 20px;">
 
-            <div id="firewallList" class="fw-list-container">
+            <div id="firewallList" class="fw-list-container" style="max-height: 40vh;">
                 <!-- Populated by JS -->
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+                <h3 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--primary-neon);">Recent Signal</h3>
+                <div id="trafficFeed" style="font-size: 0.75rem;">
+                    <!-- Reusing trafficFeed from app.js -->
+                </div>
             </div>
         </aside>
 

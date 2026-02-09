@@ -186,7 +186,14 @@ const deepLocColumns = [
     { name: 'isBlocked', type: 'INTEGER DEFAULT 0' },
     { name: 'district', type: 'TEXT' },
     { name: 'timezone', type: 'TEXT' },
-    { name: 'currency', type: 'TEXT' }
+    { name: 'currency', type: 'TEXT' },
+    { name: 'browserName', type: 'TEXT' },
+    { name: 'browserVersion', type: 'TEXT' },
+    { name: 'osName', type: 'TEXT' },
+    { name: 'osVersion', type: 'TEXT' },
+    { name: 'deviceModel', type: 'TEXT' },
+    { name: 'deviceType', type: 'TEXT' },
+    { name: 'fingerprint', type: 'TEXT' }
 ];
 
 migrateTable('paste_views', deepLocColumns);
