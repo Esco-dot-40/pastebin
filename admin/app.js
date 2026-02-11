@@ -134,6 +134,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000);
+
+    // Initial View State
+    const currentMode = localStorage.getItem('pasteViewMode') || 'grid';
+    const gridBtn = document.getElementById('grid-view-btn');
+    const tableBtn = document.getElementById('list-view-btn');
+    if (gridBtn) gridBtn.classList.toggle('active', currentMode === 'grid');
+    if (tableBtn) tableBtn.classList.toggle('active', currentMode === 'table');
 });
 
 // Event Listeners
@@ -210,7 +217,7 @@ function switchTab(tabId) {
     // Update Header
     const titleMap = {
         'dashboard': 'Command Center',
-        'traffic': 'Traffic Telemetry',
+        'traffic': 'Traffic Intelligence',
         'pastes': 'Payload Management'
     };
     const titleEl = document.getElementById('view-title');
@@ -500,8 +507,11 @@ async function loadPasteList(searchQuery = '') {
             )
             : pastes;
 
+        const isListView = localStorage.getItem('pasteViewMode') === 'table';
+        pasteListContainer.classList.toggle('list-view', isListView);
+
         pasteListContainer.innerHTML = filteredPastes.map(paste => `
-            <div class="paste-item" onclick="viewPaste('${paste.id}')">
+            <div class="paste-item ${isListView ? 'list-style' : ''}" onclick="viewPaste('${paste.id}')">
                 <div class="paste-item-header">
                     <div class="paste-item-title">${escapeHtml(paste.title)}</div>
                     <div class="paste-item-id">${paste.id}</div>
@@ -1700,7 +1710,7 @@ function updateTrafficFeed(activity) {
                         <span style="color: var(--text-primary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
                     </div>
                     <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${flag} ${a.city || 'Unknown'} • ${a.ip}
+                        ${flag} ${a.city === 'Universal City' ? 'US Sector (CA)' : (a.city || 'Unknown')} • ${a.ip}
                     </div>
                 </div>
                 <div style="font-size: 0.7rem; color: var(--primary-start); font-weight: 700; font-family: var(--font-mono);">${time}</div>
@@ -1874,6 +1884,13 @@ window.deleteAnalyticsLogs = deleteAnalyticsLogs;
 window.deleteLogsByISP = deleteLogsByISP;
 window.deleteLogsFromCity = deleteLogsFromCity;
 
+window.setPasteView = function (mode) {
+    localStorage.setItem('pasteViewMode', mode);
+    document.getElementById('grid-view-btn').classList.toggle('active', mode === 'grid');
+    document.getElementById('list-view-btn').classList.toggle('active', mode === 'table');
+    loadPasteList();
+};
+
 window.copyPasteUrl = function (id) {
     if (!id) return;
     const url = `${window.location.origin}/v/${id}`;
@@ -2006,7 +2023,7 @@ function renderLogs(logs, query = '') {
             <tr>
                 <td style="color: var(--text-secondary); font-size: 0.8rem;">${time}</td>
                 <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
-                <td>${flag} ${log.city || 'Unknown'}</td>
+                <td>${flag} ${log.city === 'Universal City' ? '<span class="location-tag vague">US Sector (CA)</span>' : (log.city || 'Unknown')}</td>
                 <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
                 <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct'}</td>
