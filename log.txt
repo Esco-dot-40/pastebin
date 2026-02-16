@@ -1,0 +1,20 @@
+336392c Admin UI overhaul: improved navigation, cleaned up vague labels, and added payload view toggle
+92a0a01 CRITICAL FIX: Restore missing app.js/api.js script tags in admin/index.html and bump versions to v26
+de5ffe5 Fix: Restore missing initMainMap function preventing admin dashboard load
+0148cd8 Hardened analytics and site structure: integrated helmet, express-rate-limit, and ua-parser-js. Enhanced device forensics and fingerprinting.
+4431cea Fix: Ultimate Firewall globe robustness and cache bypass v25
+04e8788 Fix: Final robust Firewall globe rendering and sidebar scrolling solution
+32752a1 Fix: Remove heatmap from index, add region toggles to firewall, fix log data mapping
+36287f8 Fix: Admin Log Data, Sidebar Scrolling, and Dashboard Heatmap Restored
+f4f45f1 Fix: Pastebin Admin Firewall & Analytics data link complete
+5ebe71f Enhancement: Add dashboard build automation & force script refresh
+8a16f9b Fix: Decouple initialization to prevent cascading JS failures
+6c36393 Fix: Firewall globe rendering & Dashboard analytics table population
+85d82db Polish: Interactive Globe Blocking & User Logs UI
+753bd0e Enhancement: Add user identity logging to analytics and fix Firewall Globe
+1eb7c85 Fix: Add missing initGlobe function
+754095e Fix: Add missing initGlobe function for Firewall 3D map
+2ef4e31 Refactor: Separate Dashboard and Firewall, add Globe to Firewall page
+5ea463a Optimize analytics geolocation lookups, update Spotify embed, increase paste size limit to 10MB, and perform major bloat cleanup
+9b24c9a Initialize 3D-Folio: Hardened Command Center & Unified Intelligence Server
+bbe49d5 FIREWALL v4.0: Full interactive dashboard, regional toggles, and dynamic blocking

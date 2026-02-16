@@ -1,0 +1,50 @@
+336392c Admin UI overhaul: improved navigation, cleaned up vague labels, and added payload view toggle
+92a0a01 CRITICAL FIX: Restore missing app.js/api.js script tags in admin/index.html and bump versions to v26
+0148cd8 Hardened analytics and site structure: integrated helmet, express-rate-limit, and ua-parser-js. Enhanced device forensics and fingerprinting.
+4431cea Fix: Ultimate Firewall globe robustness and cache bypass v25
+04e8788 Fix: Final robust Firewall globe rendering and sidebar scrolling solution
+32752a1 Fix: Remove heatmap from index, add region toggles to firewall, fix log data mapping
+36287f8 Fix: Admin Log Data, Sidebar Scrolling, and Dashboard Heatmap Restored
+5ebe71f Enhancement: Add dashboard build automation & force script refresh
+753bd0e Enhancement: Add user identity logging to analytics and fix Firewall Globe
+68fb107 feat: implement 'Command Center' admin grid, proactive firewall, and forensic intel nodes
+ad78c06 fix(admin,public): restore firewall button and fix discord embeds
+bbe9144 feat: implement global firewall system and fix auth persistence
+66fde38 feat: migrate legal notice to public entry page and remove from admin panel
+15b0b19 Update admin index with amCharts heatmap and Legal Notice card
+c52d80d feat: music persistence, modern folder dropdown, and admin log management
+9d73007 chore: bump version v10
+c156674 fix(upload): allow audio and improve mimetype detection with extension fallback
+6dee4e5 chore: bump version v9
+8ba904b fix(admin): resolve appendChild of null error by adding quick-actions container
+9f90cb0 chore: bump admin version v8
+eba0c3a feat: re-implement optimized rotating cursor, restore beach background, remove start engine button, and add admin banner management
+d440b3e Revert Admin Panel to 'Classic Premium' layout (from 35636d3)
+0a3bd7d Security & UX: Fixed privacy leaks, hardened admin auth, and restored media upload functionality in admin console
+ed21801 Aesthetic Sync: Color Rotation, Announcement Layer and Transparency Refinements
+814a846 feat: implement reactions matrix and sector categorization in public node viewer
+490fc93 Fix: Admin modal styles and public gallery robustness
+cc24d8f Fix: Styles, index glitches, and deployment sync
+5afaffb Admin Console V5: Modular full-page Creator/Repository architecture, deep visitor forensics (proxy/hosting/mobile/district), self-learning adaptive firewall, and enhanced geographic traffic matrix with real-time tooltips. Fixed public feed rendering latency.
+379da69 Admin Panel Overhaul: Full-width layout, integrated creation form, restored analytics, and heatmap relocation. Public Site: React-powered 3D carousel feed and term refinement.
+cd83684 Restored full paste management: Advanced individual analytics, manual view/reaction overrides, and payload editing integrated into the ENERG console.
+49fb316 Populated all admin tabs: Active Nodes, Security, and Network. Integrated full payload management and security protocols into ENERG console.
+e2f7988 klj
+3bbc2d2 Final Admin UI & Logic Polish: Restored all functional modules with premium surveillance theme
+3c9bf05 Restore detailed analytic logs and individual paste stats with surveillance theme
+3692536 Implement Global Traffic Matrix surveillance theme for admin heatmap
+697244d Admin UI overhaul: fix grid, heatmap, and premium styling
+35636d3 Integrate analytics dashboard and modernize admin UI
+7ade2c6 fix: Add cache-busting version parameters to force reload of updated admin scripts
+70f43cb feat: add analytics command center
+e9bb1ec feat: restore premium visuals, add folder grouping and reaction stats
+243f3ce Add User Analytics: Capture username/displayName and display in Admin Portal
+8a06c23 feat: Add custom Discord embed image and animated page title
+9a262ff Restored access key creation, ocean media slideshow, and private/public toggle functionality
+5a0b5fe Major Update: Vertical Interface, Lit Aesthetics, and Optimized Videos
+1f917b2 Fix file upload JSON error: robust error handling and cache busting
+f249f40 Add IP binding for keys and reaction analytics
+0301bc0 Enhance Admin Panel (Keys List, Analytics Cleaner) and Public UI Colors
+f47a834 Implement SPA, Audio, and Access Keys
+dc3825c Implement edits, password protection, and robust auth
+c5262b5 Implement folders and image uploads

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>veroe.space | Premium Admin Console</title>
+    <meta name="description" content="Secure administrative console for veroe.space">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=JetBrains+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Outfit:wght@100..900&display=swap"
+        rel="stylesheet">
+    <!-- amCharts 5 -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+
+    <link rel="icon" type="image/png" href="/public/favicon.png">
+</head>
+
+<body>
+    <div class="background-gradient"></div>
+    <div class="grain-overlay"></div>
+
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+                        <path
+                            d="M8 4L24 4C26.2091 4 28 5.79086 28 8V24C28 26.2091 26.2091 28 24 28H8C5.79086 28 4 26.2091 4 24V8C4 5.79086 5.79086 4 8 4Z"
+                            stroke="url(#gradient1)" stroke-width="2" />
+                        <path d="M10 12H22M10 16H22M10 20H18" stroke="url(#gradient2)" stroke-width="2"
+                            stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="gradient1" x1="4" y1="4" x2="28" y2="28">
+                                <stop stop-color="#00f5ff" />
+                                <stop offset="1" stop-color="#7b42ff" />
+                            </linearGradient>
+                            <linearGradient id="gradient2" x1="10" y1="12" x2="22" y2="20">
+                                <stop stop-color="#ff006e" />
+                                <stop offset="1" stop-color="#ffbe0b" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>veroe.space <span class="accent">Admin</span></h1>
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        <span id="activeVisitors">0 Active Visitors</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="logsBtn" class="btn btn-glass">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Logs
+                </button>
+                <button id="viewPublicBtn" class="btn btn-glass">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    Live Site
+                </button>
+                <div class="action-divider"></div>
+                <button id="accessBtn" class="btn btn-glass btn-glow-pink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4">
+                        </path>
+                    </svg>
+                    Access Keys
+                </button>
+                <button id="usersBtn" class="btn btn-glass btn-glow-green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                    </svg>
+                    Users
+                </button>
+                <button id="firewallBtn" class="btn btn-glass btn-glow-red">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Firewall
+                </button>
+                <button id="intelBtn" class="btn btn-glass btn-glow-pink">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <circle cx="12" cy="11" r="3"></circle>
+                    </svg>
+                    Forensic Intel
+                </button>
+                <button id="logoutBtn" class="btn btn-glass btn-glow-orange">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+
+
+        <!-- Command Center Grid -->
+        <div class="command-grid">
+            <!-- Summary Widgets -->
+            <div class="widget">
+                <div class="widget-title">
+                    <span><span class="stat-pulse"></span>Total Hits</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                    </svg>
+                </div>
+                <div id="totalHits" class="widget-value">0</div>
+                <div class="widget-trend up">↑ 14% vs last period</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Unique Readers</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <div id="uniqueReaders" class="widget-value">0</div>
+                <div class="widget-trend" style="color: var(--text-tertiary);">Active tracking enabled</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Geo Reach</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                        <path
+                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                        </path>
+                    </svg>
+                </div>
+                <div id="geoReach" class="widget-value">0</div>
+                <div class="widget-trend" style="color: var(--primary-start);">Global propagation active</div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-title">
+                    <span>Safety Score</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                </div>
+                <div class="widget-value" style="color: var(--success);">98.4<span
+                        style="font-size: 1rem; opacity: 0.5;">%</span></div>
+                <div class="widget-trend" style="color: var(--success);">Firewall operational</div>
+            </div>
+
+            <!-- Global Map Widget -->
+            <div class="widget widget-map">
+                <div class="heatmap-header">
+                    <h3 style="font-family: var(--font-heading); letter-spacing: 0.5px;">Global Signal Propagation</h3>
+                    <div class="heatmap-legend">
+                        <span class="legend-item"><span class="dot pink"></span> Intrusive Traffic</span>
+                        <span class="legend-item"><span class="dot blue"></span> Optimized Uplink</span>
+                    </div>
+                </div>
+                <div id="mainHeatmap" class="map-frame"
+                    style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);"></div>
+            </div>
+
+            <!-- Real-time Activity Widget -->
+            <div class="widget widget-activity">
+                <div class="widget-title">
+                    <span>Real-time Traffic Feed</span>
+                    <span class="badge"
+                        style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">LIVE</span>
+                </div>
+                <div id="trafficFeed"
+                    style="flex: 1; overflow-y: auto; font-size: 0.75rem; font-family: var(--font-mono);">
+                    <!-- Dynamic traffic entries -->
+                    <div
+                        style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-tertiary);">
+                        Waiting for incoming transmission...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <main class="main-grid">
+            <!-- Left Column: Recent Pastes -->
+            <section class="paste-list glass-card">
+                <div class="section-header">
+                    <h2>Recent Interactions</h2>
+                    <div class="header-tools">
+                        <div class="search-box">
+                            <input type="text" id="pasteSearch" placeholder="Search pastes...">
+                        </div>
+                        <button id="refreshBtn" class="btn-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M23 4v6h-6"></path>
+                                <path d="M1 20v-6h6"></path>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="pasteListContainer" class="paste-items-v2">
+                    <!-- Dynamically populated -->
+                </div>
+            </section>
+
+            <!-- Right Column: Editor -->
+            <section class="paste-editor glass-card">
+                <div class="section-header">
+                    <h2>Deploy New Content</h2>
+                    <div class="quick-actions" style="display: flex; gap: 8px; align-items: center;">
+                        <button id="clearBtn" class="btn-mini-icon">Reset</button>
+                    </div>
+                </div>
+
+                <div class="editor-v2">
+                    <div class="editor-main">
+                        <div class="input-container">
+                            <label>Title</label>
+                            <input type="text" id="pasteTitle" placeholder="Untitled Drop" class="neon-input">
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="input-container">
+                                <label>Language</label>
+                                <select id="pasteLanguage" class="neon-select">
+                                    <option value="plaintext">Plain Text</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="python">Python</option>
+                                    <option value="java">Java</option>
+                                    <option value="cpp">C++</option>
+                                    <option value="csharp">C#</option>
+                                    <option value="php">PHP</option>
+                                    <option value="ruby">Ruby</option>
+                                    <option value="go">Go</option>
+                                    <option value="rust">Rust</option>
+                                    <option value="sql">SQL</option>
+                                    <option value="html">HTML</option>
+                                    <option value="css">CSS</option>
+                                    <option value="json">JSON</option>
+                                    <option value="yaml">YAML</option>
+                                    <option value="markdown">Markdown</option>
+                                    <option value="bash">Bash</option>
+                                </select>
+                            </div>
+                            <div class="input-container">
+                                <label>Expiration</label>
+                                <select id="pasteExpiration" class="neon-select">
+                                    <option value="never">Permanent</option>
+                                    <option value="10m">10 Minutes</option>
+                                    <option value="1h">1 Hour</option>
+                                    <option value="1d">1 Day</option>
+                                    <option value="1w">1 Week</option>
+                                    <option value="1M">1 Month</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-container">
+                            <label>Folder Collection</label>
+                            <div class="folder-select-group">
+                                <select id="pasteFolder" class="neon-select">
+                                    <option value="">Ungrouped</option>
+                                </select>
+                                <button id="manageFoldersBtn" class="btn-plus">+</button>
+                            </div>
+                        </div>
+
+                        <div class="input-container">
+                            <label>Content Payload</label>
+                            <div class="textarea-wrapper">
+                                <div class="textarea-toolbar">
+                                    <button id="uploadImageBtn">🖼️ Insert Media</button>
+                                    <button id="uploadEmbedBtn">📸 Discord Image</button>
+                                    <input type="file" id="imageInput" style="display: none;"
+                                        accept="image/*,video/*,audio/*">
+                                    <input type="file" id="embedInput" style="display: none;" accept="image/*">
+                                </div>
+                                <textarea id="pasteContent" placeholder="Enter source code or markdown payload..."
+                                    class="neon-textarea"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editor-sidebar">
+                        <div class="config-panel">
+                            <h3>Security Config</h3>
+                            <div class="input-container">
+                                <label>Access Password</label>
+                                <input type="password" id="pastePassword" placeholder="Optional Lock"
+                                    class="neon-input-sm">
+                            </div>
+                            <div class="input-container">
+                                <label>Embed Override</label>
+                                <input type="text" id="embedUrl" placeholder="Direct Image URL" class="neon-input-sm">
+                            </div>
+
+                            <div class="toggle-list">
+                                <label class="neon-toggle">
+                                    <input type="checkbox" id="burnAfterRead">
+                                    <span class="slider"></span>
+                                    <span class="label">Self-Destruct</span>
+                                </label>
+                                <label class="neon-toggle">
+                                    <input type="checkbox" id="isPublic" checked>
+                                    <span class="slider"></span>
+                                    <span class="label">Public View</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="config-panel" style="margin-top: 20px; border-color: var(--primary-neon);">
+                            <h3>System Announcement</h3>
+                            <div class="input-container">
+                                <label>Banner Text</label>
+                                <textarea id="bannerText" placeholder="Announcement text..." class="neon-textarea-sm"
+                                    style="height: 80px;"></textarea>
+                            </div>
+                            <button id="updateBannerBtn" class="btn btn-glass btn-glow"
+                                style="width: 100%; margin-top: 10px;">Update Banner</button>
+                        </div>
+                        <button id="createPasteBtn" class="btn btn-primary-neon">
+                            <span>Deploy Payload</span>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Paste Created -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon success">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="20" stroke="currentColor" stroke-width="3" />
+                    <path d="M16 24L21 29L32 18" stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </div>
+            <h3>Paste Created!</h3>
+            <p>Your paste has been created successfully.</p>
+            <div class="url-display">
+                <input type="text" id="pasteUrl" readonly>
+                <button id="copyUrlBtn" class="btn btn-primary">Copy URL</button>
+            </div>
+            <button id="closeModalBtn" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Statistics</h3>
+                <button id="closeStatsBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div id="statsContent" class="stats-grid">
+                <!-- Dynamically populated -->
+            </div>
+            <div style="padding: 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.1);">
+                <button id="clearAnalyticsBtn" class="btn btn-secondary"
+                    style="color: #ff0050; border-color: rgba(255,0,80,0.3); width: 100%;">
+                    ⚠️ Clear All Analytics DB
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analyticsModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Paste Analytics</h3>
+                <button id="closeAnalyticsBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div id="analyticsContent">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Folder Management Modal -->
+    <div id="folderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Manage Folders</h3>
+                <button id="closeFolderBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div class="folder-management-body">
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label>New Folder Name</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="newFolderName" class="input-field" placeholder="e.g. My Projects">
+                        <button id="addFolderBtn" class="btn btn-primary">Add</button>
+                    </div>
+                </div>
+                <div id="folderList" class="folder-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Access Key Modal -->
+    <div id="accessModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Access Keys</h3>
+                <button id="closeAccessBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div style="text-align: center; padding: 20px;">
+                <p style="color: #888; margin-bottom: 20px;">Generate a new key to grant private access.</p>
+                <div
+                    style="display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 20px;">
+                    <input type="text" id="generatedKey" readonly class="input-field"
+                        style="text-align: center; font-family: monospace; font-size: 1.2rem; border-color: #ff0050; color: #ff0050;"
+                        placeholder="Press Generate...">
+                    <button id="copyKeyBtn" class="btn-icon" title="Copy">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" stroke-width="2" />
+                            <path d="M13 3H5C3.89543 3 3 3.89543 3 5V13" stroke="currentColor" stroke-width="2" />
+                        </svg>
+                    </button>
+                </div>
+                <button id="generateKeyBtn" class="btn btn-primary btn-large"
+                    style="background: #ff0050; color: white;">Generate New Key</button>
+            </div>
+
+            <div class="key-list-wrapper"
+                style="padding: 0 20px 20px; text-align: left; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div
+                    style="display:flex; justify-content:space-between; align-items:center; margin-top: 15px; margin-bottom: 10px;">
+                    <h4
+                        style="color: #888; margin: 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;">
+                        History</h4>
+                    <button id="refreshKeysBtn" class="btn-icon" style="opacity:0.6;"><svg width="14" height="14"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 4v6h-6" />
+                            <path d="M1 20v-6h6" />
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                        </svg></button>
+                </div>
+                <div id="keyList"
+                    style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;">
+                    <!-- Keys -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Modal -->
+    <div id="usersModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Registered Users</h3>
+                <button id="closeUsersBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div id="usersList" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Firewall Modal -->
+    <div id="firewallModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Global Firewall / Geo-Blocking</h3>
+                <button id="closeFirewallBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <input type="text" id="firewallSearch" class="input-field"
+                    placeholder="Search Country (e.g. NL, Netherlands)...">
+            </div>
+            <div id="firewallList" style="max-height: 400px; overflow-y: auto; margin-top: 15px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs Modal -->
+    <div id="logsModal" class="modal">
+        <div class="modal-content modal-xlarge">
+            <div class="modal-header">
+                <h3>System Logs / Analytics</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button id="clearAllLogsBtn" class="btn btn-glass"
+                        style="color: #ff0050; border-color: rgba(255,0,80,0.3);">Clear All Logs</button>
+                    <button id="closeLogsBtn" class="btn-icon">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="logs-filter"
+                style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
+                <input type="text" id="logsSearch" class="input-field" placeholder="Search IP, Path, UserAgent..."
+                    style="flex: 1;">
+            </div>
+            <div id="logsList" style="max-height: 600px; overflow-y: auto; padding: 10px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Forensic Intel Modal -->
+    <div id="intelModal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>Forensic Intelligence Node</h3>
+                <button id="closeIntelBtn" class="btn-icon">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M14 4L4 14M4 4L14 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                <div>
+                    <h4 style="color: var(--secondary-start); margin-bottom: 15px;">Detecting Suspicious Terminal Nodes
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-tertiary); margin-bottom: 15px;">IPs flagged as
+                        Proxy/VPN or Hosting providers across all synchronization channels.</p>
+                    <div id="suspiciousList"
+                        style="max-height: 500px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid var(--border);">
+                        <!-- Entries -->
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: var(--primary-start); margin-bottom: 15px;">Active Jurisdictional Blocks</h4>
+                    <div id="intelBlocks" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <!-- Blocked countries -->
+                    </div>
+
+                    <div
+                        style="margin-top: 40px; padding: 20px; background: rgba(0, 245, 255, 0.05); border: 1px solid rgba(0, 245, 255, 0.1); border-radius: 16px;">
+                        <h4 style="color: var(--primary-start); font-size: 0.9rem; margin-bottom: 10px;">Global Health
+                            Signature</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-tertiary);">All systems nominal. Propagation at
+                            100% efficiency. Database integrity verified.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../shared/api.js?v=10"></script>
+    <script src="app.js?v=10"></script>
+</body>
+
+</html>
