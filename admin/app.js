@@ -40,6 +40,15 @@ window.loadFirewallList = loadFirewallList;
 window.updateFirewallGlobe = updateFirewallGlobe;
 window.bulkToggle = bulkToggle;
 
+// Failsafe: close all modals
+window.closeAllModals = function () {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(m => {
+        m.style.display = 'none';
+        m.classList.remove('active');
+    });
+};
+
 const bannerText = document.getElementById('bannerText');
 const updateBannerBtn = document.getElementById('updateBannerBtn');
 
@@ -662,12 +671,16 @@ async function showAnalytics(pasteId, e) {
     if (e) e.stopPropagation();
     try {
         const analytics = await storage.getAnalytics(pasteId);
-        const pastes = await storage.getAllPastes();
-        const paste = pastes.find(p => p.id === pasteId);
-
-        if (!paste) return;
-
         const analyticsContent = document.getElementById('analyticsContent');
+        if (!analyticsContent) return;
+
+        // Try to get title from the list if available, else just use the ID
+        let pasteTitleStr = pasteId;
+        try {
+            const pastes = await storage.getAllPastes();
+            const paste = pastes.find(p => p.id === pasteId);
+            if (paste) pasteTitleStr = paste.title;
+        } catch (e) { }
 
         // Calculate unique visitors
         const uniqueIPs = new Set(analytics.recentViews?.map(v => v.ip) || []).size;
@@ -675,7 +688,7 @@ async function showAnalytics(pasteId, e) {
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
                 <div>
-                    <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(paste.title)}</h4>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(pasteTitleStr)}</h4>
                     <div style="display: flex; gap: 16px; font-size: 0.875rem; color: var(--text-tertiary)">
                         <span>ID: <code>${pasteId}</code></span>
                         <span>Created: ${formatDateTime(paste.createdAt)}</span>
