@@ -434,6 +434,7 @@
         window.closeAllModals = function () {
             document.querySelectorAll('.modal').forEach(m => {
                 m.classList.remove('active');
+                m.style.display = 'none';
             });
         };
 
@@ -445,13 +446,12 @@
             if (trigger) trigger.addEventListener('click', () => {
                 window.closeAllModals();
                 modal.style.display = 'flex';
-                // Trigger reflow for transition
-                modal.offsetHeight;
                 modal.classList.add('active');
             });
 
             if (close) close.addEventListener('click', () => {
                 modal.classList.remove('active');
+                modal.style.display = 'none';
             });
         }
 
@@ -465,6 +465,7 @@
             m.addEventListener('click', (e) => {
                 if (e.target === m) {
                     m.classList.remove('active');
+                    m.style.display = 'none';
                 }
             });
         });
@@ -477,12 +478,7 @@
                     if (isActive) {
                         mutation.target.style.display = 'flex';
                     } else {
-                        // Wait for transition
-                        setTimeout(() => {
-                            if (!mutation.target.classList.contains('active')) {
-                                mutation.target.style.display = 'none';
-                            }
-                        }, 300);
+                        mutation.target.style.display = 'none';
                     }
                 }
             });
