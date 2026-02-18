@@ -1,4 +1,5 @@
 // Admin Console Application
+console.log('🚀 Admin app.js version: 2026.02.18.01 loaded');
 const storage = new PasteStorage();
 
 // DOM Elements
@@ -1023,20 +1024,38 @@ async function loadPasteForEdit(id, e) {
     if (e) e.stopPropagation();
     try {
         const paste = await storage.getPaste(id, false);
-        if (!paste) return;
+        console.log('[DEBUG] Received Paste for Edit:', paste);
+        if (!paste) {
+            console.error('[DEBUG] No paste returned from storage.getPaste');
+            return;
+        }
 
-        currentLocalPasteId = paste.id;
-        pasteTitle.value = paste.title || '';
-        pasteContent.value = paste.content || '';
-        pasteLanguage.value = paste.language || 'plaintext';
-        pasteFolder.value = paste.folderId || '';
-        isPublic.checked = paste.isPublic !== 0; // 0 is false
-        burnAfterRead.checked = paste.burnAfterRead !== 0;
+        currentLocalPasteId = paste.id || id;
+
+        // Debug element presence
+        console.log('[DEBUG] Elements present:', {
+            pasteTitle: !!pasteTitle,
+            pasteContent: !!pasteContent,
+            pasteLanguage: !!pasteLanguage,
+            isPublic: !!isPublic
+        });
+
+        if (pasteTitle) pasteTitle.value = paste.title || '';
+        if (pasteContent) {
+            pasteContent.value = paste.content || '';
+            console.log('[DEBUG] Set pasteContent value length:', pasteContent.value.length);
+        }
+        if (pasteLanguage) pasteLanguage.value = paste.language || 'plaintext';
+        if (pasteFolder) pasteFolder.value = paste.folderId || '';
+
+        if (isPublic) isPublic.checked = paste.isPublic !== 0; // 0 is false
+        if (burnAfterRead) burnAfterRead.checked = paste.burnAfterRead !== 0;
+
         if (pastePassword) pastePassword.value = paste.password || '';
         if (embedUrl) embedUrl.value = paste.embedUrl || '';
 
         // Reset expiration to never for editing as default, unless we want to parse logic
-        pasteExpiration.value = 'never';
+        if (pasteExpiration) pasteExpiration.value = 'never';
 
         // Open Modal
         if (createModal) {
