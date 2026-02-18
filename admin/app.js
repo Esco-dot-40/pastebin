@@ -30,6 +30,8 @@ const closeStatsBtn = document.getElementById('closeStatsBtn');
 const pasteUrl = document.getElementById('pasteUrl');
 const copyUrlBtn = document.getElementById('copyUrlBtn');
 const statsContent = document.getElementById('statsContent');
+const createModal = document.getElementById('createModal');
+const openCreateBtn = document.getElementById('openCreateBtn');
 
 // Folder Elements
 const pasteFolder = document.getElementById('pasteFolder');
@@ -160,6 +162,7 @@ if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => intelModal.clas
 
 // Event Listeners
 if (createPasteBtn) createPasteBtn.addEventListener('click', createPaste);
+if (openCreateBtn) openCreateBtn.addEventListener('click', clearForm);
 if (clearBtn) clearBtn.addEventListener('click', clearForm);
 if (refreshBtn) refreshBtn.addEventListener('click', loadPasteList);
 if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
@@ -403,12 +406,15 @@ async function createPaste() {
         if (currentLocalPasteId) {
             await storage.updatePaste(currentLocalPasteId, content, config);
             id = currentLocalPasteId;
+            // Close modal after update
+            if (createModal) createModal.classList.remove('active');
             alert('Paste updated successfully!');
         } else {
             id = await storage.createPaste(content, config);
             // Show success modal only for new pastes
             const publicUrl = `${window.location.origin}/v/${id}`;
             pasteUrl.value = publicUrl;
+            if (createModal) createModal.classList.remove('active');
             successModal.classList.add('active');
         }
 
@@ -462,6 +468,12 @@ function clearForm() {
         Create Paste
     `;
     createPasteBtn.style.background = '';
+
+    // Reset Modal Title
+    if (createModal) {
+        const modalTitle = createModal.querySelector('h3');
+        if (modalTitle) modalTitle.textContent = 'Deploy New Payload';
+    }
 
     // Remove Quick Copy button if it exists
     const qc = document.getElementById('quickCopyEdit');
@@ -959,6 +971,16 @@ async function loadPasteForEdit(id) {
         // Reset expiration to never for editing as default, unless we want to parse logic
         pasteExpiration.value = 'never';
 
+        // Open Modal
+        if (createModal) {
+            createModal.style.display = 'block';
+            createModal.classList.add('active');
+
+            // Update title in modal
+            const modalTitle = createModal.querySelector('h3');
+            if (modalTitle) modalTitle.textContent = 'Edit Payload: ' + paste.id;
+        }
+
         createPasteBtn.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -967,20 +989,6 @@ async function loadPasteForEdit(id) {
             Update Paste
         `;
         createPasteBtn.style.background = 'linear-gradient(135deg, #7b42ff, #00f5ff)';
-
-        // Add a temporary copy link button next to update in quick-actions
-        const quickActions = document.querySelector('.quick-actions');
-        if (quickActions && !document.getElementById('quickCopyEdit')) {
-            const btn = document.createElement('button');
-            btn.id = 'quickCopyEdit';
-            btn.className = 'btn-icon';
-            btn.title = 'Copy Link';
-            btn.style.color = '#00f5ff';
-            btn.style.borderColor = 'rgba(0, 245, 255, 0.3)';
-            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-            btn.onclick = () => copyPasteUrl(id);
-            quickActions.appendChild(btn);
-        }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
