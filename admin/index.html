@@ -434,9 +434,6 @@
         window.closeAllModals = function () {
             document.querySelectorAll('.modal').forEach(m => {
                 m.classList.remove('active');
-                setTimeout(() => {
-                    if (!m.classList.contains('active')) m.style.display = 'none';
-                }, 300);
             });
         };
 
@@ -448,12 +445,13 @@
             if (trigger) trigger.addEventListener('click', () => {
                 window.closeAllModals();
                 modal.style.display = 'flex';
-                setTimeout(() => modal.classList.add('active'), 10);
+                // Trigger reflow for transition
+                modal.offsetHeight;
+                modal.classList.add('active');
             });
 
             if (close) close.addEventListener('click', () => {
                 modal.classList.remove('active');
-                setTimeout(() => modal.style.display = 'none', 300);
             });
         }
 
@@ -467,7 +465,6 @@
             m.addEventListener('click', (e) => {
                 if (e.target === m) {
                     m.classList.remove('active');
-                    setTimeout(() => m.style.display = 'none', 300);
                 }
             });
         });
@@ -475,14 +472,18 @@
         // Observer for class-based toggles from app.js
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
-                if (mutation.target.classList.contains('active')) {
-                    mutation.target.style.display = 'flex';
-                } else if (!mutation.target.classList.contains('active') && mutation.attributeName === 'class') {
-                    setTimeout(() => {
-                        if (!mutation.target.classList.contains('active')) {
-                            mutation.target.style.display = 'none';
-                        }
-                    }, 300);
+                if (mutation.attributeName === 'class') {
+                    const isActive = mutation.target.classList.contains('active');
+                    if (isActive) {
+                        mutation.target.style.display = 'flex';
+                    } else {
+                        // Wait for transition
+                        setTimeout(() => {
+                            if (!mutation.target.classList.contains('active')) {
+                                mutation.target.style.display = 'none';
+                            }
+                        }, 300);
+                    }
                 }
             });
         });
