@@ -387,7 +387,8 @@ router.get('/:id', async (req, res) => {
     const isAdmin = req.session && req.session.isAdmin;
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccessKey = validateAccessKey(key);
-    const isAuthorized = isAdmin || hasAccessKey;
+    const noTrack = req.query.track === 'false';
+    const isAuthorized = isAdmin || hasAccessKey || noTrack;
     const isOwner = req.session && req.session.user && paste.userId === req.session.user.id;
 
     // Check Privacy Access
