@@ -149,6 +149,7 @@ window.addEventListener('DOMContentLoaded', () => {
 if (intelBtn) {
     intelBtn.addEventListener('click', () => {
         if (window.closeAllModals) window.closeAllModals();
+        intelModal.style.display = 'flex';
         intelModal.classList.add('active');
         loadIntelData();
     });
@@ -163,17 +164,26 @@ if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => intelModal.clas
 
 // Event Listeners
 if (createPasteBtn) createPasteBtn.addEventListener('click', createPaste);
-if (openCreateBtn) openCreateBtn.addEventListener('click', clearForm);
+
+if (openCreateBtn) openCreateBtn.addEventListener('click', () => {
+    clearForm();
+    if (window.closeAllModals) window.closeAllModals();
+    createModal.style.display = 'flex';
+    createModal.classList.add('active');
+});
+
 if (clearBtn) clearBtn.addEventListener('click', clearForm);
 if (refreshBtn) refreshBtn.addEventListener('click', loadPasteList);
 if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
     window.open('/', '_blank');
 });
+
 if (accessBtn) accessBtn.addEventListener('click', () => {
     if (window.closeAllModals) window.closeAllModals();
+    accessModal.style.display = 'flex';
     accessModal.classList.add('active');
-    generatedKey.value = ''; // Clear previous
-    loadKeys(); // Load existing keys
+    generatedKey.value = '';
+    loadKeys();
 });
 
 if (closeModalBtn) closeModalBtn.addEventListener('click', () => {
@@ -189,7 +199,10 @@ if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
 if (usersBtn) {
     usersBtn.addEventListener('click', () => {
         if (window.closeAllModals) window.closeAllModals();
-        if (usersModal) usersModal.classList.add('active');
+        if (usersModal) {
+            usersModal.style.display = 'flex';
+            usersModal.classList.add('active');
+        }
         loadUsers();
     });
 }
@@ -574,19 +587,19 @@ async function loadPasteList(searchQuery = '') {
                     ${!paste.isPublic ? '<div class="meta-pill" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.2);">🔒 Private</div>' : ''}
                 </div>
                 <div class="paste-item-actions">
-                    <button onclick="event.stopPropagation(); copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: var(--primary-start); color: var(--primary-start); padding: 5px 10px;">
+                    <button onclick="event.stopPropagation(); window.copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: rgba(0, 245, 255, 0.3); color: var(--primary-neon);">
                         🔗 Link
                     </button>
-                    <button onclick="toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="${paste.isPublic ? 'Make Private' : 'Make Public'}" style="padding: 5px 12px;">
-                        ${paste.isPublic ? '🔒' : '🌍'}
+                    <button onclick="event.stopPropagation(); window.toggleVisibility('${paste.id}')" class="btn btn-glass btn-small" title="Toggle Visibility">
+                        ${paste.isPublic === 0 ? '🔒' : '🔓'}
                     </button>
-                    <button onclick="event.stopPropagation(); showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics" style="padding: 5px 12px;">
+                    <button onclick="event.stopPropagation(); window.showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics">
                         📈
                     </button>
-                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="padding: 5px 12px;">
+                    <button onclick="event.stopPropagation(); window.loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit">
                         ✏️
                     </button>
-                    <button onclick="event.stopPropagation(); deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; padding: 5px 12px;">
+                    <button onclick="event.stopPropagation(); window.deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.2);">
                         🗑️
                     </button>
                 </div>
@@ -818,6 +831,7 @@ async function showAnalytics(pasteId) {
 
         analyticsContent.innerHTML = html;
         if (window.closeAllModals) window.closeAllModals();
+        analyticsModal.style.display = 'flex';
         analyticsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing analytics:', error);
@@ -1041,6 +1055,7 @@ async function showStats() {
         `;
 
         if (window.closeAllModals) window.closeAllModals();
+        statsModal.style.display = 'flex';
         statsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing stats:', error);

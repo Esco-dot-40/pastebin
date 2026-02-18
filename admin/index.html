@@ -430,7 +430,7 @@
 
 
     <script>
-        // Modal Handlers
+        // Global Modal Management
         window.closeAllModals = function () {
             document.querySelectorAll('.modal').forEach(m => {
                 m.classList.remove('active');
@@ -438,29 +438,7 @@
             });
         };
 
-        function setupModal(triggerId, modalId, closeId) {
-            const trigger = document.getElementById(triggerId);
-            const modal = document.getElementById(modalId);
-            const close = document.getElementById(closeId);
-
-            if (trigger) trigger.addEventListener('click', () => {
-                window.closeAllModals();
-                modal.style.display = 'flex';
-                modal.classList.add('active');
-            });
-
-            if (close) close.addEventListener('click', () => {
-                modal.classList.remove('active');
-                modal.style.display = 'none';
-            });
-        }
-
-        setupModal('openCreateBtn', 'createModal', 'closeCreateBtn');
-        setupModal('usersBtn', 'usersModal', 'closeUsersBtn');
-        setupModal('logsBtn', 'logsModal', 'closeLogsBtn');
-        setupModal('accessBtn', 'accessModal', 'closeAccessBtn');
-
-        // Close on click outside
+        // Close on click outside (backdrop)
         document.querySelectorAll('.modal').forEach(m => {
             m.addEventListener('click', (e) => {
                 if (e.target === m) {
@@ -470,23 +448,27 @@
             });
         });
 
-        // Observer for class-based toggles from app.js
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.attributeName === 'class') {
-                    const isActive = mutation.target.classList.contains('active');
-                    if (isActive) {
-                        mutation.target.style.display = 'flex';
-                    } else {
-                        mutation.target.style.display = 'none';
-                    }
-                }
-            });
-        });
+        // Initialize view switching from app.js logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-        document.querySelectorAll('.modal').forEach(m => {
-            observer.observe(m, { attributes: true, attributeFilter: ['class'] });
-        });
+            const targetView = document.getElementById(tabId + '-view');
+            const targetNav = document.querySelector(`[data-tab="${tabId}"]`);
+
+            if (targetView) targetView.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+
+            const titleEl = document.getElementById('view-title');
+            if (titleEl) {
+                const titles = {
+                    'dashboard': 'Dashboard Overview',
+                    'traffic': 'Traffic Intelligence',
+                    'pastes': 'Payload Registry'
+                };
+                titleEl.textContent = titles[tabId] || 'Command Center';
+            }
+        }
     </script>
     <script src="../shared/api.js?v=26"></script>
     <script src="app.js?v=26"></script>
