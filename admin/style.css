@@ -236,11 +236,29 @@ body {
 }
 
 .glass-panel {
-    background: var(--bg-panel);
-    border: 1px solid var(--border-color);
+    background: rgba(10, 10, 15, 0.85);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     border-radius: 16px;
     padding: 24px;
     height: 100%;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.active {
+    display: flex;
 }
 
 .panel-header {

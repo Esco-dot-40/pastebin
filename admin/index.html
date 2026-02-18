@@ -259,7 +259,7 @@
     <!-- Create Paste Modal -->
     <div id="createModal" class="modal" style="display: none;">
         <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
+            style="z-index: 1000; width: 800px; max-width: 95%; max-height: 90vh; overflow-y: auto;">
             <div class="panel-header">
                 <h3>Deploy New Payload</h3>
                 <button id="closeCreateBtn" class="btn btn-glass">Close</button>
@@ -344,8 +344,7 @@
 
     <!-- Users Modal -->
     <div id="usersModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 600px; max-width: 90%;">
+        <div class="modal-content glass-panel" style="z-index: 1000; width: 600px; max-width: 90%;">
             <div class="panel-header">
                 <h3>Users</h3>
                 <button id="closeUsersBtn" class="btn btn-glass">Close</button>
@@ -356,8 +355,7 @@
 
     <!-- Logs Modal -->
     <div id="logsModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 800px; max-width: 90%;">
+        <div class="modal-content glass-panel" style="z-index: 1000; width: 800px; max-width: 90%;">
             <div class="panel-header">
                 <h3>System Logs</h3>
                 <button id="closeLogsBtn" class="btn btn-glass">Close</button>
@@ -368,8 +366,7 @@
 
     <!-- Access Keys Modal -->
     <div id="accessModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 500px; max-width: 90%;">
+        <div class="modal-content glass-panel" style="z-index: 1000; width: 500px; max-width: 90%;">
             <div class="panel-header">
                 <h3>Access Keys</h3>
                 <button id="closeAccessBtn" class="btn btn-glass">Close</button>
@@ -385,8 +382,7 @@
 
     <!-- Stats Modal -->
     <div id="statsModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 400px;">
+        <div class="modal-content glass-panel" style="z-index: 1000; width: 400px;">
             <div class="panel-header">
                 <h3>Stats</h3><button id="closeStatsBtn">X</button>
             </div>
@@ -396,8 +392,7 @@
 
     <!-- Analytics Modal (Paste specific) -->
     <div id="analyticsModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 700px; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-content glass-panel" style="z-index: 1000; width: 700px; max-height: 80vh; overflow-y: auto;">
             <div class="panel-header">
                 <h3>Paste Analytics</h3><button id="closeAnalyticsBtn">X</button>
             </div>
@@ -407,8 +402,7 @@
 
     <!-- Success Modal -->
     <div id="successModal" class="modal" style="display: none;">
-        <div class="modal-content glass-panel"
-            style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <div class="modal-content glass-panel" style="z-index: 1000; min-width: 300px;">
             <h3>Success</h3>
             <div style="margin: 20px 0;">
                 <input type="text" id="pasteUrl" readonly style="width: 100%; padding: 10px;">
@@ -434,19 +428,26 @@
         <button id="copyKeyBtn"></button>
     </div>
 
-    <script src="../shared/api.js?v=10"></script>
-    <script src="app.js?v=26"></script>
 
     <script>
         // Modal Handlers
+        window.closeAllModals = function () {
+            document.querySelectorAll('.modal').forEach(m => {
+                m.classList.remove('active');
+                setTimeout(() => {
+                    if (!m.classList.contains('active')) m.style.display = 'none';
+                }, 300);
+            });
+        };
+
         function setupModal(triggerId, modalId, closeId) {
             const trigger = document.getElementById(triggerId);
             const modal = document.getElementById(modalId);
             const close = document.getElementById(closeId);
 
             if (trigger) trigger.addEventListener('click', () => {
-                modal.style.display = 'block';
-                // Small delay to allow display block to take effect before adding active class if we want transitions
+                window.closeAllModals();
+                modal.style.display = 'flex';
                 setTimeout(() => modal.classList.add('active'), 10);
             });
 
@@ -475,10 +476,13 @@
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.target.classList.contains('active')) {
-                    mutation.target.style.display = 'block';
+                    mutation.target.style.display = 'flex';
                 } else if (!mutation.target.classList.contains('active') && mutation.attributeName === 'class') {
-                    // app.js removed active class, we should hide it
-                    mutation.target.style.display = 'none';
+                    setTimeout(() => {
+                        if (!mutation.target.classList.contains('active')) {
+                            mutation.target.style.display = 'none';
+                        }
+                    }, 300);
                 }
             });
         });

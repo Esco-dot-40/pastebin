@@ -148,6 +148,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // Event Listeners
 if (intelBtn) {
     intelBtn.addEventListener('click', () => {
+        if (window.closeAllModals) window.closeAllModals();
         intelModal.classList.add('active');
         loadIntelData();
     });
@@ -169,6 +170,7 @@ if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
     window.open('/', '_blank');
 });
 if (accessBtn) accessBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
     accessModal.classList.add('active');
     generatedKey.value = ''; // Clear previous
     loadKeys(); // Load existing keys
@@ -186,6 +188,7 @@ if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
 
 if (usersBtn) {
     usersBtn.addEventListener('click', () => {
+        if (window.closeAllModals) window.closeAllModals();
         if (usersModal) usersModal.classList.add('active');
         loadUsers();
     });
@@ -814,6 +817,7 @@ async function showAnalytics(pasteId) {
         `;
 
         analyticsContent.innerHTML = html;
+        if (window.closeAllModals) window.closeAllModals();
         analyticsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing analytics:', error);
@@ -973,7 +977,8 @@ async function loadPasteForEdit(id) {
 
         // Open Modal
         if (createModal) {
-            createModal.style.display = 'block';
+            if (window.closeAllModals) window.closeAllModals();
+            createModal.style.display = 'flex';
             createModal.classList.add('active');
 
             // Update title in modal
@@ -1035,6 +1040,7 @@ async function showStats() {
             </div>
         `;
 
+        if (window.closeAllModals) window.closeAllModals();
         statsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing stats:', error);
