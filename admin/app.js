@@ -14,6 +14,31 @@ let amRoot = null;
 let polygonSeries = null;
 let globalAnalyticsData = null;
 
+// Global Function Registry (Expose early for inline handlers)
+window.loadPasteForEdit = loadPasteForEdit;
+window.deletePaste = deletePaste;
+window.showAnalytics = showAnalytics;
+window.toggleVisibility = toggleVisibility;
+window.copyPasteUrl = copyPasteUrl;
+window.viewPaste = viewPaste;
+window.deleteKey = deleteKey;
+window.loadIntelData = loadIntelData;
+window.resetViews = resetViews;
+window.updatePasteViews = updatePasteViews;
+window.updateReactionCount = updateReactionCount;
+window.injectReaction = injectReaction;
+window.deleteReaction = deleteReaction;
+window.deleteAnalyticsLogs = deleteAnalyticsLogs;
+window.deleteLogsByISP = deleteLogsByISP;
+window.deleteLogsFromCity = deleteLogsFromCity;
+window.setPasteView = setPasteView;
+window.deleteLog = deleteLog;
+window.toggleCountryBlock = toggleCountryBlock;
+window.getFlagEmoji = getFlagEmoji;
+window.loadFirewallList = loadFirewallList;
+window.updateFirewallGlobe = updateFirewallGlobe;
+window.bulkToggle = bulkToggle;
+
 const bannerText = document.getElementById('bannerText');
 const updateBannerBtn = document.getElementById('updateBannerBtn');
 
@@ -607,20 +632,20 @@ async function loadPasteList(searchQuery = '') {
                     ${paste.burnAfterRead ? '<div class="meta-pill" style="color: #ff3366; border-color: rgba(255, 51, 102, 0.2);">🔥 Burn</div>' : ''}
                     ${!paste.isPublic ? '<div class="meta-pill" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.2);">🔒 Private</div>' : ''}
                 </div>
-                <div class="paste-item-actions">
-                    <button onclick="event.stopPropagation(); window.copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: rgba(0, 245, 255, 0.3); color: var(--primary-neon);">
+                <div class="paste-item-actions" style="position: relative; z-index: 10;">
+                    <button onclick="event.stopPropagation(); window.copyPasteUrl('${paste.id}', event)" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: rgba(0, 245, 255, 0.3); color: var(--primary-neon); pointer-events: auto;">
                         🔗 Link
                     </button>
-                    <button onclick="event.stopPropagation(); window.toggleVisibility('${paste.id}')" class="btn btn-glass btn-small" title="Toggle Visibility">
+                    <button onclick="event.stopPropagation(); window.toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="Toggle Visibility" style="pointer-events: auto;">
                         ${paste.isPublic === 0 ? '🔒' : '🔓'}
                     </button>
-                    <button onclick="event.stopPropagation(); window.showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics">
+                    <button onclick="event.stopPropagation(); window.showAnalytics('${paste.id}', event)" class="btn btn-glass btn-small" title="View Analytics" style="pointer-events: auto;">
                         📈
                     </button>
-                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="pointer-events: auto;">
+                    <button onclick="event.stopPropagation(); window.loadPasteForEdit('${paste.id}', event)" class="btn btn-glass btn-small" title="Edit" style="pointer-events: auto;">
                         ✏️ Edit
                     </button>
-                    <button onclick="event.stopPropagation(); window.deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.2);">
+                    <button onclick="event.stopPropagation(); window.deletePaste('${paste.id}', event)" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.2); pointer-events: auto;">
                         🗑️
                     </button>
                 </div>
@@ -632,7 +657,8 @@ async function loadPasteList(searchQuery = '') {
     }
 }
 
-async function showAnalytics(pasteId) {
+async function showAnalytics(pasteId, e) {
+    if (e) e.stopPropagation();
     try {
         const analytics = await storage.getAnalytics(pasteId);
         const pastes = await storage.getAllPastes();
@@ -976,7 +1002,8 @@ async function deleteReaction(reactionId, pasteId) {
     }
 }
 
-async function deletePaste(id) {
+async function deletePaste(id, e) {
+    if (e) e.stopPropagation();
     if (!confirm('Are you sure you want to delete this paste?')) return;
     try {
         await storage.deletePaste(id);
@@ -992,7 +1019,8 @@ function formatDateTime(dateString) {
     return date.toLocaleString();
 }
 
-async function loadPasteForEdit(id) {
+async function loadPasteForEdit(id, e) {
+    if (e) e.stopPropagation();
     try {
         const paste = await storage.getPaste(id, false);
         if (!paste) return;
@@ -1917,36 +1945,24 @@ async function loadIntelData() {
     }
 }
 
-// Global scope binding for inline onclick
-window.loadIntelData = loadIntelData;
-window.deleteKey = deleteKey;
-window.toggleVisibility = toggleVisibility;
-window.showAnalytics = showAnalytics;
-window.loadPasteForEdit = loadPasteForEdit;
-window.deletePaste = deletePaste;
-window.viewPaste = viewPaste;
-window.resetViews = resetViews;
-window.updatePasteViews = updatePasteViews;
-window.updateReactionCount = updateReactionCount;
-window.injectReaction = injectReaction;
-window.deleteReaction = deleteReaction;
-window.deleteAnalyticsLogs = deleteAnalyticsLogs;
-window.deleteLogsByISP = deleteLogsByISP;
-window.deleteLogsFromCity = deleteLogsFromCity;
+// (Redundant assignments removed, consolidated at top)
 
-window.setPasteView = function (mode) {
+function setPasteView(mode) {
     localStorage.setItem('pasteViewMode', mode);
-    document.getElementById('grid-view-btn').classList.toggle('active', mode === 'grid');
-    document.getElementById('list-view-btn').classList.toggle('active', mode === 'table');
+    const gridBtn = document.getElementById('grid-view-btn');
+    const listBtn = document.getElementById('list-view-btn');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'table');
     loadPasteList();
-};
+}
 
-window.copyPasteUrl = function (id) {
+function copyPasteUrl(id, e) {
+    if (e) e.stopPropagation();
     if (!id) return;
     const url = `${window.location.origin}/v/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-        const btn = event?.currentTarget || document.activeElement;
-        if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN')) {
+        const btn = e ? e.currentTarget : (event?.currentTarget || document.activeElement);
+        if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN' || btn.classList.contains('btn'))) {
             const originalContent = btn.innerHTML;
             btn.innerHTML = '✅ Copied';
             setTimeout(() => btn.innerHTML = originalContent, 1500);
@@ -1960,7 +1976,7 @@ window.copyPasteUrl = function (id) {
         document.body.removeChild(input);
         alert('Link Copied!');
     });
-};
+}
 
 // Bind Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -2094,7 +2110,7 @@ async function deleteLog(id) {
     } catch (e) { alert('Failed to delete log'); }
 }
 
-window.deleteLog = deleteLog;
+// Redundant assignment removed
 
 // --- FIREWALL MANAGEMENT ---
 const ISO_COUNTRIES = [
@@ -2250,10 +2266,7 @@ function updateFirewallGlobe(blockedCodes) {
     window.firewallPolygonSeries.data.setAll(heatmapData);
 }
 
-window.toggleCountryBlock = toggleCountryBlock;
-window.getFlagEmoji = getFlagEmoji;
-window.loadFirewallList = loadFirewallList;
-window.updateFirewallGlobe = updateFirewallGlobe;
+// Redundant assignments removed
 
 async function bulkToggle(countries, action) {
     try {
