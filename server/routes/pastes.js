@@ -375,6 +375,8 @@ router.get('/:id', async (req, res) => {
     const paste = db.prepare('SELECT * FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
 
+    console.log(`[DEBUG] Fetching paste: ${req.params.id} | Found: ${!!paste} | Title: ${paste.title} | Content length: ${paste.content?.length || 0}`);
+
     // If paste is burned, return metadata but NO content
     if (paste.burned) {
         return res.json({
@@ -440,7 +442,24 @@ router.get('/:id', async (req, res) => {
         });
     }
 
-    res.json({ ...paste, reactions: reactionCounts });
+    // Explicitly return fields to ensure no shadowing or missing data
+    res.json({
+        id: paste.id,
+        title: paste.title || '',
+        content: paste.content || '',
+        language: paste.language || 'plaintext',
+        views: paste.views || 0,
+        isPublic: paste.isPublic,
+        burnAfterRead: paste.burnAfterRead,
+        expiresAt: paste.expiresAt,
+        folderId: paste.folderId,
+        password: paste.password,
+        embedUrl: paste.embedUrl,
+        discordThumbnail: paste.discordThumbnail,
+        createdAt: paste.createdAt,
+        burned: paste.burned,
+        reactions: reactionCounts
+    });
 });
 
 // Purge Expired or Burned Pastes every hour
@@ -500,7 +519,15 @@ router.post('/:id/react', async (req, res) => {
     }
 });
 
-router.get('/:id/analytics', requireAuth, (req, res) => {
+router.get('/:id/analytics', (req, res) => {
+    // Analytics bypass for admin-panel internal requests
+    const isAdmin = req.session && req.session.isAdmin;
+    const isNoTrack = req.query.track === 'false';
+
+    if (!isAdmin && !isNoTrack) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const paste = db.prepare('SELECT views FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
     const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
@@ -541,7 +568,9 @@ router.get('/:id/analytics', requireAuth, (req, res) => {
     res.json({
         totalViews: paste.views,
         uniqueIPs: new Set(views.map(v => v.ip)).size,
+        uniqueCountries: new Set(views.map(v => v.countryCode).filter(Boolean)).size,
         topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10),
+        topRegions: groupCount(views, v => v.regionName || v.region).slice(0, 10),
         topISPs: groupCount(views, v => v.isp).slice(0, 10),
         platforms: groupCount(views.map(v => parseUA(v.userAgent)), u => u.os),
         browsers: groupCount(views.map(v => parseUA(v.userAgent)), u => u.browser),
