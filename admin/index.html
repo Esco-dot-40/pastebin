@@ -429,47 +429,6 @@
     </div>
 
 
-    <script>
-        // Global Modal Management
-        window.closeAllModals = function () {
-            document.querySelectorAll('.modal').forEach(m => {
-                m.classList.remove('active');
-                m.style.display = 'none';
-            });
-        };
-
-        // Close on click outside (backdrop)
-        document.querySelectorAll('.modal').forEach(m => {
-            m.addEventListener('click', (e) => {
-                if (e.target === m) {
-                    m.classList.remove('active');
-                    m.style.display = 'none';
-                }
-            });
-        });
-
-        // Initialize view switching from app.js logic
-        function switchTab(tabId) {
-            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-            const targetView = document.getElementById(tabId + '-view');
-            const targetNav = document.querySelector(`[data-tab="${tabId}"]`);
-
-            if (targetView) targetView.classList.add('active');
-            if (targetNav) targetNav.classList.add('active');
-
-            const titleEl = document.getElementById('view-title');
-            if (titleEl) {
-                const titles = {
-                    'dashboard': 'Dashboard Overview',
-                    'traffic': 'Traffic Intelligence',
-                    'pastes': 'Payload Registry'
-                };
-                titleEl.textContent = titles[tabId] || 'Command Center';
-            }
-        }
-    </script>
     <script src="../shared/api.js?v=26"></script>
     <script src="app.js?v=26"></script>
 </body>

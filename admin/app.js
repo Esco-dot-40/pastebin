@@ -84,6 +84,15 @@ const activeVisitorsEl = document.getElementById('activeVisitors');
 const pasteSearchInput = document.getElementById('pasteSearch');
 const logoutBtn = document.getElementById('logoutBtn');
 
+// Global Modal Management
+window.closeAllModals = function () {
+    document.querySelectorAll('.modal').forEach(m => {
+        m.classList.remove('active');
+        m.style.display = 'none';
+        if (m.id === 'createModal') clearForm();
+    });
+};
+
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
     console.log('Admin Console Initializing...');
@@ -143,6 +152,13 @@ window.addEventListener('DOMContentLoaded', () => {
     const tableBtn = document.getElementById('list-view-btn');
     if (gridBtn) gridBtn.classList.toggle('active', currentMode === 'grid');
     if (tableBtn) tableBtn.classList.toggle('active', currentMode === 'table');
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) window.closeAllModals();
+        });
+    });
 });
 
 // Event Listeners
@@ -221,6 +237,8 @@ if (updateBannerBtn) updateBannerBtn.addEventListener('click', updateBanner);
 
 // Navigation / Tab System
 function switchTab(tabId) {
+    if (window.closeAllModals) window.closeAllModals();
+
     // Update Sidebar
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
@@ -251,7 +269,10 @@ window.switchTab = switchTab;
 
 // Bind Tab Clicks
 document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(btn.dataset.tab);
+    });
 });
 
 if (logoutBtn) {
@@ -596,8 +617,8 @@ async function loadPasteList(searchQuery = '') {
                     <button onclick="event.stopPropagation(); window.showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics">
                         📈
                     </button>
-                    <button onclick="event.stopPropagation(); window.loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit">
-                        ✏️
+                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="pointer-events: auto;">
+                        ✏️ Edit
                     </button>
                     <button onclick="event.stopPropagation(); window.deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.2);">
                         🗑️
