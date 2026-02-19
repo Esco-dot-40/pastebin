@@ -119,17 +119,19 @@ router.get('/analytics', requireAuth, (req, res) => {
         `).get().total;
 
         const uniqueVisitors = db.prepare(`
-            SELECT COUNT(DISTINCT ip) as count FROM (
-                SELECT ip FROM paste_views UNION SELECT ip FROM page_accesses
+            SELECT COUNT(DISTINCT identity) as count FROM (
+                SELECT COALESCE(fingerprint, ip) as identity FROM paste_views
+                UNION
+                SELECT COALESCE(fingerprint, ip) as identity FROM page_accesses
             )
         `).get().count;
 
         const fiveMinutesAgo = new Date(Date.now() - (5 * 60 * 1000)).toISOString();
         const activeNow = db.prepare(`
-            SELECT COUNT(DISTINCT ip) as count FROM (
-                SELECT ip FROM paste_views WHERE timestamp > ?
+            SELECT COUNT(DISTINCT identity) as count FROM (
+                SELECT COALESCE(fingerprint, ip) as identity FROM paste_views WHERE timestamp > ?
                 UNION
-                SELECT ip FROM page_accesses WHERE timestamp > ?
+                SELECT COALESCE(fingerprint, ip) as identity FROM page_accesses WHERE timestamp > ?
             )
         `).get(fiveMinutesAgo, fiveMinutesAgo).count;
 

@@ -66,44 +66,33 @@ export const geoMiddleware = async (req, res, next) => {
         }
     }
 
-    // 3. Hierarchical Security Bypasses
+    // 3. Hierarchical Security Bypasses (Determination Phase)
     const isLocal = cleanIp === '127.0.0.1' || cleanIp === '::1';
     const bypassSecret = process.env.FIREWALL_SECRET;
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
 
-    // Primary bypass: Whitelist IPs, Admin Session, or Localhouse
     const isAdminIp = adminIps.includes(cleanIp);
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
-
     const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
 
-    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot) {
-        return next();
-    }
-
-    // Special case for Admin: Only log login/logout, skip general PAGE/API logging
-    if (isSessionAdmin && !isAuthPath) {
-        return next();
-    }
+    const shouldBypassAction = isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot || (isSessionAdmin && !isAuthPath);
 
     // 4. Geo-Blocking Logic & Deep Lookup
+    let isBlocked = 0;
     try {
         const settings = db.prepare("SELECT * FROM firewall_settings").all();
         const lockdownActive = settings.find(s => s.key === 'lockdown_active')?.value === '1';
         const europeBlockActive = settings.find(s => s.key === 'europe_block')?.value === '1';
         const usaBlockActive = settings.find(s => s.key === 'usa_block')?.value === '1';
 
-        if (lockdownActive) {
-            logAccess(cleanIp, req, { countryCode: '??' }, 1);
-            return res.redirect('/blocked');
-        }
+        if (lockdownActive) isBlocked = 1;
 
-        // Deep Lookup Phase
+        // Deep Lookup Phase (if not in cache or if refreshing)
         const needsLookup = !geoData || !geoData.city || geoData.city === 'Unknown' || geoData.city === '';
 
         if (needsLookup || req.query.refreshGeo === '1') {
@@ -133,23 +122,25 @@ export const geoMiddleware = async (req, res, next) => {
 
         const resolvedCountry = geoData?.countryCode || countryCode;
 
-        if (resolvedCountry) {
+        if (resolvedCountry && !isBlocked) {
             const isEurope = EUROPEAN_COUNTRIES.includes(resolvedCountry);
             const isUSA = resolvedCountry === 'US';
             const isRestricted = (isEurope && europeBlockActive) || (isUSA && usaBlockActive);
             const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE countryCode = ?').get(resolvedCountry);
 
             if (isRestricted || isManuallyBlocked) {
-                req.isRestrictedRegion = true;
-                logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry }, 1);
-                return res.redirect('/blocked');
+                isBlocked = 1;
             }
         }
 
-        // Final logging - if not admin
-        logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, 0);
+        // 5. Final Dispatch (Log -> Action)
+        logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, isBlocked);
+
+        if (isBlocked && !shouldBypassAction) {
+            return res.redirect('/blocked');
+        }
     } catch (err) {
-        console.error('Firewall Middleware Error:', err);
+        console.error('Firewall Dispatch Error:', err);
     }
 
     next();
@@ -160,11 +151,8 @@ function logAccess(ip, req, geo, isBlocked) {
         const isAdmin = req.session?.isAdmin;
         const user = req.session?.user || {};
 
-        // CONSTRAINT: Filter out Admin activity (Root Admin) except for login/logout
-        const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
-        if (isAdmin && !isAuthPath) {
-            return; // Completely filtered out
-        }
+        // Removed the admin filter to ensure 'ACTUAL data' is captured for all hits.
+        // We still tag it so it can be distinguished in the UI.
 
         const ua = req.headers['user-agent'] || '';
         const parser = new UAParser(ua);

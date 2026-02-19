@@ -17,6 +17,7 @@
     <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
     <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/lang/EN.js"></script>
 </head>
 
 <body>
@@ -106,8 +107,9 @@
                 <div class="user-profile">
                     <div style="text-align: right;">
                         <div style="font-weight: 600;">Root Admin</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);"
-                            id="activeVisitors">0 Active Visitors</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: var(--font-mono);">
+                            <span id="activeVisitors">0</span> Active Visitors
+                        </div>
                     </div>
                     <div class="user-avatar"
                         style="background: linear-gradient(135deg, var(--primary-neon), var(--secondary-neon)); opacity: 0.8;">
@@ -228,6 +230,7 @@
                                 <tr>
                                     <th>Timestamp</th>
                                     <th>Identity (IP)</th>
+                                    <th>Machine ID</th>
                                     <th>Location</th>
                                     <th>Resource Path</th>
                                     <th>Platform</th>

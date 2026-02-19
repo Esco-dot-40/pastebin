@@ -3,48 +3,70 @@ if (!window.PasteAPI) {
         constructor() {
             this.apiUrl = window.location.origin + '/api';
             this.dbName = 'veroe_local_cache';
-            this.machineId = localStorage.getItem('machine_id') || 'gen-' + Math.random().toString(36).substr(2, 9);
+            this.machineId = localStorage.getItem('machine_id');
             this.fingerprint = null;
-            this.initFingerprint();
+            this._initPromise = this.initFingerprint();
         }
 
         async initFingerprint() {
             if (this.fingerprint) return;
             try {
-                // Hardware / Software Capture
-                const fp = {
-                    cpuCores: navigator.hardwareConcurrency,
-                    deviceMemory: navigator.deviceMemory,
-                    screenResolution: `${screen.width}x${screen.height}`,
-                    osBuild: navigator.platform
-                };
+                // Entropy Sources
+                const screenRes = `${window.screen.width}x${window.screen.height}`;
+                const colorDepth = window.screen.colorDepth;
+                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                const language = navigator.language;
+                const cpuCores = navigator.hardwareConcurrency || 4;
+                const memory = navigator.deviceMemory || 4;
 
-                // Graphics (WebGL) Capture
+                let gpuRenderer = 'Standard';
                 try {
                     const canvas = document.createElement('canvas');
                     const gl = canvas.getContext('webgl');
                     if (gl) {
                         const debug = gl.getExtension('WEBGL_debug_renderer_info');
-                        fp.gpuRenderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : 'Standard';
+                        gpuRenderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : 'Standard';
                     }
                 } catch (e) { }
 
-                // Simple Machine ID (SHA-256 for binding)
-                const raw = `${fp.cpuCores}-${fp.deviceMemory}-${fp.screenResolution}-${fp.gpuRenderer}-${navigator.userAgent}`;
+                const fp = {
+                    cpuCores,
+                    deviceMemory: memory,
+                    screenResolution: screenRes,
+                    colorDepth,
+                    timezone,
+                    language,
+                    gpuRenderer,
+                    osBuild: navigator.platform,
+                    userAgent: navigator.userAgent
+                };
+
+                // Stable Hardware Signature (SHA-256)
+                // We exclude volatile data if any (though these are mostly stable)
+                const raw = `${fp.cpuCores}-${fp.deviceMemory}-${fp.screenResolution}-${fp.gpuRenderer}-${fp.timezone}-${fp.language}`;
                 const msgUint8 = new TextEncoder().encode(raw);
                 const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
-                this.machineId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                localStorage.setItem('machine_id', this.machineId);
+
+                const newId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                // Only override if we don't have one or if it's the old 'gen-' format
+                if (!this.machineId || this.machineId.startsWith('gen-')) {
+                    this.machineId = newId;
+                    localStorage.setItem('machine_id', this.machineId);
+                }
 
                 this.fingerprint = fp;
             } catch (e) {
                 console.warn('Fingerprinting error, using fallback ID', e);
+                if (!this.machineId) {
+                    this.machineId = 'err-' + Math.random().toString(36).substr(2, 9);
+                }
             }
         }
 
         async _fetch(url, options = {}) {
-            if (!this.fingerprint) await this.initFingerprint();
+            if (!this.fingerprint) await this._initPromise;
 
             const headers = options.headers || {};
             headers['x-veroe-fingerprint'] = this.machineId;

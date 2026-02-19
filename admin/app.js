@@ -1682,14 +1682,15 @@ function initMainMap() {
         const chart = root.container.children.push(am5map.MapChart.new(root, {
             panX: "rotateX",
             panY: "none",
-            projection: am5map.geoMercator(),
-            homeGeoPoint: { latitude: 20, longitude: 0 },
+            projection: am5map.geoEqualEarth(),
+            homeGeoPoint: { latitude: 10, longitude: 0 },
             homeZoomLevel: 1,
             wheelable: false
         }));
 
         const series = chart.series.push(am5map.MapPolygonSeries.new(root, {
             geoJSON: am5geodata_worldLow,
+            geoJSONNames: am5geodata_lang_EN,
             calculateAggregates: true,
             valueField: "value"
         }));
@@ -1736,9 +1737,13 @@ async function loadGlobalAnalytics() {
         updateTrafficFeed(data.recentActivity || []);
         renderAnalyticsTable(data.recentActivity || []);
 
-        // Update active visitors in header
+        // Update active visitors in header and dashboard
         if (activeVisitorsEl) {
-            activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
+            activeVisitorsEl.textContent = data.activeNow || 0;
+        }
+        const activeNodesEl = document.getElementById('activeNodes');
+        if (activeNodesEl) {
+            activeNodesEl.textContent = `${data.activeNow || 0} Active Nodes`;
         }
 
         // Update Firewall Stats if on firewall page
@@ -1905,24 +1910,28 @@ function renderAnalyticsTable(logs) {
     if (!tbody) return;
 
     if (!logs || logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
         return;
     }
 
-    tbody.innerHTML = logs.slice(0, 10).map(log => {
+    tbody.innerHTML = logs.slice(0, 15).map(log => {
         const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
+        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
 
         return `
             <tr>
-                <td>${time}</td>
-                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${log.ip}</td>
-                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start);">${log.fingerprint ? log.fingerprint.substring(0, 12) : 'N/A'}...</span></td>
-                <td>${flag} ${log.countryCode || '??'}</td>
+                <td style="color: var(--text-secondary); font-size: 0.75rem;">${time}</td>
+                <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
+                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
+                <td>${flag} ${log.city || 'US Sector'}</td>
+                <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
-                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
-                <td><span class="status-dot ${log.isBlocked ? '' : 'online'}"></span> ${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</td>
+                <td style="font-size: 0.7rem; color: var(--text-tertiary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Internal'}</td>
+                <td>
+                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="font-size: 0.65rem;">${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</span>
+                </td>
             </tr>
         `;
     }).join('');
@@ -1968,7 +1977,7 @@ function updateMainMap(locations) {
 
     // Map to amCharts format (countryCode -> value)
     const mapData = (locations || []).map(l => ({
-        id: l.countryCode,
+        id: l.countryCode ? l.countryCode.toUpperCase() : 'US',
         value: l.count
     }));
 
@@ -2174,12 +2183,13 @@ function renderLogs(logs, query = '') {
             (l.path && l.path.toLowerCase().includes(query.toLowerCase())) ||
             (l.userAgent && l.userAgent.toLowerCase().includes(query.toLowerCase())) ||
             (l.method && l.method.includes(query.toUpperCase())) ||
-            (l.city && l.city.toLowerCase().includes(query.toLowerCase()))
+            (l.city && l.city.toLowerCase().includes(query.toLowerCase())) ||
+            (l.fingerprint && l.fingerprint.toLowerCase().includes(query.toLowerCase()))
         )
         : logs;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
         return;
     }
 
@@ -2187,11 +2197,13 @@ function renderLogs(logs, query = '') {
         const time = new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
+        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
 
         return `
             <tr>
                 <td style="color: var(--text-secondary); font-size: 0.8rem;">${time}</td>
                 <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
+                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
                 <td>${flag} ${log.city === 'Universal City' ? '<span class="location-tag vague">US Sector (CA)</span>' : (log.city || 'Unknown')}</td>
                 <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
