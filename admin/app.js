@@ -12,6 +12,8 @@ const isPublic = document.getElementById('isPublic');
 const pastePassword = document.getElementById('pastePassword');
 let currentLocalPasteId = null;
 let amRoot = null;
+let mainMapRoot = null;
+let globeRoot = null;
 let polygonSeries = null;
 let globalAnalyticsData = null;
 
@@ -119,14 +121,7 @@ const activeVisitorsEl = document.getElementById('activeVisitors');
 const pasteSearchInput = document.getElementById('pasteSearch');
 const logoutBtn = document.getElementById('logoutBtn');
 
-// Global Modal Management
-window.closeAllModals = function () {
-    document.querySelectorAll('.modal').forEach(m => {
-        m.classList.remove('active');
-        m.style.display = 'none';
-        if (m.id === 'createModal') clearForm();
-    });
-};
+// Initialize (Defensive check for all UI elements)
 
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
@@ -683,7 +678,12 @@ async function showAnalytics(pasteId, e) {
         } catch (e) { }
 
         // Calculate unique visitors
-        const uniqueIPs = new Set(analytics.recentViews?.map(v => v.ip) || []).size;
+        const uniqueIPsCount = analytics.uniqueIPs || new Set(analytics.recentViews?.map(v => v.ip) || []).size;
+        const totalViewsCount = analytics.totalViews || 0;
+        const uniqueCountriesCount = analytics.uniqueCountries || 0;
+        const topLocationsArr = analytics.topLocations || [];
+        const topISPsArr = analytics.topISPs || [];
+        const topRegionsArr = analytics.topRegions || [];
 
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
@@ -710,15 +710,15 @@ async function showAnalytics(pasteId, e) {
             
             <div class="stats-grid" style="margin-bottom: 32px">
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.totalViews}</div>
+                    <div class="stat-value">${totalViewsCount}</div>
                     <div class="stat-label">Total Views</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.uniqueIPs}</div>
+                    <div class="stat-value">${uniqueIPsCount}</div>
                     <div class="stat-label">Unique Visitors</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.uniqueCountries || 0}</div>
+                    <div class="stat-value">${uniqueCountriesCount}</div>
                     <div class="stat-label">Countries</div>
                 </div>
             </div>
@@ -727,14 +727,14 @@ async function showAnalytics(pasteId, e) {
                 <div>
                     <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">📍 Top Cities</h4>
                     <div class="location-list">
-                        ${(analytics.topLocations || []).map(loc => `
+                        ${topLocationsArr.length > 0 ? topLocationsArr.map(loc => `
                             <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
                                 <div style="display: flex; justify-content: space-between; align-items: center">
                                     <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
                                     <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start)">${loc.count}</span>
                                 </div>
                             </div>
-                        `).join('')}
+                        `).join('') : '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No location data available</p>'}
                     </div>
                 </div>
                 <div>

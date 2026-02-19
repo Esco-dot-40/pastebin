@@ -228,10 +228,17 @@ if (!window.PasteAPI) {
             return {
                 totalViews: data.views.length,
                 uniqueIPs: new Set(data.views.map(v => v.ip)).size,
+                uniqueCountries: new Set(data.views.map(v => v.countryCode).filter(Boolean)).size,
                 topLocations: Object.entries(data.summary)
                     .map(([name, count]) => ({ name, count }))
                     .sort((a, b) => b.count - a.count),
-                recentViews: data.views.reverse().slice(0, 50),
+                topISPs: [],
+                topRegions: [],
+                platforms: [],
+                browsers: [],
+                recentViews: data.views.slice().reverse().slice(0, 50),
+                reactions: { heart: 0, star: 0, like: 0 },
+                detailedReactions: [],
                 source: 'local'
             };
         }
