@@ -671,10 +671,14 @@ async function showAnalytics(pasteId, e) {
 
         // Try to get title from the list if available, else just use the ID
         let pasteTitleStr = pasteId;
+        let pasteCreatedAt = null;
         try {
             const pastes = await storage.getAllPastes();
-            const paste = pastes.find(p => p.id === pasteId);
-            if (paste) pasteTitleStr = paste.title;
+            const pasteData = pastes.find(p => p.id === pasteId);
+            if (pasteData) {
+                pasteTitleStr = pasteData.title;
+                pasteCreatedAt = pasteData.createdAt;
+            }
         } catch (e) { }
 
         // Calculate unique visitors
@@ -691,7 +695,7 @@ async function showAnalytics(pasteId, e) {
                     <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(pasteTitleStr)}</h4>
                     <div style="display: flex; gap: 16px; font-size: 0.875rem; color: var(--text-tertiary)">
                         <span>ID: <code>${pasteId}</code></span>
-                        <span>Created: ${formatDateTime(paste.createdAt)}</span>
+                        ${pasteCreatedAt ? `<span>Created: ${formatDateTime(pasteCreatedAt)}</span>` : ''}
                     </div>
                     <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0, 245, 255, 0.2);">
                         <span style="color: var(--primary-start); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 15px;">${window.location.origin}/v/${pasteId}</span>
@@ -708,7 +712,7 @@ async function showAnalytics(pasteId, e) {
                 </div>
             </div>
             
-            <div class="stats-grid" style="margin-bottom: 32px">
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin-bottom: 32px">
                 <div class="stat-card">
                     <div class="stat-value">${totalViewsCount}</div>
                     <div class="stat-label">Total Views</div>
@@ -723,66 +727,63 @@ async function showAnalytics(pasteId, e) {
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">📍 Top Cities</h4>
-                    <div class="location-list">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">📍 <span>Top Cities</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${topLocationsArr.length > 0 ? topLocationsArr.map(loc => `
-                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
-                                    <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start)">${loc.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
+                                <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${loc.count}</span>
                             </div>
-                        `).join('') : '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No location data available</p>'}
+                        `).join('') : '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No location data</p>'}
                     </div>
                 </div>
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🏢 Top ISPs</h4>
-                    <div class="location-list">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">🏢 <span>Top ISPs</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topISPs || []).map(isp => `
-                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <span style="font-weight: 500; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="${escapeHtml(isp.name)}">${escapeHtml(isp.name)}</span>
-                                    <span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start)">${isp.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 500; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;" title="${escapeHtml(isp.name)}">${escapeHtml(isp.name)}</span>
+                                <span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${isp.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No ISP data</p>'}
                     </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🗺️ Top Regions</h4>
-                    <div class="location-list">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">🗺️ <span>Top Regions</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topRegions || []).map(reg => `
-                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>${escapeHtml(reg.name)}</span>
-                                    <span style="color: var(--text-tertiary)">${reg.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                                <span>${escapeHtml(reg.name)}</span>
+                                <span style="color: var(--text-tertiary)">${reg.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No region data</p>'}
                     </div>
                 </div>
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">💻 Browsers</h4>
-                    <div class="location-list">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">💻 <span>Browsers</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topBrowsers || []).map(br => `
-                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>${escapeHtml(br.name)}</span>
-                                    <span style="color: var(--text-tertiary)">${br.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                                <span>${escapeHtml(br.name)}</span>
+                                <span style="color: var(--text-tertiary)">${br.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No browser data</p>'}
                     </div>
                 </div>
             </div>
             
-            <h4 style="font-size: 1.2rem; margin: 32px 0 16px 0; color: var(--primary-start); border-top: 1px solid var(--border); pt: 24px;">📋 Detailed View Log</h4>
-            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+            <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h4 style="font-size: 1.1rem; margin: 0; color: var(--primary-start)">📋 Detailed View Log</h4>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary)">Showing last 100 entries</span>
+                </div>
+            </div>
+            <div class="views-table" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); position: relative;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05)">
@@ -851,9 +852,13 @@ async function showAnalytics(pasteId, e) {
                     <div class="stat-label">Likes</div>
                 </div>
             </div>
-
-            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
+            
+            <div style="height: 40px;"></div> <!-- Spacer -->
+            <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: #ff006e;">❤️ Detailed Reaction Logs</h4>
+            </div>
+            <div class="views-table" style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05)">
                             <th style="padding: 12px; text-align: left;">User</th>
