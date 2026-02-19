@@ -94,7 +94,8 @@ if (!window.PasteAPI) {
                         burnAfterRead: config.burnAfterRead || false,
                         folderId: config.folderId || null,
                         password: config.password || null,
-                        embedUrl: config.embedUrl || null
+                        embedUrl: config.embedUrl || null,
+                        discordThumbnail: config.discordThumbnail || null
                     })
                 });
 
@@ -133,7 +134,8 @@ if (!window.PasteAPI) {
                         burnAfterRead: config.burnAfterRead || false,
                         folderId: config.folderId || null,
                         password: config.password || null,
-                        embedUrl: config.embedUrl || null
+                        embedUrl: config.embedUrl || null,
+                        discordThumbnail: config.discordThumbnail || null
                     })
                 });
 

@@ -103,6 +103,8 @@ const embedUrl = document.getElementById('embedUrl');
 const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
 const embedInput = document.getElementById('embedInput');
 const discordThumbnail = document.getElementById('discordThumbnail');
+const uploadMediaBtn = document.getElementById('uploadMediaBtn');
+const mediaInput = document.getElementById('mediaInput');
 
 // Firewall Elements
 const firewallBtn = document.getElementById('firewallBtn');
@@ -424,6 +426,9 @@ if (imageInput) imageInput.addEventListener('change', handleImageUpload);
 // Embed Upload Events
 if (uploadEmbedBtn) uploadEmbedBtn.addEventListener('click', () => embedInput.click());
 if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
+
+if (uploadMediaBtn) uploadMediaBtn.addEventListener('click', () => mediaInput.click());
+if (mediaInput) mediaInput.addEventListener('change', handleMediaUpload);
 
 // Close modals on background click
 if (successModal) {
@@ -1381,6 +1386,32 @@ async function handleEmbedUpload(e) {
         setTimeout(() => {
             uploadEmbedBtn.innerHTML = originalText;
             uploadEmbedBtn.disabled = false;
+        }, 1500);
+    }
+}
+
+async function handleMediaUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const originalText = uploadMediaBtn.innerHTML;
+    uploadMediaBtn.innerHTML = '⏳';
+    uploadMediaBtn.disabled = true;
+
+    try {
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            embedUrl.value = window.location.origin + res.url;
+            uploadMediaBtn.innerHTML = '✅';
+        } else {
+            alert('Upload failed');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        setTimeout(() => {
+            uploadMediaBtn.innerHTML = originalText;
+            uploadMediaBtn.disabled = false;
         }, 1500);
     }
 }
