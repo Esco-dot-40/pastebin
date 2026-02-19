@@ -147,6 +147,7 @@ export const geoMiddleware = async (req, res, next) => {
 };
 
 function logAccess(ip, req, geo, isBlocked) {
+    console.log(`📡 Logging Access: ${ip} -> ${req.path} [${isBlocked ? 'BLOCKED' : 'ALLOW'}]`);
     try {
         const isAdmin = req.session?.isAdmin;
         const user = req.session?.user || {};
