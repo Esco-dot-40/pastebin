@@ -1469,17 +1469,21 @@ function initGlobe() {
     const container = document.getElementById('chartdiv');
     if (!container || globeRootVar) return;
 
-    // Wait for amCharts components
-    if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
-        setTimeout(initGlobe, 250);
-        return;
-    }
-
     try {
+        if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
+            setTimeout(initGlobe, 250);
+            return;
+        }
+
         const root = am5.Root.new("chartdiv");
         globeRootVar = root;
 
-        root.setThemes([am5themes_Animated.new(root)]);
+        // Safer theme loading
+        const themes = [];
+        if (typeof am5themes_Animated !== 'undefined') {
+            themes.push(am5themes_Animated.new(root));
+        }
+        root.setThemes(themes);
 
         const chart = root.container.children.push(am5map.MapChart.new(root, {
             panX: "rotateX",
@@ -2304,9 +2308,17 @@ async function loadFirewallList(query = '') {
         const res = await fetch('/api/firewall/status', { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-            // New API returns 'blocklist' as an array of codes
             activeBlocks = data.blocklist || [];
             updateFirewallGlobe(activeBlocks);
+
+            // SYNC STATS: Update the sidebar counters directly from this specific firewall payload
+            const blockedCountEl = document.getElementById('fw-blocked-count');
+            const threatsCountEl = document.getElementById('fw-threats-count');
+
+            if (blockedCountEl) blockedCountEl.textContent = activeBlocks.length;
+            if (threatsCountEl && data.statistics) {
+                threatsCountEl.textContent = data.statistics.blocked_attempts || 0;
+            }
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
 
