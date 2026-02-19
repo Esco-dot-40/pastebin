@@ -102,6 +102,7 @@ const usersList = document.getElementById('usersList');
 const embedUrl = document.getElementById('embedUrl');
 const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
 const embedInput = document.getElementById('embedInput');
+const discordThumbnail = document.getElementById('discordThumbnail');
 
 // Firewall Elements
 const firewallBtn = document.getElementById('firewallBtn');
@@ -470,7 +471,8 @@ async function createPaste() {
         expiresAt: calculateExpiration(pasteExpiration.value),
         folderId: pasteFolder.value || null,
         password: pastePassword.value ? pastePassword.value.trim() : null,
-        embedUrl: embedUrl.value ? embedUrl.value.trim() : null
+        embedUrl: embedUrl.value ? embedUrl.value.trim() : null,
+        discordThumbnail: discordThumbnail.value ? discordThumbnail.value.trim() : null
     };
 
     try {
@@ -529,6 +531,7 @@ function clearForm() {
     pasteFolder.value = '';
     if (pastePassword) pastePassword.value = '';
     if (embedUrl) embedUrl.value = '';
+    if (discordThumbnail) discordThumbnail.value = '';
     burnAfterRead.checked = false;
     isPublic.checked = true;
 
@@ -1076,6 +1079,7 @@ async function loadPasteForEdit(id, e) {
 
         if (pastePassword) pastePassword.value = paste.password || '';
         if (embedUrl) embedUrl.value = paste.embedUrl || '';
+        if (discordThumbnail) discordThumbnail.value = paste.discordThumbnail || '';
 
         // Reset expiration to never for editing as default, unless we want to parse logic
         if (pasteExpiration) pasteExpiration.value = 'never';
@@ -1366,7 +1370,7 @@ async function handleEmbedUpload(e) {
     try {
         const res = await storage.uploadImage(file);
         if (res.success) {
-            embedUrl.value = window.location.origin + res.url;
+            discordThumbnail.value = window.location.origin + res.url;
             uploadEmbedBtn.innerHTML = '✅';
         } else {
             alert('Upload failed');

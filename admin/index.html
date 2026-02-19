@@ -359,8 +359,24 @@
                         <option value="">No Folder</option>
                     </select>
                 </div>
-                <input type="text" id="embedUrl" placeholder="Custom Embed URL (Image/Video)"
-                    style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="display: grid; gap: 5px;">
+                        <label style="font-size: 0.82rem; color: var(--text-secondary);">Direct Media / Player
+                            URL</label>
+                        <input type="text" id="embedUrl" placeholder="Direct MP4 / GIF / IMG Link..."
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px;">
+                    </div>
+                    <div style="display: grid; gap: 5px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <label style="font-size: 0.82rem; color: var(--text-secondary);">Discord Static
+                                Thumbnail</label>
+                            <button id="uploadEmbedBtn" class="btn btn-glass btn-small"
+                                style="font-size: 0.65rem; height: 24px; padding: 0 8px;">📸 Upload</button>
+                        </div>
+                        <input type="text" id="discordThumbnail" placeholder="Static Preview IMG / GIF..."
+                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px;">
+                    </div>
+                </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                     <button id="clearBtn" class="btn btn-glass">Reset</button>

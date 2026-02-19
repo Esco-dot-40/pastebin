@@ -463,7 +463,7 @@ app.get('/v/:id', (req, res) => {
 
     let customMeta = '';
 
-    // Priority 1: If discordThumbnail is set, use it for the og:image (Discord static thumbnail)
+    // Determine og:image / twitter:image
     if (paste.discordThumbnail) {
         let fullThumbnailUrl = paste.discordThumbnail;
         if (!fullThumbnailUrl.startsWith('http')) {
@@ -476,12 +476,12 @@ app.get('/v/:id', (req, res) => {
     <meta property="og:image" content="${safeThumbnail}">
     <meta name="twitter:image" content="${safeThumbnail}">`;
     } else if (imageUrl) {
-        // Priority 2: Use embedUrl as image if no discordThumbnail
         const safeImg = imageUrl.replace(/"/g, '&quot;');
         customMeta += `
     <meta property="og:image" content="${safeImg}">
     <meta name="twitter:image" content="${safeImg}">`;
     }
+    // If neither is set, serveHtmlWithMeta will provide the site's default preview image.
 
     if (videoUrl) {
         const safeVid = videoUrl.replace(/"/g, '&quot;');
