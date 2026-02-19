@@ -168,6 +168,18 @@
                         <div class="stat-value" id="fw-blocked-count">0</div>
                         <div class="stat-trend trend-down">Blocked Threats</div>
                     </div>
+
+                    <!-- Global System Announcement Section -->
+                    <div class="stat-card animate-entry"
+                        style="animation-delay: 0.45s; grid-column: span 4; background: rgba(0, 245, 255, 0.03); border-color: rgba(0, 245, 255, 0.1);">
+                        <div class="stat-header" style="color: var(--primary-neon);">
+                            GLOBAL SYSTEM MESSAGE (BANNER)
+                            <button id="updateBannerBtn" class="btn-small btn-primary"
+                                style="height: 24px; padding: 0 10px; font-size: 0.65rem;">Broadcast Update</button>
+                        </div>
+                        <textarea id="bannerText" placeholder="Define a message for all encrypted nodes..."
+                            style="background: rgba(0,0,0,0.5); border: 1px solid rgba(0, 245, 255, 0.1); color: var(--primary-neon); padding: 10px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.8rem; height: 60px; resize: none; margin-top: 5px;"></textarea>
+                    </div>
                 </div>
 
                 <div class="section-grid">
@@ -306,7 +318,19 @@
                 </div>
 
                 <div style="display: grid; gap: 5px;">
-                    <label style="font-size: 0.85rem; color: var(--text-secondary);">Payload Content</label>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <label style="font-size: 0.85rem; color: var(--text-secondary);">Payload Content</label>
+                        <button id="uploadImageBtn" class="btn btn-glass btn-small"
+                            style="font-size: 0.7rem; gap: 4px; height: 28px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Inject Assets
+                        </button>
+                    </div>
                     <textarea id="pasteContent" placeholder="Enter source code..."
                         style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px; font-family: var(--font-mono); height: 300px; resize: vertical;"></textarea>
                 </div>
@@ -420,12 +444,7 @@
     <!-- Remaining Hidden Inputs -->
     <div style="display: none;">
         <input id="newFolderName">
-        <!-- Buttons that might be called by app.js logic to add event listeners -->
-        <button id="updateBannerBtn"></button>
-        <textarea id="bannerText"></textarea>
-        <button id="uploadImageBtn"></button>
         <input type="file" id="imageInput">
-        <button id="uploadEmbedBtn"></button>
         <input type="file" id="embedInput">
         <button id="manageFoldersBtn"></button>
         <button id="addFolderBtn"></button>

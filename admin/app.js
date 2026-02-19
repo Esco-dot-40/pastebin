@@ -95,6 +95,7 @@ const generateKeyBtn = document.getElementById('generateKeyBtn');
 const usersBtn = document.getElementById('usersBtn');
 const usersModal = document.getElementById('usersModal');
 const closeUsersBtn = document.getElementById('closeUsersBtn');
+const closeCreateBtn = document.getElementById('closeCreateBtn'); // Added
 const usersList = document.getElementById('usersList');
 
 // Embed Elements
@@ -202,10 +203,12 @@ if (intelBtn) {
 }
 if (intelModal) {
     intelModal.addEventListener('click', (e) => {
-        if (e.target === intelModal) intelModal.classList.remove('active');
+        if (e.target === intelModal) window.closeAllModals();
     });
 }
-if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => intelModal.classList.remove('active'));
+if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
+});
 
 
 // Event Listeners
@@ -233,13 +236,16 @@ if (accessBtn) accessBtn.addEventListener('click', () => {
 });
 
 if (closeModalBtn) closeModalBtn.addEventListener('click', () => {
-    successModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (closeStatsBtn) closeStatsBtn.addEventListener('click', () => {
-    statsModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
-    accessModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
+});
+if (closeCreateBtn) closeCreateBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
 });
 
 if (usersBtn) {
@@ -254,12 +260,12 @@ if (usersBtn) {
 }
 
 if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
-    usersModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 
 if (usersModal) {
     usersModal.addEventListener('click', (e) => {
-        if (e.target === usersModal) usersModal.classList.remove('active');
+        if (e.target === usersModal) window.closeAllModals();
     });
 }
 
@@ -342,6 +348,11 @@ if (clearAllLogsBtn) {
         } catch (e) { alert('Failed to clear logs'); }
     });
 }
+if (closeLogsBtn) {
+    closeLogsBtn.addEventListener('click', () => {
+        if (window.closeAllModals) window.closeAllModals();
+    });
+}
 if (trafficSearch) {
     trafficSearch.addEventListener('input', () => {
         loadLogs(trafficSearch.value);
@@ -386,7 +397,7 @@ if (copyKeyBtn) copyKeyBtn.addEventListener('click', () => {
 
 if (accessModal) {
     accessModal.addEventListener('click', (e) => {
-        if (e.target === accessModal) accessModal.classList.remove('active');
+        if (e.target === accessModal) window.closeAllModals();
     });
 }
 if (copyUrlBtn) copyUrlBtn.addEventListener('click', copyUrl);
@@ -396,12 +407,12 @@ if (manageFoldersBtn) manageFoldersBtn.addEventListener('click', () => {
     folderModal.classList.add('active');
 });
 if (closeFolderBtn) closeFolderBtn.addEventListener('click', () => {
-    folderModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (addFolderBtn) addFolderBtn.addEventListener('click', createFolder);
 if (folderModal) {
     folderModal.addEventListener('click', (e) => {
-        if (e.target === folderModal) folderModal.classList.remove('active');
+        if (e.target === folderModal) window.closeAllModals();
     });
 }
 
@@ -416,17 +427,13 @@ if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
 // Close modals on background click
 if (successModal) {
     successModal.addEventListener('click', (e) => {
-        if (e.target === successModal) {
-            successModal.classList.remove('active');
-        }
+        if (e.target === successModal) window.closeAllModals();
     });
 }
 
 if (statsModal) {
     statsModal.addEventListener('click', (e) => {
-        if (e.target === statsModal) {
-            statsModal.classList.remove('active');
-        }
+        if (e.target === statsModal) window.closeAllModals();
     });
 }
 
@@ -436,15 +443,13 @@ const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
 
 if (closeAnalyticsBtn) {
     closeAnalyticsBtn.addEventListener('click', () => {
-        analyticsModal.classList.remove('active');
+        if (window.closeAllModals) window.closeAllModals();
     });
 }
 
 if (analyticsModal) {
     analyticsModal.addEventListener('click', (e) => {
-        if (e.target === analyticsModal) {
-            analyticsModal.classList.remove('active');
-        }
+        if (e.target === analyticsModal) window.closeAllModals();
     });
 }
 
