@@ -20,6 +20,7 @@ import { startAutoBackup } from './services/auto-backup.js';
 import { geoMiddleware } from './middleware/geoFirewall.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { sanitizeRequest } from './middleware/sanitizer.js';
 
 const SqliteStore = sqlite3SessionStore(session);
 
@@ -195,8 +196,8 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
 
 // API Routes
 app.use('/api/auth', authRouter);
-app.use('/api/pastes', pastesRouter);
-app.use('/api/folders', foldersRouter);
+app.use('/api/pastes', sanitizeRequest, pastesRouter);
+app.use('/api/folders', sanitizeRequest, foldersRouter);
 app.use('/api/images', imagesRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/firewall', firewallRouter);

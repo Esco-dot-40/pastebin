@@ -108,7 +108,7 @@ export const geoMiddleware = async (req, res, next) => {
 
         if (needsLookup || req.query.refreshGeo === '1') {
             try {
-                const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,countryCode,country,regionName,city,lat,lon,isp,org,as,proxy,hosting,mobile,reverse`);
+                const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,countryCode,country,regionName,city,zip,lat,lon,isp,org,as,query,proxy,hosting,mobile,reverse`);
                 const data = await response.json();
                 if (data.status === 'success') {
                     geoData = {
@@ -119,10 +119,13 @@ export const geoMiddleware = async (req, res, next) => {
                         lat: data.lat,
                         lon: data.lon,
                         isp: data.isp,
+                        org: data.org,
+                        as: data.as,
                         proxy: data.proxy ? 1 : 0,
                         hosting: data.hosting ? 1 : 0,
                         mobile: data.mobile ? 1 : 0,
-                        reverse: data.reverse
+                        reverse: data.reverse,
+                        zip: data.zip
                     };
                 }
             } catch (e) { }
@@ -143,6 +146,7 @@ export const geoMiddleware = async (req, res, next) => {
             }
         }
 
+        // Final logging - if not admin
         logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, 0);
     } catch (err) {
         console.error('Firewall Middleware Error:', err);
@@ -153,24 +157,33 @@ export const geoMiddleware = async (req, res, next) => {
 
 function logAccess(ip, req, geo, isBlocked) {
     try {
+        const isAdmin = req.session?.isAdmin;
+        const user = req.session?.user || {};
+
+        // CONSTRAINT: Filter out Admin activity (Root Admin) except for login/logout
+        const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
+        if (isAdmin && !isAuthPath) {
+            return; // Completely filtered out
+        }
+
         const ua = req.headers['user-agent'] || '';
         const parser = new UAParser(ua);
         const result = parser.getResult();
 
-        const user = req.session?.user || {};
-        const isAdmin = req.session?.isAdmin;
         const userId = user.id || (isAdmin ? 'admin-root' : null);
-        const username = user.username || (isAdmin ? 'Admin' : null);
+        const username = user.username || (isAdmin ? 'Root Admin' : null);
 
-        // Generate a simple fingerprint (not perfect, but hardening)
-        const fingerprint = crypto.createHash('md5')
-            .update(`${ip}-${ua}-${req.get('accept-language') || ''}`)
-            .digest('hex');
+        // Capture Advanced Fingerprinting Headers if present
+        let meta = {};
+        if (req.headers['x-veroe-meta']) {
+            try { meta = JSON.parse(req.headers['x-veroe-meta']); } catch (e) { }
+        }
+        const fingerprint = req.headers['x-veroe-fingerprint'] || crypto.createHash('md5').update(`${ip}-${ua}`).digest('hex');
 
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer, browserName, browserVersion, osName, osVersion, deviceModel, deviceType, fingerprint)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ip, path, method, country, countryCode, region, city, zip, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer, browserName, browserVersion, osName, osVersion, deviceModel, deviceType, fingerprint, cpuCores, deviceMemory, screenResolution, gpuRenderer, osBuild, asn, installedFonts, installedPlugins)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
@@ -179,6 +192,7 @@ function logAccess(ip, req, geo, isBlocked) {
             (geo.countryCode || geo.country_code || '??').toUpperCase(),
             geo.region || geo.regionName || 'Unknown',
             geo.city || 'Unknown',
+            geo.zip || null,
             geo.lat || geo.latitude || 0,
             geo.lon || geo.longitude || 0,
             geo.isp || geo.org || 'Unknown',
@@ -197,7 +211,15 @@ function logAccess(ip, req, geo, isBlocked) {
             result.os.version || 'Unknown',
             result.device.model || 'Unknown',
             result.device.type || 'desktop',
-            fingerprint
+            fingerprint,
+            meta.cpuCores || null,
+            meta.deviceMemory || null,
+            meta.screenResolution || null,
+            meta.gpuRenderer || null,
+            meta.osBuild || null,
+            geo.as || null, // ASN mapping
+            meta.installedFonts || null,
+            meta.installedPlugins || null
         );
     } catch (e) {
         console.error('Failed to log access:', e.message);

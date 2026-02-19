@@ -1,7 +1,9 @@
 import express from 'express';
 import db from '../db/index.js';
-import fetch from 'node-fetch';
 import { requireAuth } from '../middleware/auth.js';
+import { validatePaste } from '../middleware/validator.js';
+import crypto from 'crypto';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
@@ -280,7 +282,7 @@ router.get('/stats/summary', requireAuth, (req, res) => {
 
 router.get('/', requireAuth, (req, res) => {
     try {
-        const list = db.prepare('SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
+        const list = db.prepare('SELECT p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
 
         // Enrich with reaction counts
         const enrichedList = list.map(p => {
@@ -305,19 +307,15 @@ router.get('/public-list', (req, res) => {
     const isAuthorized = isAdmin || hasAccessKey;
 
     let query;
-    let params = [];
+    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, f.name as folderName';
 
     if (isAuthorized) {
-        // Return ALL pastes (Public + Private)
-        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
+        query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
     } else {
-        // Return ONLY Public pastes
-        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
+        query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
     }
 
-    const list = db.prepare(query).all(params);
-
-    // Aggregate reactions for each paste
+    const list = db.prepare(query).all();
     const enrichedList = list.map(p => {
         const reactions = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(p.id);
         const reactionCounts = { heart: 0, star: 0, like: 0 };
@@ -337,7 +335,7 @@ router.get('/public-list', (req, res) => {
     res.json(enrichedList);
 });
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, validatePaste, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
 
     // Validation
@@ -351,7 +349,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(201).json({ id, success: true });
 });
 
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, validatePaste, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
 
     // Validation

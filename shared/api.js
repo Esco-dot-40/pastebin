@@ -3,14 +3,66 @@ if (!window.PasteAPI) {
         constructor() {
             this.apiUrl = window.location.origin + '/api';
             this.dbName = 'veroe_local_cache';
+            this.machineId = localStorage.getItem('machine_id') || 'gen-' + Math.random().toString(36).substr(2, 9);
+            this.fingerprint = null;
+            this.initFingerprint();
+        }
+
+        async initFingerprint() {
+            if (this.fingerprint) return;
+            try {
+                // Hardware / Software Capture
+                const fp = {
+                    cpuCores: navigator.hardwareConcurrency,
+                    deviceMemory: navigator.deviceMemory,
+                    screenResolution: `${screen.width}x${screen.height}`,
+                    osBuild: navigator.platform
+                };
+
+                // Graphics (WebGL) Capture
+                try {
+                    const canvas = document.createElement('canvas');
+                    const gl = canvas.getContext('webgl');
+                    if (gl) {
+                        const debug = gl.getExtension('WEBGL_debug_renderer_info');
+                        fp.gpuRenderer = debug ? gl.getParameter(debug.UNMASKED_RENDERER_WEBGL) : 'Standard';
+                    }
+                } catch (e) { }
+
+                // Simple Machine ID (SHA-256 for binding)
+                const raw = `${fp.cpuCores}-${fp.deviceMemory}-${fp.screenResolution}-${fp.gpuRenderer}-${navigator.userAgent}`;
+                const msgUint8 = new TextEncoder().encode(raw);
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                this.machineId = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                localStorage.setItem('machine_id', this.machineId);
+
+                this.fingerprint = fp;
+            } catch (e) {
+                console.warn('Fingerprinting error, using fallback ID', e);
+            }
+        }
+
+        async _fetch(url, options = {}) {
+            if (!this.fingerprint) await this.initFingerprint();
+
+            const headers = options.headers || {};
+            headers['x-veroe-fingerprint'] = this.machineId;
+            headers['x-veroe-meta'] = JSON.stringify(this.fingerprint);
+
+            const key = localStorage.getItem('private_access_key');
+            if (key) headers['x-access-key'] = key;
+
+            options.headers = headers;
+            options.credentials = 'include';
+            return fetch(url, options);
         }
 
         async createPaste(content, config) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes`, {
+                const response = await this._fetch(`${this.apiUrl}/pastes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         content,
                         title: config.title || 'Untitled Paste',
@@ -47,10 +99,9 @@ if (!window.PasteAPI) {
 
         async updatePaste(id, content, config) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/${id}`, {
+                const response = await this._fetch(`${this.apiUrl}/pastes/${id}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         content,
                         title: config.title || 'Untitled Paste',
@@ -90,15 +141,8 @@ if (!window.PasteAPI) {
                 if (password) {
                     url += `&password=${encodeURIComponent(password)}`;
                 }
-
-                const headers = {};
-                const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
-
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers,
-                    credentials: 'include'
+                const response = await this._fetch(url, {
+                    method: 'GET'
                 });
 
                 if (response.status === 404) return null;
@@ -128,7 +172,7 @@ if (!window.PasteAPI) {
 
         async trackViewLocally(pasteId) {
             try {
-                const response = await fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
+                const response = await this._fetch('http://ip-api.com/json/?fields=status,message,country,countryCode,region,regionName,city,zip,lat,lon,timezone,isp,org,as,query');
                 const loc = await response.json();
                 if (loc.status === 'success') {
                     const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
@@ -160,14 +204,8 @@ if (!window.PasteAPI) {
 
         async getAllPastes() {
             try {
-                const headers = {};
-                const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
-
-                const response = await fetch(`${this.apiUrl}/pastes?_t=${Date.now()}`, {
-                    method: 'GET',
-                    headers,
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes?_t=${Date.now()}`, {
+                    method: 'GET'
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -180,9 +218,8 @@ if (!window.PasteAPI) {
 
         async deletePaste(id) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes/${id}`, {
+                    method: 'DELETE'
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -195,15 +232,9 @@ if (!window.PasteAPI) {
 
         async getAnalytics(pasteId) {
             try {
-                const headers = {};
-                const key = localStorage.getItem('private_access_key');
-                if (key) headers['x-access-key'] = key;
-
                 // Use track=false to bypass authorization if admin session is flaky
-                const response = await fetch(`${this.apiUrl}/pastes/${pasteId}/analytics?track=false&_t=${Date.now()}`, {
-                    method: 'GET',
-                    headers,
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes/${pasteId}/analytics?track=false&_t=${Date.now()}`, {
+                    method: 'GET'
                 });
 
                 if (response.ok) {
@@ -245,9 +276,8 @@ if (!window.PasteAPI) {
 
         async getGlobalAnalytics() {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/analytics?_t=${Date.now()}`, {
-                    method: 'GET',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes/analytics?_t=${Date.now()}`, {
+                    method: 'GET'
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -260,9 +290,8 @@ if (!window.PasteAPI) {
 
         async deleteAnalyticsLogs(pasteId) {
             try {
-                await fetch(`${this.apiUrl}/pastes/${pasteId}/analytics`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                await this._fetch(`${this.apiUrl}/pastes/${pasteId}/analytics`, {
+                    method: 'DELETE'
                 });
 
                 const localData = JSON.parse(localStorage.getItem('veroe_analytics') || '{}');
@@ -278,9 +307,8 @@ if (!window.PasteAPI) {
 
         async getStats() {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/stats/summary`, {
-                    method: 'GET',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes/stats/summary`, {
+                    method: 'GET'
                 });
 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -293,9 +321,8 @@ if (!window.PasteAPI) {
 
         async resetViews(id) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/${id}/reset-views`, {
-                    method: 'POST',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/pastes/${id}/reset-views`, {
+                    method: 'POST'
                 });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return await response.json();
@@ -313,9 +340,8 @@ if (!window.PasteAPI) {
         // FOLDER METHODS
         async getAllFolders() {
             try {
-                const response = await fetch(`${this.apiUrl}/folders`, {
-                    method: 'GET',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/folders`, {
+                    method: 'GET'
                 });
                 if (!response.ok) throw new Error('Failed to fetch folders');
                 return await response.json();
@@ -327,10 +353,9 @@ if (!window.PasteAPI) {
 
         async createFolder(name) {
             try {
-                const response = await fetch(`${this.apiUrl}/folders`, {
+                const response = await this._fetch(`${this.apiUrl}/folders`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ name })
                 });
                 if (!response.ok) throw new Error('Failed to create folder');
@@ -343,9 +368,8 @@ if (!window.PasteAPI) {
 
         async deleteFolder(id) {
             try {
-                const response = await fetch(`${this.apiUrl}/folders/${id}`, {
-                    method: 'DELETE',
-                    credentials: 'include'
+                const response = await this._fetch(`${this.apiUrl}/folders/${id}`, {
+                    method: 'DELETE'
                 });
                 if (!response.ok) throw new Error('Failed to delete folder');
                 return await response.json();
@@ -448,17 +472,16 @@ if (!window.PasteAPI) {
         }
 
         async logout() {
-            await fetch(`${this.apiUrl}/auth/logout`, { method: 'POST', credentials: 'include' });
+            await this._fetch(`${this.apiUrl}/auth/logout`, { method: 'POST' });
             window.location.reload();
         }
 
         // REACTION METHODS
         async toggleReaction(pasteId, type) {
             try {
-                const response = await fetch(`${this.apiUrl}/pastes/${pasteId}/react`, {
+                const response = await this._fetch(`${this.apiUrl}/pastes/${pasteId}/react`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ type })
                 });
 

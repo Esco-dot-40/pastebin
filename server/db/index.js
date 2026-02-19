@@ -193,7 +193,15 @@ const deepLocColumns = [
     { name: 'osVersion', type: 'TEXT' },
     { name: 'deviceModel', type: 'TEXT' },
     { name: 'deviceType', type: 'TEXT' },
-    { name: 'fingerprint', type: 'TEXT' }
+    { name: 'fingerprint', type: 'TEXT' },
+    { name: 'cpuCores', type: 'INTEGER' },
+    { name: 'deviceMemory', type: 'INTEGER' },
+    { name: 'screenResolution', type: 'TEXT' },
+    { name: 'gpuRenderer', type: 'TEXT' },
+    { name: 'osBuild', type: 'TEXT' },
+    { name: 'asn', type: 'TEXT' },
+    { name: 'installedFonts', type: 'TEXT' },
+    { name: 'installedPlugins', type: 'TEXT' }
 ];
 
 migrateTable('paste_views', deepLocColumns);

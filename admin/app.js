@@ -1752,68 +1752,127 @@ function updateDashboardStats(data) {
     if (geoReachEl) animateValue(geoReachEl, data.uniqueLocations || 0);
 }
 
+let currentPulseSort = { field: 'timestamp', direction: 'desc' };
+
 function updateTrafficFeed(activity) {
     const feed = document.getElementById('trafficFeed');
     if (!feed) return;
 
     if (!activity || activity.length === 0) {
-        feed.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-tertiary);">No signals detected...</div>';
+        feed.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-tertiary);">No active telemetry signals...</div>';
         return;
     }
 
-    // Header for the table-style feed
-    let html = `
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
-            <tbody style="display: block; max-height: 380px;">
-    `;
+    // Grouping Logic: Same IP + Same Path = Group
+    const groups = [];
+    const map = new Map();
 
-    html += activity.slice(0, 15).map(a => {
-        const time = new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const isPaste = a.source === 'paste';
-        const isApi = a.source === 'api';
-        const flag = getFlagEmoji(a.countryCode);
-        const isBlocked = a.isBlocked;
+    activity.forEach(a => {
+        const key = `${a.ip}-${a.path}`;
+        if (map.has(key)) {
+            const group = map.get(key);
+            group.count++;
+            group.instances.push(a);
+            // Keep most recent timestamp
+            if (new Date(a.timestamp) > new Date(group.timestamp)) {
+                group.timestamp = a.timestamp;
+            }
+        } else {
+            const group = {
+                ...a,
+                count: 1,
+                instances: [a]
+            };
+            map.set(key, group);
+            groups.push(group);
+        }
+    });
 
-        // Source Icon Selection
-        let sourceIcon = `
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                <polyline points="13 2 13 9 20 9"></polyline>
-            </svg>
-        `; // Default PAGE
+    // Handle Sorting
+    groups.sort((a, b) => {
+        let valA = a[currentPulseSort.field];
+        let valB = b[currentPulseSort.field];
 
-        if (isApi) {
-            sourceIcon = `
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <polyline points="16 18 22 12 16 6"></polyline>
-                    <polyline points="8 6 2 12 8 18"></polyline>
-                </svg>
-            `;
-        } else if (isPaste) {
-            sourceIcon = `
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="7 10 12 15 17 10"></polyline>
-                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-            `;
+        if (currentPulseSort.field === 'timestamp') {
+            valA = new Date(valA).getTime();
+            valB = new Date(valB).getTime();
         }
 
-        const sourceColor = isBlocked ? '#ff0055' : (isApi ? '#7b42ff' : (isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'));
+        if (valA < valB) return currentPulseSort.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return currentPulseSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const sortDirIcon = (field) => {
+        if (currentPulseSort.field !== field) return '';
+        return currentPulseSort.direction === 'asc' ? ' ↑' : ' ↓';
+    };
+
+    let html = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+            <thead style="position: sticky; top: 0; background: #0a0a0f; z-index: 10; border-bottom: 1px solid var(--border-color);">
+                <tr style="text-align: left; color: var(--text-tertiary);">
+                    <th style="padding: 10px 8px; cursor: pointer;" onclick="setPulseSort('path')">TARGET / IDENT${sortDirIcon('path')}</th>
+                    <th style="padding: 10px 8px; text-align: center; cursor: pointer;" onclick="setPulseSort('count')">HITS${sortDirIcon('count')}</th>
+                    <th style="padding: 10px 8px; text-align: right; cursor: pointer;" onclick="setPulseSort('timestamp')">RECENT${sortDirIcon('timestamp')}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    html += groups.slice(0, 20).map((g, idx) => {
+        const time = new Date(g.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const isPaste = g.source === 'paste';
+        const isApi = g.source === 'api';
+        const flag = getFlagEmoji(g.countryCode);
+        const sourceColor = g.isBlocked ? '#ff0055' : (isApi ? '#7b42ff' : (isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'));
 
         return `
-            <tr style="display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all;">
-                <td style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                    <div style="background: ${sourceColor}15; color: ${sourceColor}; padding: 6px; border-radius: 6px; flex-shrink: 0;">
-                        ${sourceIcon}
-                    </div>
+            <tr class="pulse-row" onclick="this.classList.toggle('expanded')">
+                <td style="padding: 10px 8px; display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 4px; height: 20px; background: ${sourceColor}; border-radius: 2px; flex-shrink: 0;"></div>
                     <div style="display: flex; flex-direction: column; min-width: 0;">
-                        <span style="color: var(--text-primary); font-weight: 500; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
-                        <span style="font-size: 0.65rem; color: var(--text-tertiary);">${flag} ${a.ip}</span>
+                        <span style="color: var(--text-primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${g.path}</span>
+                        <span style="font-size: 0.65rem; color: var(--text-tertiary);">${flag} ${g.ip}</span>
                     </div>
                 </td>
-                <td style="font-family: var(--font-mono); font-weight: 800; color: var(--primary-start); font-size: 0.75rem; white-space: nowrap; margin-left: 10px;">
+                <td style="padding: 10px 8px; text-align: center;">
+                    <span class="pulse-count" style="background: ${sourceColor}33; color: ${sourceColor}; border: 1px solid ${sourceColor}44;">${g.count}</span>
+                </td>
+                <td style="padding: 10px 8px; text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--primary-start);">
                     ${time}
+                </td>
+            </tr>
+            <tr class="pulse-details-row">
+                <td colspan="3" style="padding: 0;">
+                    <div class="pulse-details-box">
+                        <div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; color: var(--primary-start); font-weight: 700;">TRANSMISSION LOGS</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; font-family: var(--font-mono); border: 1px solid rgba(0, 245, 255, 0.1);">
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">MACHINE ID (FINGERPRINT)</div>
+                                <div style="color: var(--primary-start); font-size: 0.7rem; word-break: break-all;">${g.fingerprint || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">HARDWARE SIGNATURE</div>
+                                <div style="color: var(--text-primary); font-size: 0.7rem;">
+                                    ${g.cpuCores ? `CPU: ${g.cpuCores}C` : ''} 
+                                    ${g.deviceMemory ? `| RAM: ${g.deviceMemory}GB` : ''}
+                                    ${g.screenResolution ? `| ${g.screenResolution}` : ''}
+                                </div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">GPU / RENDERER</div>
+                                <div style="color: #ff0055; font-size: 0.7rem;">${g.gpuRenderer || 'Unknown Renderer'}</div>
+                            </div>
+                        </div>
+                        ${g.instances.slice(0, 5).map(inst => `
+                            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); opacity: 0.8;">
+                                <span style="font-family: var(--font-mono); color: var(--text-secondary);">${new Date(inst.timestamp).toLocaleTimeString()}</span>
+                                <span style="font-size: 0.65rem; color: var(--text-tertiary); font-style: italic;">${inst.userAgent.substring(0, 40)}...</span>
+                            </div>
+                        `).join('')}
+                        ${g.count > 5 ? `<div style="text-align: center; padding-top: 5px; color: var(--text-tertiary); font-size: 0.65rem;">+ ${g.count - 5} more entries in registry</div>` : ''}
+                    </div>
                 </td>
             </tr>
         `;
@@ -1822,6 +1881,19 @@ function updateTrafficFeed(activity) {
     html += `</tbody></table>`;
     feed.innerHTML = html;
 }
+
+window.setPulseSort = (field) => {
+    if (currentPulseSort.field === field) {
+        currentPulseSort.direction = currentPulseSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentPulseSort.field = field;
+        currentPulseSort.direction = 'desc';
+    }
+    // Re-render using current data
+    if (globalAnalyticsData && globalAnalyticsData.recentActivity) {
+        updateTrafficFeed(globalAnalyticsData.recentActivity);
+    }
+};
 
 function renderAnalyticsTable(logs) {
     const tbody = document.getElementById('analyticsTableBody');
@@ -1841,9 +1913,9 @@ function renderAnalyticsTable(logs) {
             <tr>
                 <td>${time}</td>
                 <td style="font-family: var(--font-mono); font-size: 0.8rem;">${log.ip}</td>
+                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start);">${log.fingerprint ? log.fingerprint.substring(0, 12) : 'N/A'}...</span></td>
                 <td>${flag} ${log.countryCode || '??'}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
-                <td><span class="badge" style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">${log.method}</span></td>
                 <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="status-dot ${log.isBlocked ? '' : 'online'}"></span> ${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</td>
             </tr>
