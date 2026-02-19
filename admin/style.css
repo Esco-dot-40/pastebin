@@ -1,11 +1,16 @@
 :root {
     --bg-dark: #050508;
     --bg-panel: rgba(20, 20, 30, 0.6);
-    --primary-neon: #00f5ff;
-    --secondary-neon: #ff0055;
+    /* High-Contrast / Neon Theme Palette */
+    --primary-start: #00f5ff;
+    --secondary-start: #ff0055;
+    --primary-neon: var(--primary-start);
+    --secondary-neon: var(--secondary-start);
+
     --text-primary: #ffffff;
     --text-secondary: #a0a0b0;
-    --border-color: rgba(255, 255, 255, 0.08);
+    --text-tertiary: #707080;
+    --border-color: rgba(255, 255, 255, 0.15);
     --glass-blur: 20px;
     --font-main: 'Inter', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;

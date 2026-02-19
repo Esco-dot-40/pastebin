@@ -80,7 +80,14 @@ export const geoMiddleware = async (req, res, next) => {
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
 
-    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isSessionAdmin || isBot) {
+    const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
+
+    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot) {
+        return next();
+    }
+
+    // Special case for Admin: Only log login/logout, skip general PAGE/API logging
+    if (isSessionAdmin && !isAuthPath) {
         return next();
     }
 

@@ -1757,33 +1757,70 @@ function updateTrafficFeed(activity) {
     if (!feed) return;
 
     if (!activity || activity.length === 0) {
-        feed.innerHTML = '<div style="padding: 10px; color: var(--text-tertiary);">No recent transmissions...</div>';
+        feed.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--text-tertiary);">No signals detected...</div>';
         return;
     }
 
-    feed.innerHTML = activity.slice(0, 10).map(a => {
+    // Header for the table-style feed
+    let html = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+            <tbody style="display: block; max-height: 380px;">
+    `;
+
+    html += activity.slice(0, 15).map(a => {
         const time = new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const isPaste = a.source === 'paste';
+        const isApi = a.source === 'api';
         const flag = getFlagEmoji(a.countryCode);
         const isBlocked = a.isBlocked;
 
+        // Source Icon Selection
+        let sourceIcon = `
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                <polyline points="13 2 13 9 20 9"></polyline>
+            </svg>
+        `; // Default PAGE
+
+        if (isApi) {
+            sourceIcon = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+            `;
+        } else if (isPaste) {
+            sourceIcon = `
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+            `;
+        }
+
+        const sourceColor = isBlocked ? '#ff0055' : (isApi ? '#7b42ff' : (isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'));
+
         return `
-            <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; animation: slideInFeed 0.3s ease-out;">
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="color: ${isPaste ? 'var(--secondary-start)' : (isBlocked ? '#ff0055' : 'var(--primary-start)')}; font-weight: 700; font-size: 0.7rem;">
-                            [${isBlocked ? 'BLOCKED' : a.source.toUpperCase()}]
-                        </span>
-                        <span style="color: var(--text-primary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
+            <tr style="display: flex; align-items: center; justify-content: space-between; padding: 10px 8px; border-bottom: 1px solid rgba(255,255,255,0.03); word-break: break-all;">
+                <td style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                    <div style="background: ${sourceColor}15; color: ${sourceColor}; padding: 6px; border-radius: 6px; flex-shrink: 0;">
+                        ${sourceIcon}
                     </div>
-                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${flag} ${a.city === 'Universal City' ? 'US Sector (CA)' : (a.city || 'Unknown')} • ${a.ip}
+                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                        <span style="color: var(--text-primary); font-weight: 500; font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
+                        <span style="font-size: 0.65rem; color: var(--text-tertiary);">${flag} ${a.ip}</span>
                     </div>
-                </div>
-                <div style="font-size: 0.7rem; color: var(--primary-start); font-weight: 700; font-family: var(--font-mono);">${time}</div>
-            </div>
+                </td>
+                <td style="font-family: var(--font-mono); font-weight: 800; color: var(--primary-start); font-size: 0.75rem; white-space: nowrap; margin-left: 10px;">
+                    ${time}
+                </td>
+            </tr>
         `;
     }).join('');
+
+    html += `</tbody></table>`;
+    feed.innerHTML = html;
 }
 
 function renderAnalyticsTable(logs) {
