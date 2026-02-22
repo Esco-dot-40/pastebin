@@ -53,13 +53,15 @@
     overflow: hidden;
     border: 1px solid var(--border-light);
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(20px);
+    backdrop-filter: blur(15px);
     box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    transform: translateZ(0);
+    will-change: transform;
 }
 
 .spotify-sidecar:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px) translateZ(0);
 }
 
 /* Profile Card Refinement (Red in markup) */
@@ -77,9 +79,10 @@
     align-items: center;
     gap: 0;
     /* REMOVED DIRECT GAP TO MANAGE PADDINGS INDIVIDUALLY */
-    backdrop-filter: blur(30px);
+    backdrop-filter: blur(18px);
+    transform: translateZ(0);
+    backface-visibility: hidden;
     overflow: hidden !important;
-    /* CLIPS AVATAR TO CARD RADIUS */
 }
 
 /* Avatar Header Polishing */
@@ -246,9 +249,12 @@
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border-light);
     text-decoration: none;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), background 0.3s, border-color 0.3s;
     text-align: center;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
 }
 
 .website-header-grid .site-card h4 {
@@ -266,10 +272,10 @@
 }
 
 .website-header-grid .site-card:hover {
-    background: var(--accent-glow);
+    background: hsla(var(--h-primary), 100%, 50%, 0.1);
     border-color: var(--accent-color);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px var(--accent-glow);
+    transform: translateY(-5px) translateZ(0);
+    box-shadow: 0 10px 20px var(--accent-glow);
 }
 
 /* Responsiveness */

@@ -228,7 +228,7 @@ const App = () => {
                             </div>
                         </div>
                     ` : filteredPastes.map((p, index) => {
-        const thumb = p.embedUrl || '/public/preview.png';
+        const thumb = p.discordThumbnail || p.embedUrl || '/public/preview.png';
         return html`
                             <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
                                 <div onClick=${() => window.navigateTo(`/v/${p.id}`)}

@@ -66,42 +66,38 @@ export const geoMiddleware = async (req, res, next) => {
         }
     }
 
-    // 3. Hierarchical Security Bypasses
+    // 3. Hierarchical Security Bypasses (Determination Phase)
     const isLocal = cleanIp === '127.0.0.1' || cleanIp === '::1';
     const bypassSecret = process.env.FIREWALL_SECRET;
     const hasSecretBypass = bypassSecret && (req.query.bypass === bypassSecret || req.headers['x-firewall-bypass'] === bypassSecret);
     const adminIpSetting = db.prepare("SELECT value FROM firewall_settings WHERE key = 'admin_ip'").get();
     const adminIps = (adminIpSetting?.value || '').split(',').map(v => v.trim()).filter(Boolean);
 
-    // Primary bypass: Whitelist IPs, Admin Session, or Localhouse
     const isAdminIp = adminIps.includes(cleanIp);
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
+    const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
 
-    if (isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isSessionAdmin || isBot) {
-        return next();
-    }
+    const shouldBypassAction = isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot || (isSessionAdmin && !isAuthPath);
 
     // 4. Geo-Blocking Logic & Deep Lookup
+    let isBlocked = 0;
     try {
         const settings = db.prepare("SELECT * FROM firewall_settings").all();
         const lockdownActive = settings.find(s => s.key === 'lockdown_active')?.value === '1';
         const europeBlockActive = settings.find(s => s.key === 'europe_block')?.value === '1';
         const usaBlockActive = settings.find(s => s.key === 'usa_block')?.value === '1';
 
-        if (lockdownActive) {
-            logAccess(cleanIp, req, { countryCode: '??' }, 1);
-            return res.redirect('/blocked');
-        }
+        if (lockdownActive) isBlocked = 1;
 
-        // Deep Lookup Phase
+        // Deep Lookup Phase (if not in cache or if refreshing)
         const needsLookup = !geoData || !geoData.city || geoData.city === 'Unknown' || geoData.city === '';
 
         if (needsLookup || req.query.refreshGeo === '1') {
             try {
-                const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,countryCode,country,regionName,city,lat,lon,isp,org,as,proxy,hosting,mobile,reverse`);
+                const response = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,message,countryCode,country,regionName,city,zip,lat,lon,isp,org,as,query,proxy,hosting,mobile,reverse`);
                 const data = await response.json();
                 if (data.status === 'success') {
                     geoData = {
@@ -112,10 +108,13 @@ export const geoMiddleware = async (req, res, next) => {
                         lat: data.lat,
                         lon: data.lon,
                         isp: data.isp,
+                        org: data.org,
+                        as: data.as,
                         proxy: data.proxy ? 1 : 0,
                         hosting: data.hosting ? 1 : 0,
                         mobile: data.mobile ? 1 : 0,
-                        reverse: data.reverse
+                        reverse: data.reverse,
+                        zip: data.zip
                     };
                 }
             } catch (e) { }
@@ -123,47 +122,57 @@ export const geoMiddleware = async (req, res, next) => {
 
         const resolvedCountry = geoData?.countryCode || countryCode;
 
-        if (resolvedCountry) {
+        if (resolvedCountry && !isBlocked) {
             const isEurope = EUROPEAN_COUNTRIES.includes(resolvedCountry);
             const isUSA = resolvedCountry === 'US';
             const isRestricted = (isEurope && europeBlockActive) || (isUSA && usaBlockActive);
             const isManuallyBlocked = db.prepare('SELECT 1 FROM blocked_countries WHERE countryCode = ?').get(resolvedCountry);
 
             if (isRestricted || isManuallyBlocked) {
-                req.isRestrictedRegion = true;
-                logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry }, 1);
-                return res.redirect('/blocked');
+                isBlocked = 1;
             }
         }
 
-        logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, 0);
+        // 5. Final Dispatch (Log -> Action)
+        logAccess(cleanIp, req, geoData || { countryCode: resolvedCountry || '??' }, isBlocked);
+
+        if (isBlocked && !shouldBypassAction) {
+            return res.redirect('/blocked');
+        }
     } catch (err) {
-        console.error('Firewall Middleware Error:', err);
+        console.error('Firewall Dispatch Error:', err);
     }
 
     next();
 };
 
 function logAccess(ip, req, geo, isBlocked) {
+    console.log(`📡 Logging Access: ${ip} -> ${req.path} [${isBlocked ? 'BLOCKED' : 'ALLOW'}]`);
     try {
+        const isAdmin = req.session?.isAdmin;
+        const user = req.session?.user || {};
+
+        // Removed the admin filter to ensure 'ACTUAL data' is captured for all hits.
+        // We still tag it so it can be distinguished in the UI.
+
         const ua = req.headers['user-agent'] || '';
         const parser = new UAParser(ua);
         const result = parser.getResult();
 
-        const user = req.session?.user || {};
-        const isAdmin = req.session?.isAdmin;
         const userId = user.id || (isAdmin ? 'admin-root' : null);
-        const username = user.username || (isAdmin ? 'Admin' : null);
+        const username = user.username || (isAdmin ? 'Root Admin' : null);
 
-        // Generate a simple fingerprint (not perfect, but hardening)
-        const fingerprint = crypto.createHash('md5')
-            .update(`${ip}-${ua}-${req.get('accept-language') || ''}`)
-            .digest('hex');
+        // Capture Advanced Fingerprinting Headers if present
+        let meta = {};
+        if (req.headers['x-veroe-meta']) {
+            try { meta = JSON.parse(req.headers['x-veroe-meta']); } catch (e) { }
+        }
+        const fingerprint = req.headers['x-veroe-fingerprint'] || crypto.createHash('md5').update(`${ip}-${ua}`).digest('hex');
 
         db.prepare(`
             INSERT INTO page_accesses 
-            (ip, path, method, country, countryCode, region, city, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer, browserName, browserVersion, osName, osVersion, deviceModel, deviceType, fingerprint)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (ip, path, method, country, countryCode, region, city, zip, lat, lon, isp, userAgent, proxy, hosting, isBlocked, hostname, userId, username, email, referrer, browserName, browserVersion, osName, osVersion, deviceModel, deviceType, fingerprint, cpuCores, deviceMemory, screenResolution, gpuRenderer, osBuild, asn, installedFonts, installedPlugins)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `).run(
             ip,
             req.path,
@@ -172,6 +181,7 @@ function logAccess(ip, req, geo, isBlocked) {
             (geo.countryCode || geo.country_code || '??').toUpperCase(),
             geo.region || geo.regionName || 'Unknown',
             geo.city || 'Unknown',
+            geo.zip || null,
             geo.lat || geo.latitude || 0,
             geo.lon || geo.longitude || 0,
             geo.isp || geo.org || 'Unknown',
@@ -190,7 +200,15 @@ function logAccess(ip, req, geo, isBlocked) {
             result.os.version || 'Unknown',
             result.device.model || 'Unknown',
             result.device.type || 'desktop',
-            fingerprint
+            fingerprint,
+            meta.cpuCores || null,
+            meta.deviceMemory || null,
+            meta.screenResolution || null,
+            meta.gpuRenderer || null,
+            meta.osBuild || null,
+            geo.as || null, // ASN mapping
+            meta.installedFonts || null,
+            meta.installedPlugins || null
         );
     } catch (e) {
         console.error('Failed to log access:', e.message);

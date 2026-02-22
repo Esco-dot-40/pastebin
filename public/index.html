@@ -1418,8 +1418,8 @@
         }
     }
     </script>
-    <!-- Liquid Title Logic -->
-    <script type="module" src="/public/liquid-title.js"></script>
+    <!-- Liquid Title Logic (Disabled) -->
+    <!-- <script type="module" src="/public/liquid-title.js"></script> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -1596,7 +1596,9 @@
 
     <!-- Background Media Controller -->
     <div id="video-background-container"
-        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; filter: brightness(0.6);">
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000;">
+        <!-- Filter moved to video manager or handled by overlay to avoid full-screen CSS filter costs -->
+        <div style="position: absolute; inset: 0; background: rgba(0,0,0,0.4); z-index: 1;"></div>
     </div>
 
     <!-- Loading Shader / Transition Overlay -->
@@ -1715,7 +1717,7 @@
                     <h4>Velarix</h4>
                     <p>Suite</p>
                 </a>
-                <a href="https://esco.veroe.fun" target="_blank" class="site-card">
+                <a href="https://me.veroe.fun" target="_blank" class="site-card">
                     <h4>Portfolio</h4>
                     <p>React3Fiber</p>
                 </a>
@@ -1727,7 +1729,7 @@
                     <h4>SpellOrFail</h4>
                     <p>Game</p>
                 </a>
-                <a href="#" target="_blank" class="site-card">
+                <a href="https://tnt.veroe.fun" target="_blank" class="site-card">
                     <h4>LDR Intimacy</h4>
                     <p>Intimacy</p>
                 </a>
@@ -1735,9 +1737,13 @@
                     <h4>Neon Tunes</h4>
                     <p>Vibes</p>
                 </a>
-                <a href="https://escosigns.veroe.fun/" target="_blank" class="site-card">
+                <a href="https://mysign.veroe.fun" target="_blank" class="site-card">
                     <h4>Mign</h4>
                     <p>Insight</p>
+                </a>
+                <a href="https://more.veroe.fun" target="_blank" class="site-card">
+                    <h4>Archive</h4>
+                    <p>Legacy</p>
                 </a>
 
             </div>
@@ -1748,7 +1754,7 @@
                 <div class="spotify-sidecar">
                     <iframe data-testid="embed-iframe" style="border-radius:12px"
                         src="https://open.spotify.com/embed/playlist/1OAg2xctWrLl1f6615J7W3?utm_source=generator&theme=0"
-                        width="65%" height="352" frameBorder="0" allowfullscreen=""
+                        width="100%" height="100%" frameBorder="0" allowfullscreen=""
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"></iframe>
                 </div>
@@ -1804,25 +1810,26 @@
         </div>
     </div>
 
-    <!-- Mouse Parallax Script -->
     <script>
+        let ticking = false;
         document.addEventListener('mousemove', (e) => {
-            const card = document.querySelector('.esco-profile-card');
-            if (!card) return;
-
-            // Only run on landing/index
-            if (window.location.pathname !== '/' && window.location.pathname !== '/index.html') return;
-
-            // Extremely subtle parallax to prevent 'instability'
-            const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
-            const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
-
-            card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    const card = document.querySelector('.esco-profile-card');
+                    if (card && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
+                        const xAxis = (window.innerWidth / 2 - e.pageX) / 100;
+                        const yAxis = (window.innerHeight / 2 - e.pageY) / 100;
+                        card.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg) translateZ(0)`;
+                    }
+                    ticking = false;
+                });
+                ticking = true;
+            }
         });
 
         document.addEventListener('mouseleave', () => {
             const card = document.querySelector('.esco-profile-card');
-            if (card) card.style.transform = `rotateY(0deg) rotateX(0deg)`;
+            if (card) card.style.transform = `rotateY(0deg) rotateX(0deg) translateZ(0)`;
         });
     </script>
     <script>
@@ -2036,11 +2043,9 @@
         window.currentEmail = '';
         window.authMethod = '';
 
-        // Machine Fingerprint (Device Binding)
-        if (!localStorage.getItem('machine_id')) {
-            localStorage.setItem('machine_id', 'mh-' + Math.random().toString(36).substr(2, 9) + '-' + Date.now().toString(36));
-        }
-        window.getFingerprint = () => localStorage.getItem('machine_id');
+        // Advanced Machine Fingerprint (Device Binding)
+        // Handled internally by PasteAPI / PasteStorage
+        window.getFingerprint = () => localStorage.getItem('machine_id') || 'unidentified';
 
         // 1. SPA Navigation & Routing
         window.navigateTo = function (path) {

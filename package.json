@@ -8,10 +8,8 @@
     "start": "node server/index.js",
     "build": "cd 3d-dashboard && npm install --include=dev && npm run build",
     "dev": "node --watch server/index.js",
-    "build": "echo 'Skipping 3D build'",
     "postinstall": "echo 'Postinstall complete'",
-    "db:migrate": "node server/db/migrate.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "db:migrate": "node server/db/migrate.js"
   },
   "keywords": [
     "pastebin",

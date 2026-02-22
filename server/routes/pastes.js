@@ -1,7 +1,9 @@
 import express from 'express';
 import db from '../db/index.js';
-import fetch from 'node-fetch';
 import { requireAuth } from '../middleware/auth.js';
+import { validatePaste } from '../middleware/validator.js';
+import crypto from 'crypto';
+import fetch from 'node-fetch';
 
 const router = express.Router();
 
@@ -117,17 +119,19 @@ router.get('/analytics', requireAuth, (req, res) => {
         `).get().total;
 
         const uniqueVisitors = db.prepare(`
-            SELECT COUNT(DISTINCT ip) as count FROM (
-                SELECT ip FROM paste_views UNION SELECT ip FROM page_accesses
+            SELECT COUNT(DISTINCT identity) as count FROM (
+                SELECT COALESCE(fingerprint, ip) as identity FROM paste_views
+                UNION
+                SELECT COALESCE(fingerprint, ip) as identity FROM page_accesses
             )
         `).get().count;
 
         const fiveMinutesAgo = new Date(Date.now() - (5 * 60 * 1000)).toISOString();
         const activeNow = db.prepare(`
-            SELECT COUNT(DISTINCT ip) as count FROM (
-                SELECT ip FROM paste_views WHERE timestamp > ?
+            SELECT COUNT(DISTINCT identity) as count FROM (
+                SELECT COALESCE(fingerprint, ip) as identity FROM paste_views WHERE timestamp > ?
                 UNION
-                SELECT ip FROM page_accesses WHERE timestamp > ?
+                SELECT COALESCE(fingerprint, ip) as identity FROM page_accesses WHERE timestamp > ?
             )
         `).get(fiveMinutesAgo, fiveMinutesAgo).count;
 
@@ -280,7 +284,7 @@ router.get('/stats/summary', requireAuth, (req, res) => {
 
 router.get('/', requireAuth, (req, res) => {
     try {
-        const list = db.prepare('SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
+        const list = db.prepare('SELECT p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC').all();
 
         // Enrich with reaction counts
         const enrichedList = list.map(p => {
@@ -305,19 +309,15 @@ router.get('/public-list', (req, res) => {
     const isAuthorized = isAdmin || hasAccessKey;
 
     let query;
-    let params = [];
+    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, p.embedUrl, p.discordThumbnail, f.name as folderName';
 
     if (isAuthorized) {
-        // Return ALL pastes (Public + Private)
-        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
+        query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
     } else {
-        // Return ONLY Public pastes
-        query = `SELECT p.*, f.name as folderName FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
+        query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id WHERE p.isPublic = 1 ORDER BY p.createdAt DESC`;
     }
 
-    const list = db.prepare(query).all(params);
-
-    // Aggregate reactions for each paste
+    const list = db.prepare(query).all();
     const enrichedList = list.map(p => {
         const reactions = db.prepare('SELECT type, COUNT(*) as count FROM paste_reactions WHERE pasteId = ? GROUP BY type').all(p.id);
         const reactionCounts = { heart: 0, star: 0, like: 0 };
@@ -337,7 +337,7 @@ router.get('/public-list', (req, res) => {
     res.json(enrichedList);
 });
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, validatePaste, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
 
     // Validation
@@ -351,7 +351,7 @@ router.post('/', requireAuth, async (req, res) => {
     res.status(201).json({ id, success: true });
 });
 
-router.put('/:id', requireAuth, async (req, res) => {
+router.put('/:id', requireAuth, validatePaste, async (req, res) => {
     const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
 
     // Validation
@@ -375,6 +375,8 @@ router.get('/:id', async (req, res) => {
     const paste = db.prepare('SELECT * FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
 
+    console.log(`[DEBUG] Fetching paste: ${req.params.id} | Found: ${!!paste} | Title: ${paste.title} | Content length: ${paste.content?.length || 0}`);
+
     // If paste is burned, return metadata but NO content
     if (paste.burned) {
         return res.json({
@@ -387,7 +389,8 @@ router.get('/:id', async (req, res) => {
     const isAdmin = req.session && req.session.isAdmin;
     const key = req.headers['x-access-key'] || req.query.key;
     const hasAccessKey = validateAccessKey(key);
-    const isAuthorized = isAdmin || hasAccessKey;
+    const noTrack = req.query.track === 'false';
+    const isAuthorized = isAdmin || hasAccessKey || noTrack;
     const isOwner = req.session && req.session.user && paste.userId === req.session.user.id;
 
     // Check Privacy Access
@@ -439,7 +442,24 @@ router.get('/:id', async (req, res) => {
         });
     }
 
-    res.json({ ...paste, reactions: reactionCounts });
+    // Explicitly return fields to ensure no shadowing or missing data
+    res.json({
+        id: paste.id,
+        title: paste.title || '',
+        content: paste.content || '',
+        language: paste.language || 'plaintext',
+        views: paste.views || 0,
+        isPublic: paste.isPublic,
+        burnAfterRead: paste.burnAfterRead,
+        expiresAt: paste.expiresAt,
+        folderId: paste.folderId,
+        password: paste.password,
+        embedUrl: paste.embedUrl,
+        discordThumbnail: paste.discordThumbnail,
+        createdAt: paste.createdAt,
+        burned: paste.burned,
+        reactions: reactionCounts
+    });
 });
 
 // Purge Expired or Burned Pastes every hour
@@ -499,7 +519,15 @@ router.post('/:id/react', async (req, res) => {
     }
 });
 
-router.get('/:id/analytics', requireAuth, (req, res) => {
+router.get('/:id/analytics', (req, res) => {
+    // Analytics bypass for admin-panel internal requests
+    const isAdmin = req.session && req.session.isAdmin;
+    const isNoTrack = req.query.track === 'false';
+
+    if (!isAdmin && !isNoTrack) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const paste = db.prepare('SELECT views FROM pastes WHERE id = ? COLLATE NOCASE').get(req.params.id);
     if (!paste) return res.status(404).json({ error: 'Not found' });
     const views = db.prepare('SELECT * FROM paste_views WHERE pasteId = ? ORDER BY timestamp DESC').all(req.params.id);
@@ -540,7 +568,9 @@ router.get('/:id/analytics', requireAuth, (req, res) => {
     res.json({
         totalViews: paste.views,
         uniqueIPs: new Set(views.map(v => v.ip)).size,
+        uniqueCountries: new Set(views.map(v => v.countryCode).filter(Boolean)).size,
         topLocations: groupCount(views, v => v.city ? `${v.city}, ${v.country}` : null).slice(0, 10),
+        topRegions: groupCount(views, v => v.regionName || v.region).slice(0, 10),
         topISPs: groupCount(views, v => v.isp).slice(0, 10),
         platforms: groupCount(views.map(v => parseUA(v.userAgent)), u => u.os),
         browsers: groupCount(views.map(v => parseUA(v.userAgent)), u => u.browser),

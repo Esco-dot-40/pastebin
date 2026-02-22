@@ -1,4 +1,5 @@
 // Admin Console Application
+console.log('🚀 Admin app.js version: 2026.02.18.01 loaded');
 const storage = new PasteStorage();
 
 // DOM Elements
@@ -11,8 +12,44 @@ const isPublic = document.getElementById('isPublic');
 const pastePassword = document.getElementById('pastePassword');
 let currentLocalPasteId = null;
 let amRoot = null;
+let mainMapRoot = null;
+let globeRoot = null;
 let polygonSeries = null;
 let globalAnalyticsData = null;
+
+// Global Function Registry (Expose early for inline handlers)
+window.loadPasteForEdit = loadPasteForEdit;
+window.deletePaste = deletePaste;
+window.showAnalytics = showAnalytics;
+window.toggleVisibility = toggleVisibility;
+window.copyPasteUrl = copyPasteUrl;
+window.viewPaste = viewPaste;
+window.deleteKey = deleteKey;
+window.loadIntelData = loadIntelData;
+window.resetViews = resetViews;
+window.updatePasteViews = updatePasteViews;
+window.updateReactionCount = updateReactionCount;
+window.injectReaction = injectReaction;
+window.deleteReaction = deleteReaction;
+window.deleteAnalyticsLogs = deleteAnalyticsLogs;
+window.deleteLogsByISP = deleteLogsByISP;
+window.deleteLogsFromCity = deleteLogsFromCity;
+window.setPasteView = setPasteView;
+window.deleteLog = deleteLog;
+window.toggleCountryBlock = toggleCountryBlock;
+window.getFlagEmoji = getFlagEmoji;
+window.loadFirewallList = loadFirewallList;
+window.updateFirewallGlobe = updateFirewallGlobe;
+window.bulkToggle = bulkToggle;
+
+// Failsafe: close all modals
+window.closeAllModals = function () {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(m => {
+        m.style.display = 'none';
+        m.classList.remove('active');
+    });
+};
 
 const bannerText = document.getElementById('bannerText');
 const updateBannerBtn = document.getElementById('updateBannerBtn');
@@ -30,6 +67,8 @@ const closeStatsBtn = document.getElementById('closeStatsBtn');
 const pasteUrl = document.getElementById('pasteUrl');
 const copyUrlBtn = document.getElementById('copyUrlBtn');
 const statsContent = document.getElementById('statsContent');
+const createModal = document.getElementById('createModal');
+const openCreateBtn = document.getElementById('openCreateBtn');
 
 // Folder Elements
 const pasteFolder = document.getElementById('pasteFolder');
@@ -56,12 +95,16 @@ const generateKeyBtn = document.getElementById('generateKeyBtn');
 const usersBtn = document.getElementById('usersBtn');
 const usersModal = document.getElementById('usersModal');
 const closeUsersBtn = document.getElementById('closeUsersBtn');
+const closeCreateBtn = document.getElementById('closeCreateBtn'); // Added
 const usersList = document.getElementById('usersList');
 
 // Embed Elements
 const embedUrl = document.getElementById('embedUrl');
 const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
 const embedInput = document.getElementById('embedInput');
+const discordThumbnail = document.getElementById('discordThumbnail');
+const uploadMediaBtn = document.getElementById('uploadMediaBtn');
+const mediaInput = document.getElementById('mediaInput');
 
 // Firewall Elements
 const firewallBtn = document.getElementById('firewallBtn');
@@ -81,6 +124,8 @@ const geoReachEl = document.getElementById('geoReach');
 const activeVisitorsEl = document.getElementById('activeVisitors');
 const pasteSearchInput = document.getElementById('pasteSearch');
 const logoutBtn = document.getElementById('logoutBtn');
+
+// Initialize (Defensive check for all UI elements)
 
 // Initialize
 window.addEventListener('DOMContentLoaded', () => {
@@ -134,60 +179,96 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Set refresh intervals
     setInterval(loadGlobalAnalytics, 30000);
+
+    // Initial View State
+    const currentMode = localStorage.getItem('pasteViewMode') || 'grid';
+    const gridBtn = document.getElementById('grid-view-btn');
+    const tableBtn = document.getElementById('list-view-btn');
+    if (gridBtn) gridBtn.classList.toggle('active', currentMode === 'grid');
+    if (tableBtn) tableBtn.classList.toggle('active', currentMode === 'table');
+
+    // Close modals on backdrop click
+    document.querySelectorAll('.modal').forEach(m => {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) window.closeAllModals();
+        });
+    });
 });
 
 // Event Listeners
 if (intelBtn) {
     intelBtn.addEventListener('click', () => {
+        if (window.closeAllModals) window.closeAllModals();
+        intelModal.style.display = 'flex';
         intelModal.classList.add('active');
         loadIntelData();
     });
 }
 if (intelModal) {
     intelModal.addEventListener('click', (e) => {
-        if (e.target === intelModal) intelModal.classList.remove('active');
+        if (e.target === intelModal) window.closeAllModals();
     });
 }
-if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => intelModal.classList.remove('active'));
+if (closeIntelBtn) closeIntelBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
+});
 
 
 // Event Listeners
 if (createPasteBtn) createPasteBtn.addEventListener('click', createPaste);
+
+if (openCreateBtn) openCreateBtn.addEventListener('click', () => {
+    clearForm();
+    if (window.closeAllModals) window.closeAllModals();
+    createModal.style.display = 'flex';
+    createModal.classList.add('active');
+});
+
 if (clearBtn) clearBtn.addEventListener('click', clearForm);
 if (refreshBtn) refreshBtn.addEventListener('click', loadPasteList);
 if (viewPublicBtn) viewPublicBtn.addEventListener('click', () => {
     window.open('/', '_blank');
 });
+
 if (accessBtn) accessBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
+    accessModal.style.display = 'flex';
     accessModal.classList.add('active');
-    generatedKey.value = ''; // Clear previous
-    loadKeys(); // Load existing keys
+    generatedKey.value = '';
+    loadKeys();
 });
 
 if (closeModalBtn) closeModalBtn.addEventListener('click', () => {
-    successModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (closeStatsBtn) closeStatsBtn.addEventListener('click', () => {
-    statsModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (closeAccessBtn) closeAccessBtn.addEventListener('click', () => {
-    accessModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
+});
+if (closeCreateBtn) closeCreateBtn.addEventListener('click', () => {
+    if (window.closeAllModals) window.closeAllModals();
 });
 
 if (usersBtn) {
     usersBtn.addEventListener('click', () => {
-        if (usersModal) usersModal.classList.add('active');
+        if (window.closeAllModals) window.closeAllModals();
+        if (usersModal) {
+            usersModal.style.display = 'flex';
+            usersModal.classList.add('active');
+        }
         loadUsers();
     });
 }
 
 if (closeUsersBtn) closeUsersBtn.addEventListener('click', () => {
-    usersModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 
 if (usersModal) {
     usersModal.addEventListener('click', (e) => {
-        if (e.target === usersModal) usersModal.classList.remove('active');
+        if (e.target === usersModal) window.closeAllModals();
     });
 }
 
@@ -195,6 +276,8 @@ if (updateBannerBtn) updateBannerBtn.addEventListener('click', updateBanner);
 
 // Navigation / Tab System
 function switchTab(tabId) {
+    if (window.closeAllModals) window.closeAllModals();
+
     // Update Sidebar
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.toggle('active', item.getAttribute('data-tab') === tabId);
@@ -210,7 +293,7 @@ function switchTab(tabId) {
     // Update Header
     const titleMap = {
         'dashboard': 'Command Center',
-        'traffic': 'Traffic Telemetry',
+        'traffic': 'Traffic Intelligence',
         'pastes': 'Payload Management'
     };
     const titleEl = document.getElementById('view-title');
@@ -225,7 +308,10 @@ window.switchTab = switchTab;
 
 // Bind Tab Clicks
 document.querySelectorAll('.nav-item[data-tab]').forEach(btn => {
-    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(btn.dataset.tab);
+    });
 });
 
 if (logoutBtn) {
@@ -263,6 +349,11 @@ if (clearAllLogsBtn) {
                 loadGlobalAnalytics();
             }
         } catch (e) { alert('Failed to clear logs'); }
+    });
+}
+if (closeLogsBtn) {
+    closeLogsBtn.addEventListener('click', () => {
+        if (window.closeAllModals) window.closeAllModals();
     });
 }
 if (trafficSearch) {
@@ -309,7 +400,7 @@ if (copyKeyBtn) copyKeyBtn.addEventListener('click', () => {
 
 if (accessModal) {
     accessModal.addEventListener('click', (e) => {
-        if (e.target === accessModal) accessModal.classList.remove('active');
+        if (e.target === accessModal) window.closeAllModals();
     });
 }
 if (copyUrlBtn) copyUrlBtn.addEventListener('click', copyUrl);
@@ -319,12 +410,12 @@ if (manageFoldersBtn) manageFoldersBtn.addEventListener('click', () => {
     folderModal.classList.add('active');
 });
 if (closeFolderBtn) closeFolderBtn.addEventListener('click', () => {
-    folderModal.classList.remove('active');
+    if (window.closeAllModals) window.closeAllModals();
 });
 if (addFolderBtn) addFolderBtn.addEventListener('click', createFolder);
 if (folderModal) {
     folderModal.addEventListener('click', (e) => {
-        if (e.target === folderModal) folderModal.classList.remove('active');
+        if (e.target === folderModal) window.closeAllModals();
     });
 }
 
@@ -336,20 +427,19 @@ if (imageInput) imageInput.addEventListener('change', handleImageUpload);
 if (uploadEmbedBtn) uploadEmbedBtn.addEventListener('click', () => embedInput.click());
 if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
 
+if (uploadMediaBtn) uploadMediaBtn.addEventListener('click', () => mediaInput.click());
+if (mediaInput) mediaInput.addEventListener('change', handleMediaUpload);
+
 // Close modals on background click
 if (successModal) {
     successModal.addEventListener('click', (e) => {
-        if (e.target === successModal) {
-            successModal.classList.remove('active');
-        }
+        if (e.target === successModal) window.closeAllModals();
     });
 }
 
 if (statsModal) {
     statsModal.addEventListener('click', (e) => {
-        if (e.target === statsModal) {
-            statsModal.classList.remove('active');
-        }
+        if (e.target === statsModal) window.closeAllModals();
     });
 }
 
@@ -359,15 +449,13 @@ const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
 
 if (closeAnalyticsBtn) {
     closeAnalyticsBtn.addEventListener('click', () => {
-        analyticsModal.classList.remove('active');
+        if (window.closeAllModals) window.closeAllModals();
     });
 }
 
 if (analyticsModal) {
     analyticsModal.addEventListener('click', (e) => {
-        if (e.target === analyticsModal) {
-            analyticsModal.classList.remove('active');
-        }
+        if (e.target === analyticsModal) window.closeAllModals();
     });
 }
 
@@ -388,7 +476,8 @@ async function createPaste() {
         expiresAt: calculateExpiration(pasteExpiration.value),
         folderId: pasteFolder.value || null,
         password: pastePassword.value ? pastePassword.value.trim() : null,
-        embedUrl: embedUrl.value ? embedUrl.value.trim() : null
+        embedUrl: embedUrl.value ? embedUrl.value.trim() : null,
+        discordThumbnail: discordThumbnail.value ? discordThumbnail.value.trim() : null
     };
 
     try {
@@ -396,12 +485,15 @@ async function createPaste() {
         if (currentLocalPasteId) {
             await storage.updatePaste(currentLocalPasteId, content, config);
             id = currentLocalPasteId;
+            // Close modal after update
+            if (createModal) createModal.classList.remove('active');
             alert('Paste updated successfully!');
         } else {
             id = await storage.createPaste(content, config);
             // Show success modal only for new pastes
             const publicUrl = `${window.location.origin}/v/${id}`;
             pasteUrl.value = publicUrl;
+            if (createModal) createModal.classList.remove('active');
             successModal.classList.add('active');
         }
 
@@ -444,6 +536,7 @@ function clearForm() {
     pasteFolder.value = '';
     if (pastePassword) pastePassword.value = '';
     if (embedUrl) embedUrl.value = '';
+    if (discordThumbnail) discordThumbnail.value = '';
     burnAfterRead.checked = false;
     isPublic.checked = true;
 
@@ -455,6 +548,12 @@ function clearForm() {
         Create Paste
     `;
     createPasteBtn.style.background = '';
+
+    // Reset Modal Title
+    if (createModal) {
+        const modalTitle = createModal.querySelector('h3');
+        if (modalTitle) modalTitle.textContent = 'Deploy New Payload';
+    }
 
     // Remove Quick Copy button if it exists
     const qc = document.getElementById('quickCopyEdit');
@@ -500,8 +599,11 @@ async function loadPasteList(searchQuery = '') {
             )
             : pastes;
 
+        const isListView = localStorage.getItem('pasteViewMode') === 'table';
+        pasteListContainer.classList.toggle('list-view', isListView);
+
         pasteListContainer.innerHTML = filteredPastes.map(paste => `
-            <div class="paste-item" onclick="viewPaste('${paste.id}')">
+            <div class="paste-item ${isListView ? 'list-style' : ''}" onclick="viewPaste('${paste.id}')">
                 <div class="paste-item-header">
                     <div class="paste-item-title">${escapeHtml(paste.title)}</div>
                     <div class="paste-item-id">${paste.id}</div>
@@ -548,20 +650,20 @@ async function loadPasteList(searchQuery = '') {
                     ${paste.burnAfterRead ? '<div class="meta-pill" style="color: #ff3366; border-color: rgba(255, 51, 102, 0.2);">🔥 Burn</div>' : ''}
                     ${!paste.isPublic ? '<div class="meta-pill" style="color: #ffd700; border-color: rgba(255, 215, 0, 0.2);">🔒 Private</div>' : ''}
                 </div>
-                <div class="paste-item-actions">
-                    <button onclick="event.stopPropagation(); copyPasteUrl('${paste.id}')" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: var(--primary-start); color: var(--primary-start); padding: 5px 10px;">
+                <div class="paste-item-actions" style="position: relative; z-index: 10;">
+                    <button onclick="event.stopPropagation(); window.copyPasteUrl('${paste.id}', event)" class="btn btn-glass btn-small" title="Copy Public URL" style="border-color: rgba(0, 245, 255, 0.3); color: var(--primary-neon); pointer-events: auto;">
                         🔗 Link
                     </button>
-                    <button onclick="toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="${paste.isPublic ? 'Make Private' : 'Make Public'}" style="padding: 5px 12px;">
-                        ${paste.isPublic ? '🔒' : '🌍'}
+                    <button onclick="event.stopPropagation(); window.toggleVisibility('${paste.id}', event)" class="btn btn-glass btn-small" title="Toggle Visibility" style="pointer-events: auto;">
+                        ${paste.isPublic === 0 ? '🔒' : '🔓'}
                     </button>
-                    <button onclick="event.stopPropagation(); showAnalytics('${paste.id}')" class="btn btn-glass btn-small" title="View Analytics" style="padding: 5px 12px;">
+                    <button onclick="event.stopPropagation(); window.showAnalytics('${paste.id}', event)" class="btn btn-glass btn-small" title="View Analytics" style="pointer-events: auto;">
                         📈
                     </button>
-                    <button onclick="event.stopPropagation(); loadPasteForEdit('${paste.id}')" class="btn btn-glass btn-small" title="Edit" style="padding: 5px 12px;">
-                        ✏️
+                    <button onclick="event.stopPropagation(); window.loadPasteForEdit('${paste.id}', event)" class="btn btn-glass btn-small" title="Edit" style="pointer-events: auto;">
+                        ✏️ Edit
                     </button>
-                    <button onclick="event.stopPropagation(); deletePaste('${paste.id}')" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; padding: 5px 12px;">
+                    <button onclick="event.stopPropagation(); window.deletePaste('${paste.id}', event)" class="btn btn-glass btn-small" title="Delete" style="color: #ff006e; border-color: rgba(255, 0, 110, 0.2); pointer-events: auto;">
                         🗑️
                     </button>
                 </div>
@@ -573,26 +675,40 @@ async function loadPasteList(searchQuery = '') {
     }
 }
 
-async function showAnalytics(pasteId) {
+async function showAnalytics(pasteId, e) {
+    if (e) e.stopPropagation();
     try {
         const analytics = await storage.getAnalytics(pasteId);
-        const pastes = await storage.getAllPastes();
-        const paste = pastes.find(p => p.id === pasteId);
-
-        if (!paste) return;
-
         const analyticsContent = document.getElementById('analyticsContent');
+        if (!analyticsContent) return;
+
+        // Try to get title from the list if available, else just use the ID
+        let pasteTitleStr = pasteId;
+        let pasteCreatedAt = null;
+        try {
+            const pastes = await storage.getAllPastes();
+            const pasteData = pastes.find(p => p.id === pasteId);
+            if (pasteData) {
+                pasteTitleStr = pasteData.title;
+                pasteCreatedAt = pasteData.createdAt;
+            }
+        } catch (e) { }
 
         // Calculate unique visitors
-        const uniqueIPs = new Set(analytics.recentViews?.map(v => v.ip) || []).size;
+        const uniqueIPsCount = analytics.uniqueIPs || new Set(analytics.recentViews?.map(v => v.ip) || []).size;
+        const totalViewsCount = analytics.totalViews || 0;
+        const uniqueCountriesCount = analytics.uniqueCountries || 0;
+        const topLocationsArr = analytics.topLocations || [];
+        const topISPsArr = analytics.topISPs || [];
+        const topRegionsArr = analytics.topRegions || [];
 
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px;">
                 <div>
-                    <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(paste.title)}</h4>
+                    <h4 style="font-size: 1.5rem; margin-bottom: 8px; color: var(--primary-start)">${escapeHtml(pasteTitleStr)}</h4>
                     <div style="display: flex; gap: 16px; font-size: 0.875rem; color: var(--text-tertiary)">
                         <span>ID: <code>${pasteId}</code></span>
-                        <span>Created: ${formatDateTime(paste.createdAt)}</span>
+                        ${pasteCreatedAt ? `<span>Created: ${formatDateTime(pasteCreatedAt)}</span>` : ''}
                     </div>
                     <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 0.8rem; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0, 245, 255, 0.2);">
                         <span style="color: var(--primary-start); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 15px;">${window.location.origin}/v/${pasteId}</span>
@@ -609,81 +725,78 @@ async function showAnalytics(pasteId) {
                 </div>
             </div>
             
-            <div class="stats-grid" style="margin-bottom: 32px">
+            <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; margin-bottom: 32px">
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.totalViews}</div>
+                    <div class="stat-value">${totalViewsCount}</div>
                     <div class="stat-label">Total Views</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.uniqueIPs}</div>
+                    <div class="stat-value">${uniqueIPsCount}</div>
                     <div class="stat-label">Unique Visitors</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${analytics.uniqueCountries || 0}</div>
+                    <div class="stat-value">${uniqueCountriesCount}</div>
                     <div class="stat-label">Countries</div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">📍 Top Cities</h4>
-                    <div class="location-list">
-                        ${(analytics.topLocations || []).map(loc => `
-                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
-                                    <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start)">${loc.count}</span>
-                                </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">📍 <span>Top Cities</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
+                        ${topLocationsArr.length > 0 ? topLocationsArr.map(loc => `
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 500">${escapeHtml(loc.name)}</span>
+                                <span class="badge" style="background: rgba(0,245,255,0.1); color: var(--primary-start); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${loc.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') : '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No location data</p>'}
                     </div>
                 </div>
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🏢 Top ISPs</h4>
-                    <div class="location-list">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">🏢 <span>Top ISPs</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topISPs || []).map(isp => `
-                            <div class="location-item" style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <span style="font-weight: 500; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="${escapeHtml(isp.name)}">${escapeHtml(isp.name)}</span>
-                                    <span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start)">${isp.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 500; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;" title="${escapeHtml(isp.name)}">${escapeHtml(isp.name)}</span>
+                                <span class="badge" style="background: rgba(255,0,110,0.1); color: var(--secondary-start); padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">${isp.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No ISP data</p>'}
                     </div>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">🗺️ Top Regions</h4>
-                    <div class="location-list">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">🗺️ <span>Top Regions</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topRegions || []).map(reg => `
-                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>${escapeHtml(reg.name)}</span>
-                                    <span style="color: var(--text-tertiary)">${reg.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                                <span>${escapeHtml(reg.name)}</span>
+                                <span style="color: var(--text-tertiary)">${reg.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No region data</p>'}
                     </div>
                 </div>
-                <div>
-                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start)">💻 Browsers</h4>
-                    <div class="location-list">
+                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 12px; border: 1px solid var(--border)">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: var(--secondary-start); display: flex; align-items: center; gap: 8px;">💻 <span>Browsers</span></h4>
+                    <div class="location-list" style="max-height: 200px; overflow-y: auto;">
                         ${(analytics.topBrowsers || []).map(br => `
-                            <div class="location-item" style="padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05)">
-                                <div style="display: flex; justify-content: space-between;">
-                                    <span>${escapeHtml(br.name)}</span>
-                                    <span style="color: var(--text-tertiary)">${br.count}</span>
-                                </div>
+                            <div class="location-item" style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between;">
+                                <span>${escapeHtml(br.name)}</span>
+                                <span style="color: var(--text-tertiary)">${br.count}</span>
                             </div>
-                        `).join('')}
+                        `).join('') || '<p style="color: var(--text-tertiary); font-style: italic; padding: 10px;">No browser data</p>'}
                     </div>
                 </div>
             </div>
             
-            <h4 style="font-size: 1.2rem; margin: 32px 0 16px 0; color: var(--primary-start); border-top: 1px solid var(--border); pt: 24px;">📋 Detailed View Log</h4>
-            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+            <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h4 style="font-size: 1.1rem; margin: 0; color: var(--primary-start)">📋 Detailed View Log</h4>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary)">Showing last 100 entries</span>
+                </div>
+            </div>
+            <div class="views-table" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border); position: relative;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05)">
@@ -752,9 +865,13 @@ async function showAnalytics(pasteId) {
                     <div class="stat-label">Likes</div>
                 </div>
             </div>
-
-            <div class="views-table" style="overflow-x: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem">
+            
+            <div style="height: 40px;"></div> <!-- Spacer -->
+            <div style="margin-top: 32px; border-top: 1px solid var(--border); padding-top: 24px;">
+                <h4 style="font-size: 1.1rem; margin-bottom: 16px; color: #ff006e;">❤️ Detailed Reaction Logs</h4>
+            </div>
+            <div class="views-table" style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid var(--border)">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05)">
                             <th style="padding: 12px; text-align: left;">User</th>
@@ -792,6 +909,8 @@ async function showAnalytics(pasteId) {
         `;
 
         analyticsContent.innerHTML = html;
+        if (window.closeAllModals) window.closeAllModals();
+        analyticsModal.style.display = 'flex';
         analyticsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing analytics:', error);
@@ -915,7 +1034,8 @@ async function deleteReaction(reactionId, pasteId) {
     }
 }
 
-async function deletePaste(id) {
+async function deletePaste(id, e) {
+    if (e) e.stopPropagation();
     if (!confirm('Are you sure you want to delete this paste?')) return;
     try {
         await storage.deletePaste(id);
@@ -931,23 +1051,54 @@ function formatDateTime(dateString) {
     return date.toLocaleString();
 }
 
-async function loadPasteForEdit(id) {
+async function loadPasteForEdit(id, e) {
+    if (e) e.stopPropagation();
     try {
         const paste = await storage.getPaste(id, false);
-        if (!paste) return;
+        console.log('[DEBUG] Received Paste for Edit:', paste);
+        if (!paste) {
+            console.error('[DEBUG] No paste returned from storage.getPaste');
+            return;
+        }
 
-        currentLocalPasteId = paste.id;
-        pasteTitle.value = paste.title || '';
-        pasteContent.value = paste.content || '';
-        pasteLanguage.value = paste.language || 'plaintext';
-        pasteFolder.value = paste.folderId || '';
-        isPublic.checked = paste.isPublic !== 0; // 0 is false
-        burnAfterRead.checked = paste.burnAfterRead !== 0;
+        currentLocalPasteId = paste.id || id;
+
+        // Debug element presence
+        console.log('[DEBUG] Elements present:', {
+            pasteTitle: !!pasteTitle,
+            pasteContent: !!pasteContent,
+            pasteLanguage: !!pasteLanguage,
+            isPublic: !!isPublic
+        });
+
+        if (pasteTitle) pasteTitle.value = paste.title || '';
+        if (pasteContent) {
+            pasteContent.value = paste.content || '';
+            console.log('[DEBUG] Set pasteContent value length:', pasteContent.value.length);
+        }
+        if (pasteLanguage) pasteLanguage.value = paste.language || 'plaintext';
+        if (pasteFolder) pasteFolder.value = paste.folderId || '';
+
+        if (isPublic) isPublic.checked = paste.isPublic !== 0; // 0 is false
+        if (burnAfterRead) burnAfterRead.checked = paste.burnAfterRead !== 0;
+
         if (pastePassword) pastePassword.value = paste.password || '';
         if (embedUrl) embedUrl.value = paste.embedUrl || '';
+        if (discordThumbnail) discordThumbnail.value = paste.discordThumbnail || '';
 
         // Reset expiration to never for editing as default, unless we want to parse logic
-        pasteExpiration.value = 'never';
+        if (pasteExpiration) pasteExpiration.value = 'never';
+
+        // Open Modal
+        if (createModal) {
+            if (window.closeAllModals) window.closeAllModals();
+            createModal.style.display = 'flex';
+            createModal.classList.add('active');
+
+            // Update title in modal
+            const modalTitle = createModal.querySelector('h3');
+            if (modalTitle) modalTitle.textContent = 'Edit Payload: ' + paste.id;
+        }
 
         createPasteBtn.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -957,20 +1108,6 @@ async function loadPasteForEdit(id) {
             Update Paste
         `;
         createPasteBtn.style.background = 'linear-gradient(135deg, #7b42ff, #00f5ff)';
-
-        // Add a temporary copy link button next to update in quick-actions
-        const quickActions = document.querySelector('.quick-actions');
-        if (quickActions && !document.getElementById('quickCopyEdit')) {
-            const btn = document.createElement('button');
-            btn.id = 'quickCopyEdit';
-            btn.className = 'btn-icon';
-            btn.title = 'Copy Link';
-            btn.style.color = '#00f5ff';
-            btn.style.borderColor = 'rgba(0, 245, 255, 0.3)';
-            btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-            btn.onclick = () => copyPasteUrl(id);
-            quickActions.appendChild(btn);
-        }
 
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1017,6 +1154,8 @@ async function showStats() {
             </div>
         `;
 
+        if (window.closeAllModals) window.closeAllModals();
+        statsModal.style.display = 'flex';
         statsModal.classList.add('active');
     } catch (error) {
         console.error('Error showing stats:', error);
@@ -1236,7 +1375,7 @@ async function handleEmbedUpload(e) {
     try {
         const res = await storage.uploadImage(file);
         if (res.success) {
-            embedUrl.value = window.location.origin + res.url;
+            discordThumbnail.value = window.location.origin + res.url;
             uploadEmbedBtn.innerHTML = '✅';
         } else {
             alert('Upload failed');
@@ -1247,6 +1386,32 @@ async function handleEmbedUpload(e) {
         setTimeout(() => {
             uploadEmbedBtn.innerHTML = originalText;
             uploadEmbedBtn.disabled = false;
+        }, 1500);
+    }
+}
+
+async function handleMediaUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const originalText = uploadMediaBtn.innerHTML;
+    uploadMediaBtn.innerHTML = '⏳';
+    uploadMediaBtn.disabled = true;
+
+    try {
+        const res = await storage.uploadImage(file);
+        if (res.success) {
+            embedUrl.value = window.location.origin + res.url;
+            uploadMediaBtn.innerHTML = '✅';
+        } else {
+            alert('Upload failed');
+        }
+    } catch (e) {
+        alert('Error: ' + e.message);
+    } finally {
+        setTimeout(() => {
+            uploadMediaBtn.innerHTML = originalText;
+            uploadMediaBtn.disabled = false;
         }, 1500);
     }
 }
@@ -1331,23 +1496,29 @@ async function deleteKey(id) {
     } catch (e) { alert('Failed to delete'); }
 }
 
+// Redundant initMainMap removed
+
 // Integrated Analytics Logic
 let globeRootVar;
 function initGlobe() {
     const container = document.getElementById('chartdiv');
     if (!container || globeRootVar) return;
 
-    // Wait for amCharts components
-    if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
-        setTimeout(initGlobe, 250);
-        return;
-    }
-
     try {
+        if (typeof am5 === 'undefined' || typeof am5map === 'undefined') {
+            setTimeout(initGlobe, 250);
+            return;
+        }
+
         const root = am5.Root.new("chartdiv");
         globeRootVar = root;
 
-        root.setThemes([am5themes_Animated.new(root)]);
+        // Safer theme loading
+        const themes = [];
+        if (typeof am5themes_Animated !== 'undefined') {
+            themes.push(am5themes_Animated.new(root));
+        }
+        root.setThemes(themes);
 
         const chart = root.container.children.push(am5map.MapChart.new(root, {
             panX: "rotateX",
@@ -1527,7 +1698,8 @@ function updateGlobeVisualization() {
     });
 }
 
-let mainMapRoot;
+
+// mainMapRoot moved to top scope if needed, but we use the window.mainMapRoot elsewhere or let it be handled in initMainMap
 function initMainMap() {
     try {
         const heatmapContainer = document.getElementById('mainHeatmap');
@@ -1549,14 +1721,15 @@ function initMainMap() {
         const chart = root.container.children.push(am5map.MapChart.new(root, {
             panX: "rotateX",
             panY: "none",
-            projection: am5map.geoMercator(),
-            homeGeoPoint: { latitude: 20, longitude: 0 },
+            projection: am5map.geoEqualEarth(),
+            homeGeoPoint: { latitude: 10, longitude: 0 },
             homeZoomLevel: 1,
             wheelable: false
         }));
 
         const series = chart.series.push(am5map.MapPolygonSeries.new(root, {
             geoJSON: am5geodata_worldLow,
+            geoJSONNames: am5geodata_lang_EN,
             calculateAggregates: true,
             valueField: "value"
         }));
@@ -1603,9 +1776,13 @@ async function loadGlobalAnalytics() {
         updateTrafficFeed(data.recentActivity || []);
         renderAnalyticsTable(data.recentActivity || []);
 
-        // Update active visitors in header
+        // Update active visitors in header and dashboard
         if (activeVisitorsEl) {
-            activeVisitorsEl.textContent = `${data.activeNow || 0} Active Visitors`;
+            activeVisitorsEl.textContent = data.activeNow || 0;
+        }
+        const activeNodesEl = document.getElementById('activeNodes');
+        if (activeNodesEl) {
+            activeNodesEl.textContent = `${data.activeNow || 0} Active Nodes`;
         }
 
         // Update Firewall Stats if on firewall page
@@ -1624,63 +1801,176 @@ function updateDashboardStats(data) {
     if (geoReachEl) animateValue(geoReachEl, data.uniqueLocations || 0);
 }
 
+let currentPulseSort = { field: 'timestamp', direction: 'desc' };
+
 function updateTrafficFeed(activity) {
     const feed = document.getElementById('trafficFeed');
     if (!feed) return;
 
     if (!activity || activity.length === 0) {
-        feed.innerHTML = '<div style="padding: 10px; color: var(--text-tertiary);">No recent transmissions...</div>';
+        feed.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--text-tertiary);">No active telemetry signals...</div>';
         return;
     }
 
-    feed.innerHTML = activity.slice(0, 10).map(a => {
-        const time = new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const isPaste = a.source === 'paste';
-        const flag = getFlagEmoji(a.countryCode);
-        const isBlocked = a.isBlocked;
+    // Grouping Logic: Same IP + Same Path = Group
+    const groups = [];
+    const map = new Map();
+
+    activity.forEach(a => {
+        const key = `${a.ip}-${a.path}`;
+        if (map.has(key)) {
+            const group = map.get(key);
+            group.count++;
+            group.instances.push(a);
+            // Keep most recent timestamp
+            if (new Date(a.timestamp) > new Date(group.timestamp)) {
+                group.timestamp = a.timestamp;
+            }
+        } else {
+            const group = {
+                ...a,
+                count: 1,
+                instances: [a]
+            };
+            map.set(key, group);
+            groups.push(group);
+        }
+    });
+
+    // Handle Sorting
+    groups.sort((a, b) => {
+        let valA = a[currentPulseSort.field];
+        let valB = b[currentPulseSort.field];
+
+        if (currentPulseSort.field === 'timestamp') {
+            valA = new Date(valA).getTime();
+            valB = new Date(valB).getTime();
+        }
+
+        if (valA < valB) return currentPulseSort.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return currentPulseSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    const sortDirIcon = (field) => {
+        if (currentPulseSort.field !== field) return '';
+        return currentPulseSort.direction === 'asc' ? ' ↑' : ' ↓';
+    };
+
+    let html = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem;">
+            <thead style="position: sticky; top: 0; background: #0a0a0f; z-index: 10; border-bottom: 1px solid var(--border-color);">
+                <tr style="text-align: left; color: var(--text-tertiary);">
+                    <th style="padding: 10px 8px; cursor: pointer;" onclick="setPulseSort('path')">TARGET / IDENT${sortDirIcon('path')}</th>
+                    <th style="padding: 10px 8px; text-align: center; cursor: pointer;" onclick="setPulseSort('count')">HITS${sortDirIcon('count')}</th>
+                    <th style="padding: 10px 8px; text-align: right; cursor: pointer;" onclick="setPulseSort('timestamp')">RECENT${sortDirIcon('timestamp')}</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    html += groups.slice(0, 20).map((g, idx) => {
+        const time = new Date(g.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const isPaste = g.source === 'paste';
+        const isApi = g.source === 'api';
+        const flag = getFlagEmoji(g.countryCode);
+        const sourceColor = g.isBlocked ? '#ff0055' : (isApi ? '#7b42ff' : (isPaste ? 'var(--secondary-start)' : 'var(--primary-start)'));
 
         return `
-            <div style="padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; animation: slideInFeed 0.3s ease-out;">
-                <div style="display: flex; flex-direction: column; overflow: hidden;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="color: ${isPaste ? 'var(--secondary-start)' : (isBlocked ? '#ff0055' : 'var(--primary-start)')}; font-weight: 700; font-size: 0.7rem;">
-                            [${isBlocked ? 'BLOCKED' : a.source.toUpperCase()}]
-                        </span>
-                        <span style="color: var(--text-primary); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${a.path}</span>
+            <tr class="pulse-row" onclick="this.classList.toggle('expanded')">
+                <td style="padding: 10px 8px; display: flex; align-items: center; gap: 8px; min-width: 0;">
+                    <div style="width: 4px; height: 20px; background: ${sourceColor}; border-radius: 2px; flex-shrink: 0;"></div>
+                    <div style="display: flex; flex-direction: column; min-width: 0;">
+                        <span style="color: var(--text-primary); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${g.path}</span>
+                        <span style="font-size: 0.65rem; color: var(--text-tertiary);">${flag} ${g.ip}</span>
                     </div>
-                    <div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px;">
-                        ${flag} ${a.city || 'Unknown'} • ${a.ip}
+                </td>
+                <td style="padding: 10px 8px; text-align: center;">
+                    <span class="pulse-count" style="background: ${sourceColor}33; color: ${sourceColor}; border: 1px solid ${sourceColor}44;">${g.count}</span>
+                </td>
+                <td style="padding: 10px 8px; text-align: right; font-family: var(--font-mono); font-weight: 800; color: var(--primary-start);">
+                    ${time}
+                </td>
+            </tr>
+            <tr class="pulse-details-row">
+                <td colspan="3" style="padding: 0;">
+                    <div class="pulse-details-box">
+                        <div style="margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px; color: var(--primary-start); font-weight: 700;">TRANSMISSION LOGS</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px; font-family: var(--font-mono); border: 1px solid rgba(0, 245, 255, 0.1);">
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">MACHINE ID (FINGERPRINT)</div>
+                                <div style="color: var(--primary-start); font-size: 0.7rem; word-break: break-all;">${g.fingerprint || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">HARDWARE SIGNATURE</div>
+                                <div style="color: var(--text-primary); font-size: 0.7rem;">
+                                    ${g.cpuCores ? `CPU: ${g.cpuCores}C` : ''} 
+                                    ${g.deviceMemory ? `| RAM: ${g.deviceMemory}GB` : ''}
+                                    ${g.screenResolution ? `| ${g.screenResolution}` : ''}
+                                </div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem;">GPU / RENDERER</div>
+                                <div style="color: #ff0055; font-size: 0.7rem;">${g.gpuRenderer || 'Unknown Renderer'}</div>
+                            </div>
+                        </div>
+                        ${g.instances.slice(0, 5).map(inst => `
+                            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); opacity: 0.8;">
+                                <span style="font-family: var(--font-mono); color: var(--text-secondary);">${new Date(inst.timestamp).toLocaleTimeString()}</span>
+                                <span style="font-size: 0.65rem; color: var(--text-tertiary); font-style: italic;">${inst.userAgent.substring(0, 40)}...</span>
+                            </div>
+                        `).join('')}
+                        ${g.count > 5 ? `<div style="text-align: center; padding-top: 5px; color: var(--text-tertiary); font-size: 0.65rem;">+ ${g.count - 5} more entries in registry</div>` : ''}
                     </div>
-                </div>
-                <div style="font-size: 0.7rem; color: var(--primary-start); font-weight: 700; font-family: var(--font-mono);">${time}</div>
-            </div>
+                </td>
+            </tr>
         `;
     }).join('');
+
+    html += `</tbody></table>`;
+    feed.innerHTML = html;
 }
+
+window.setPulseSort = (field) => {
+    if (currentPulseSort.field === field) {
+        currentPulseSort.direction = currentPulseSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentPulseSort.field = field;
+        currentPulseSort.direction = 'desc';
+    }
+    // Re-render using current data
+    if (globalAnalyticsData && globalAnalyticsData.recentActivity) {
+        updateTrafficFeed(globalAnalyticsData.recentActivity);
+    }
+};
 
 function renderAnalyticsTable(logs) {
     const tbody = document.getElementById('analyticsTableBody');
     if (!tbody) return;
 
     if (!logs || logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
         return;
     }
 
-    tbody.innerHTML = logs.slice(0, 10).map(log => {
+    tbody.innerHTML = logs.slice(0, 15).map(log => {
         const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
+        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
 
         return `
             <tr>
-                <td>${time}</td>
-                <td style="font-family: var(--font-mono); font-size: 0.8rem;">${log.ip}</td>
-                <td>${flag} ${log.countryCode || '??'}</td>
+                <td style="color: var(--text-secondary); font-size: 0.75rem;">${time}</td>
+                <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
+                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
+                <td>${flag} ${log.city || 'US Sector'}</td>
+                <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
-                <td><span class="badge" style="background: rgba(0, 245, 255, 0.1); color: var(--primary-start);">${log.method}</span></td>
-                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
-                <td><span class="status-dot ${log.isBlocked ? '' : 'online'}"></span> ${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</td>
+                <td style="font-size: 0.7rem; color: var(--text-tertiary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Internal'}</td>
+                <td>
+                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="font-size: 0.65rem;">${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</span>
+                </td>
             </tr>
         `;
     }).join('');
@@ -1726,7 +2016,7 @@ function updateMainMap(locations) {
 
     // Map to amCharts format (countryCode -> value)
     const mapData = (locations || []).map(l => ({
-        id: l.countryCode,
+        id: l.countryCode ? l.countryCode.toUpperCase() : 'US',
         value: l.count
     }));
 
@@ -1806,29 +2096,24 @@ async function loadIntelData() {
     }
 }
 
-// Global scope binding for inline onclick
-window.loadIntelData = loadIntelData;
-window.deleteKey = deleteKey;
-window.toggleVisibility = toggleVisibility;
-window.showAnalytics = showAnalytics;
-window.loadPasteForEdit = loadPasteForEdit;
-window.deletePaste = deletePaste;
-window.viewPaste = viewPaste;
-window.resetViews = resetViews;
-window.updatePasteViews = updatePasteViews;
-window.updateReactionCount = updateReactionCount;
-window.injectReaction = injectReaction;
-window.deleteReaction = deleteReaction;
-window.deleteAnalyticsLogs = deleteAnalyticsLogs;
-window.deleteLogsByISP = deleteLogsByISP;
-window.deleteLogsFromCity = deleteLogsFromCity;
+// (Redundant assignments removed, consolidated at top)
 
-window.copyPasteUrl = function (id) {
+function setPasteView(mode) {
+    localStorage.setItem('pasteViewMode', mode);
+    const gridBtn = document.getElementById('grid-view-btn');
+    const listBtn = document.getElementById('list-view-btn');
+    if (gridBtn) gridBtn.classList.toggle('active', mode === 'grid');
+    if (listBtn) listBtn.classList.toggle('active', mode === 'table');
+    loadPasteList();
+}
+
+function copyPasteUrl(id, e) {
+    if (e) e.stopPropagation();
     if (!id) return;
     const url = `${window.location.origin}/v/${id}`;
     navigator.clipboard.writeText(url).then(() => {
-        const btn = event?.currentTarget || document.activeElement;
-        if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN')) {
+        const btn = e ? e.currentTarget : (event?.currentTarget || document.activeElement);
+        if (btn && (btn.tagName === 'BUTTON' || btn.tagName === 'SPAN' || btn.classList.contains('btn'))) {
             const originalContent = btn.innerHTML;
             btn.innerHTML = '✅ Copied';
             setTimeout(() => btn.innerHTML = originalContent, 1500);
@@ -1842,7 +2127,7 @@ window.copyPasteUrl = function (id) {
         document.body.removeChild(input);
         alert('Link Copied!');
     });
-};
+}
 
 // Bind Listeners
 document.addEventListener('DOMContentLoaded', () => {
@@ -1937,12 +2222,13 @@ function renderLogs(logs, query = '') {
             (l.path && l.path.toLowerCase().includes(query.toLowerCase())) ||
             (l.userAgent && l.userAgent.toLowerCase().includes(query.toLowerCase())) ||
             (l.method && l.method.includes(query.toUpperCase())) ||
-            (l.city && l.city.toLowerCase().includes(query.toLowerCase()))
+            (l.city && l.city.toLowerCase().includes(query.toLowerCase())) ||
+            (l.fingerprint && l.fingerprint.toLowerCase().includes(query.toLowerCase()))
         )
         : logs;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
         return;
     }
 
@@ -1950,12 +2236,14 @@ function renderLogs(logs, query = '') {
         const time = new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
+        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
 
         return `
             <tr>
                 <td style="color: var(--text-secondary); font-size: 0.8rem;">${time}</td>
                 <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
-                <td>${flag} ${log.city || 'Unknown'}</td>
+                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
+                <td>${flag} ${log.city === 'Universal City' ? '<span class="location-tag vague">US Sector (CA)</span>' : (log.city || 'Unknown')}</td>
                 <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
                 <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
                 <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct'}</td>
@@ -1976,7 +2264,7 @@ async function deleteLog(id) {
     } catch (e) { alert('Failed to delete log'); }
 }
 
-window.deleteLog = deleteLog;
+// Redundant assignment removed
 
 // --- FIREWALL MANAGEMENT ---
 const ISO_COUNTRIES = [
@@ -2055,9 +2343,17 @@ async function loadFirewallList(query = '') {
         const res = await fetch('/api/firewall/status', { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
-            // New API returns 'blocklist' as an array of codes
             activeBlocks = data.blocklist || [];
             updateFirewallGlobe(activeBlocks);
+
+            // SYNC STATS: Update the sidebar counters directly from this specific firewall payload
+            const blockedCountEl = document.getElementById('fw-blocked-count');
+            const threatsCountEl = document.getElementById('fw-threats-count');
+
+            if (blockedCountEl) blockedCountEl.textContent = activeBlocks.length;
+            if (threatsCountEl && data.statistics) {
+                threatsCountEl.textContent = data.statistics.blocked_attempts || 0;
+            }
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
 
@@ -2132,10 +2428,7 @@ function updateFirewallGlobe(blockedCodes) {
     window.firewallPolygonSeries.data.setAll(heatmapData);
 }
 
-window.toggleCountryBlock = toggleCountryBlock;
-window.getFlagEmoji = getFlagEmoji;
-window.loadFirewallList = loadFirewallList;
-window.updateFirewallGlobe = updateFirewallGlobe;
+// Redundant assignments removed
 
 async function bulkToggle(countries, action) {
     try {

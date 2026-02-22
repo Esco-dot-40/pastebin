@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Firewall v25 | veroe.space</title>
+    <title>Global Firewall | veroe.space Admin</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,20 +34,16 @@
             display: flex;
             flex-direction: column;
             z-index: 10;
-            height: 100vh;
-            overflow: hidden;
         }
 
         .fw-main {
             position: relative;
             background: radial-gradient(circle at 50% 50%, #111 0%, #050505 100%);
-            height: 100vh;
         }
 
         #chartdiv {
             width: 100%;
             height: 100%;
-            min-height: 100vh;
         }
 
         .back-btn {
@@ -87,6 +83,8 @@
             border-top: 1px solid var(--border);
             margin-top: 10px;
             padding-top: 10px;
+            /* Fix for scrolling - ensure it has a height and overflow */
+            max-height: calc(100vh - 400px);
         }
 
         .fw-country-item {
@@ -105,6 +103,31 @@
 
         .fw-country-item.blocked {
             color: #ff0055;
+        }
+
+        .btn-toggle-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .btn-region {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .btn-region:hover {
+            background: rgba(0, 245, 255, 0.1);
+            border-color: var(--primary-neon);
         }
     </style>
 </head>
@@ -133,25 +156,16 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                <button id="toggleUSA" class="btn btn-glass" style="font-size: 0.7rem; padding: 10px;">Toggle
-                    USA</button>
-                <button id="toggleEurope" class="btn btn-glass" style="font-size: 0.7rem; padding: 10px;">Toggle
-                    Europe</button>
-            </div>
-
             <input type="text" id="firewallSearch" class="neon-input" placeholder="Search Country..."
-                style="margin-bottom: 20px;">
+                style="margin-bottom: 15px; width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px; border-radius: 8px;">
 
-            <div id="firewallList" class="fw-list-container" style="max-height: 40vh;">
-                <!-- Populated by JS -->
+            <div class="btn-toggle-group">
+                <button id="toggleUSA" class="btn-region">Toggle USA</button>
+                <button id="toggleEurope" class="btn-region">Toggle Europe</button>
             </div>
 
-            <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
-                <h3 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--primary-neon);">Recent Signal</h3>
-                <div id="trafficFeed" style="font-size: 0.75rem;">
-                    <!-- Reusing trafficFeed from app.js -->
-                </div>
+            <div id="firewallList" class="fw-list-container">
+                <!-- Populated by JS -->
             </div>
         </aside>
 
@@ -171,7 +185,7 @@
     </div>
 
     <script src="../shared/api.js?v=10"></script>
-    <script src="app.js?v=25"></script>
+    <script src="app.js?v=11"></script>
 </body>
 
 </html>
