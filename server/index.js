@@ -212,9 +212,58 @@ app.get('/admin', (req, res) => res.redirect('/adminperm'));
 
 // Shared Static Assets
 app.use('/shared', express.static(path.join(__dirname, '..', 'shared')));
-app.use('/uploads', express.static(process.env.RAILWAY_VOLUME_MOUNT_PATH
-    ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'uploads')
-    : path.join(__dirname, '..', 'public', 'uploads')));
+app.use('/uploads', (req, res, next) => {
+    const uploadsDir = process.env.RAILWAY_VOLUME_MOUNT_PATH
+        ? path.join(process.env.RAILWAY_VOLUME_MOUNT_PATH, 'uploads')
+        : path.join(__dirname, '..', 'public', 'uploads');
+    const filePath = path.join(uploadsDir, path.basename(req.path));
+
+    // Security: prevent directory traversal
+    if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).send('Forbidden');
+    }
+
+    fs.stat(filePath, (err, stat) => {
+        if (err || !stat.isFile()) {
+            return res.status(404).send('Not found');
+        }
+
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeTypes = {
+            '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime',
+            '.ogg': 'audio/ogg', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
+            '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png',
+            '.gif': 'image/gif', '.webp': 'image/webp', '.svg': 'image/svg+xml'
+        };
+        const contentType = mimeTypes[ext] || 'application/octet-stream';
+        const fileSize = stat.size;
+        const range = req.headers.range;
+
+        if (range) {
+            // Range request — stream partial content (required for video seeking)
+            const parts = range.replace(/bytes=/, '').split('-');
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+            const chunkSize = (end - start) + 1;
+
+            res.writeHead(206, {
+                'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': contentType,
+            });
+            fs.createReadStream(filePath, { start, end }).pipe(res);
+        } else {
+            // Full file request
+            res.writeHead(200, {
+                'Content-Length': fileSize,
+                'Content-Type': contentType,
+                'Accept-Ranges': 'bytes',
+            });
+            fs.createReadStream(filePath).pipe(res);
+        }
+    });
+});
 
 // Admin Auth Status
 app.get('/api/auth/status', (req, res) => {
@@ -389,10 +438,6 @@ app.get('/v/:id', (req, res) => {
     // 2. Default Meta Data
     let title = 'node missing';
     let description = 'Transmission not found or purged from the ephemeral repository.';
-    let imageUrl = '';
-    let videoUrl = null;
-    let videoType = 'text/html';
-    let customMeta = '';
 
     if (paste) {
         const isPrivate = paste.isPublic === 0;
@@ -405,35 +450,9 @@ app.get('/v/:id', (req, res) => {
         } else {
             title = paste.title || 'Untitled Paste';
 
-            if (paste.embedUrl) {
-                let fullEmbedUrl = paste.embedUrl;
-                if (!fullEmbedUrl.startsWith('http')) {
-                    const protocol = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
-                    const host = req.get('host');
-                    fullEmbedUrl = `${protocol}://${host}${fullEmbedUrl.startsWith('/') ? '' : '/'}${fullEmbedUrl}`;
-                }
-                if (fullEmbedUrl.match(/\.(mp4|webm|mov)$/i)) {
-                    videoUrl = fullEmbedUrl;
-                    videoType = 'video/mp4';
-                } else if (fullEmbedUrl.match(/\.gif$/i)) {
-                    // GIFs need special treatment for Discord
-                    videoUrl = fullEmbedUrl;
-                    videoType = 'video.other';
-                    imageUrl = fullEmbedUrl; // Also set as image for fallback
-                } else {
-                    imageUrl = fullEmbedUrl;
-                }
-            }
-
             if (paste.password) {
                 description = '🔒 This paste is password protected.';
             } else {
-                const iframeMatch = paste.content?.match(/<iframe.*?src=["'](.*?)["']/i);
-                if (iframeMatch && iframeMatch[1]) {
-                    videoUrl = iframeMatch[1];
-                    videoType = 'text/html';
-                }
-
                 let rawContent = paste.content || '';
                 rawContent = rawContent
                     .replace(/&lt;/gi, '<')
@@ -457,46 +476,10 @@ app.get('/v/:id', (req, res) => {
                     : 'Interactive content hosted on veroe.space';
             }
         }
-
-        // Build custom meta tags for embed image/video (INSIDE the paste guard)
-        if (paste.discordThumbnail) {
-            let fullThumbnailUrl = paste.discordThumbnail;
-            if (!fullThumbnailUrl.startsWith('http')) {
-                const protocol = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
-                const host = req.get('host');
-                fullThumbnailUrl = `${protocol}://${host}${fullThumbnailUrl.startsWith('/') ? '' : '/'}${fullThumbnailUrl}`;
-            }
-            const safeThumbnail = fullThumbnailUrl.replace(/"/g, '&quot;');
-            customMeta += `
-    <meta property="og:image" content="${safeThumbnail}">
-    <meta name="twitter:image" content="${safeThumbnail}">`;
-        } else if (imageUrl) {
-            const safeImg = imageUrl.replace(/"/g, '&quot;');
-            customMeta += `
-    <meta property="og:image" content="${safeImg}">
-    <meta name="twitter:image" content="${safeImg}">`;
-        }
-        // If neither is set, serveHtmlWithMeta will provide the site's default preview image.
-
-        if (videoUrl) {
-            const safeVid = videoUrl.replace(/"/g, '&quot;');
-            const safeVidType = videoType.replace(/"/g, '&quot;');
-
-            // For Discord/Twitter player support
-            customMeta += `
-    <meta property="og:video" content="${safeVid}">
-    <meta property="og:video:url" content="${safeVid}">
-    <meta property="og:video:secure_url" content="${safeVid}">
-    <meta property="og:video:type" content="${safeVidType}">
-    <meta property="og:video:width" content="1280">
-    <meta property="og:video:height" content="720">
-    <meta name="twitter:player" content="${safeVid}">
-    <meta name="twitter:player:width" content="1280">
-    <meta name="twitter:player:height" content="720">`;
-        }
     }
 
-    serveHtmlWithMeta(req, res, title, description, customMeta);
+    // All embeds use site default preview.png — no per-paste image/video meta
+    serveHtmlWithMeta(req, res, title, description);
 });
 
 
