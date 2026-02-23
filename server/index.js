@@ -478,6 +478,50 @@ app.get('/v/:id', (req, res) => {
         }
     }
 
+    // 3. Bot Detection — serve lightweight HTML for crawlers
+    const userAgent = req.headers['user-agent'] || '';
+    const isCrawler = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot/i.test(userAgent);
+
+    if (isCrawler) {
+        const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
+        const host = req.get('host');
+        const imageUrl = `${proto}://${host}/public/preview.png`;
+        const pageUrl = `${proto}://${host}/v/${pasteId}`;
+        const siteName = 'veroe.space';
+
+        const escape = (str) => String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+
+        const html = `<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<title>${escape(title)} | ${siteName}</title>
+<meta property="og:type" content="website">
+<meta property="og:url" content="${escape(pageUrl)}">
+<meta property="og:title" content="${escape(title)}">
+<meta property="og:description" content="${escape(description)}">
+<meta property="og:site_name" content="${siteName}">
+<meta property="og:image" content="${escape(imageUrl)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${escape(title)}">
+<meta name="twitter:description" content="${escape(description)}">
+<meta name="twitter:image" content="${escape(imageUrl)}">
+<meta name="theme-color" content="#00f5ff">
+</head>
+<body><p>${escape(title)}</p></body>
+</html>`;
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.send(html);
+    }
+
+    // 4. Normal browsers get the full SPA
     // All embeds use site default preview.png — no per-paste image/video meta
     serveHtmlWithMeta(req, res, title, description);
 });
