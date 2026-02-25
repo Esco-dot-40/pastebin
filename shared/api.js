@@ -93,9 +93,7 @@ if (!window.PasteAPI) {
                         isPublic: config.isPublic !== false,
                         burnAfterRead: config.burnAfterRead || false,
                         folderId: config.folderId || null,
-                        password: config.password || null,
-                        embedUrl: config.embedUrl || null,
-                        discordThumbnail: config.discordThumbnail || null
+                        password: config.password || null
                     })
                 });
 
@@ -133,9 +131,7 @@ if (!window.PasteAPI) {
                         isPublic: config.isPublic !== false,
                         burnAfterRead: config.burnAfterRead || false,
                         folderId: config.folderId || null,
-                        password: config.password || null,
-                        embedUrl: config.embedUrl || null,
-                        discordThumbnail: config.discordThumbnail || null
+                        password: config.password || null
                     })
                 });
 

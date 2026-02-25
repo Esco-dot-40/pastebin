@@ -77,7 +77,7 @@ export const geoMiddleware = async (req, res, next) => {
     const isAdminHeader = req.headers['x-admin-auth'] === 'premium-admin';
     const isSessionAdmin = req.session && req.session.isAdmin;
     const userAgent = req.headers['user-agent'] || '';
-    const isBot = /Discordbot|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
+    const isBot = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
     const isAuthPath = req.path.includes('/login') || req.path.includes('/logout');
 
     const shouldBypassAction = isLocal || hasSecretBypass || isAdminIp || isAdminHeader || isBot || (isSessionAdmin && !isAuthPath);

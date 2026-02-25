@@ -2455,7 +2455,14 @@
             try {
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
-                if (!firebaseConfig.apiKey) return;
+
+                if (!firebaseConfig.apiKey) {
+                    console.warn("Firebase config missing. Google Auth will be disabled.");
+                    window.loginWithGoogle = () => {
+                        window.showToast("Google Auth is not configured on this node.", "error");
+                    };
+                    return;
+                }
 
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
@@ -2463,6 +2470,9 @@
                 window.firebaseReady = true;
 
                 window.loginWithGoogle = async () => {
+                    const ls = document.getElementById('loadingState');
+                    if (ls) ls.style.display = 'flex';
+
                     try {
                         const result = await signInWithPopup(auth, provider);
                         const user = result.user;
@@ -2478,10 +2488,15 @@
                         }
                     } catch (error) {
                         console.error("Google login failed", error);
-                        alert("Login Failed: " + (error.message || "Unknown Error"));
+                        if (window.showToast) window.showToast("Login Failed: " + (error.message || "Unknown Error"), "error");
+                    } finally {
+                        if (ls) ls.style.display = 'none';
                     }
                 };
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Firebase init failed:", e);
+                window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
+            }
         }
 
         initFirebase();

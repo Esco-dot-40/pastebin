@@ -309,7 +309,7 @@ router.get('/public-list', (req, res) => {
     const isAuthorized = isAdmin || hasAccessKey;
 
     let query;
-    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, p.embedUrl, p.discordThumbnail, f.name as folderName';
+    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, f.name as folderName';
 
     if (isAuthorized) {
         query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
@@ -338,7 +338,7 @@ router.get('/public-list', (req, res) => {
 });
 
 router.post('/', requireAuth, validatePaste, async (req, res) => {
-    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
+    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password } = req.body;
 
     // Validation
     if (!content) return res.status(400).json({ error: 'Content is strictly required for synchronization.' });
@@ -347,18 +347,18 @@ router.post('/', requireAuth, validatePaste, async (req, res) => {
 
     const id = generateId();
     const userId = req.session?.user?.id || (req.session?.isAdmin ? 'admin' : null);
-    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, embedUrl || null, discordThumbnail || null, userId);
+    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, userId);
     res.status(201).json({ id, success: true });
 });
 
 router.put('/:id', requireAuth, validatePaste, async (req, res) => {
-    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, embedUrl, discordThumbnail } = req.body;
+    const { title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password } = req.body;
 
     // Validation
     if (content && content.length > 20000000) return res.status(400).json({ error: 'Transmission overflow: Content exceeds 20MB limit.' });
     if (title && title.length > 100) return res.status(400).json({ error: 'Title overhead: Maximum 100 characters allowed.' });
 
-    db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=?, embedUrl=?, discordThumbnail=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, embedUrl, discordThumbnail, req.params.id);
+    db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, req.params.id);
     res.json({ success: true });
 });
 
@@ -454,8 +454,6 @@ router.get('/:id', async (req, res) => {
         expiresAt: paste.expiresAt,
         folderId: paste.folderId,
         password: paste.password,
-        embedUrl: paste.embedUrl,
-        discordThumbnail: paste.discordThumbnail,
         createdAt: paste.createdAt,
         burned: paste.burned,
         reactions: reactionCounts

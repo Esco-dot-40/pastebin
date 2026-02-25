@@ -359,28 +359,7 @@
                         <option value="">No Folder</option>
                     </select>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="display: grid; gap: 5px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 0.82rem; color: var(--text-secondary);">Direct Media / Player
-                                URL</label>
-                            <button id="uploadMediaBtn" class="btn btn-glass btn-small"
-                                style="font-size: 0.65rem; height: 24px; padding: 0 8px;">🎞️ Upload Media</button>
-                        </div>
-                        <input type="text" id="embedUrl" placeholder="Direct MP4 / GIF / IMG Link..."
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px;">
-                    </div>
-                    <div style="display: grid; gap: 5px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <label style="font-size: 0.82rem; color: var(--text-secondary);">Embed Thumbnail
-                                (Discord)</label>
-                            <button id="uploadEmbedBtn" class="btn btn-glass btn-small"
-                                style="font-size: 0.65rem; height: 24px; padding: 0 8px;">📸 Upload Thumbnail</button>
-                        </div>
-                        <input type="text" id="discordThumbnail" placeholder="Static Preview IMG / GIF..."
-                            style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 8px;">
-                    </div>
-                </div>
+
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                     <button id="clearBtn" class="btn btn-glass">Reset</button>
@@ -468,8 +447,6 @@
     <div style="display: none;">
         <input id="newFolderName">
         <input type="file" id="imageInput">
-        <input type="file" id="embedInput">
-        <input type="file" id="mediaInput">
         <button id="manageFoldersBtn"></button>
         <button id="addFolderBtn"></button>
         <button id="closeFolderBtn"></button>

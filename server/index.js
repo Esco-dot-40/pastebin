@@ -101,21 +101,6 @@ export const logEvent = async (req, path, method = 'LOG') => {
 
 // Utility to serve HTML with injected meta tags
 const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templateType = 'public') => {
-    let indexPath;
-    if (templateType === 'hub') {
-        indexPath = path.join(hubDistPath, 'index.html');
-    } else {
-        indexPath = path.join(__dirname, '..', 'public', 'index.html');
-    }
-
-    let html = '';
-    try {
-        html = fs.readFileSync(indexPath, 'utf-8');
-    } catch (err) {
-        console.error(`Error reading index.html (${templateType}):`, err);
-        return res.status(500).send('Error loading frontend.');
-    }
-
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
     const host = req.get('host');
@@ -136,14 +121,80 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
     const safeUrl = escape(fullUrl);
 
     const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
-    const imageMeta = hasCustomImage ? '' : `
-    <meta property="og:image" content="${escape(defaultImageUrl)}">
-    <meta name="twitter:image" content="${escape(defaultImageUrl)}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">`;
+    const imageUrl = hasCustomImage ? '' : escape(defaultImageUrl);
 
     const isVideo = customMeta.includes('og:video');
     const twitterCard = isVideo ? 'player' : 'summary_large_image';
+
+    // Bot Detection — serve lightweight HTML for crawlers (Discord, Twitter, etc.)
+    const userAgent = req.headers['user-agent'] || '';
+    const isCrawler = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|LinkedInBot|Pinterest|WhatsApp/i.test(userAgent);
+
+    if (isCrawler) {
+        const imageMeta = imageUrl ? `
+    <meta property="og:image" content="${imageUrl}">
+    <meta property="og:image:secure_url" content="${imageUrl}">
+    <meta name="twitter:image" content="${imageUrl}">
+    <meta name="twitter:image:src" content="${imageUrl}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <link rel="image_src" href="${imageUrl}">` : '';
+
+        const crawlerHtml = `<!DOCTYPE html>
+<html prefix="og: http://ogp.me/ns#">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${safeTitle} | ${siteName}</title>
+<meta name="title" content="${safeTitle} | ${siteName}">
+<meta name="description" content="${safeDesc}">
+<meta property="og:type" content="${isVideo ? 'video.other' : 'website'}">
+<meta property="og:url" content="${safeUrl}">
+<meta property="og:title" content="${safeTitle}">
+<meta property="og:description" content="${safeDesc}">
+<meta property="og:site_name" content="${siteName}">${imageMeta}
+<meta name="twitter:card" content="${twitterCard}">
+<meta name="twitter:title" content="${safeTitle}">
+<meta name="twitter:description" content="${safeDesc}">
+<meta name="twitter:site" content="@veroe">
+<meta name="theme-color" content="${themeColor}">
+${customMeta}
+</head>
+<body style="background: #000; color: #fff;">
+  <div style="padding: 50px; text-align: center; font-family: sans-serif;">
+    <h1 style="color: ${themeColor}">${safeTitle}</h1>
+    <p style="color: #666;">${safeDesc}</p>
+    <a href="${safeUrl}" style="color: ${themeColor}">Connect to Station</a>
+  </div>
+</body>
+</html>`;
+
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for bots
+        return res.send(crawlerHtml);
+    }
+
+    // Normal browsers get the full SPA
+    let indexPath;
+    if (templateType === 'hub') {
+        indexPath = path.join(hubDistPath, 'index.html');
+    } else {
+        indexPath = path.join(__dirname, '..', 'public', 'index.html');
+    }
+
+    let html = '';
+    try {
+        html = fs.readFileSync(indexPath, 'utf-8');
+    } catch (err) {
+        console.error(`Error reading index.html (${templateType}):`, err);
+        return res.status(500).send('Error loading frontend.');
+    }
+
+    const imageMeta = imageUrl ? `
+    <meta property="og:image" content="${imageUrl}">
+    <meta name="twitter:image" content="${imageUrl}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">` : '';
 
     let legalScript = '';
     if (req.isRestrictedRegion) {
@@ -268,6 +319,10 @@ app.use('/uploads', (req, res, next) => {
 // Admin Auth Status
 app.get('/api/auth/status', (req, res) => {
     res.json({ isAuthenticated: !!(req.session && req.session.isAdmin) });
+});
+
+app.get('/robots.txt', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'robots.txt'));
 });
 
 app.get('/favicon.ico', (req, res) => {
@@ -430,7 +485,7 @@ app.get('/v/:id', (req, res) => {
     // 1. Fetch Paste Metadata
     let paste = null;
     try {
-        paste = db.prepare('SELECT title, content, isPublic, password, embedUrl, discordThumbnail FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
+        paste = db.prepare('SELECT title, content, isPublic, password FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
     } catch (e) {
         console.error('DB Error fetching paste for embed:', e);
     }

@@ -98,13 +98,7 @@ const closeUsersBtn = document.getElementById('closeUsersBtn');
 const closeCreateBtn = document.getElementById('closeCreateBtn'); // Added
 const usersList = document.getElementById('usersList');
 
-// Embed Elements
-const embedUrl = document.getElementById('embedUrl');
-const uploadEmbedBtn = document.getElementById('uploadEmbedBtn');
-const embedInput = document.getElementById('embedInput');
-const discordThumbnail = document.getElementById('discordThumbnail');
-const uploadMediaBtn = document.getElementById('uploadMediaBtn');
-const mediaInput = document.getElementById('mediaInput');
+
 
 // Firewall Elements
 const firewallBtn = document.getElementById('firewallBtn');
@@ -423,12 +417,7 @@ if (folderModal) {
 if (uploadImageBtn) uploadImageBtn.addEventListener('click', () => imageInput.click());
 if (imageInput) imageInput.addEventListener('change', handleImageUpload);
 
-// Embed Upload Events
-if (uploadEmbedBtn) uploadEmbedBtn.addEventListener('click', () => embedInput.click());
-if (embedInput) embedInput.addEventListener('change', handleEmbedUpload);
 
-if (uploadMediaBtn) uploadMediaBtn.addEventListener('click', () => mediaInput.click());
-if (mediaInput) mediaInput.addEventListener('change', handleMediaUpload);
 
 // Close modals on background click
 if (successModal) {
@@ -475,9 +464,7 @@ async function createPaste() {
         burnAfterRead: burnAfterRead.checked,
         expiresAt: calculateExpiration(pasteExpiration.value),
         folderId: pasteFolder.value || null,
-        password: pastePassword.value ? pastePassword.value.trim() : null,
-        embedUrl: embedUrl.value ? embedUrl.value.trim() : null,
-        discordThumbnail: discordThumbnail.value ? discordThumbnail.value.trim() : null
+        password: pastePassword.value ? pastePassword.value.trim() : null
     };
 
     try {
@@ -535,8 +522,7 @@ function clearForm() {
     pasteExpiration.value = 'never';
     pasteFolder.value = '';
     if (pastePassword) pastePassword.value = '';
-    if (embedUrl) embedUrl.value = '';
-    if (discordThumbnail) discordThumbnail.value = '';
+
     burnAfterRead.checked = false;
     isPublic.checked = true;
 
@@ -1083,8 +1069,7 @@ async function loadPasteForEdit(id, e) {
         if (burnAfterRead) burnAfterRead.checked = paste.burnAfterRead !== 0;
 
         if (pastePassword) pastePassword.value = paste.password || '';
-        if (embedUrl) embedUrl.value = paste.embedUrl || '';
-        if (discordThumbnail) discordThumbnail.value = paste.discordThumbnail || '';
+
 
         // Reset expiration to never for editing as default, unless we want to parse logic
         if (pasteExpiration) pasteExpiration.value = 'never';
@@ -1364,57 +1349,7 @@ async function handleImageUpload(e) {
     }
 }
 
-async function handleEmbedUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    const originalText = uploadEmbedBtn.innerHTML;
-    uploadEmbedBtn.innerHTML = '⏳';
-    uploadEmbedBtn.disabled = true;
-
-    try {
-        const res = await storage.uploadImage(file);
-        if (res.success) {
-            discordThumbnail.value = window.location.origin + res.url;
-            uploadEmbedBtn.innerHTML = '✅';
-        } else {
-            alert('Upload failed');
-        }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    } finally {
-        setTimeout(() => {
-            uploadEmbedBtn.innerHTML = originalText;
-            uploadEmbedBtn.disabled = false;
-        }, 1500);
-    }
-}
-
-async function handleMediaUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const originalText = uploadMediaBtn.innerHTML;
-    uploadMediaBtn.innerHTML = '⏳';
-    uploadMediaBtn.disabled = true;
-
-    try {
-        const res = await storage.uploadImage(file);
-        if (res.success) {
-            embedUrl.value = window.location.origin + res.url;
-            uploadMediaBtn.innerHTML = '✅';
-        } else {
-            alert('Upload failed');
-        }
-    } catch (e) {
-        alert('Error: ' + e.message);
-    } finally {
-        setTimeout(() => {
-            uploadMediaBtn.innerHTML = originalText;
-            uploadMediaBtn.disabled = false;
-        }, 1500);
-    }
-}
 
 
 
