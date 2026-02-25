@@ -4,9 +4,12 @@
   "description": "Modern pastebin with geolocation tracking and dual interfaces",
   "main": "server/index.js",
   "type": "module",
+  "workspaces": [
+    "3d-dashboard"
+  ],
   "scripts": {
     "start": "node server/index.js",
-    "build": "cd 3d-dashboard && npm install --include=dev && npm run build",
+    "build": "npm run build --workspace=3d-dashboard",
     "dev": "node --watch server/index.js",
     "postinstall": "echo 'Postinstall complete'",
     "db:migrate": "node server/db/migrate.js"
