@@ -126,7 +126,8 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
     if (!hasCustomImage) {
         let rawImage = req.pasteThumbnail || defaultImageUrl;
         // Convert relative to absolute
-        if (rawImage.startsWith('/')) {
+        if (rawImage && !rawImage.startsWith('http')) {
+            if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
             rawImage = `${proto}://${host}${rawImage}`;
         }
         imageUrl = escape(rawImage);
@@ -550,7 +551,8 @@ app.get('/v/:id', (req, res) => {
         const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
         const host = req.get('host');
         let rawImage = (paste && paste.discordThumbnail) ? paste.discordThumbnail : `/public/preview.png`;
-        if (rawImage.startsWith('/')) {
+        if (rawImage && !rawImage.startsWith('http')) {
+            if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
             rawImage = `${proto}://${host}${rawImage}`;
         }
         const imageUrl = rawImage;

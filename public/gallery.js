@@ -229,7 +229,10 @@ const App = () => {
                             </div>
                         </div>
                     ` : filteredPastes.map((p, index) => {
-        const thumb = p.discordThumbnail || '/public/preview.png';
+        let thumb = p.discordThumbnail || '/public/preview.png';
+        if (thumb && !thumb.startsWith('/') && !thumb.startsWith('http')) {
+            thumb = '/' + thumb;
+        }
         return html`
                             <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
                                 <${ElectricBorder} 
