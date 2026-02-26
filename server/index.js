@@ -120,12 +120,16 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
     const safeDesc = escape(description);
     const safeUrl = escape(fullUrl);
 
-    // Image logic: if customMeta provides an image, we leave it to customMeta.
-    // Otherwise we use req.pasteThumbnail (from DB) or default.
+    // Image logic: ensure absolute URL for crawlers
     const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
     let imageUrl = '';
     if (!hasCustomImage) {
-        imageUrl = escape(req.pasteThumbnail || defaultImageUrl);
+        let rawImage = req.pasteThumbnail || defaultImageUrl;
+        // Convert relative to absolute
+        if (rawImage.startsWith('/')) {
+            rawImage = `${proto}://${host}${rawImage}`;
+        }
+        imageUrl = escape(rawImage);
     }
 
     const isVideo = customMeta.includes('og:video');
@@ -545,7 +549,11 @@ app.get('/v/:id', (req, res) => {
     if (isCrawler) {
         const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
         const host = req.get('host');
-        const imageUrl = paste && paste.discordThumbnail ? paste.discordThumbnail : `${proto}://${host}/public/preview.png`;
+        let rawImage = (paste && paste.discordThumbnail) ? paste.discordThumbnail : `/public/preview.png`;
+        if (rawImage.startsWith('/')) {
+            rawImage = `${proto}://${host}${rawImage}`;
+        }
+        const imageUrl = rawImage;
         const pageUrl = `${proto}://${host}/v/${pasteId}`;
         const siteName = 'veroe.space';
 

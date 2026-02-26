@@ -309,7 +309,7 @@ router.get('/public-list', (req, res) => {
     const isAuthorized = isAdmin || hasAccessKey;
 
     let query;
-    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, f.name as folderName';
+    const fields = 'p.id, p.title, p.language, p.views, p.isPublic, p.burnAfterRead, p.expiresAt, p.folderId, p.createdAt, length(p.content) as size, p.password, p.discordThumbnail, f.name as folderName';
 
     if (isAuthorized) {
         query = `SELECT ${fields} FROM pastes p LEFT JOIN folders f ON p.folderId = f.id ORDER BY p.createdAt DESC`;
