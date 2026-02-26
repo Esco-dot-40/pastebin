@@ -120,8 +120,13 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
     const safeDesc = escape(description);
     const safeUrl = escape(fullUrl);
 
+    // Image logic: if customMeta provides an image, we leave it to customMeta.
+    // Otherwise we use req.pasteThumbnail (from DB) or default.
     const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
-    const imageUrl = hasCustomImage ? '' : escape(defaultImageUrl);
+    let imageUrl = '';
+    if (!hasCustomImage) {
+        imageUrl = escape(req.pasteThumbnail || defaultImageUrl);
+    }
 
     const isVideo = customMeta.includes('og:video');
     const twitterCard = isVideo ? 'player' : 'summary_large_image';
@@ -485,7 +490,7 @@ app.get('/v/:id', (req, res) => {
     // 1. Fetch Paste Metadata
     let paste = null;
     try {
-        paste = db.prepare('SELECT title, content, isPublic, password FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
+        paste = db.prepare('SELECT title, content, isPublic, password, discordThumbnail FROM pastes WHERE id = ? COLLATE NOCASE').get(pasteId);
     } catch (e) {
         console.error('DB Error fetching paste for embed:', e);
     }
@@ -540,7 +545,7 @@ app.get('/v/:id', (req, res) => {
     if (isCrawler) {
         const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
         const host = req.get('host');
-        const imageUrl = `${proto}://${host}/public/preview.png`;
+        const imageUrl = paste && paste.discordThumbnail ? paste.discordThumbnail : `${proto}://${host}/public/preview.png`;
         const pageUrl = `${proto}://${host}/v/${pasteId}`;
         const siteName = 'veroe.space';
 
@@ -577,7 +582,9 @@ app.get('/v/:id', (req, res) => {
     }
 
     // 4. Normal browsers get the full SPA
-    // All embeds use site default preview.png — no per-paste image/video meta
+    if (paste && paste.discordThumbnail) {
+        req.pasteThumbnail = paste.discordThumbnail;
+    }
     serveHtmlWithMeta(req, res, title, description);
 });
 

@@ -9,9 +9,7 @@
 
 .eb-canvas-container {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: -30px;
     pointer-events: none;
     z-index: 2;
 }
