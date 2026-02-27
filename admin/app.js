@@ -2137,11 +2137,17 @@ async function updateBanner() {
 
 async function loadLogs(query = '') {
     try {
-        const res = await fetch(`/api/analytics/logs?_t=${Date.now()}`, { credentials: 'include' });
+        // Fetch more logs to ensure we cover the 7-day period (limit 500)
+        const res = await fetch(`/api/analytics/logs?limit=500&_t=${Date.now()}`, { credentials: 'include' });
         const data = await res.json();
         if (data.logs) {
-            renderLogs(data.logs, query);
-            renderTrafficSummary(data.logs);
+            // Filter strictly for last 7 days
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const filteredLogs = data.logs.filter(l => new Date(l.timestamp) >= sevenDaysAgo);
+
+            renderLogs(filteredLogs, query);
+            renderTrafficSummary(filteredLogs);
         }
     } catch (e) {
         console.error('Failed to load logs', e);
@@ -2203,18 +2209,50 @@ function renderLogs(logs, query = '') {
         : logs;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR SELECTED PERIOD</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map(log => {
-        const time = new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    let currentMonth = '';
+    let currentWeek = -1;
+    let currentDay = '';
+    let html = '';
+
+    filtered.forEach(log => {
+        const date = new Date(log.timestamp);
+        const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+        const weekNum = getWeekNumber(date);
+        const dayName = date.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+
+        // 1. Month Hierarchy
+        if (monthName !== currentMonth) {
+            currentMonth = monthName;
+            html += `<tr class="group-header month-header"><td colspan="7">🗓️ ${monthName}</td></tr>`;
+            currentWeek = -1; // Reset week/day trackers when month changes
+            currentDay = '';
+        }
+
+        // 2. Week Hierarchy
+        if (weekNum !== currentWeek) {
+            currentWeek = weekNum;
+            html += `<tr class="group-header week-header"><td colspan="7">📊 WEEK ${weekNum}</td></tr>`;
+            currentDay = '';
+        }
+
+        // 3. Day Hierarchy
+        if (dayName !== currentDay) {
+            currentDay = dayName;
+            const isToday = new Date().toDateString() === date.toDateString();
+            html += `<tr class="group-header day-header"><td colspan="7">${isToday ? '🎯 TODAY - ' : ''}${dayName}</td></tr>`;
+        }
+
+        const time = date.toLocaleString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
         const fp = log.fingerprint ? log.fingerprint.substring(0, 8).toUpperCase() : 'ANON';
         const isSuspicious = log.proxy === 1 || log.hosting === 1;
 
-        return `
+        html += `
             <tr class="pulse-row" onclick="this.classList.toggle('expanded')">
                 <td style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">${time}</td>
                 <td>
@@ -2267,7 +2305,9 @@ function renderLogs(logs, query = '') {
                 </td>
             </tr>
         `;
-    }).join('');
+    });
+
+    tbody.innerHTML = html;
 }
 
 async function deleteLog(id) {
@@ -2460,5 +2500,14 @@ async function bulkToggle(countries, action) {
         console.error('Bulk toggle failed', e);
         alert('Bulk operation failed: ' + e.message);
     }
+}
+
+// Helpers
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNo;
 }
 
