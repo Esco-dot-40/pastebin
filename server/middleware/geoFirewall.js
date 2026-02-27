@@ -147,13 +147,14 @@ export const geoMiddleware = async (req, res, next) => {
 };
 
 function logAccess(ip, req, geo, isBlocked) {
-    // 0. Filter Out Admin/Noise
+    // 0. Filter Out Admin/Noise (Unless Blocked)
     const path = req.path || '';
     const isAdmin = req.session?.isAdmin;
-    const isAuthPath = path.includes('/login') || path.includes('/logout') || path.includes('/adminperm');
+    const isAuthPath = path.includes('/login') || path.includes('/logout') || (path.startsWith('/adminperm') && path.endsWith('.html'));
 
-    // We disregard admin's own actions and login/logout noise
-    if (isAdmin || isAuthPath) return;
+    // We disregarding admin's own actions and generic login/logout noise IF NOT BLOCKED.
+    // However, if the request IS BLOCKED, we MUST log it regardless of path.
+    if (!isBlocked && (isAdmin || isAuthPath)) return;
 
     console.log(`📡 Logging Access: ${ip} -> ${path} [${isBlocked ? 'BLOCKED' : 'ALLOW'}]`);
     try {
