@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "https://esm.sh/react@19";
 import { createRoot } from "https://esm.sh/react-dom@19/client";
 import { motion } from "https://esm.sh/framer-motion";
 import htm from "https://esm.sh/htm";
+import ElectricBorder from "./ElectricBorder.js";
 
 const html = htm.bind(React.createElement);
 
@@ -228,14 +229,22 @@ const App = () => {
                             </div>
                         </div>
                     ` : filteredPastes.map((p, index) => {
-        const thumb = '/public/preview.png';
+        let thumb = p.discordThumbnail || '/public/preview.png';
+        if (thumb && !thumb.startsWith('/') && !thumb.startsWith('http')) {
+            thumb = '/' + thumb;
+        }
         return html`
                             <div key=${p.id} style=${{ height: HEIGHT }} class="shrink-0 w-full flex justify-center py-12 transform-gpu">
-                                <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
-                                     class=${`h-full aspect-[16/9] md:aspect-[3.5] rounded-[4rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
-                                            ${activeIndex !== index ? 'scale-75 opacity-10 blur-[20px]' : 'scale-100 opacity-100 shadow-[0_100px_250px_rgba(0,0,0,1)] ring-1 ring-white/20'}
-                                            ${activeIndex > index ? '[transform:rotateX(45deg)_translateY(-80px)_scale(0.85)]' : ''}
-                                            ${activeIndex < index ? '[transform:rotateX(-45deg)_translateY(80px)_scale(0.85)]' : ''}`}>
+                                <${ElectricBorder} 
+                                    borderRadius=${64} 
+                                    color=${p.isPublic === 0 ? '#ff006e' : '#00f5ff'}
+                                    className=${`h-full aspect-[16/9] md:aspect-[3.5] transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] ${activeIndex !== index ? 'scale-75 opacity-10 blur-[20px]' : 'scale-100 opacity-100'}`}
+                                >
+                                    <div onClick=${() => window.navigateTo(`/v/${p.id}`)}
+                                         class=${`w-full h-full rounded-[4rem] overflow-hidden relative transition-all duration-[1s] ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer group
+                                                ${activeIndex !== index ? 'shadow-none' : 'shadow-[0_100px_250px_rgba(0,0,0,1)] ring-1 ring-white/20'}
+                                                ${activeIndex > index ? '[transform:rotateX(45deg)_translateY(-80px)_scale(0.85)]' : ''}
+                                                ${activeIndex < index ? '[transform:rotateX(-45deg)_translateY(80px)_scale(0.85)]' : ''}`}>
                                     
                                     <img class="w-full h-full object-cover transition-transform duration-[4s] group-hover:scale-110 grayscale-[0.4]"
                                          src=${thumb} alt=${p.title} onError=${(e) => { e.target.src = '/public/preview.png'; }} />
@@ -268,6 +277,7 @@ const App = () => {
                                     
                                     <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-[2s] bg-[radial-gradient(circle_at_50%_150%,rgba(0,245,255,0.15),transparent_70%)]"></div>
                                 </div>
+                                <//>
                             </div>
                         `;
     })}

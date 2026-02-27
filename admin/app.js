@@ -2137,14 +2137,59 @@ async function updateBanner() {
 
 async function loadLogs(query = '') {
     try {
-        const res = await fetch(`/api/analytics/logs?_t=${Date.now()}`, { credentials: 'include' });
+        // Fetch more logs to ensure we cover the 7-day period (limit 500)
+        const res = await fetch(`/api/analytics/logs?limit=500&_t=${Date.now()}`, { credentials: 'include' });
         const data = await res.json();
         if (data.logs) {
-            renderLogs(data.logs, query);
+            // Filter strictly for last 7 days
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            const filteredLogs = data.logs.filter(l => new Date(l.timestamp) >= sevenDaysAgo);
+
+            renderLogs(filteredLogs, query);
+            renderTrafficSummary(filteredLogs);
         }
     } catch (e) {
         console.error('Failed to load logs', e);
     }
+}
+
+function renderTrafficSummary(logs) {
+    const summaryEl = document.getElementById('trafficSummary');
+    if (!summaryEl) return;
+
+    // Calculate Top Sectors
+    const sectors = {};
+    const ips = {};
+    let blocked = 0;
+
+    logs.forEach(l => {
+        const country = l.countryCode || '??';
+        sectors[country] = (sectors[country] || 0) + 1;
+        ips[l.ip] = (ips[l.ip] || 0) + 1;
+        if (l.isBlocked) blocked++;
+    });
+
+    const topSector = Object.entries(sectors).sort((a, b) => b[1] - a[1])[0] || ['--', 0];
+    const topIP = Object.entries(ips).sort((a, b) => b[1] - a[1])[0] || ['--', 0];
+
+    summaryEl.innerHTML = `
+        <div class="stat-card">
+            <div class="stat-header">TOP SECTOR</div>
+            <div class="stat-value" style="font-size: 1.4rem;">${getFlagEmoji(topSector[0])} ${topSector[0]}</div>
+            <div class="stat-trend">${topSector[1]} Total Connections</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">HOT IDENTITY</div>
+            <div class="stat-value" style="font-size: 1.4rem; color: var(--primary-neon);">${topIP[0]}</div>
+            <div class="stat-trend">${topIP[1]} Transmission Bursts</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header">SECURITY COMPLIANCE</div>
+            <div class="stat-value" style="font-size: 1.4rem; color: ${blocked > 0 ? 'var(--secondary-neon)' : '#00ff9d'};">${blocked} Blocks</div>
+            <div class="stat-trend">Total Threats Neutralized</div>
+        </div>
+    `;
 }
 
 function renderLogs(logs, query = '') {
@@ -2158,37 +2203,111 @@ function renderLogs(logs, query = '') {
             (l.userAgent && l.userAgent.toLowerCase().includes(query.toLowerCase())) ||
             (l.method && l.method.includes(query.toUpperCase())) ||
             (l.city && l.city.toLowerCase().includes(query.toLowerCase())) ||
+            (l.isp && l.isp.toLowerCase().includes(query.toLowerCase())) ||
             (l.fingerprint && l.fingerprint.toLowerCase().includes(query.toLowerCase()))
         )
         : logs;
 
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR CURRENT SECTOR</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-secondary); font-family: var(--font-mono);">NO RECORDS FOUND FOR SELECTED PERIOD</td></tr>';
         return;
     }
 
-    tbody.innerHTML = filtered.map(log => {
-        const time = new Date(log.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    let currentMonth = '';
+    let currentWeek = -1;
+    let currentDay = '';
+    let html = '';
+
+    filtered.forEach(log => {
+        const date = new Date(log.timestamp);
+        const monthName = date.toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase();
+        const weekNum = getWeekNumber(date);
+        const dayName = date.toLocaleDateString('default', { weekday: 'long', month: 'short', day: 'numeric' }).toUpperCase();
+
+        // 1. Month Hierarchy
+        if (monthName !== currentMonth) {
+            currentMonth = monthName;
+            html += `<tr class="group-header month-header"><td colspan="7">🗓️ ${monthName}</td></tr>`;
+            currentWeek = -1; // Reset week/day trackers when month changes
+            currentDay = '';
+        }
+
+        // 2. Week Hierarchy
+        if (weekNum !== currentWeek) {
+            currentWeek = weekNum;
+            html += `<tr class="group-header week-header"><td colspan="7">📊 WEEK ${weekNum}</td></tr>`;
+            currentDay = '';
+        }
+
+        // 3. Day Hierarchy
+        if (dayName !== currentDay) {
+            currentDay = dayName;
+            const isToday = new Date().toDateString() === date.toDateString();
+            html += `<tr class="group-header day-header"><td colspan="7">${isToday ? '🎯 TODAY - ' : ''}${dayName}</td></tr>`;
+        }
+
+        const time = date.toLocaleString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const plat = parseUserAgent(log.userAgent);
         const flag = getFlagEmoji(log.countryCode);
-        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
+        const fp = log.fingerprint ? log.fingerprint.substring(0, 8).toUpperCase() : 'ANON';
+        const isSuspicious = log.proxy === 1 || log.hosting === 1;
 
-        return `
-            <tr>
-                <td style="color: var(--text-secondary); font-size: 0.8rem;">${time}</td>
-                <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
-                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
-                <td>${flag} ${log.city === 'Universal City' ? '<span class="location-tag vague">US Sector (CA)</span>' : (log.city || 'Unknown')}</td>
-                <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
-                <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
-                <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct'}</td>
-                <td style="display: flex; align-items: center; gap: 8px;">
-                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}">${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</span>
-                    <button onclick="deleteLog(${log.id})" style="background: none; border: none; cursor: pointer; opacity: 0.5;">🗑️</button>
+        html += `
+            <tr class="pulse-row" onclick="this.classList.toggle('expanded')">
+                <td style="color: var(--text-secondary); font-size: 0.75rem; white-space: nowrap;">${time}</td>
+                <td>
+                    <div style="font-family: var(--font-mono); color: var(--primary-neon); font-weight: 600;">${log.ip}</div>
+                    <small style="opacity: 0.5; font-size: 0.6rem;">FP: ${fp}</small>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span>${flag}</span>
+                        <div>
+                            <div style="font-size: 0.85rem;">${log.city || 'Unknown Sector'}</div>
+                            <div style="font-size: 0.65rem; color: var(--text-tertiary);">${log.region || log.regionName || '--'}, ${log.countryCode}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">
+                    <span class="badge badge-${(log.method || 'GET').toLowerCase()}" style="font-family: var(--font-mono); font-size: 0.65rem; margin-right: 4px;">${log.method || 'GET'}</span>
+                    <span style="opacity: 0.9; font-size: 0.85rem;">${log.path}</span>
+                </td>
+                <td><span class="badge" style="background: rgba(255,255,255,0.05); font-size: 0.7rem;">${plat}</span></td>
+                <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct Path'}</td>
+                <td style="display: flex; align-items: center; gap: 12px; height: 100%;">
+                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="padding: 2px 6px; font-size: 0.65rem;">${log.isBlocked ? 'THREAT' : 'AUTHORIZED'}</span>
+                    ${isSuspicious ? '<span title="VPN/Proxy Detected" style="cursor:help;">🛡️</span>' : ''}
+                </td>
+            </tr>
+            <tr class="pulse-details-row">
+                <td colspan="7">
+                    <div class="pulse-details-box" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 0 0 8px 8px;">
+                        <div>
+                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Forensic Data</div>
+                            <div style="font-size: 0.75rem; margin-top: 4px;">Host: <span style="color: var(--primary-neon)">${log.hostname || 'Unmapped'}</span></div>
+                            <div style="font-size: 0.75rem;">Org: ${log.org || log.isp || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Geolocation</div>
+                            <div style="font-size: 0.75rem; margin-top: 4px;">Coordinates: ${log.lat}, ${log.lon}</div>
+                            <div style="font-size: 0.75rem;">Zip: ${log.zip || 'Unknown'}</div>
+                        </div>
+                        <div>
+                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Client Profile</div>
+                            <div style="font-size: 0.75rem; margin-top: 4px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${log.userAgent}">UA: ${log.userAgent}</div>
+                            <div style="font-size: 0.75rem;">Fingerprint: <span style="font-family: var(--font-mono); color: var(--secondary-neon)">${log.fingerprint || 'NONE'}</span></div>
+                        </div>
+                        <div style="text-align: right; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px;">
+                            <button onclick="toggleCountryBlock('${log.countryCode}', 'Sector', true)" class="btn-small btn-glass" style="color: var(--secondary-start); padding: 4px 8px;">Block Sector</button>
+                            <button onclick="deleteLog(${log.id})" class="btn-small btn-glass" style="opacity: 0.6;">Purge Log</button>
+                        </div>
+                    </div>
                 </td>
             </tr>
         `;
-    }).join('');
+    });
+
+    tbody.innerHTML = html;
 }
 
 async function deleteLog(id) {
@@ -2381,5 +2500,14 @@ async function bulkToggle(countries, action) {
         console.error('Bulk toggle failed', e);
         alert('Bulk operation failed: ' + e.message);
     }
+}
+
+// Helpers
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return weekNo;
 }
 
