@@ -147,14 +147,17 @@ export const geoMiddleware = async (req, res, next) => {
 };
 
 function logAccess(ip, req, geo, isBlocked) {
-    console.log(`📡 Logging Access: ${ip} -> ${req.path} [${isBlocked ? 'BLOCKED' : 'ALLOW'}]`);
+    // 0. Filter Out Admin/Noise
+    const path = req.path || '';
+    const isAdmin = req.session?.isAdmin;
+    const isAuthPath = path.includes('/login') || path.includes('/logout') || path.includes('/adminperm');
+
+    // We disregard admin's own actions and login/logout noise
+    if (isAdmin || isAuthPath) return;
+
+    console.log(`📡 Logging Access: ${ip} -> ${path} [${isBlocked ? 'BLOCKED' : 'ALLOW'}]`);
     try {
-        const isAdmin = req.session?.isAdmin;
         const user = req.session?.user || {};
-
-        // Removed the admin filter to ensure 'ACTUAL data' is captured for all hits.
-        // We still tag it so it can be distinguished in the UI.
-
         const ua = req.headers['user-agent'] || '';
         const parser = new UAParser(ua);
         const result = parser.getResult();

@@ -214,6 +214,11 @@
 
             <!-- VIEW: TRAFFIC (HITS) -->
             <div id="traffic-view" class="view-content" style="display: none;">
+                <div class="dashboard-grid" id="trafficSummary"
+                    style="margin-bottom: 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                    <!-- Populated by JS -->
+                </div>
+
                 <div class="glass-panel animate-entry">
                     <div class="panel-header">
                         <div class="panel-title">Intelligence Flow</div>
@@ -224,18 +229,17 @@
                                 style="color: #ff0055; border-color: rgba(255,0,85,0.2);">Clear Registry</button>
                         </div>
                     </div>
-                    <div style="overflow-x: auto; max-height: calc(100vh - 250px);">
+                    <div style="overflow-x: auto; max-height: calc(100vh - 450px);">
                         <table class="data-table" id="trafficTable">
                             <thead>
                                 <tr>
                                     <th>Timestamp</th>
                                     <th>Identity (IP)</th>
-                                    <th>Machine ID</th>
                                     <th>Location</th>
                                     <th>Resource Path</th>
                                     <th>Platform</th>
                                     <th>Provider (ISP)</th>
-                                    <th>Status / Actions</th>
+                                    <th>Status / Security</th>
                                 </tr>
                             </thead>
                             <tbody id="analyticsTableBody">
