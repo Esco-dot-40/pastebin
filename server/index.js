@@ -104,7 +104,7 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
     const host = req.get('host');
-    const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
+    const proto = 'https'; // Force https for embeds/Discord as http images often fail
 
     const defaultImageUrl = `${proto}://${host}/public/preview.png`;
     const fullUrl = `${proto}://${host}${req.originalUrl}`;
@@ -539,6 +539,14 @@ app.get('/v/:id', (req, res) => {
                 description = strippedContent.length > 3
                     ? (strippedContent.length > maxDesc ? strippedContent.substring(0, maxDesc) + '...' : strippedContent)
                     : 'Interactive content hosted on veroe.space';
+
+                // Auto-Extraction for Thumbnails (if missing)
+                if (!paste.discordThumbnail) {
+                    const imgMatch = rawContent.match(/!\[.*?\]\((.*?)\)/i) || rawContent.match(/<img.*?src=["'](.*?)["']/i);
+                    if (imgMatch && imgMatch[1]) {
+                        paste.discordThumbnail = imgMatch[1];
+                    }
+                }
             }
         }
     }
@@ -548,7 +556,7 @@ app.get('/v/:id', (req, res) => {
     const isCrawler = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot/i.test(userAgent);
 
     if (isCrawler) {
-        const proto = (req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https') ? 'https' : 'http';
+        const proto = 'https';
         const host = req.get('host');
         let rawImage = (paste && paste.discordThumbnail) ? paste.discordThumbnail : `/public/preview.png`;
         if (rawImage && !rawImage.startsWith('http')) {

@@ -347,7 +347,15 @@ router.post('/', requireAuth, validatePaste, async (req, res) => {
 
     const id = generateId();
     const userId = req.session?.user?.id || (req.session?.isAdmin ? 'admin' : null);
-    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, discordThumbnail, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, discordThumbnail || null, userId);
+
+    // Auto-extract thumbnail if missing
+    let finalThumbnail = discordThumbnail;
+    if (!finalThumbnail && content) {
+        const imgMatch = content.match(/!\[.*?\]\((.*?)\)/i) || content.match(/<img.*?src=["'](.*?)["']/i);
+        if (imgMatch && imgMatch[1]) finalThumbnail = imgMatch[1];
+    }
+
+    db.prepare('INSERT INTO pastes (id, title, content, language, expiresAt, isPublic, burnAfterRead, folderId, password, discordThumbnail, userId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, title || 'Untitled', content, language || 'plaintext', expiresAt || null, isPublic !== false ? 1 : 0, burnAfterRead ? 1 : 0, folderId || null, password || null, finalThumbnail || null, userId);
     res.status(201).json({ id, success: true });
 });
 
@@ -358,7 +366,14 @@ router.put('/:id', requireAuth, validatePaste, async (req, res) => {
     if (content && content.length > 20000000) return res.status(400).json({ error: 'Transmission overflow: Content exceeds 20MB limit.' });
     if (title && title.length > 100) return res.status(400).json({ error: 'Title overhead: Maximum 100 characters allowed.' });
 
-    db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=?, discordThumbnail=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, discordThumbnail, req.params.id);
+    // Auto-extract thumbnail if missing
+    let finalThumbnail = discordThumbnail;
+    if (!finalThumbnail && content) {
+        const imgMatch = content.match(/!\[.*?\]\((.*?)\)/i) || content.match(/<img.*?src=["'](.*?)["']/i);
+        if (imgMatch && imgMatch[1]) finalThumbnail = imgMatch[1];
+    }
+
+    db.prepare('UPDATE pastes SET title=?, content=?, language=?, expiresAt=?, isPublic=?, burnAfterRead=?, folderId=?, password=?, discordThumbnail=? WHERE id=?').run(title, content, language, expiresAt, isPublic ? 1 : 0, burnAfterRead ? 1 : 0, folderId, password, finalThumbnail, req.params.id);
     res.json({ success: true });
 });
 
