@@ -34,8 +34,9 @@ app.set('trust proxy', 1);
 
 // 1. Security Hardening Layer
 app.use(helmet({
-    contentSecurityPolicy: false, // Disabled for 3D/AmCharts compatibility, but other headers stay
-    crossOriginEmbedderPolicy: false
+    contentSecurityPolicy: false, // Disabled for 3D/AmCharts compatibility
+    crossOriginEmbedderPolicy: false,
+    frameguard: false // FIX: Allow embedding for Discord and social platforms
 }));
 
 const apiLimiter = rateLimit({
@@ -99,19 +100,20 @@ export const logEvent = async (req, path, method = 'LOG') => {
     } catch (e) { }
 };
 
+// Bot Detection — serve lightweight HTML for crawlers (Discord, Twitter, etc.)
+const isCrawlerRequest = (ua) => {
+    return /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|Pinterest|WhatsApp|curl|wget/i.test(ua);
+};
+
 // Utility to serve HTML with injected meta tags
 const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templateType = 'public') => {
-    const siteName = 'veroe.space';
+    const defaultSiteName = 'veroe.space';
     const themeColor = '#00f5ff';
-    let host = req.get('x-forwarded-host') || req.get('host') || siteName;
-    // Defensive: if host is a local IP or empty, use hardcoded siteName
-    if (host.includes('127.0.0.1') || host.includes('localhost') || !host.includes('.')) {
-        host = siteName;
-    }
-    const proto = 'https';
 
-    const defaultImageUrl = `${proto}://${host}/public/preview.png`;
-    const fullUrl = `${proto}://${host}${req.originalUrl}`;
+    // Improved Host Detection
+    let host = req.get('x-forwarded-host') || req.get('host') || defaultSiteName;
+    const proto = req.get('x-forwarded-proto') || 'https';
+    const siteUrl = `${proto}://${host}`;
 
     const escape = (str) => String(str || '')
         .replace(/&/g, '&amp;')
@@ -122,69 +124,62 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
 
     const safeTitle = escape(title);
     const safeDesc = escape(description);
-    const safeUrl = escape(fullUrl);
+    const safeUrl = escape(`${siteUrl}${req.originalUrl}`);
 
     // Image logic: ensure absolute URL for crawlers
-    const hasCustomImage = customMeta.includes('og:image') || customMeta.includes('twitter:image');
     let imageUrl = '';
-    if (!hasCustomImage) {
-        let rawImage = req.pasteThumbnail || defaultImageUrl;
-        // Convert relative to absolute
-        if (rawImage && !rawImage.startsWith('http')) {
-            if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
-            rawImage = `${proto}://${host}${rawImage}`;
-        }
-        imageUrl = escape(rawImage);
+    let rawImage = req.pasteThumbnail || '/public/preview.png';
+
+    // Convert relative to absolute if needed
+    if (rawImage && !rawImage.startsWith('http')) {
+        if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
+        imageUrl = `${siteUrl}${rawImage}`;
+    } else {
+        imageUrl = rawImage;
     }
+    imageUrl = escape(imageUrl);
 
     const isVideo = customMeta.includes('og:video');
     const twitterCard = isVideo ? 'player' : 'summary_large_image';
-
-    // Bot Detection — serve lightweight HTML for crawlers (Discord, Twitter, etc.)
     const userAgent = req.headers['user-agent'] || '';
-    const isCrawler = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|LinkedInBot|Pinterest|WhatsApp/i.test(userAgent);
 
-    if (isCrawler) {
-        const imageMeta = imageUrl ? `
-    <meta property="og:image" content="${imageUrl}">
-    <meta property="og:image:secure_url" content="${imageUrl}">
-    <meta name="twitter:image" content="${imageUrl}">
-    <meta name="twitter:image:src" content="${imageUrl}">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <link rel="image_src" href="${imageUrl}">` : '';
-
+    if (isCrawlerRequest(userAgent)) {
         const crawlerHtml = `<!DOCTYPE html>
 <html prefix="og: http://ogp.me/ns#">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${safeTitle} | ${siteName}</title>
-<meta name="title" content="${safeTitle} | ${siteName}">
+<title>${safeTitle} | ${defaultSiteName}</title>
+<meta name="title" content="${safeTitle} | ${defaultSiteName}">
 <meta name="description" content="${safeDesc}">
 <meta property="og:type" content="${isVideo ? 'video.other' : 'website'}">
 <meta property="og:url" content="${safeUrl}">
 <meta property="og:title" content="${safeTitle}">
 <meta property="og:description" content="${safeDesc}">
-<meta property="og:site_name" content="${siteName}">${imageMeta}
+<meta property="og:site_name" content="${defaultSiteName}">
+<meta property="og:image" content="${imageUrl}">
+<meta property="og:image:secure_url" content="${imageUrl}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="${twitterCard}">
 <meta name="twitter:title" content="${safeTitle}">
 <meta name="twitter:description" content="${safeDesc}">
-<meta name="twitter:site" content="@veroe">
+<meta name="twitter:image" content="${imageUrl}">
 <meta name="theme-color" content="${themeColor}">
 ${customMeta}
 </head>
-<body style="background: #000; color: #fff;">
-  <div style="padding: 50px; text-align: center; font-family: sans-serif;">
-    <h1 style="color: ${themeColor}">${safeTitle}</h1>
-    <p style="color: #666;">${safeDesc}</p>
-    <a href="${safeUrl}" style="color: ${themeColor}">Connect to Station</a>
+<body style="background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0;">
+  <div style="padding: 40px; text-align: center; border: 1px solid #1a1a1a; border-radius: 20px; background: #050505;">
+    <h1 style="color: ${themeColor}; margin-bottom: 10px;">${safeTitle}</h1>
+    <p style="color: #888; margin-bottom: 20px;">${safeDesc}</p>
+    <a href="${safeUrl}" style="color: ${themeColor}; text-decoration: none; border: 1px solid ${themeColor}; padding: 10px 20px; border-radius: 8px;">Connect to Node</a>
   </div>
 </body>
 </html>`;
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for bots
+        res.setHeader('X-Content-Type-Options', 'nosniff');
         return res.send(crawlerHtml);
     }
 
@@ -555,58 +550,7 @@ app.get('/v/:id', (req, res) => {
         }
     }
 
-    // 3. Bot Detection — serve lightweight HTML for crawlers
-    const userAgent = req.headers['user-agent'] || '';
-    const isCrawler = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot/i.test(userAgent);
-
-    if (isCrawler) {
-        const proto = 'https';
-        let host = req.get('x-forwarded-host') || req.get('host') || 'veroe.space';
-        if (host.includes('127.0.0.1') || host.includes('localhost') || !host.includes('.')) {
-            host = 'veroe.space';
-        }
-        let rawImage = (paste && paste.discordThumbnail) ? paste.discordThumbnail : `/public/preview.png`;
-        if (rawImage && !rawImage.startsWith('http')) {
-            if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
-            rawImage = `${proto}://${host}${rawImage}`;
-        }
-        const imageUrl = rawImage;
-        const pageUrl = `${proto}://${host}/v/${pasteId}`;
-        const siteName = 'veroe.space';
-
-        const escape = (str) => String(str || '')
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-
-        const html = `<!DOCTYPE html>
-<html prefix="og: http://ogp.me/ns#">
-<head>
-<meta charset="UTF-8">
-<title>${escape(title)} | ${siteName}</title>
-<meta property="og:type" content="website">
-<meta property="og:url" content="${escape(pageUrl)}">
-<meta property="og:title" content="${escape(title)}">
-<meta property="og:description" content="${escape(description)}">
-<meta property="og:site_name" content="${siteName}">
-<meta property="og:image" content="${escape(imageUrl)}">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${escape(title)}">
-<meta name="twitter:description" content="${escape(description)}">
-<meta name="twitter:image" content="${escape(imageUrl)}">
-<meta name="theme-color" content="#00f5ff">
-</head>
-<body><p>${escape(title)}</p></body>
-</html>`;
-
-        res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        return res.send(html);
-    }
-
-    // 4. Normal browsers get the full SPA
+    // Simplified: Pass through to unified serveHtmlWithMeta
     if (paste && paste.discordThumbnail) {
         req.pasteThumbnail = paste.discordThumbnail;
     }
