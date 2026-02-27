@@ -132,21 +132,20 @@ const ElectricBorder = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        const octaves = 4;
+        const octaves = 3;
         const lacunarity = 2.0;
         const gain = 0.5;
-        const displacement = 12; // Much smaller displacement for a tighter border
-        const borderPadding = 30; // Extra space around the card for the lightning
+        const displacement = 8;
+        const borderPadding = 30;
 
         const updateSize = () => {
-            // Use offsetWidth to ignore CSS transforms
             const w = container.offsetWidth;
             const h = container.offsetHeight;
 
             const canvasW = w + borderPadding * 2;
             const canvasH = h + borderPadding * 2;
 
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const dpr = window.devicePixelRatio || 1;
             canvas.width = canvasW * dpr;
             canvas.height = canvasH * dpr;
             canvas.style.width = `${canvasW}px`;
@@ -156,66 +155,73 @@ const ElectricBorder = ({
         };
 
         let { w, h, dpr } = updateSize();
+        lastFrameTimeRef.current = performance.now();
 
         const draw = currentTime => {
             if (!canvas || !ctx) return;
 
-            const delta = (currentTime - lastFrameTimeRef.current) / 1000;
-            timeRef.current += (delta || 0) * speed;
+            // Handle the first frame and huge jumps
+            if (!lastFrameTimeRef.current) lastFrameTimeRef.current = currentTime;
+            let delta = (currentTime - lastFrameTimeRef.current) / 1000;
+            if (delta > 0.1) delta = 0.1; // Cap delta to prevent teleports
+
+            timeRef.current += delta * speed;
             lastFrameTimeRef.current = currentTime;
 
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
             ctx.scale(dpr, dpr);
 
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
-            // Shadow for glow effect on canvas
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 10;
+            // Use multiple strokes instead of shadowBlur for better performance/reliability
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 4;
+            drawPath(ctx, 0.5);
+            ctx.stroke();
 
+            ctx.globalAlpha = 1.0;
+            ctx.lineWidth = 1.5;
+            drawPath(ctx, 1.0);
+            ctx.stroke();
+
+            ctx.restore();
+            animationRef.current = requestAnimationFrame(draw);
+        };
+
+        function drawPath(context, noiseScale) {
+            context.beginPath();
             const radius = Math.min(borderRadius, Math.min(w, h) / 2);
-
             const perimeter = 2 * (w + h) + (2 * Math.PI * radius) - (8 * radius);
-            const stepCount = Math.max(200, Math.floor(perimeter / 2));
+            const stepCount = 180; // High enough for smoothness, low enough for performance
 
-            ctx.beginPath();
-
-            // Expand path slightly (+4px) to ensure lightning stays OUTSIDE the content
-            const drawW = w + 4;
-            const drawH = h + 4;
-            const drawLeft = borderPadding - 2;
-            const drawTop = borderPadding - 2;
+            const drawW = w + 2;
+            const drawH = h + 2;
+            const drawLeft = borderPadding - 1;
+            const drawTop = borderPadding - 1;
 
             for (let i = 0; i <= stepCount; i++) {
                 const t = i / stepCount;
-                const basePoint = getRoundedRectPoint(t, drawLeft, drawTop, drawW, drawH, radius + 2);
+                const basePoint = getRoundedRectPoint(t, drawLeft, drawTop, drawW, drawH, radius);
 
-                const xNoise = octavedNoise(t * 10, octaves, lacunarity, gain, chaos, 5, timeRef.current, 0);
-                const yNoise = octavedNoise(t * 10, octaves, lacunarity, gain, chaos, 5, timeRef.current, 1);
+                // Faster, tighter noise
+                const xNoise = octavedNoise(t * 5, octaves, lacunarity, gain, chaos * noiseScale, 2, timeRef.current, 0);
+                const yNoise = octavedNoise(t * 5, octaves, lacunarity, gain, chaos * noiseScale, 2, timeRef.current, 1);
 
                 const dx = basePoint.x + xNoise * displacement;
                 const dy = basePoint.y + yNoise * displacement;
 
-                if (i === 0) ctx.moveTo(dx, dy);
-                else ctx.lineTo(dx, dy);
+                if (i === 0) context.moveTo(dx, dy);
+                else context.lineTo(dx, dy);
             }
-
-            ctx.stroke();
-            ctx.restore();
-
-            animationRef.current = requestAnimationFrame(draw);
-        };
+        }
 
         const ro = new ResizeObserver(() => {
             const size = updateSize();
-            w = size.w;
-            h = size.h;
-            dpr = size.dpr;
+            w = size.w; h = size.h; dpr = size.dpr;
         });
         ro.observe(container);
 
@@ -228,7 +234,7 @@ const ElectricBorder = ({
     }, [color, speed, chaos, borderRadius, octavedNoise, getRoundedRectPoint]);
 
     return html`
-    <div ref=${containerRef} class=${`electric-border ${className}`} style=${{ ...style, '--electric-border-color': color }}>
+    <div ref=${containerRef} class=${`electric-border ${className}`} style=${{ ...style, '--electric-border-color': color, borderRadius: `${borderRadius}px` }}>
         <div class="eb-canvas-container">
             <canvas ref=${canvasRef} class="eb-canvas" />
         </div>

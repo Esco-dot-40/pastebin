@@ -103,8 +103,12 @@ export const logEvent = async (req, path, method = 'LOG') => {
 const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templateType = 'public') => {
     const siteName = 'veroe.space';
     const themeColor = '#00f5ff';
-    const host = req.get('host');
-    const proto = 'https'; // Force https for embeds/Discord as http images often fail
+    let host = req.get('x-forwarded-host') || req.get('host') || siteName;
+    // Defensive: if host is a local IP or empty, use hardcoded siteName
+    if (host.includes('127.0.0.1') || host.includes('localhost') || !host.includes('.')) {
+        host = siteName;
+    }
+    const proto = 'https';
 
     const defaultImageUrl = `${proto}://${host}/public/preview.png`;
     const fullUrl = `${proto}://${host}${req.originalUrl}`;
@@ -557,7 +561,10 @@ app.get('/v/:id', (req, res) => {
 
     if (isCrawler) {
         const proto = 'https';
-        const host = req.get('host');
+        let host = req.get('x-forwarded-host') || req.get('host') || 'veroe.space';
+        if (host.includes('127.0.0.1') || host.includes('localhost') || !host.includes('.')) {
+            host = 'veroe.space';
+        }
         let rawImage = (paste && paste.discordThumbnail) ? paste.discordThumbnail : `/public/preview.png`;
         if (rawImage && !rawImage.startsWith('http')) {
             if (!rawImage.startsWith('/')) rawImage = '/' + rawImage;
