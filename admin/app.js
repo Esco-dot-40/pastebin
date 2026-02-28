@@ -1709,7 +1709,14 @@ async function loadGlobalAnalytics() {
         updateDashboardStats(data);
         updateMainMap(data.locations || []);
         updateTrafficFeed(data.recentActivity || []);
-        renderAnalyticsTable(data.recentActivity || []);
+
+        // ONLY update the specific analytics table if the traffic tab is NOT open
+        // This prevents the specialized 7-day query from being overwritten by 
+        // the generic dashboard summary refresh.
+        const trafficTab = document.querySelector('.nav-item[data-tab="traffic"]');
+        if (!trafficTab || !trafficTab.classList.contains('active')) {
+            renderAnalyticsTable(data.recentActivity || []);
+        }
 
         // Update active visitors in header and dashboard
         if (activeVisitorsEl) {
@@ -1880,35 +1887,10 @@ window.setPulseSort = (field) => {
 };
 
 function renderAnalyticsTable(logs) {
-    const tbody = document.getElementById('analyticsTableBody');
-    if (!tbody) return;
-
-    if (!logs || logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-tertiary); padding: 20px;">No signal detected...</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = logs.slice(0, 15).map(log => {
-        const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const plat = parseUserAgent(log.userAgent);
-        const flag = getFlagEmoji(log.countryCode);
-        const fp = log.fingerprint ? log.fingerprint.substring(0, 10).toUpperCase() : 'UNKNOWN';
-
-        return `
-            <tr>
-                <td style="color: var(--text-secondary); font-size: 0.75rem;">${time}</td>
-                <td style="font-family: var(--font-mono); color: var(--primary-neon);">${log.ip}</td>
-                <td><span style="font-family: var(--font-mono); font-size: 0.65rem; color: var(--primary-start); opacity: 0.8;">[${fp}]</span></td>
-                <td>${flag} ${log.city || 'US Sector'}</td>
-                <td style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.path}">${log.path}</td>
-                <td><span class="badge" style="background: rgba(255,255,255,0.05);">${plat}</span></td>
-                <td style="font-size: 0.7rem; color: var(--text-tertiary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Internal'}</td>
-                <td>
-                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="font-size: 0.65rem;">${log.isBlocked ? 'BLOCKED' : 'ALLOW'}</span>
-                </td>
-            </tr>
-        `;
-    }).join('');
+    if (!logs || logs.length === 0) return;
+    // Use the comprehensive renderLogs logic for the table to maintain consistency
+    // but pass through the slice if we're just doing a preview
+    renderLogs(logs);
 }
 
 function parseUserAgent(ua) {
@@ -2137,8 +2119,8 @@ async function updateBanner() {
 
 async function loadLogs(query = '') {
     try {
-        // Fetch more logs to ensure we cover the 7-day period (limit 500)
-        const res = await fetch(`/api/analytics/logs?limit=500&_t=${Date.now()}`, { credentials: 'include' });
+        // Fetch more logs to ensure we cover the 7-day period (limit 1000)
+        const res = await fetch(`/api/analytics/logs?limit=1000&_t=${Date.now()}`, { credentials: 'include' });
         const data = await res.json();
         if (data.logs) {
             // Filter strictly for last 7 days
