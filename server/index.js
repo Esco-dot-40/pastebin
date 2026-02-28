@@ -159,9 +159,8 @@ const serveHtmlWithMeta = (req, res, title, description, customMeta = '', templa
 <meta property="og:site_name" content="${defaultSiteName}">
 <meta property="og:image" content="${imageUrl}">
 <meta property="og:image:secure_url" content="${imageUrl}">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${safeTitle} Preview">
+<meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="${twitterCard}">
 <meta name="twitter:title" content="${safeTitle}">
 <meta name="twitter:description" content="${safeDesc}">
@@ -217,8 +216,8 @@ ${customMeta}
 
     const metaBlock = `
     <!-- Primary Meta Tags -->
-    <title>${safeTitle} | ${siteName}</title>
-    <meta name="title" content="${safeTitle} | ${siteName}">
+    <title>${safeTitle} | ${defaultSiteName}</title>
+    <meta name="title" content="${safeTitle} | ${defaultSiteName}">
     <meta name="description" content="${safeDesc}">
 
     <!-- Open Graph / Facebook -->
@@ -226,7 +225,7 @@ ${customMeta}
     <meta property="og:url" content="${safeUrl}">
     <meta property="og:title" content="${safeTitle}">
     <meta property="og:description" content="${safeDesc}">
-    <meta property="og:site_name" content="${siteName}">
+    <meta property="og:site_name" content="${defaultSiteName}">
     ${imageMeta}
 
     <!-- Twitter -->
@@ -237,7 +236,7 @@ ${customMeta}
     
     <!-- Theme & Colors -->
     <meta name="theme-color" content="${themeColor}">
-    <meta name="apple-mobile-web-app-title" content="${siteName}">
+    <meta name="apple-mobile-web-app-title" content="${defaultSiteName}">
     ${customMeta}`;
 
     // Clean up existing titles to prevent double titles
