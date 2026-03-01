@@ -19,10 +19,11 @@
     <!-- Firebase SDK (Priority Load) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
         // Persistent Auth Reference
         window.firebaseAuth = null;
+        let useRedirectFallback = false;
 
         async function initAuth() {
             try {
@@ -45,33 +46,60 @@
                 window.firebaseReady = true;
                 console.log("[FIREBASE] Ready. Auth Domain:", firebaseConfig.authDomain);
 
-                window.loginWithGoogle = async () => {
-                    console.log("[FIREBASE] Initiating Google Popup...");
+                // Check for Redirect Result
+                try {
+                    const result = await getRedirectResult(auth);
+                    if (result && result.user) {
+                        console.log("[FIREBASE] Redirect Success:", result.user.email);
+                        handleBackendLogin(result.user);
+                    }
+                } catch (reErr) {
+                    console.error("[FIREBASE] Redirect Result Error:", reErr);
+                }
+
+                async function handleBackendLogin(user) {
+                    const response = await fetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        if (window.showToast) window.showToast("✅ Welcome, " + (user.displayName || user.email), "success");
+                        setTimeout(() => window.location.reload(), 800);
+                    }
+                }
+
+                window.loginWithGoogle = async (forceRedirect = false) => {
+                    console.log("[FIREBASE] Initiating Google Login...", forceRedirect ? "(REDIRECT)" : "(POPUP)");
+
+                    if (forceRedirect || useRedirectFallback) {
+                        try {
+                            await signInWithRedirect(auth, provider);
+                        } catch (err) {
+                            console.error("[FIREBASE] Redirect Start Error:", err);
+                        }
+                        return;
+                    }
+
                     const ls = document.getElementById('loadingState');
                     if (ls) ls.style.display = 'flex';
 
                     try {
                         const result = await signInWithPopup(auth, provider);
-                        const user = result.user;
-                        console.log("[FIREBASE] Success! User:", user.email);
-
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            if (window.showToast) window.showToast("✅ Welcome, " + (user.displayName || user.email), "success");
-                            setTimeout(() => window.location.reload(), 800);
-                        }
+                        handleBackendLogin(result.user);
                     } catch (error) {
-                        console.error("[FIREBASE] Popup Error:", error);
+                        console.error("[FIREBASE] Auth Error:", error);
                         if (error.code === 'auth/popup-closed-by-user') {
-                            window.showToast("Login Cancelled", "info");
+                            window.showToast("Popup blocked. Trying Redirect mode...", "info");
+                            useRedirectFallback = true;
+                            setTimeout(() => {
+                                if (confirm("Popup was blocked or closed. Switch to 'Redirect Mode' (more reliable)?")) {
+                                    window.loginWithGoogle(true);
+                                }
+                            }, 500);
                         } else if (error.code === 'auth/unauthorized-domain') {
-                            window.showToast("Auth Error: Domain not authorized in Firebase Console.", "error");
-                            console.error("CRITICAL: You must add " + window.location.hostname + " to Authorized Domains in Firebase Console.");
+                            window.showToast("Domain not authorized in Firebase.", "error");
                         } else {
                             window.showToast("Login Failed: " + (error.code || error.message), "error");
                         }
