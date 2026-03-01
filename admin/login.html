@@ -375,7 +375,7 @@
     <!-- Firebase SDK for Admin Google Login -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
         const googleBtn = document.getElementById('googleLoginBtn');
 
@@ -398,43 +398,57 @@
 
                 console.log("[ADMIN AUTH] Ready. Auth Domain:", firebaseConfig.authDomain);
 
+                // Handle Redirect Result
+                try {
+                    const result = await getRedirectResult(auth);
+                    if (result && result.user) {
+                        console.log("[ADMIN AUTH] Redirect Success:", result.user.email);
+                        handleBackendAdminLogin(result.user);
+                    }
+                } catch (reErr) {
+                    console.error("[ADMIN AUTH] Redirect Result Error:", reErr);
+                }
+
+                async function handleBackendAdminLogin(user) {
+                    const response = await fetch('/api/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            email: user.email,
+                            uid: user.uid,
+                            photoURL: user.photoURL,
+                            isAdminRedirect: true
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success && data.isAdmin) {
+                        window.location.href = '/adminperm/index.html';
+                    } else {
+                        alert(data.error || 'Access Denied: Account not authorized.');
+                    }
+                }
+
                 if (googleBtn) {
                     googleBtn.addEventListener('click', async () => {
                         console.log("[ADMIN AUTH] Starting Login Flow...");
                         googleBtn.disabled = true;
-                        googleBtn.textContent = 'Opening Secure Portal...';
+                        googleBtn.textContent = 'Verifying...';
 
                         try {
                             const result = await signInWithPopup(auth, provider);
                             const user = result.user;
                             console.log("[ADMIN AUTH] Firebase Success:", user.email);
 
-                            const response = await fetch('/api/auth/google', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    email: user.email,
-                                    uid: user.uid,
-                                    photoURL: user.photoURL,
-                                    isAdminRedirect: true
-                                })
-                            });
-
-                            const data = await response.json();
-                            console.log("[ADMIN AUTH] Backend Response:", data);
-
-                            if (data.success && data.isAdmin) {
-                                window.location.href = '/adminperm/index.html';
-                            } else {
-                                alert(data.error || 'Access Denied: Your Google account is not authorized.');
-                            }
+                            handleBackendAdminLogin(user);
                         } catch (error) {
                             console.error("[ADMIN AUTH] Failure:", error);
                             if (error.code === 'auth/popup-closed-by-user') {
-                                // User just closed it, no alert needed
+                                if (confirm("Popup was blocked or closed. Switch to 'Redirect Mode' (more reliable)?")) {
+                                    signInWithRedirect(auth, provider);
+                                }
                             } else if (error.code === 'auth/unauthorized-domain') {
                                 alert("Auth Error: Domain not authorized in Firebase Console.");
-                                console.error("CRITICAL: You must add " + window.location.hostname + " to Authorized Domains in Firebase.");
                             } else {
                                 alert("Login Error: " + (error.code || error.message));
                             }
