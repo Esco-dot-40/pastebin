@@ -56,10 +56,11 @@ router.get('/force-login/:key', async (req, res) => {
 // ... (existing helper)
 
 // Login via Google (Client sends profile)
-// TODO: Verify ID Token with Firebase Admin in production
-router.post('/google', (req, res) => {
-    const { email, uid, photoURL } = req.body;
+router.post('/google', async (req, res) => {
+    const { email, uid, photoURL, isAdminRedirect } = req.body;
     if (!email) return res.status(400).json({ error: 'Email required' });
+
+    console.log(`[AUTH] Google Login Attempt: ${email}, Admin Mode: ${isAdminRedirect}`);
 
     let user = db.prepare('SELECT * FROM users WHERE googleId = ?').get(uid);
     if (!user) {
@@ -83,9 +84,23 @@ router.post('/google', (req, res) => {
         }
     }
 
+    // Admin Access Escalation Log
+    if (isAdminRedirect) {
+        const adminEmail = process.env.ADMIN_EMAIL || 'admin@veroe.space'; // Fallback or user provided
+        if (email.toLowerCase() === adminEmail.toLowerCase()) {
+            req.session.isAdmin = true;
+            console.log(`[AUTH] [ADMIN] Google Admin Authenticated: ${email}`);
+        } else {
+            console.warn(`[AUTH] [ADMIN DENIED] Google login attempted admin access with unauthorized email: ${email}`);
+            return res.status(401).json({ error: 'Access Denied: Unauthorized Admin Identity' });
+        }
+    }
+
     req.session.user = user;
-    req.session.save();
-    res.json({ success: true, user });
+    req.session.save((err) => {
+        if (err) return res.status(500).json({ error: 'Session save failure' });
+        res.json({ success: true, user, isAdmin: !!req.session.isAdmin });
+    });
 });
 
 // Link Access Key to current User
