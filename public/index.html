@@ -19,31 +19,42 @@
     <!-- Firebase SDK (Priority Load) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        window.initFirebase = async () => {
+        // Persistent Auth Reference
+        window.firebaseAuth = null;
+
+        async function initAuth() {
             try {
+                console.log("[FIREBASE] Initializing...");
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
 
                 if (!firebaseConfig.apiKey) {
-                    console.warn("Firebase config missing. Google Auth will be disabled.");
-                    window.loginWithGoogle = () => window.showToast("Google Auth is not configured on this node.", "error");
+                    console.error("[FIREBASE] Missing API Key in environment.");
+                    window.loginWithGoogle = () => window.showToast("Google Auth is not configured.", "error");
                     return;
                 }
 
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
+                window.firebaseAuth = auth;
                 const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
+
                 window.firebaseReady = true;
+                console.log("[FIREBASE] Ready. Auth Domain:", firebaseConfig.authDomain);
 
                 window.loginWithGoogle = async () => {
+                    console.log("[FIREBASE] Initiating Google Popup...");
                     const ls = document.getElementById('loadingState');
                     if (ls) ls.style.display = 'flex';
 
                     try {
                         const result = await signInWithPopup(auth, provider);
                         const user = result.user;
+                        console.log("[FIREBASE] Success! User:", user.email);
+
                         const response = await fetch('/api/auth/google', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -51,27 +62,35 @@
                         });
                         const data = await response.json();
                         if (data.success) {
-                            if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
-                            setTimeout(() => window.location.reload(), 1000);
+                            if (window.showToast) window.showToast("✅ Welcome, " + (user.displayName || user.email), "success");
+                            setTimeout(() => window.location.reload(), 800);
                         }
                     } catch (error) {
-                        console.error("Google login failed", error);
+                        console.error("[FIREBASE] Popup Error:", error);
                         if (error.code === 'auth/popup-closed-by-user') {
                             window.showToast("Login Cancelled", "info");
+                        } else if (error.code === 'auth/unauthorized-domain') {
+                            window.showToast("Auth Error: Domain not authorized in Firebase Console.", "error");
+                            console.error("CRITICAL: You must add " + window.location.hostname + " to Authorized Domains in Firebase Console.");
                         } else {
-                            window.showToast("Login Failed: " + (error.message || "Unknown Error"), "error");
+                            window.showToast("Login Failed: " + (error.code || error.message), "error");
                         }
                     } finally {
                         if (ls) ls.style.display = 'none';
                     }
                 };
             } catch (e) {
-                console.error("Firebase init failed:", e);
+                console.error("[FIREBASE] Initialization failed:", e);
                 window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
             }
-        };
-        // Trigger early initialization
-        window.initFirebase();
+        }
+
+        // Run when ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAuth);
+        } else {
+            initAuth();
+        }
     </script>
 
     <!-- OpenGraph / Discord Embeds (Dynamically Injected) -->
