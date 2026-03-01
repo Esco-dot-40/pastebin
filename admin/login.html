@@ -375,13 +375,13 @@
     <!-- Firebase SDK for Admin Google Login -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
         const googleBtn = document.getElementById('googleLoginBtn');
 
         async function initAdminAuth() {
             try {
-                console.log("[ADMIN AUTH] Initializing...");
+                console.log("[ADMIN AUTH] Initializing (REDIRECT MODE)...");
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
 
@@ -396,8 +396,6 @@
                 const provider = new GoogleAuthProvider();
                 provider.setCustomParameters({ prompt: 'select_account' });
 
-                console.log("[ADMIN AUTH] Ready. Auth Domain:", firebaseConfig.authDomain);
-
                 // Handle Redirect Result
                 try {
                     const result = await getRedirectResult(auth);
@@ -406,7 +404,7 @@
                         handleBackendAdminLogin(result.user);
                     }
                 } catch (reErr) {
-                    console.error("[ADMIN AUTH] Redirect Result Error:", reErr);
+                    console.error("[ADMIN AUTH] Redirect Callback Error:", reErr);
                 }
 
                 async function handleBackendAdminLogin(user) {
@@ -431,33 +429,21 @@
 
                 if (googleBtn) {
                     googleBtn.addEventListener('click', async () => {
-                        console.log("[ADMIN AUTH] Starting Login Flow...");
+                        console.log("[ADMIN AUTH] Starting Redirect Flow...");
                         googleBtn.disabled = true;
-                        googleBtn.textContent = 'Verifying...';
+                        googleBtn.textContent = 'Transferring to Secure Login...';
 
                         try {
-                            const result = await signInWithPopup(auth, provider);
-                            const user = result.user;
-                            console.log("[ADMIN AUTH] Firebase Success:", user.email);
-
-                            handleBackendAdminLogin(user);
+                            await signInWithRedirect(auth, provider);
                         } catch (error) {
-                            console.error("[ADMIN AUTH] Failure:", error);
-                            if (error.code === 'auth/popup-closed-by-user') {
-                                if (confirm("Popup was blocked or closed. Switch to 'Redirect Mode' (more reliable)?")) {
-                                    signInWithRedirect(auth, provider);
-                                }
-                            } else if (error.code === 'auth/unauthorized-domain') {
-                                alert("Auth Error: Domain not authorized in Firebase Console.");
-                            } else {
-                                alert("Login Error: " + (error.code || error.message));
-                            }
-                        } finally {
+                            console.error("[ADMIN AUTH] Redirect Error:", error);
+                            alert("Login Error: " + (error.code || error.message));
                             googleBtn.disabled = false;
                             googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
                         }
                     });
                 }
+                console.log("[ADMIN AUTH] Ready.");
             } catch (e) {
                 console.error("[ADMIN AUTH] Init failed:", e);
                 if (googleBtn) googleBtn.style.display = 'none';
