@@ -70,43 +70,21 @@
                     }
                 }
 
-                window.loginWithGoogle = async (forceRedirect = false) => {
-                    console.log("[FIREBASE] Initiating Google Login...", forceRedirect ? "(REDIRECT)" : "(POPUP)");
-
-                    if (forceRedirect || useRedirectFallback) {
-                        try {
-                            await signInWithRedirect(auth, provider);
-                        } catch (err) {
-                            console.error("[FIREBASE] Redirect Start Error:", err);
-                        }
-                        return;
-                    }
-
+                window.loginWithGoogle = async () => {
                     const ls = document.getElementById('loadingState');
                     if (ls) ls.style.display = 'flex';
 
                     try {
-                        const result = await signInWithPopup(auth, provider);
-                        handleBackendLogin(result.user);
+                        console.log("[FIREBASE] Starting Redirect Flow...");
+                        await signInWithRedirect(auth, provider);
                     } catch (error) {
-                        console.error("[FIREBASE] Auth Error:", error);
-                        if (error.code === 'auth/popup-closed-by-user') {
-                            window.showToast("Popup blocked. Trying Redirect mode...", "info");
-                            useRedirectFallback = true;
-                            setTimeout(() => {
-                                if (confirm("Popup was blocked or closed. Switch to 'Redirect Mode' (more reliable)?")) {
-                                    window.loginWithGoogle(true);
-                                }
-                            }, 500);
-                        } else if (error.code === 'auth/unauthorized-domain') {
-                            window.showToast("Domain not authorized in Firebase.", "error");
-                        } else {
-                            window.showToast("Login Failed: " + (error.code || error.message), "error");
-                        }
-                    } finally {
+                        console.error("[FIREBASE] Redirect Error:", error);
+                        window.showToast("Login Initialization Failed", "error");
                         if (ls) ls.style.display = 'none';
                     }
                 };
+
+                console.log("[FIREBASE] Ready.");
             } catch (e) {
                 console.error("[FIREBASE] Initialization failed:", e);
                 window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
