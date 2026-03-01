@@ -190,6 +190,58 @@
             }
         }
 
+        .google-login-btn {
+            margin-top: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            color: #444;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .google-login-btn:hover {
+            background: #f8f8f8;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .google-logo {
+            width: 18px;
+            height: 18px;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: .5em;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: .5em;
+        }
+
         .login-footer {
             margin-top: 2rem;
             text-align: center;
@@ -239,6 +291,14 @@
                 <button type="submit" class="login-button" id="loginButton">
                     <span class="spinner"></span>
                     <span>Login</span>
+                </button>
+
+                <div class="divider">OR</div>
+
+                <button type="button" class="google-login-btn" id="googleLoginBtn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo"
+                        alt="Google">
+                    <span>Sign in with Google</span>
                 </button>
             </form>
 
@@ -310,6 +370,69 @@
 
         // Focus password input on load
         passwordInput.focus();
+    </script>
+
+    <!-- Firebase SDK for Admin Google Login -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const googleBtn = document.getElementById('googleLoginBtn');
+
+        async function initFirebase() {
+            try {
+                const configRes = await fetch('/api/auth/firebase-config');
+                const firebaseConfig = await configRes.json();
+
+                if (!firebaseConfig.apiKey) {
+                    googleBtn.style.display = 'none';
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const provider = new GoogleAuthProvider();
+
+                googleBtn.addEventListener('click', async () => {
+                    googleBtn.disabled = true;
+                    googleBtn.textContent = 'Connecting...';
+
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const user = result.user;
+
+                        const response = await fetch('/api/auth/google', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: user.email,
+                                uid: user.uid,
+                                photoURL: user.photoURL,
+                                isAdminRedirect: true // Signal that we want admin access
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.success && data.isAdmin) {
+                            window.location.href = '/adminperm/index.html';
+                        } else {
+                            alert(data.error || 'Access Denied: Your Google account is not authorized as an administrator.');
+                        }
+                    } catch (error) {
+                        console.error("Google Admin login failed", error);
+                        alert("Login Failed: " + (error.message || "Unknown error"));
+                    } finally {
+                        googleBtn.disabled = false;
+                        googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase init failed:", e);
+                googleBtn.style.display = 'none';
+            }
+        }
+
+        initFirebase();
     </script>
 </body>
 

@@ -16,6 +16,64 @@
         href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&family=JetBrains+Mono&family=Bricolage+Grotesque:opsz,wght@12..96,200..800&family=Outfit:wght@100..900&display=swap"
         rel="stylesheet">
 
+    <!-- Firebase SDK (Priority Load) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        window.initFirebase = async () => {
+            try {
+                const configRes = await fetch('/api/auth/firebase-config');
+                const firebaseConfig = await configRes.json();
+
+                if (!firebaseConfig.apiKey) {
+                    console.warn("Firebase config missing. Google Auth will be disabled.");
+                    window.loginWithGoogle = () => window.showToast("Google Auth is not configured on this node.", "error");
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const provider = new GoogleAuthProvider();
+                window.firebaseReady = true;
+
+                window.loginWithGoogle = async () => {
+                    const ls = document.getElementById('loadingState');
+                    if (ls) ls.style.display = 'flex';
+
+                    try {
+                        const result = await signInWithPopup(auth, provider);
+                        const user = result.user;
+                        const response = await fetch('/api/auth/google', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
+                        });
+                        const data = await response.json();
+                        if (data.success) {
+                            if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
+                    } catch (error) {
+                        console.error("Google login failed", error);
+                        if (error.code === 'auth/popup-closed-by-user') {
+                            window.showToast("Login Cancelled", "info");
+                        } else {
+                            window.showToast("Login Failed: " + (error.message || "Unknown Error"), "error");
+                        }
+                    } finally {
+                        if (ls) ls.style.display = 'none';
+                    }
+                };
+            } catch (e) {
+                console.error("Firebase init failed:", e);
+                window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
+            }
+        };
+        // Trigger early initialization
+        window.initFirebase();
+    </script>
+
     <!-- OpenGraph / Discord Embeds (Dynamically Injected) -->
 
 
@@ -2439,90 +2497,28 @@
         }
     </script>
 
-    <!-- Firebase Auth Handler -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+            // FINAL INITIALIZATION (Inside module to ensure handleRoute is defined)
+            (function () {
+                if (window.handleRoute) window.handleRoute();
+                window.onpopstate = window.handleRoute;
 
-        // Immediate Login Stub for Responsiveness
-        window.loginWithGoogle = async () => {
-            if (!window.firebaseReady) {
-                window.showToast("Initializing Auth... Please wait.", "info");
-                return;
-            }
-        };
-
-        async function initFirebase() {
-            try {
-                const configRes = await fetch('/api/auth/firebase-config');
-                const firebaseConfig = await configRes.json();
-
-                if (!firebaseConfig.apiKey) {
-                    console.warn("Firebase config missing. Google Auth will be disabled.");
-                    window.loginWithGoogle = () => {
-                        window.showToast("Google Auth is not configured on this node.", "error");
-                    };
-                    return;
-                }
-
-                const app = initializeApp(firebaseConfig);
-                const auth = getAuth(app);
-                const provider = new GoogleAuthProvider();
-                window.firebaseReady = true;
-
-                window.loginWithGoogle = async () => {
-                    const ls = document.getElementById('loadingState');
-                    if (ls) ls.style.display = 'flex';
-
-                    try {
-                        const result = await signInWithPopup(auth, provider);
-                        const user = result.user;
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            if (window.showToast) window.showToast("✅ Signed in with Google!", "success");
-                            setTimeout(() => window.location.reload(), 1000);
+                const lowerPath = window.location.pathname.toLowerCase();
+                if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
+                    const initRoute = () => {
+                        const currentPath = window.location.pathname.toLowerCase();
+                        if (currentPath.startsWith('/v/')) {
+                            const id = window.location.pathname.split('/')[2];
+                            if (id && window.showDetail) window.showDetail(id);
+                            else if (id) setTimeout(initRoute, 100);
+                        } else if (currentPath.startsWith('/public')) {
+                            if (window.showList) window.showList();
+                            else setTimeout(initRoute, 100);
                         }
-                    } catch (error) {
-                        console.error("Google login failed", error);
-                        if (window.showToast) window.showToast("Login Failed: " + (error.message || "Unknown Error"), "error");
-                    } finally {
-                        if (ls) ls.style.display = 'none';
-                    }
-                };
-            } catch (e) {
-                console.error("Firebase init failed:", e);
-                window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
-            }
-        }
-
-        initFirebase();
-
-        // FINAL INITIALIZATION (Inside module to ensure handleRoute is defined)
-        (function () {
-            if (window.handleRoute) window.handleRoute();
-            window.onpopstate = window.handleRoute;
-
-            const lowerPath = window.location.pathname.toLowerCase();
-            if (lowerPath.startsWith('/public') || lowerPath.startsWith('/v/')) {
-                const initRoute = () => {
-                    const currentPath = window.location.pathname.toLowerCase();
-                    if (currentPath.startsWith('/v/')) {
-                        const id = window.location.pathname.split('/')[2];
-                        if (id && window.showDetail) window.showDetail(id);
-                        else if (id) setTimeout(initRoute, 100);
-                    } else if (currentPath.startsWith('/public')) {
-                        if (window.showList) window.showList();
-                        else setTimeout(initRoute, 100);
-                    }
-                };
-                initRoute();
-            }
-        })();
+                    };
+                    initRoute();
+                }
+            })();
     </script>
 
     <!-- Audio Persistence & Auto-Play on Interaction -->
