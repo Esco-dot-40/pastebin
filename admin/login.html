@@ -379,60 +379,82 @@
 
         const googleBtn = document.getElementById('googleLoginBtn');
 
-        async function initFirebase() {
+        async function initAdminAuth() {
             try {
+                console.log("[ADMIN AUTH] Initializing...");
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
 
                 if (!firebaseConfig.apiKey) {
-                    googleBtn.style.display = 'none';
+                    console.error("[ADMIN AUTH] No API Key found.");
+                    if (googleBtn) googleBtn.style.display = 'none';
                     return;
                 }
 
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
                 const provider = new GoogleAuthProvider();
+                provider.setCustomParameters({ prompt: 'select_account' });
 
-                googleBtn.addEventListener('click', async () => {
-                    googleBtn.disabled = true;
-                    googleBtn.textContent = 'Connecting...';
+                console.log("[ADMIN AUTH] Ready. Auth Domain:", firebaseConfig.authDomain);
 
-                    try {
-                        const result = await signInWithPopup(auth, provider);
-                        const user = result.user;
+                if (googleBtn) {
+                    googleBtn.addEventListener('click', async () => {
+                        console.log("[ADMIN AUTH] Starting Login Flow...");
+                        googleBtn.disabled = true;
+                        googleBtn.textContent = 'Opening Secure Portal...';
 
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: user.email,
-                                uid: user.uid,
-                                photoURL: user.photoURL,
-                                isAdminRedirect: true // Signal that we want admin access
-                            })
-                        });
+                        try {
+                            const result = await signInWithPopup(auth, provider);
+                            const user = result.user;
+                            console.log("[ADMIN AUTH] Firebase Success:", user.email);
 
-                        const data = await response.json();
-                        if (data.success && data.isAdmin) {
-                            window.location.href = '/adminperm/index.html';
-                        } else {
-                            alert(data.error || 'Access Denied: Your Google account is not authorized as an administrator.');
+                            const response = await fetch('/api/auth/google', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    email: user.email,
+                                    uid: user.uid,
+                                    photoURL: user.photoURL,
+                                    isAdminRedirect: true
+                                })
+                            });
+
+                            const data = await response.json();
+                            console.log("[ADMIN AUTH] Backend Response:", data);
+
+                            if (data.success && data.isAdmin) {
+                                window.location.href = '/adminperm/index.html';
+                            } else {
+                                alert(data.error || 'Access Denied: Your Google account is not authorized.');
+                            }
+                        } catch (error) {
+                            console.error("[ADMIN AUTH] Failure:", error);
+                            if (error.code === 'auth/popup-closed-by-user') {
+                                // User just closed it, no alert needed
+                            } else if (error.code === 'auth/unauthorized-domain') {
+                                alert("Auth Error: Domain not authorized in Firebase Console.");
+                                console.error("CRITICAL: You must add " + window.location.hostname + " to Authorized Domains in Firebase.");
+                            } else {
+                                alert("Login Error: " + (error.code || error.message));
+                            }
+                        } finally {
+                            googleBtn.disabled = false;
+                            googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
                         }
-                    } catch (error) {
-                        console.error("Google Admin login failed", error);
-                        alert("Login Failed: " + (error.message || "Unknown error"));
-                    } finally {
-                        googleBtn.disabled = false;
-                        googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
-                    }
-                });
+                    });
+                }
             } catch (e) {
-                console.error("Firebase init failed:", e);
-                googleBtn.style.display = 'none';
+                console.error("[ADMIN AUTH] Init failed:", e);
+                if (googleBtn) googleBtn.style.display = 'none';
             }
         }
 
-        initFirebase();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initAdminAuth);
+        } else {
+            initAdminAuth();
+        }
     </script>
 </body>
 
