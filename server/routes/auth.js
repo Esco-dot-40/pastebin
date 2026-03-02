@@ -7,11 +7,9 @@ const router = express.Router();
 
 // Get Firebase Client Config for Frontend
 router.get('/firebase-config', (req, res) => {
-    // Use request host as authDomain so popup goes through our domain (proxied to Firebase)
-    const host = req.get('x-forwarded-host') || req.get('host') || process.env.FIREBASE_AUTH_DOMAIN;
     res.json({
         apiKey: process.env.FIREBASE_API_KEY,
-        authDomain: host,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
         projectId: process.env.FIREBASE_PROJECT_ID,
         storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
         messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
