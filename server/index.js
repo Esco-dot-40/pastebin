@@ -100,6 +100,34 @@ export const logEvent = async (req, path, method = 'LOG') => {
     } catch (e) { }
 };
 
+// Firebase Auth Handler Proxy — routes /__/ requests through our domain
+// This allows authDomain to be set to veroe.space instead of firebaseapp.com,
+// eliminating cross-origin popup issues
+app.use('/__', async (req, res) => {
+    const targetUrl = `https://quietbin-auth.firebaseapp.com/__${req.url}`;
+    try {
+        const response = await fetch(targetUrl, {
+            method: req.method,
+            headers: {
+                'Accept': req.headers.accept || '*/*',
+                'User-Agent': req.headers['user-agent'] || 'Mozilla/5.0'
+            },
+            redirect: 'follow'
+        });
+
+        // Forward status and content-type
+        const contentType = response.headers.get('content-type');
+        if (contentType) res.setHeader('Content-Type', contentType);
+        res.status(response.status);
+
+        const body = await response.text();
+        res.send(body);
+    } catch (e) {
+        console.error('[AUTH PROXY] Error proxying Firebase auth:', e.message);
+        res.status(502).send('Auth handler unavailable');
+    }
+});
+
 // Bot Detection — serve lightweight HTML for crawlers (Discord, Twitter, etc.)
 const isCrawlerRequest = (ua) => {
     return /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|Pinterest|WhatsApp|curl|wget/i.test(ua);
