@@ -375,19 +375,15 @@
     <!-- Firebase SDK for Admin Google Login -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
         const googleBtn = document.getElementById('googleLoginBtn');
 
         async function initAdminAuth() {
             try {
-                console.log("[ADMIN AUTH] Initializing (REDIRECT MODE)...");
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
-
                 if (!firebaseConfig.apiKey) {
-                    console.error("[ADMIN AUTH] No API Key found.");
                     if (googleBtn) googleBtn.style.display = 'none';
                     return;
                 }
@@ -397,89 +393,46 @@
                 const provider = new GoogleAuthProvider();
                 provider.setCustomParameters({ prompt: 'select_account' });
 
-                // Handle Redirect Result
-                try {
-                    console.log("[ADMIN AUTH] Checking for Redirect Result...");
-                    const result = await getRedirectResult(auth);
-                    if (result && result.user) {
-                        console.log("[ADMIN AUTH] Redirect Success: Found user", result.user.email);
-                        handleBackendAdminLogin(result.user);
-                    } else {
-                        console.log("[ADMIN AUTH] No redirect result found.");
-                    }
-                } catch (reErr) {
-                    console.error("[ADMIN AUTH] Redirect Callback Error:", reErr);
-                    alert("Admin Auth Sync Failed: " + (reErr.code || reErr.message));
-                }
-
-                async function handleBackendAdminLogin(user) {
-                    try {
-                        console.log("[ADMIN AUTH] Verifying with backend...");
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify({
-                                email: user.email,
-                                uid: user.uid,
-                                photoURL: user.photoURL,
-                                isAdminRedirect: true
-                            })
-                        });
-
-                        const data = await response.json();
-                        if (data.success && data.isAdmin) {
-                            console.log("[ADMIN AUTH] Backend Verified. Redirecting to Admin Panel...");
-                            window.location.href = '/adminperm/index.html';
-                        } else {
-                            console.error("[ADMIN AUTH] Backend Denied:", data.error);
-                            alert(data.error || 'Access Denied: Account not authorized for Admin Access.');
-                        }
-                    } catch (e) {
-                        console.error("[ADMIN AUTH] Backend sync exception:", e);
-                        alert("Server Error during Admin Verification.");
-                    }
-                }
-
                 if (googleBtn) {
                     googleBtn.addEventListener('click', async () => {
                         googleBtn.disabled = true;
                         googleBtn.textContent = 'Authenticating...';
-
                         try {
-                            // Try popup first
-                            console.log("[ADMIN AUTH] Trying signInWithPopup...");
                             const result = await signInWithPopup(auth, provider);
                             if (result && result.user) {
-                                console.log("[ADMIN AUTH] Popup success:", result.user.email);
-                                await handleBackendAdminLogin(result.user);
-                                return;
-                            }
-                        } catch (popupError) {
-                            console.warn("[ADMIN AUTH] Popup failed:", popupError.code);
-
-                            if (popupError.code === 'auth/popup-blocked' ||
-                                popupError.code === 'auth/popup-closed-by-user' ||
-                                popupError.code === 'auth/cancelled-popup-request') {
-
-                                console.log("[ADMIN AUTH] Falling back to redirect...");
-                                try {
-                                    await signInWithRedirect(auth, provider);
-                                    return;
-                                } catch (redirectError) {
-                                    console.error("[ADMIN AUTH] Redirect also failed:", redirectError);
+                                console.log("[ADMIN] Popup success:", result.user.email);
+                                const response = await fetch('/api/auth/google', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    credentials: 'include',
+                                    body: JSON.stringify({
+                                        email: result.user.email,
+                                        uid: result.user.uid,
+                                        photoURL: result.user.photoURL,
+                                        isAdminRedirect: true
+                                    })
+                                });
+                                const data = await response.json();
+                                if (data.success && data.isAdmin) {
+                                    window.location.href = '/adminperm/index.html';
+                                } else {
+                                    alert(data.error || 'Access Denied: Not authorized.');
+                                    googleBtn.disabled = false;
+                                    googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
                                 }
                             }
-
-                            alert("Login Failed: " + (popupError.code || popupError.message));
+                        } catch (error) {
+                            console.error("[ADMIN] Popup Error:", error);
+                            if (error.code !== 'auth/popup-closed-by-user') {
+                                alert("Login Failed: " + error.message);
+                            }
                             googleBtn.disabled = false;
                             googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-logo" alt="Google"><span>Sign in with Google</span>';
                         }
                     });
                 }
-                console.log("[ADMIN AUTH] Ready.");
             } catch (e) {
-                console.error("[ADMIN AUTH] Init failed:", e);
+                console.error("[ADMIN] Init failed:", e);
                 if (googleBtn) googleBtn.style.display = 'none';
             }
         }
