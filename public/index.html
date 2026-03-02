@@ -19,33 +19,15 @@
     <!-- Firebase SDK (Priority Load) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // Internal Debug Log
-        window.authDebug = (msg, type = 'log') => {
-            console[type](`[AUTH-DEBUG] ${msg}`);
-            const monitor = document.getElementById('auth-monitor');
-            if (monitor) {
-                const line = document.createElement('div');
-                line.style.color = type === 'error' ? '#ff0050' : (type === 'warn' ? '#ffae00' : '#00f5ff');
-                line.style.fontSize = '10px';
-                line.style.marginBottom = '2px';
-                line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                monitor.prepend(line);
-            }
-        };
-
-        // Persistent Auth Reference
         window.firebaseAuth = null;
 
         async function initAuth() {
             try {
-                window.authDebug("Initializing Firebase...");
                 const configRes = await fetch('/api/auth/firebase-config');
                 const firebaseConfig = await configRes.json();
-
                 if (!firebaseConfig.apiKey) {
-                    window.authDebug("Missing API Key!", "error");
                     window.loginWithGoogle = () => window.showToast("Google Auth is not configured.", "error");
                     return;
                 }
@@ -55,114 +37,45 @@
                 window.firebaseAuth = auth;
                 const provider = new GoogleAuthProvider();
                 provider.setCustomParameters({ prompt: 'select_account' });
-                window.firebaseReady = true;
 
-                // 1. Check for Redirect Result (in case redirect was used as fallback)
-                try {
-                    window.authDebug("Checking for redirect result...");
-                    const result = await getRedirectResult(auth);
-                    if (result && result.user) {
-                        window.authDebug(`Redirect returned user: ${result.user.email}`);
-                        await handleBackendLogin(result.user);
-                        return; // Don't set up listeners, page will reload
-                    } else {
-                        window.authDebug("No redirect result (normal load).");
-                    }
-                } catch (reErr) {
-                    window.authDebug(`Redirect check error: ${reErr.code || reErr.message}`, "warn");
-                }
-
-                // 2. Listen for auth state changes (catches any missed auth)
-                onAuthStateChanged(auth, async (firebaseUser) => {
-                    if (firebaseUser) {
-                        window.authDebug(`onAuthStateChanged: ${firebaseUser.email}`);
-                        // Check if we already have a backend session
-                        try {
-                            const sessionCheck = await fetch('/api/auth/me', { credentials: 'include' });
-                            const sessionData = await sessionCheck.json();
-                            if (!sessionData.user) {
-                                window.authDebug("Firebase user exists but no backend session. Syncing...");
-                                await handleBackendLogin(firebaseUser);
-                            }
-                        } catch (e) {
-                            window.authDebug(`Session check error: ${e.message}`, "warn");
-                        }
-                    }
-                });
-
-                // Backend sync function
-                async function handleBackendLogin(user) {
-                    try {
-                        window.authDebug("Syncing with backend...");
-                        if (window.showToast) window.showToast("Syncing Account...", "info");
-                        const response = await fetch('/api/auth/google', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify({ email: user.email, uid: user.uid, photoURL: user.photoURL })
-                        });
-                        const data = await response.json();
-                        if (data.success) {
-                            window.authDebug("Backend sync SUCCESS!");
-                            if (window.showToast) window.showToast("✅ Welcome, " + (user.displayName || user.email), "success");
-                            setTimeout(() => {
-                                window.location.href = '/';
-                            }, 1000);
-                        } else {
-                            window.authDebug(`Backend error: ${data.error}`, "error");
-                            if (window.showToast) window.showToast("Login Failed: " + data.error, "error");
-                        }
-                    } catch (e) {
-                        window.authDebug(`Backend fetch error: ${e.message}`, "error");
-                    }
-                }
-
-                // 3. Login function: Popup first, redirect fallback
                 window.loginWithGoogle = async () => {
-                    const ls = document.getElementById('loadingState');
-                    if (ls) ls.style.display = 'flex';
-
                     try {
-                        // Try popup first (most reliable, no page navigation)
-                        window.authDebug("Trying signInWithPopup...");
                         const result = await signInWithPopup(auth, provider);
                         if (result && result.user) {
-                            window.authDebug(`Popup success: ${result.user.email}`);
-                            await handleBackendLogin(result.user);
-                            return;
-                        }
-                    } catch (popupError) {
-                        window.authDebug(`Popup failed: ${popupError.code}`, "warn");
-
-                        // If popup was blocked or closed, fall back to redirect
-                        if (popupError.code === 'auth/popup-blocked' ||
-                            popupError.code === 'auth/popup-closed-by-user' ||
-                            popupError.code === 'auth/cancelled-popup-request') {
-
-                            window.authDebug("Falling back to signInWithRedirect...");
-                            if (window.showToast) window.showToast("Popup blocked — redirecting to Google...", "info");
-
-                            try {
-                                await signInWithRedirect(auth, provider);
-                                return; // Page will navigate away
-                            } catch (redirectError) {
-                                window.authDebug(`Redirect also failed: ${redirectError.code}`, "error");
+                            console.log("[FIREBASE] Popup success:", result.user.email);
+                            if (window.showToast) window.showToast("Syncing Account...", "info");
+                            const response = await fetch('/api/auth/google', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    email: result.user.email,
+                                    uid: result.user.uid,
+                                    photoURL: result.user.photoURL
+                                })
+                            });
+                            const data = await response.json();
+                            if (data.success) {
+                                if (window.showToast) window.showToast("✅ Welcome, " + (result.user.displayName || result.user.email), "success");
+                                setTimeout(() => { window.location.href = '/'; }, 1000);
+                            } else {
+                                if (window.showToast) window.showToast("Login Failed: " + data.error, "error");
                             }
                         }
-
-                        if (window.showToast) window.showToast("Login Failed", "error");
-                        if (ls) ls.style.display = 'none';
+                    } catch (error) {
+                        console.error("[FIREBASE] Popup Error:", error);
+                        if (error.code !== 'auth/popup-closed-by-user') {
+                            if (window.showToast) window.showToast("Login Failed: " + error.message, "error");
+                        }
                     }
                 };
 
-                window.authDebug("Firebase Ready.");
+                console.log("[FIREBASE] Ready.");
             } catch (e) {
-                window.authDebug(`Init Exception: ${e.message}`, "error");
-                window.loginWithGoogle = () => window.showToast("Auth System Offline", "error");
+                console.error("[FIREBASE] Init failed:", e);
             }
         }
 
-        // Run when ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initAuth);
         } else {
