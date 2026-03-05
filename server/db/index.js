@@ -133,6 +133,7 @@ initialTables.forEach(t => {
 try {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_page_accesses_path ON page_accesses(path)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_page_accesses_timestamp ON page_accesses(timestamp)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_page_accesses_ip ON page_accesses(ip)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_paste_views_pasteId ON paste_views(pasteId)`);
 } catch (e) {
     console.error('❌ Failed to create indices:', e.message);
@@ -213,7 +214,12 @@ migrateTable('page_accesses', [
     { name: 'referrer', type: 'TEXT' },
     { name: 'userId', type: 'TEXT' },
     { name: 'username', type: 'TEXT' },
-    { name: 'email', type: 'TEXT' }
+    { name: 'email', type: 'TEXT' },
+    { name: 'rawHeaders', type: 'TEXT' },
+    { name: 'requestBody', type: 'TEXT' },
+    { name: 'queryParams', type: 'TEXT' },
+    { name: 'cookieData', type: 'TEXT' },
+    { name: 'blockReason', type: 'TEXT' }
 ]);
 
 // Ensure all paste columns exist
@@ -281,9 +287,10 @@ migrateTable('users', [
 try {
     const settings = [
         { key: 'lockdown_active', value: '0' },
-        { key: 'europe_block', value: '0' },
+        { key: 'europe_block', value: '1' },
         { key: 'usa_block', value: '0' }
     ];
+
     const stmt = db.prepare('INSERT OR IGNORE INTO firewall_settings (key, value) VALUES (?, ?)');
     settings.forEach(s => stmt.run(s.key, s.value));
 } catch (e) {

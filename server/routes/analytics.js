@@ -13,10 +13,24 @@ const requireAdmin = (req, res, next) => {
 
 // Get all logs with pagination/filtering
 router.get('/logs', requireAdmin, (req, res) => {
-    const { limit = 100, offset = 0 } = req.query;
+    const { limit = 100, offset = 0, search = '' } = req.query;
     try {
-        const logs = db.prepare('SELECT * FROM page_accesses ORDER BY timestamp DESC LIMIT ? OFFSET ?').all(limit, offset);
-        const total = db.prepare('SELECT COUNT(*) as count FROM page_accesses').get().count;
+        let query = 'SELECT * FROM page_accesses';
+        let countQuery = 'SELECT COUNT(*) as count FROM page_accesses';
+        const params = [];
+
+        if (search) {
+            query += ' WHERE ip LIKE ? OR path LIKE ? OR countryCode LIKE ? OR userAgent LIKE ?';
+            countQuery += ' WHERE ip LIKE ? OR path LIKE ? OR countryCode LIKE ? OR userAgent LIKE ?';
+            const searchParam = `%${search}%`;
+            params.push(searchParam, searchParam, searchParam, searchParam);
+        }
+
+        query += ' ORDER BY timestamp DESC LIMIT ? OFFSET ?';
+        params.push(limit, offset);
+
+        const logs = db.prepare(query).all(...params);
+        const total = db.prepare(countQuery).get(...(search ? params.slice(0, 4) : [])).count;
         res.json({ logs, total });
     } catch (e) {
         res.status(500).json({ error: e.message });

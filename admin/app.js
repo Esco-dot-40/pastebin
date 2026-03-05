@@ -2257,31 +2257,44 @@ function renderLogs(logs, query = '') {
                 <td><span class="badge" style="background: rgba(255,255,255,0.05); font-size: 0.7rem;">${plat}</span></td>
                 <td style="font-size: 0.75rem; color: var(--text-secondary); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${log.isp || 'Direct Path'}</td>
                 <td style="display: flex; align-items: center; gap: 12px; height: 100%;">
-                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="padding: 2px 6px; font-size: 0.65rem;">${log.isBlocked ? 'THREAT' : 'AUTHORIZED'}</span>
+                    <span class="status-badge ${log.isBlocked ? 'status-err' : 'status-ok'}" style="padding: 2px 6px; font-size: 0.65rem;" title="${log.blockReason || ''}">
+                        ${log.isBlocked ? (log.blockReason ? 'BLOCKED' : 'THREAT') : 'AUTHORIZED'}
+                    </span>
                     ${isSuspicious ? '<span title="VPN/Proxy Detected" style="cursor:help;">🛡️</span>' : ''}
                 </td>
             </tr>
             <tr class="pulse-details-row">
                 <td colspan="7">
-                    <div class="pulse-details-box" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 0 0 8px 8px;">
-                        <div>
-                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Forensic Data</div>
-                            <div style="font-size: 0.75rem; margin-top: 4px;">Host: <span style="color: var(--primary-neon)">${log.hostname || 'Unmapped'}</span></div>
-                            <div style="font-size: 0.75rem;">Org: ${log.org || log.isp || 'N/A'}</div>
+                    <div class="pulse-details-box" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 0 0 8px 8px; border: 1px solid rgba(0, 245, 255, 0.1);">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 5px;">Forensic Identity</div>
+                                <div style="font-size: 0.75rem;">Host: <span style="color: var(--primary-neon)">${log.hostname || 'Unmapped'}</span></div>
+                                <div style="font-size: 0.75rem;">Org: ${log.org || log.isp || 'N/A'}</div>
+                                <div style="font-size: 0.75rem;">Fingerprint: <span style="color: var(--secondary-neon)">${log.fingerprint || 'NONE'}</span></div>
+                                <div style="font-size: 0.75rem; color: #ff006e;">${log.blockReason ? 'Block Reason: ' + log.blockReason : ''}</div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 5px;">Geolocation</div>
+                                <div style="font-size: 0.75rem;">Coords: ${log.lat}, ${log.lon}</div>
+                                <div style="font-size: 0.75rem;">Zip: ${log.zip || 'Unknown'}</div>
+                                <div style="font-size: 0.75rem;">Referrer: <span style="opacity: 0.6">${log.referrer || 'Direct'}</span></div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Geolocation</div>
-                            <div style="font-size: 0.75rem; margin-top: 4px;">Coordinates: ${log.lat}, ${log.lon}</div>
-                            <div style="font-size: 0.75rem;">Zip: ${log.zip || 'Unknown'}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase;">Client Profile</div>
-                            <div style="font-size: 0.75rem; margin-top: 4px; max-width: 150px; overflow: hidden; text-overflow: ellipsis;" title="${log.userAgent}">UA: ${log.userAgent}</div>
-                            <div style="font-size: 0.75rem;">Fingerprint: <span style="font-family: var(--font-mono); color: var(--secondary-neon)">${log.fingerprint || 'NONE'}</span></div>
-                        </div>
-                        <div style="text-align: right; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px;">
-                            <button onclick="toggleCountryBlock('${log.countryCode}', 'Sector', true)" class="btn-small btn-glass" style="color: var(--secondary-start); padding: 4px 8px;">Block Sector</button>
-                            <button onclick="deleteLog(${log.id})" class="btn-small btn-glass" style="opacity: 0.6;">Purge Log</button>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                                <div style="color: var(--text-tertiary); font-size: 0.6rem; text-transform: uppercase; margin-bottom: 5px;">Raw Payload Context</div>
+                                <div style="font-family: var(--font-mono); font-size: 0.65rem; max-height: 100px; overflow-y: auto; color: #00ff9d; word-break: break-all;">
+                                    <strong>HEADERS:</strong> ${escapeHtml(log.rawHeaders || '{}')}<br><br>
+                                    <strong>QUERY:</strong> ${escapeHtml(log.queryParams || '{}')}<br><br>
+                                    <strong>BODY:</strong> ${escapeHtml(log.requestBody || 'None')}<br><br>
+                                    <strong>COOKIES:</strong> ${escapeHtml(log.cookieData || '{}')}
+                                </div>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                                <button onclick="toggleCountryBlock('${log.countryCode}', 'Sector', true)" class="btn-small btn-glass" style="color: var(--secondary-start);">Block Sector</button>
+                                <button onclick="deleteLog(${log.id})" class="btn-small btn-glass" style="opacity: 0.6;">Purge Forensic Log</button>
+                            </div>
                         </div>
                     </div>
                 </td>
