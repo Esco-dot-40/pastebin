@@ -37,8 +37,25 @@ export const geoMiddleware = async (req, res, next) => {
         console.log(`[FIREWALL] Auto-registered new Admin IP: ${cleanIp}`);
     }
 
-    // IF THIS IS THE ADMIN OR AUTHORIZED BYPASS, SKIP EVERYTHING
+    // 3. Region Detection & Cache Strategy
+    let countryCode = req.headers['cf-ipcountry']?.toUpperCase();
+    if (countryCode === 'XX' || countryCode === 'T1') countryCode = null;
+
+    // FOR LOCAL TESTING: Force a country code if it's localhost
+    if (isLocal && !countryCode) countryCode = 'US';
+
+    // IF THIS IS THE ADMIN OR AUTHORIZED BYPASS, WE STILL LOG BUT SKIP BLOCKING
     if (adminIps.includes(cleanIp) || isLocal || hasSecretBypass || isAdminHeader || isSessionAdmin) {
+        // Log skip-block access
+        const geoDummy = isLocal ? { 
+            countryCode: 'US', 
+            country: 'Localhost', 
+            city: 'Internal', 
+            isp: 'Virtual Node',
+            lat: 37.751, 
+            lon: -97.822 
+        } : null;
+        logAccess(cleanIp, req, geoDummy || { countryCode: countryCode || '??' }, 0, 'Admin/Bypass');
         return next();
     }
 
@@ -50,10 +67,6 @@ export const geoMiddleware = async (req, res, next) => {
     // Bots usually get a pass for SEO/Embeds unless lockdown is active
     const userAgent = req.headers['user-agent'] || '';
     const isBot = /Discordbot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|TelegramBot|WhatsApp|Googlebot|Bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot|Sogou/i.test(userAgent);
-
-    // 4. Region Detection & Cache Strategy
-    let countryCode = req.headers['cf-ipcountry']?.toUpperCase();
-    if (countryCode === 'XX' || countryCode === 'T1') countryCode = null;
 
     let geoData = null;
     let blockReason = null;

@@ -71,7 +71,7 @@ router.get('/threat-intel', requireAdmin, (req, res) => {
         `).all();
 
         const topBlocked = db.prepare(`
-            SELECT country_code as countryCode, 'Locked' as countryName, 1 as status FROM blocked_countries
+            SELECT countryCode, 'Locked' as countryName, 1 as status FROM blocked_countries
         `).all();
 
         res.json({ suspiciousIPs, topBlocked });

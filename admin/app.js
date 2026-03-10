@@ -154,17 +154,32 @@ window.addEventListener('DOMContentLoaded', () => {
         const euBtn = document.getElementById('toggleEurope');
 
         if (usaBtn) {
-            usaBtn.addEventListener('click', () => {
-                const isBlocked = activeBlocks.includes('US');
-                bulkToggle(['US'], isBlocked ? 'unblock' : 'block');
+            usaBtn.addEventListener('click', async () => {
+                const isBlocked = usaBtn.classList.contains('active');
+                try {
+                    const res = await fetch('/api/firewall/lockdown', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ usaBlock: !isBlocked })
+                    });
+                    if (res.ok) loadFirewallList();
+                } catch (e) { console.error(e); }
             });
         }
 
         if (euBtn) {
-            euBtn.addEventListener('click', () => {
-                const euCountries = ['AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IS', 'IE', 'IT', 'LV', 'LI', 'LT', 'LU', 'MT', 'MD', 'MC', 'ME', 'NL', 'MK', 'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH', 'UA', 'GB', 'VA'];
-                const someBlocked = euCountries.some(c => activeBlocks.includes(c));
-                bulkToggle(euCountries, someBlocked ? 'unblock' : 'block');
+            euBtn.addEventListener('click', async () => {
+                const isBlocked = euBtn.classList.contains('active');
+                try {
+                    const res = await fetch('/api/firewall/lockdown', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ europeBlock: !isBlocked })
+                    });
+                    if (res.ok) loadFirewallList();
+                } catch (e) { console.error(e); }
             });
         }
     } catch (e) {
@@ -2402,6 +2417,21 @@ async function loadFirewallList(query = '') {
             if (blockedCountEl) blockedCountEl.textContent = activeBlocks.length;
             if (threatsCountEl && data.statistics) {
                 threatsCountEl.textContent = data.statistics.blocked_attempts || 0;
+            }
+
+            // UPDATE REGIONAL BUTTON STATES
+            const usaBtn = document.getElementById('toggleUSA');
+            const euBtn = document.getElementById('toggleEurope');
+            
+            if (usaBtn) {
+                usaBtn.classList.toggle('active', !!data.usaBlock);
+                usaBtn.style.background = data.usaBlock ? 'rgba(255, 0, 85, 0.2)' : '';
+                usaBtn.style.borderColor = data.usaBlock ? '#ff0055' : '';
+            }
+            if (euBtn) {
+                euBtn.classList.toggle('active', !!data.europeBlock);
+                euBtn.style.background = data.europeBlock ? 'rgba(255, 0, 85, 0.2)' : '';
+                euBtn.style.borderColor = data.europeBlock ? '#ff0055' : '';
             }
         }
     } catch (e) { console.error("Failed to load firewall list", e); }
